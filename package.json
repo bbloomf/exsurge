@@ -9,6 +9,13 @@
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.js"
   },
+  "bin": {
+    "exsurge": "./bin/cli.js"
+  },
+  "dependencies": {
+    "yargs-parser": "^15.0.0",
+    "jsdom": "^11.12.0"
+  },
   "devDependencies": {
     "babel": "^6.5.2",
     "babel-core": "^6.5.2",
