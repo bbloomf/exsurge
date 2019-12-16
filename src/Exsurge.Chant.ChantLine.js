@@ -1266,8 +1266,14 @@ export class ChantLine extends ChantLayoutElement {
         if (prev && next) {
           // if (prev instanceof TextOnly || next instanceof TextOnly) continue;
           var oldBoundsX = curr.bounds.x;
-          var leftPoint = prev instanceof TextOnly && prev.hasLyrics()? prev.lyrics[0].getRight() : prev.bounds.right(),
-            rightPoint = next instanceof TextOnly && next.hasLyrics()? next.lyrics[0].getLeft() : next.bounds.x;
+          var leftPoint =
+              prev instanceof TextOnly && prev.hasLyrics()
+                ? prev.lyrics[0].getRight()
+                : prev.bounds.right(),
+            rightPoint =
+              next instanceof TextOnly && next.hasLyrics()
+                ? next.lyrics[0].getLeft()
+                : next.bounds.x;
           curr.bounds.x = (leftPoint + rightPoint - curr.bounds.width) / 2;
           if (curr.hasLyrics()) {
             var offset = oldBoundsX - curr.bounds.x;
