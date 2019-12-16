@@ -351,7 +351,10 @@ export class ChantLine extends ChantLayoutElement {
       this.insertionCursor.performLayout(ctxt);
       this.insertionCursor.bounds.x =
         this.score.insertionElement.bounds.right() +
-        this.score.insertionElement.calculatedTrailingSpace / 2 -
+        ((this.score.insertionElement.trailingSpace &&
+          this.score.insertionElement.calculatedTrailingSpace) ||
+          0) /
+          2 -
         this.insertionCursor.origin.x;
     }
     return this.insertionCursor;
@@ -1254,31 +1257,18 @@ export class ChantLine extends ChantLayoutElement {
 
       if (curr && curr.isDivider) {
         var j = 1;
-        var prev = this.score.notations[i - j];
+        var prev = this.score.notations[i - 1];
         var next =
-          i + j === lastIndex ? this.custos : this.score.notations[i + j];
+          i + 1 === lastIndex ? this.custos : this.score.notations[i + 1];
         if (prev === next && next === this.custos) {
           prev = this.score.notations[i - 2];
-        } else {
-          while (next && next.constructor === TextOnly) {
-            j++;
-            next =
-              i + j === lastIndex ? this.custos : this.score.notations[i + j];
-          }
-          j = 1;
-          while (prev && prev.constructor === TextOnly) {
-            j++;
-            if (i - j < this.notationsStartIndex) {
-              prev = null;
-              break;
-            }
-            prev = this.score.notations[i - j];
-          }
         }
         if (prev && next) {
+          // if (prev instanceof TextOnly || next instanceof TextOnly) continue;
           var oldBoundsX = curr.bounds.x;
-          curr.bounds.x =
-            (prev.bounds.right() + next.bounds.x - curr.bounds.width) / 2;
+          var leftPoint = prev instanceof TextOnly && prev.hasLyrics()? prev.lyrics[0].getRight() : prev.bounds.right(),
+            rightPoint = next instanceof TextOnly && next.hasLyrics()? next.lyrics[0].getLeft() : next.bounds.x;
+          curr.bounds.x = (leftPoint + rightPoint - curr.bounds.width) / 2;
           if (curr.hasLyrics()) {
             var offset = oldBoundsX - curr.bounds.x;
             for (j = curr.lyrics.length - 1; j >= 0; j--) {

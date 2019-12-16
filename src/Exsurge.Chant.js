@@ -320,6 +320,7 @@ export class TextOnly extends ChantNotationElement {
     super();
     this.sourceIndex = sourceIndex;
     this.sourceLength = sourceLength;
+    this.sourceGabc = "";
     this.trailingSpace = 0;
   }
 
