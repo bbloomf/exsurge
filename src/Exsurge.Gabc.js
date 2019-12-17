@@ -296,7 +296,8 @@ export class Gabc {
     ctxt,
     mappings,
     newGabcSource,
-    insertionIndex = null
+    insertionIndex = null,
+    oldInsertionIndex = null
   ) {
     var headerLength = GabcHeader.getLength(newGabcSource);
     newGabcSource = newGabcSource.slice(headerLength);
@@ -305,6 +306,9 @@ export class Gabc {
 
     if (insertionIndex === null) {
       insertionIndex = NaN;
+    }
+    if (oldInsertionIndex === null) {
+      oldInsertionIndex = NaN;
     }
 
     var newWords = this.splitWords(newGabcSource);
@@ -343,10 +347,18 @@ export class Gabc {
             // the first clef doesn't get kept as a notation:
             elementIndex = -1;
           }
-          if (insertionIndex >= elementIndex) {
+          if (
+            insertionIndex >= elementIndex ||
+            oldInsertionIndex >= elementIndex
+          ) {
             // check if the insertion index is within this mapping:
             let elementCount = elementCountForNotations(mapping.notations);
-            if (insertionIndex < elementIndex + elementCount) {
+            if (
+              (insertionIndex >= elementIndex &&
+                insertionIndex < elementIndex + elementCount) ||
+              (oldInsertionIndex >= elementIndex &&
+                oldInsertionIndex < elementIndex + elementCount)
+            ) {
               // re-do this mapping:
               // TODO: check sourceIndex
               let sourceIndex = mapping.sourceIndex + sourceIndexDiff;
