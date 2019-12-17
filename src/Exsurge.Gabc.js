@@ -560,7 +560,7 @@ export class Gabc {
       if (items.length === 0) continue;
 
       if (insertionIndex >= 0)
-        insertionIndex += elementCountForNotations(items);
+        insertionIndex -= elementCountForNotations(items);
 
       items[0].firstOfSyllable = !!lyricText;
       notations.push(...items);
