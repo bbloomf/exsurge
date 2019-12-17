@@ -626,6 +626,26 @@ export let Glyphs = {
     },
     align: "left"
   },
+  PunctumQuadratumLiquescent: {
+    paths: [
+      {
+        type: "positive",
+        data:
+          "M0-36.5436c19.999799999999997 0 30 5.781 30 17.3436v56.717999999999996C23.437199999999997 30.956999999999997 13.4376 27.6756 0 27.6756s-23.4378 3.2819999999999996-30 9.843599999999999V-19.2c0-11.562 10.000200000000001-17.3436 30-17.3436z"
+      }
+    ],
+    bounds: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 123.438
+    },
+    origin: {
+      x: 50,
+      y: 60.906
+    },
+    align: "left"
+  },
   PunctumQuadratumAscLiquescent: {
     paths: [
       {

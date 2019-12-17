@@ -177,6 +177,7 @@ export let GlyphCode = {
 
   PunctumCavum: "PunctumCavum",
   PunctumQuadratum: "PunctumQuadratum",
+  PunctumQuadratumLiquescent: "PunctumQuadratumLiquescent",
   PunctumQuadratumAscLiquescent: "PunctumQuadratumAscLiquescent",
   PunctumQuadratumDesLiquescent: "PunctumQuadratumDesLiquescent",
   PunctumInclinatum: "PunctumInclinatum",

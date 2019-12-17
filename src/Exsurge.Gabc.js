@@ -1146,7 +1146,7 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote, notesRemaining) {
-        if (currNote.shape) {
+        if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
           var neume = new Neumes.Punctum();
           var state = createNeume(neume, false);
           // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,

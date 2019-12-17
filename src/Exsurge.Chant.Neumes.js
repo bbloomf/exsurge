@@ -1008,6 +1008,7 @@ export class Punctum extends Neume {
         glyph = GlyphCode.PunctumQuadratumAscLiquescent;
       else if (note.liquescent & LiquescentType.Descending)
         glyph = GlyphCode.PunctumQuadratumDesLiquescent;
+      else glyph = GlyphCode.PunctumQuadratumLiquescent;
     } else {
       if (note.shapeModifiers & NoteShapeModifiers.Cavum)
         glyph = GlyphCode.PunctumCavum;
