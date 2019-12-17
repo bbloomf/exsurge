@@ -1171,14 +1171,13 @@ export class Gabc {
           if (prevNote.ictus)
             prevNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
           if (currNote.shape === NoteShape.Inclinatum) return climacusState;
-          else {
+          else if (prevNote.staffPosition - currNote.staffPosition <= 4) {
             return clivisState;
           }
-        } else if (prevNote.morae && prevNote.morae.length) {
-          return createNeume(new Neumes.Punctum(), false);
-        } else {
+        } else if (!prevNote.morae || !prevNote.morae.length) {
           return distrophaState;
         }
+        return createNeume(new Neumes.Punctum(), false);
       }
     };
 
