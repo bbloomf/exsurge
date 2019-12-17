@@ -1051,6 +1051,10 @@ export class Gabc {
             notations.push(...bracketedNotations);
           } else {
             // looks like it's a note
+            if (insertionIndex === -1) {
+              trailingSpace = TrailingSpaceMultiple(1);
+              addNotation(null);
+            }
             this.createNoteFromData(
               ctxt,
               ctxt.activeClef,
@@ -1058,10 +1062,6 @@ export class Gabc {
               notes,
               sourceIndex
             );
-            if (insertionIndex === 0) {
-              trailingSpace = TrailingSpaceMultiple(1);
-              addNotation(null);
-            }
           }
           break;
       }
