@@ -440,6 +440,7 @@ export class ChantLine extends ChantLayoutElement {
     if (ctxt.editable) {
       inner.push(
         QuickSvg[functionNames.quickSvg]("rect", {
+          key: "insertion",
           x: x1,
           y: ctxt.staffInterval * -3,
           width: x2 - x1,
@@ -453,6 +454,7 @@ export class ChantLine extends ChantLayoutElement {
     for (i = -3; i <= 3; i += 2) {
       inner.push(
         QuickSvg[functionNames.quickSvg]("line", {
+          key: i,
           x1: x1,
           y1: ctxt.staffInterval * i,
           x2: x2,

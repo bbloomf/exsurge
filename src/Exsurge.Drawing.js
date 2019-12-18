@@ -345,16 +345,20 @@ export var QuickSvg = {
       props.className = props.class;
       delete props.class;
     }
-    for (let key of Object.keys(props)) {
-      if (/[-:][a-z]/.test(key)) {
-        if (/^\w+-index$/.test(key)) continue;
-        let camelCase = key.replace(/[-:]([a-z])/g, (whole, letter) =>
-          letter.toUpperCase()
-        );
-        props[camelCase] = props[key];
-        delete props[key];
+    const convertKeysToCamelCase = obj => {
+      for (let key of Object.keys(obj)) {
+        if (/[-:][a-z]/.test(key)) {
+          if (/^\w+-index$/.test(key)) continue;
+          let camelCase = key.replace(/[-:]([a-z])/g, (whole, letter) =>
+            letter.toUpperCase()
+          );
+          obj[camelCase] = obj[key];
+          delete obj[key];
+        }
       }
-    }
+    };
+    convertKeysToCamelCase(props);
+    if (props.style) convertKeysToCamelCase(props.style);
     if ("source" in props) {
       let source = props.source;
       if (source.sourceGabc) props["source-gabc"] = source.sourceGabc;
@@ -802,7 +806,7 @@ export class DividerLineVisualizer extends ChantLayoutElement {
       class: "dividerLine"
     };
     if (this.divider) {
-      if(this.divider.selected) props.class += " selected";
+      if (this.divider.selected) props.class += " selected";
       props["source-index"] = this.divider.sourceIndex;
       props["element-index"] = this.divider.elementIndex;
       props.source = this.divider;

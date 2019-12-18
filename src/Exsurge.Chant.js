@@ -437,7 +437,7 @@ export class ChantScore {
 
   updateSelection(selection) {
     this.selection = selection;
-    const elementSelection = (this.selection && this.selection.element) || [];
+    const elementSelection = (selection && selection.element) || [];
     let insertion = elementSelection.insertion;
     if (
       !insertion &&
