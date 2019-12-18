@@ -1435,12 +1435,17 @@ export class Gabc {
           currNote.shape === NoteShape.Default &&
           currNote.staffPosition > prevNote.staffPosition
         ) {
-          if (currNote.ictus)
-            currNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
-          return torculusResupinusState;
-        } else {
-          return createNeume(new Neumes.Torculus(), false);
+          let prevNoteButOne = notes[currNoteIndex - 2];
+          if (
+            prevNoteButOne &&
+            prevNoteButOne.staffPosition - prevNote.staffPosition <= 4
+          ) {
+            if (currNote.ictus)
+              currNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
+            return torculusResupinusState;
+          }
         }
+        return createNeume(new Neumes.Torculus(), false);
       }
     };
 
