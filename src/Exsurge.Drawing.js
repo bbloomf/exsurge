@@ -2173,7 +2173,11 @@ export class Lyric extends TextElement {
 
   setConnectorWidth(width) {
     this.connectorWidth = width;
-    this.connectorSpan.properties.textLength = width;
+    this.connectorSpan.properties = Object.assign(
+      {},
+      this.connectorSpan.properties,
+      { textLength: width }
+    );
     if (this.needsConnector)
       this.bounds.width = this.widthWithoutConnector + this.getConnectorWidth();
   }
