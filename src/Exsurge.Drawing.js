@@ -1549,15 +1549,12 @@ export class TextElement extends ChantLayoutElement {
             ctxt.textAfterSpecialChar,
           ctxt.specialCharProperties
         );
-      } else if (markupStack.length === 0) {
-        // otherwise we're dealing with matching markup delimeters
-        // if this is our first markup frame, then just create an inline for preceding text and push the stack frame
-        closeSpan(text.substring(spanStartIndex, match.index));
-        markupStack.push(
-          MarkupStackFrame.createStackFrame(ctxt, tagName, match.index)
-        );
       } else {
-        if (markupStack[markupStack.length - 1].tagName === tagName) {
+        // otherwise we're dealing with matching markup delimeters
+        if (
+          markupStack.length > 0 &&
+          markupStack[markupStack.length - 1].tagName === tagName
+        ) {
           // group close
           closeSpan(text.substring(spanStartIndex, match.index));
           markupStack.pop();
@@ -1568,11 +1565,21 @@ export class TextElement extends ChantLayoutElement {
           markupStack.pop();
           continue;
         } else {
-          // group open
           closeSpan(text.substring(spanStartIndex, match.index));
-          markupStack.push(
-            MarkupStackFrame.createStackFrame(ctxt, tagName, match.index)
-          );
+          if (closingTag) {
+            // out of order group close:
+            let index = markupStack.findIndex(
+              frame => frame.tagName === tagName
+            );
+            if (index >= 0) {
+              markupStack.splice(index, 1);
+            }
+          } else {
+            // group open
+            markupStack.push(
+              MarkupStackFrame.createStackFrame(ctxt, tagName, match.index)
+            );
+          }
         }
       }
 
