@@ -1555,9 +1555,11 @@ export class TextElement extends ChantLayoutElement {
           markupStack.length > 0 &&
           markupStack[markupStack.length - 1].tagName === tagName
         ) {
-          // group close
-          closeSpan(text.substring(spanStartIndex, match.index));
-          markupStack.pop();
+          if (closingTag) {
+            // group close
+            closeSpan(text.substring(spanStartIndex, match.index));
+            markupStack.pop();
+          }
         } else if (markupStack.filter(filterFrames).length > 0) {
           // trying to open a recursive group (or forgot to close a previous group)
           // in either case, we just unwind to the previous stack frame
