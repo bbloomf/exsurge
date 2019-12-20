@@ -50,6 +50,13 @@ function getFontFilenameForProperties(properties = {}, url = "{}") {
 
 const canAccessDOM = typeof document !== "undefined";
 
+const __getNeumeFromSvgElem = (score, elem) =>
+  score.notes[
+    elem.parentElement
+      .querySelector("[element-index]")
+      .getAttribute("element-index")
+  ].neume;
+
 /**
  * List of types of text and their defaults relative to lyrics
  * @type Array
@@ -79,7 +86,11 @@ export const TextTypes = {
     defaultSize: size => size,
     containedInScore: score =>
       score.titles.hasTextLeft() || score.titles.hasTextRight(),
-    getFromScore: (score, elem) => score.titles[elem.extraClass]
+    getFromScore: (score, elem) => score.titles[elem.extraClass],
+    getFromSvgElem: (score, elem) =>
+      score.titles[
+        elem.classList.contains("textRight") ? "textRight" : "textLeft"
+      ]
   },
   annotation: {
     display: "Annotation",
@@ -87,7 +98,11 @@ export const TextTypes = {
     containedInScore: score =>
       !!score.annotation &&
       (!score.mergeAnnotationWithTextLeft || score.dropCap),
-    getFromScore: score => score.annotation
+    getFromScore: (score, { elementIndex = 0 }) =>
+      score.annotation &&
+      (score.annotation.annotations
+        ? score.annotation.annotations[elementIndex]
+        : score.annotation)
   },
   dropCap: {
     display: "Drop Cap",
@@ -101,7 +116,11 @@ export const TextTypes = {
     defaultSize: size => size,
     containedInScore: score => score.hasAboveLinesText,
     getFromScore: (score, elem) =>
-      score.notations[elem.notation.notationIndex].alText[elem.alIndex]
+      score.notations[elem.notation.notationIndex].alText[elem.alIndex],
+    getFromSvgElem: (score, elem) =>
+      __getNeumeFromSvgElem(score, elem).alText[
+        elem.getAttribute("al-index") || 0
+      ]
   },
   choralSign: {
     display: "Choral Sign",
@@ -115,7 +134,11 @@ export const TextTypes = {
     defaultSize: size => size,
     containedInScore: score => score.hasLyrics,
     getFromScore: (score, elem) =>
-      score.notations[elem.notation.notationIndex].lyrics[elem.lyricIndex]
+      score.notations[elem.notation.notationIndex].lyrics[elem.lyricIndex],
+    getFromSvgElem: (score, elem) =>
+      __getNeumeFromSvgElem(score, elem).lyrics[
+        elem.getAttribute("lyric-index") || 0
+      ]
   },
   translation: {
     display: "Translation",
@@ -124,6 +147,10 @@ export const TextTypes = {
     getFromScore: (score, elem) =>
       score.notations[elem.notation.notationIndex].translationText[
         elem.translationIndex
+      ],
+    getFromSvgElem: (score, elem) =>
+      __getNeumeFromSvgElem(score, elem).translationText[
+        elem.getAttribute("translation-index") || 0
       ]
   }
 };
@@ -2453,7 +2480,29 @@ export class DropCap extends TextElement {
   }
 }
 
-export class Supertitle extends TextElement {
+export class TitleTextElement extends TextElement {
+  constructor(
+    ctxt,
+    text,
+    fontFamily,
+    fontSize,
+    textAnchor,
+    sourceIndex,
+    sourceGabc
+  ) {
+    super(
+      ctxt,
+      text,
+      fontFamily,
+      fontSize,
+      textAnchor,
+      sourceIndex,
+      sourceGabc
+    );
+  }
+}
+
+export class Supertitle extends TitleTextElement {
   constructor(ctxt, text, sourceIndex) {
     super(
       ctxt,
@@ -2470,7 +2519,7 @@ export class Supertitle extends TextElement {
   }
 }
 
-export class Title extends TextElement {
+export class Title extends TitleTextElement {
   constructor(ctxt, text, sourceIndex) {
     super(
       ctxt,
@@ -2487,7 +2536,7 @@ export class Title extends TextElement {
   }
 }
 
-export class Subtitle extends TextElement {
+export class Subtitle extends TitleTextElement {
   constructor(ctxt, text, sourceIndex) {
     super(
       ctxt,
@@ -2504,7 +2553,7 @@ export class Subtitle extends TextElement {
   }
 }
 
-export class TextLeftRight extends TextElement {
+export class TextLeftRight extends TitleTextElement {
   constructor(ctxt, text, type, sourceIndex) {
     super(
       ctxt,
@@ -2517,6 +2566,7 @@ export class TextLeftRight extends TextElement {
     );
     this.textType = TextTypes.leftRight;
     this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
+    this.headerKey = type === "textLeft" ? "text-left" : "text-right";
     this.padding = ctxt => ctxt.leftRightTextSize / 5;
   }
 

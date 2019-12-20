@@ -749,13 +749,21 @@ export class ChantScore {
     canvasCtxt.translate(-this.bounds.x, -this.bounds.y);
   }
 
-  getSvgProps(ctxt) {
+  getSvgProps(ctxt, zoom) {
+    let width =
+        typeof zoom === "number"
+          ? zoom * this.bounds.width
+          : zoom
+          ? undefined
+          : this.bounds.width,
+      height = zoom ? undefined : this.bounds.height;
+
     return {
       xmlns: "http://www.w3.org/2000/svg",
       version: "1.1",
       class: "ChantScore" + (ctxt.editable ? " EditableChantScore" : ""),
-      width: this.bounds.width,
-      height: this.bounds.height,
+      width,
+      height,
       viewBox: [0, 0, this.bounds.width, this.bounds.height].join(" ")
     };
   }
@@ -780,7 +788,7 @@ export class ChantScore {
     return node;
   }
 
-  createReact(ctxt) {
+  createReact(ctxt, zoom) {
     // create defs section
     var node = [
       QuickSvg.createReact(
@@ -797,7 +805,7 @@ export class ChantScore {
       node.push(this.lines[i].createReact(ctxt));
 
     node = QuickSvg.createReact("g", {}, ...node);
-    let svgProps = this.getSvgProps(ctxt);
+    let svgProps = this.getSvgProps(ctxt, zoom);
     svgProps.source = this;
     node = QuickSvg.createReact("svg", svgProps, node);
 

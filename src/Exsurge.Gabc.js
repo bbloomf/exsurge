@@ -141,7 +141,7 @@ export class GabcHeader {
 
   toString() {
     var result = [];
-    for (key in this) {
+    for (let key in this) {
       if (
         typeof this[key] !== "string" ||
         /^(length|original|comments|cValues)$/.test(key)
@@ -161,11 +161,11 @@ export class GabcHeader {
         result.push(key + ": " + this[key] + ";");
       }
     }
-    for (key in this.cValues) {
+    for (let key in this.cValues) {
       if (key.length === 0 || !this.cValues.hasOwnProperty(key)) continue;
       result.push("%" + key + ": " + this.cValues[key] + ";");
     }
-    for (i in this.comments) {
+    for (let i in this.comments) {
       if (!this.comments.hasOwnProperty(i)) continue;
       try {
         result.splice(i, 0, this.comments[i]);
