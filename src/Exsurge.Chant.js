@@ -214,6 +214,20 @@ export class Clef extends ChantNotationElement {
   static default() {
     return __defaultDoClef;
   }
+
+  clone() {
+    if (this.model) return this.model.clone();
+    let clone = new this.constructor(
+      this.staffPosition,
+      this.octave,
+      this.defaultAccidental
+    );
+    clone.sourceGabc = this.sourceGabc;
+    clone.sourceIndex = this.sourceIndex;
+    clone.elementIndex = this.elementIndex;
+    clone.model = this;
+    return clone;
+  }
 }
 
 export class DoClef extends Clef {
@@ -255,10 +269,6 @@ export class DoClef extends Clef {
     this.addVisualizer(glyph);
 
     this.finishLayout(ctxt);
-  }
-
-  clone() {
-    return new DoClef(this.staffPosition, this.octave, this.defaultAccidental);
   }
 }
 
@@ -305,10 +315,6 @@ export class FaClef extends Clef {
     this.addVisualizer(glyph);
 
     this.finishLayout(ctxt);
-  }
-
-  clone() {
-    return new FaClef(this.staffPosition, this.octave, this.defaultAccidental);
   }
 }
 
@@ -452,6 +458,9 @@ export class ChantScore {
       let element = this.notes[i];
       element.selected = elementSelection.includes(i);
     }
+    (
+      this.startingClef.model || this.startingClef
+    ).selected = elementSelection.includes(-1);
     for (let i = 0; i < this.lines.length; ++i) {
       this.lines[i].insertionCursor = null;
     }
@@ -530,6 +539,7 @@ export class ChantScore {
     // if we've reached this far and we *still* don't have a clef, then there aren't even
     // any neumes in the score. still, set the default clef just for good measure
     if (!this.startingClef) this.startingClef = Clef.default();
+    this.startingClef.elementIndex = -1;
 
     // update drop cap
     if (this.useDropCap) this.recreateDropCap(ctxt);

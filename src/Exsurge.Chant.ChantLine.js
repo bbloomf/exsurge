@@ -792,7 +792,7 @@ export class ChantLine extends ChantLayoutElement {
     // if the first notation on the line is a starting clef, then we treat it a little differently...
     // the clef becomes this line's starting clef and we skip over the clef in the notations array
     if (notations.length && notations[newElementStart].isClef) {
-      ctxt.activeClef = notations[newElementStart].clone();
+      ctxt.activeClef = notations[newElementStart];
       newElementStart++;
       this.notationsStartIndex++;
     }

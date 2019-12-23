@@ -1100,7 +1100,9 @@ export class GlyphVisualizer extends ChantLayoutElement {
         ? "selectedB"
         : "";
     } else {
-      className = source.selected ? "selected" : "";
+      let isSelected =
+        source.selected || (source.model && source.model.selected);
+      className = isSelected ? "selected" : "";
     }
     var result = {
       "source-index": source.sourceIndex,
@@ -1415,17 +1417,23 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
 }
 
 export class TextSpan {
-  constructor(text, properties, activeTags) {
+  constructor(text, properties, activeTags, index = 0) {
     if (typeof properties === "undefined" || properties === null)
       properties = {};
 
     this.text = text;
     this.properties = properties;
     this.activeTags = activeTags || [];
+    this.index = index;
   }
 
   clone() {
-    return new TextSpan(this.text, this.properties, this.activeTags);
+    return new TextSpan(
+      this.text,
+      this.properties,
+      this.activeTags,
+      this.index
+    );
   }
 }
 
@@ -1504,7 +1512,7 @@ export class TextElement extends ChantLayoutElement {
 
     var filterFrames = (frame, symbol) => frame.Symbol === symbol;
 
-    var closeSpan = (spanText, extraProperties) => {
+    var closeSpan = (spanText, index, extraProperties) => {
       if (spanText === "" && !this.dropCap) return;
 
       this.text += spanText;
@@ -1523,14 +1531,17 @@ export class TextElement extends ChantLayoutElement {
         new TextSpan(
           spanText,
           properties,
-          markupStack.map(frame => frame.tagName)
+          markupStack.map(frame => frame.tagName),
+          index
         )
       );
     };
 
-    var markupRegex = /(<br\/?>)|\\?([arv])(?:bar|\/\.)|<(\/)?([bciu]|ul|sc)>(?=(?:(.+?)<\/\4>)?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|<(\/)?([bciu]|ul|sc)>(?=(?:(.+?)<\/\4>)?)/gi;
 
     var match = null;
+    var closeCurrentSpan = () =>
+      closeSpan(text.substring(spanStartIndex, match.index), spanStartIndex);
     while ((match = markupRegex.exec(text))) {
       var [, newLine, specialChar, closingTag, tagName] = match;
 
@@ -1538,15 +1549,17 @@ export class TextElement extends ChantLayoutElement {
       if (newLine) {
         // close the current span, if any:
         if (match.index > spanStartIndex) {
-          closeSpan(text.substring(spanStartIndex, match.index));
+          closeCurrentSpan();
         }
         // add the newline span:
         newLineInNextSpan++;
       } else if (specialChar) {
+        closeCurrentSpan();
         closeSpan(
           ctxt.textBeforeSpecialChar +
             ctxt.specialCharText(specialChar) +
             ctxt.textAfterSpecialChar,
+          match.index,
           ctxt.specialCharProperties
         );
       } else {
@@ -1557,7 +1570,7 @@ export class TextElement extends ChantLayoutElement {
         ) {
           if (closingTag) {
             // group close
-            closeSpan(text.substring(spanStartIndex, match.index));
+            closeCurrentSpan();
             markupStack.pop();
           }
         } else if (markupStack.filter(filterFrames).length > 0) {
@@ -1567,7 +1580,7 @@ export class TextElement extends ChantLayoutElement {
           markupStack.pop();
           continue;
         } else {
-          closeSpan(text.substring(spanStartIndex, match.index));
+          closeCurrentSpan();
           if (closingTag) {
             // out of order group close:
             let index = markupStack.findIndex(
@@ -1592,7 +1605,7 @@ export class TextElement extends ChantLayoutElement {
     // if we finished matches, and there is still some text left,
     // or if we haven't generated any spans yet, create one final run
     if (spanStartIndex < text.length || this.spans.length === 0)
-      closeSpan(text.slice(spanStartIndex));
+      closeSpan(text.slice(spanStartIndex), spanStartIndex);
   }
 
   getCanvasFontForProperties(ctxt, properties = {}) {
@@ -1930,35 +1943,56 @@ export class TextElement extends ChantLayoutElement {
     };
   }
 
+  getSpanOptions(span, useStyleObject = false) {
+    var options = {
+      "source-index": span.index,
+      style: useStyleObject
+        ? span.properties
+        : getCssForProperties(span.properties)
+    };
+
+    if (span.properties.newLine) {
+      var xOffset = span.properties.xOffset || 0;
+      options.dy = (parseInt(span.properties.newLine) || 1) + "em";
+      options.x = this.bounds.x + xOffset;
+    } else if (span.properties.xOffset) {
+      options.x = this.bounds.x + span.properties.xOffset;
+    }
+    if (span.properties.textLength) {
+      options.textLength = span.properties.textLength;
+      options.lengthAdjust = "spacingAndGlyphs";
+      options.y = this.bounds.y;
+    }
+    if (this.resize) {
+      options["font-size"] =
+        span.properties["font-size"] || this.fontSize(ctxt) * this.resize;
+    }
+    // if (ctxt.setFontFamilyAttributes) {
+    //   options["font-family"] =
+    //     span.properties["font-family"] ||
+    //     getFontFilenameForProperties(span.properties, this.fontFamily(ctxt));
+    //   let properties = Object.assign({}, span.properties);
+    //   delete properties["font-weight"];
+    //   delete properties["font-style"];
+    //   options["style"] = getCssForProperties(properties);
+    // } else {
+    //   options["style"] = getCssForProperties(span.properties);
+    // }
+
+    return options;
+  }
+
   createSvgNode(ctxt) {
     var spans = [];
 
     for (var i = 0; i < this.spans.length; i++) {
-      var span = this.spans[i];
-      var options = {};
-
-      options.style = getCssForProperties(span.properties);
-      if (span.properties.newLine) {
-        var xOffset = span.properties.xOffset || 0;
-        options.dy = (parseInt(span.properties.newLine) || 1) + "em";
-        options.x = this.bounds.x + xOffset;
-      } else if (span.properties.xOffset) {
-        options.x = this.bounds.x + span.properties.xOffset;
-      }
-      if (span.properties.textLength) {
-        options.textLength = span.properties.textLength;
-        options.lengthAdjust = "spacingAndGlyphs";
-        options.y = this.bounds.y;
-      }
-      if (this.resize) {
-        options["font-size"] =
-          span.properties["font-size"] || this.fontSize(ctxt) * this.resize;
-      }
+      let span = this.spans[i];
+      let options = this.getSpanOptions(span);
 
       spans.push(QuickSvg.createNode("tspan", options, span.text));
     }
 
-    options = this.getSvgProps();
+    let options = this.getSvgProps();
     options.style = getCssForProperties(this.getExtraStyleProperties(ctxt));
     options.source = this;
 
@@ -1968,31 +2002,13 @@ export class TextElement extends ChantLayoutElement {
     var spans = [];
 
     for (var i = 0; i < this.spans.length; i++) {
-      var span = this.spans[i];
-      var options = {};
-
-      options.style = span.properties;
-      if (span.properties.newLine) {
-        var xOffset = span.properties.xOffset || 0;
-        options.dy = (parseInt(span.properties.newLine) || 1) + "em";
-        options.x = this.bounds.x + xOffset;
-      } else if (span.properties.xOffset) {
-        options.x = this.bounds.x + span.properties.xOffset;
-      }
-      if (span.properties.textLength) {
-        options.textLength = span.properties.textLength;
-        options.lengthAdjust = "spacingAndGlyphs";
-        options.y = this.bounds.y;
-      }
-      if (this.resize) {
-        options["font-size"] =
-          span.properties["font-size"] || this.fontSize(ctxt) * this.resize;
-      }
+      let span = this.spans[i];
+      let options = this.getSpanOptions(span, true);
 
       spans.push(QuickSvg.createReact("tspan", options, span.text));
     }
 
-    options = this.getSvgProps();
+    let options = this.getSvgProps();
     options.style = this.getExtraStyleProperties(ctxt);
     options.source = this;
 
@@ -2003,36 +2019,8 @@ export class TextElement extends ChantLayoutElement {
     var spans = "";
 
     for (var i = 0; i < this.spans.length; i++) {
-      var span = this.spans[i];
-      var options = {};
-
-      if (span.properties.newLine) {
-        var xOffset = span.properties.xOffset || 0;
-        options.dy = (parseInt(span.properties.newLine) || 1) + "em";
-        options.x = this.bounds.x + xOffset;
-      } else if (span.properties.xOffset) {
-        options.x = this.bounds.x + span.properties.xOffset;
-      }
-      if (span.properties.textLength) {
-        options.textLength = span.properties.textLength;
-        options.lengthAdjust = "spacingAndGlyphs";
-        options.y = this.bounds.y;
-      }
-      if (this.resize) {
-        options["font-size"] =
-          span.properties["font-size"] || this.fontSize(ctxt) * this.resize;
-      }
-      if (ctxt.setFontFamilyAttributes) {
-        options["font-family"] =
-          span.properties["font-family"] ||
-          getFontFilenameForProperties(span.properties, this.fontFamily(ctxt));
-        let properties = Object.assign({}, span.properties);
-        delete properties["font-weight"];
-        delete properties["font-style"];
-        options["style"] = getCssForProperties(properties);
-      } else {
-        options["style"] = getCssForProperties(span.properties);
-      }
+      let span = this.spans[i];
+      let options = this.getSpanOptions(span);
 
       spans += QuickSvg.createFragment(
         "tspan",
@@ -2041,7 +2029,7 @@ export class TextElement extends ChantLayoutElement {
       );
     }
 
-    options = this.getSvgProps();
+    let options = this.getSvgProps();
     options.style = getCssForProperties(this.getExtraStyleProperties(ctxt));
     if (ctxt.setFontFamilyAttributes) {
       options["font-size"] = this.fontSize(ctxt);
