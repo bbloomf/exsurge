@@ -131,7 +131,7 @@ export const TextTypes = {
   },
   lyric: {
     display: "Lyric",
-    defaultSize: size => size,
+    defaultSize: size => size * 0.9,
     containedInScore: score => score.hasLyrics,
     getFromScore: (score, elem) =>
       score.notations[elem.notation.notationIndex].lyrics[elem.lyricIndex],
@@ -142,7 +142,7 @@ export const TextTypes = {
   },
   translation: {
     display: "Translation",
-    defaultSize: size => size, // * 0.8,
+    defaultSize: size => size * 0.75,
     containedInScore: score => score.hasTranslations,
     getFromScore: (score, elem) =>
       score.notations[elem.notation.notationIndex].translationText[
