@@ -83,7 +83,7 @@ export const TextTypes = {
   leftRight: {
     display: "Left / Right Text",
     cssClass: "textLeftRight",
-    defaultSize: size => size,
+    defaultSize: size => size * 0.9,
     containedInScore: score =>
       score.titles.hasTextLeft() || score.titles.hasTextRight(),
     getFromScore: (score, elem) => score.titles[elem.extraClass],
