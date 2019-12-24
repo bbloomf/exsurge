@@ -1085,10 +1085,10 @@ export class Gabc {
               notes,
               sourceIndex
             );
+            --insertionIndex;
           }
           break;
       }
-      --insertionIndex;
     }
 
     // finish up any remaining notes we have left
