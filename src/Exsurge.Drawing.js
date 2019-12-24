@@ -2349,6 +2349,7 @@ export class Lyric extends TextElement {
     this.sourceGabc = this.sourceGabc.slice(this.sourceIndex);
 
     this.spans[0].text = this.spans[0].text.slice(1);
+    this.text = this.text.slice(1);
     this.centerStartIndex--; // lost a letter, so adjust centering accordingly
 
     return dropCap;

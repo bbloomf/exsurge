@@ -709,7 +709,7 @@ export class Gabc {
       var centerLength = 0;
 
       if (centerStartIndex >= 0) {
-        var indexClosingBracket = lyricText.indexOf("}");
+        let indexClosingBracket = lyricText.indexOf("}");
 
         if (
           indexClosingBracket >= 0 &&
@@ -733,6 +733,29 @@ export class Gabc {
         notations,
         sourceIndex
       );
+
+      if (centerStartIndex) {
+        // update indices in case there had been any tags, etc.
+        let textIndex = 0,
+          centerEndIndex = -1;
+        for (let span of lyric.spans) {
+          if (
+            centerStartIndex >= span.sourceIndex &&
+            centerStartIndex < span.sourceIndex + span.text.length
+          ) {
+            centerStartIndex += textIndex - span.sourceIndex;
+            centerEndIndex = centerStartIndex + centerLength;
+          } else if (
+            centerEndIndex >= 0 &&
+            centerEndIndex >= span.sourceIndex &&
+            centerEndIndex < span.sourceIndex + span.text.length
+          ) {
+            centerEndIndex += textIndex - span.sourceIndex;
+            break;
+          }
+          textIndex += span.text.length;
+        }
+      }
 
       // if we have manual lyric centering, then set it now
       if (centerStartIndex >= 0) {
