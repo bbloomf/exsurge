@@ -474,12 +474,27 @@ export class Gabc {
             insertionIndex - elementIndex
           );
 
+          if (elementIndex === 0 && mapping.notations[0].isClef) {
+            // the first clef doesn't get kept as a notation:
+            elementIndex = -1;
+            let elementCount = elementCountForNotations(mapping.notations);
+            if (insertionIndex < elementCount) {
+              // re-do the first mapping, because it was broken up incorrectly, due to the presence of the initial clef
+              mapping = this.createMappingFromWord(
+                ctxt,
+                resultValues[j],
+                sourceIndex,
+                lastTranslationNeumes,
+                insertionIndex - elementIndex
+              );
+            }
+          }
+
           for (k = 0; k < mapping.notations.length; k++) {
             let curNotation = mapping.notations[k];
             elementIndex += curNotation.notes ? curNotation.notes.length : 1;
             if (curNotation.isClef) {
               ctxt.activeClef = mapping.notations[k];
-              if (elementIndex === 1) elementIndex = 0;
             }
           }
 
