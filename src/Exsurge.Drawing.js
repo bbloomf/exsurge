@@ -57,6 +57,13 @@ const __getNeumeFromSvgElem = (score, elem) =>
       .getAttribute("element-index")
   ].neume;
 
+// for positioning markings on notes
+export var MarkingPositionHint = {
+  Default: 0,
+  Above: 1,
+  Below: 2
+};
+
 /**
  * List of types of text and their defaults relative to lyrics
  * @type Array
@@ -1943,7 +1950,7 @@ export class TextElement extends ChantLayoutElement {
     };
   }
 
-  getSpanOptions(span, useStyleObject = false) {
+  getSpanOptions(span, ctxt, useStyleObject = false) {
     var options = {
       "source-index": span.index,
       style: useStyleObject
@@ -1987,7 +1994,7 @@ export class TextElement extends ChantLayoutElement {
 
     for (var i = 0; i < this.spans.length; i++) {
       let span = this.spans[i];
-      let options = this.getSpanOptions(span);
+      let options = this.getSpanOptions(span, ctxt);
 
       spans.push(QuickSvg.createNode("tspan", options, span.text));
     }
@@ -2003,7 +2010,7 @@ export class TextElement extends ChantLayoutElement {
 
     for (var i = 0; i < this.spans.length; i++) {
       let span = this.spans[i];
-      let options = this.getSpanOptions(span, true);
+      let options = this.getSpanOptions(span, ctxt, true);
 
       spans.push(QuickSvg.createReact("tspan", options, span.text));
     }
@@ -2020,7 +2027,7 @@ export class TextElement extends ChantLayoutElement {
 
     for (var i = 0; i < this.spans.length; i++) {
       let span = this.spans[i];
-      let options = this.getSpanOptions(span);
+      let options = this.getSpanOptions(span, ctxt);
 
       spans += QuickSvg.createFragment(
         "tspan",
@@ -2382,9 +2389,9 @@ export class ChoralSign extends TextElement {
       sourceIndex,
       text
     );
+    this.positionHint = MarkingPositionHint.Default;
     this.note = note;
     this.textType = TextTypes.choralSign;
-    this.isAbove = true;
   }
 
   recalculateMetrics(ctxt) {
@@ -2397,11 +2404,16 @@ export class ChoralSign extends TextElement {
       this.note.bounds.x +
       Math.max(0, (ctxt.staffInterval - this.bounds.width) / 2); // center on the note itself
 
-    // this puts the acute accent either over the staff lines, or over the note if the
-    // note is above the staff lines
-    let offset = this.isAbove ? 1 : -1;
-    let staffPosition = this.note.staffPosition + 2 * offset;
-    staffPosition += staffPosition % 2 === 0 ? 0.3 : -0.4;
+    let offset, staffPosition;
+    if (this.positionHint === MarkingPositionHint.Below) {
+      offset = -1;
+      staffPosition = this.note.staffPosition + 2 * offset;
+      staffPosition += staffPosition % 2 === 0 ? 0.3 : 1;
+    } else {
+      offset = 1;
+      staffPosition = this.note.staffPosition + 2 * offset;
+      staffPosition += staffPosition % 2 === 0 ? 0.3 : -0.4;
+    }
     // if (staffPosition % 2 === 0) staffPosition += offset;
     this.bounds.y =
       ctxt.calculateHeightFromStaffPosition(staffPosition) + this.origin.y;

@@ -39,11 +39,6 @@ import {
 } from "./Exsurge.Drawing.js";
 import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import { AccidentalType, InsertionCursor } from "./Exsurge.Chant.Signs.js";
-import {
-  MarkingPositionHint,
-  HorizontalEpisemaAlignment,
-  HorizontalEpisema
-} from "./Exsurge.Chant.Markings.js";
 import { Gabc } from "./Exsurge.Gabc.js";
 import { Titles } from "./Exsurge.Titles.js";
 

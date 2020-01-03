@@ -29,6 +29,7 @@ import {
   QuickSvg,
   ChantLayoutElement,
   ChantNotationElement,
+  MarkingPositionHint,
   GlyphCode,
   GlyphVisualizer,
   NeumeLineVisualizer,
@@ -41,11 +42,6 @@ import {
   NoteShape,
   NoteShapeModifiers
 } from "./Exsurge.Chant.js";
-import {
-  MarkingPositionHint,
-  HorizontalEpisema,
-  Mora
-} from "./Exsurge.Chant.Markings.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 
 class NeumeBuilder {
@@ -458,6 +454,7 @@ export class Neume extends ChantNotationElement {
     for (i = 0; i < note.episemata.length; i++)
       if (note.episemata[i].positionHint === MarkingPositionHint.Default)
         note.episemata[i].positionHint = position;
+    if (note.choralSign) note.choralSign.positionHint = position;
     return note.episemata.length;
   }
   positionEpisemataAbove(note) {

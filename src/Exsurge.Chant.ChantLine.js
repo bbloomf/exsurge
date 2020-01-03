@@ -33,6 +33,7 @@ import {
   GlyphVisualizer,
   RoundBraceVisualizer,
   CurlyBraceVisualizer,
+  MarkingPositionHint,
   Lyric,
   LyricArray,
   LyricType,
@@ -47,7 +48,6 @@ import {
   InsertionCursor
 } from "./Exsurge.Chant.Signs.js";
 import {
-  MarkingPositionHint,
   HorizontalEpisemaAlignment,
   HorizontalEpisema,
   BraceShape,
@@ -930,7 +930,7 @@ export class ChantLine extends ChantLayoutElement {
         // line of lyrics associated with them.
         var firstOnLine;
         extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex;
-        if (this.extraTextOnlyIndex === null) {
+        if (this.extraTextOnlyIndex === null && notations[textOnlyStartIndex].lyrics.length) {
           // go back to the first in this string of consecutive TextOnly elements.
           this.extraTextOnlyIndex = textOnlyStartIndex;
           extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex = LyricArray.indexOfLyric(

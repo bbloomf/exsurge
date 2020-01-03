@@ -33,6 +33,7 @@ import {
   Step
 } from "./Exsurge.Core.js";
 import {
+  MarkingPositionHint,
   LyricType,
   Lyric,
   LyricArray,
@@ -343,7 +344,11 @@ export class Gabc {
         // index (and pitch in case clef or accidentals have changed) as we go
         for (j = 0; j < resultValues.length; j++, index++) {
           mapping = mappings[index];
-          if (elementIndex === 0 && mapping.notations[0].isClef) {
+          if (
+            elementIndex === 0 &&
+            mapping.notations.length &&
+            mapping.notations[0].isClef
+          ) {
             // the first clef doesn't get kept as a notation:
             elementIndex = -1;
           }
@@ -474,7 +479,11 @@ export class Gabc {
             insertionIndex - elementIndex
           );
 
-          if (elementIndex === 0 && mapping.notations[0].isClef) {
+          if (
+            elementIndex === 0 &&
+            mapping.notations.length &&
+            mapping.notations[0].isClef
+          ) {
             // the first clef doesn't get kept as a notation:
             elementIndex = -1;
             let elementCount = elementCountForNotations(mapping.notations);
@@ -1203,11 +1212,11 @@ export class Gabc {
 
         if (currNote.staffPosition > prevNote.staffPosition) {
           if (currNote.ictus)
-            currNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
+            currNote.ictus.positionHint = MarkingPositionHint.Above;
           return podatusState;
         } else if (currNote.staffPosition < prevNote.staffPosition) {
           if (prevNote.ictus)
-            prevNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
+            prevNote.ictus.positionHint = MarkingPositionHint.Above;
           if (currNote.shape === NoteShape.Inclinatum) return climacusState;
           else if (prevNote.staffPosition - currNote.staffPosition <= 4) {
             return clivisState;
@@ -1269,9 +1278,9 @@ export class Gabc {
       handle: function(currNote, prevNote) {
         if (currNote.staffPosition > prevNote.staffPosition) {
           if (currNote.ictus)
-            currNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
+            currNote.ictus.positionHint = MarkingPositionHint.Above;
           if (prevNote.ictus)
-            prevNote.ictus.positionHint = Markings.MarkingPositionHint.Below;
+            prevNote.ictus.positionHint = MarkingPositionHint.Below;
 
           if (prevNote.shape === NoteShape.Oriscus) return salicusState;
           else return scandicusState;
@@ -1293,7 +1302,7 @@ export class Gabc {
           currNote.staffPosition > prevNote.staffPosition
         ) {
           if (currNote.ictus)
-            currNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
+            currNote.ictus.positionHint = MarkingPositionHint.Above;
           return porrectusState;
         } else return createNeume(new Neumes.Clivis(), false);
       }
@@ -1479,7 +1488,7 @@ export class Gabc {
             prevNoteButOne.staffPosition - prevNote.staffPosition <= 4
           ) {
             if (currNote.ictus)
-              currNote.ictus.positionHint = Markings.MarkingPositionHint.Above;
+              currNote.ictus.positionHint = MarkingPositionHint.Above;
             return torculusResupinusState;
           }
         }
@@ -1591,9 +1600,9 @@ export class Gabc {
 
           mark = new Markings.Mora(ctxt, note);
           if (haveLookahead && lookahead === "1")
-            mark.positionHint = Markings.MarkingPositionHint.Above;
+            mark.positionHint = MarkingPositionHint.Above;
           else if (haveLookahead && lookahead === "0")
-            mark.positionHint = Markings.MarkingPositionHint.Below;
+            mark.positionHint = MarkingPositionHint.Below;
 
           note.morae.push(mark);
           break;
@@ -1604,9 +1613,9 @@ export class Gabc {
           mark = new Markings.HorizontalEpisema(episemaNote);
           while (haveLookahead) {
             if (lookahead === "0")
-              mark.positionHint = Markings.MarkingPositionHint.Below;
+              mark.positionHint = MarkingPositionHint.Below;
             else if (lookahead === "1")
-              mark.positionHint = Markings.MarkingPositionHint.Above;
+              mark.positionHint = MarkingPositionHint.Above;
             else if (lookahead === "2") mark.terminating = true;
             // episema terminates
             else if (lookahead === "3")
@@ -1626,7 +1635,7 @@ export class Gabc {
             //   added to previous notes
             if (
               mark.alignment !== Markings.HorizontalEpisemaAlignment.Default &&
-              mark.positionHint !== Markings.MarkingPositionHint.Below
+              mark.positionHint !== MarkingPositionHint.Below
             )
               episemaHadModifier = true;
 
@@ -1651,12 +1660,12 @@ export class Gabc {
         case "'":
           mark = new Markings.Ictus(ctxt, note);
           if (haveLookahead && lookahead === "1")
-            mark.positionHint = Markings.MarkingPositionHint.Above;
+            mark.positionHint = MarkingPositionHint.Above;
           else if (haveLookahead && lookahead === "0")
-            mark.positionHint = Markings.MarkingPositionHint.Below;
+            mark.positionHint = MarkingPositionHint.Below;
           else if (note.shape === NoteShape.Virga)
             // ictus on a virga goes above by default:
-            mark.positionHint = Markings.MarkingPositionHint.Above;
+            mark.positionHint = MarkingPositionHint.Above;
 
           note.ictus = mark;
           break;

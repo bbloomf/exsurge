@@ -27,17 +27,11 @@ import * as Exsurge from "./Exsurge.Core.js";
 import {
   QuickSvg,
   ChantLayoutElement,
+  MarkingPositionHint,
   GlyphCode,
   GlyphVisualizer
 } from "./Exsurge.Drawing.js";
 import { Note, NoteShape } from "./Exsurge.Chant.js";
-
-// for positioning markings on notes
-export var MarkingPositionHint = {
-  Default: 0,
-  Above: 1,
-  Below: 2
-};
 
 export class Accent extends GlyphVisualizer {
   constructor(ctxt, note, glyphCode = GlyphCode.AcuteAccent) {
