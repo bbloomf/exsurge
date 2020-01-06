@@ -223,14 +223,12 @@ export class ChantLine extends ChantLayoutElement {
         lastNotation.lyrics.length === 1 &&
         lastNotation.lyrics[0].bounds.height > this.lyricLineHeight
       ) {
-        this.extraTextOnlyHeight =
-          lastNotation.lyrics[extraTextOnlyLyricIndex].bounds.height -
-          this.lyricLineHeight;
+        this.extraTextOnlyHeight = this.lyricLineHeight;
       }
     } else {
       let lastLyrics = null;
       let xOffset = 0;
-      offset = (this.numLyricLines - 1) * this.lyricLineHeight;
+      offset = this.numLyricLines * this.lyricLineHeight;
       offset += this.numTranslationLines * this.translationLineHeight;
       for (i = this.extraTextOnlyIndex; i < lastIndex; i++) {
         notation = notations[i];
@@ -239,15 +237,11 @@ export class ChantLine extends ChantLayoutElement {
         if (lastLyrics.lineWidth) {
           xOffset = this.staffRight - lastLyrics.lineWidth;
         }
-        lastLyrics.bounds.y =
-          lastLyrics.origin.y + offset + this.lyricLineBaseline;
+        lastLyrics.bounds.y = offset + this.lyricLineBaseline;
         notation.bounds.x += xOffset;
       }
       if (lastLyrics) {
-        this.extraTextOnlyHeight =
-          lastLyrics.origin.y +
-          lastLyrics.bounds.height -
-          lastLyrics.fontSize(ctxt) * 1.2;
+        this.extraTextOnlyHeight = this.lyricLineHeight;
       }
     }
 
@@ -930,7 +924,10 @@ export class ChantLine extends ChantLayoutElement {
         // line of lyrics associated with them.
         var firstOnLine;
         extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex;
-        if (this.extraTextOnlyIndex === null && notations[textOnlyStartIndex].lyrics.length) {
+        if (
+          this.extraTextOnlyIndex === null &&
+          notations[textOnlyStartIndex].lyrics.length
+        ) {
           // go back to the first in this string of consecutive TextOnly elements.
           this.extraTextOnlyIndex = textOnlyStartIndex;
           extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex = LyricArray.indexOfLyric(
