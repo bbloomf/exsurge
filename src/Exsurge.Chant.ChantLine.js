@@ -908,7 +908,7 @@ export class ChantLine extends ChantLayoutElement {
           prevNeume,
           curr,
           actualRightBoundary,
-          this.extraTextOnlyIndex? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
+          this.extraTextOnlyIndex ? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
         );
       var candidateForExtraTextOnlyLine =
         curr.constructor === TextOnly &&
@@ -969,13 +969,10 @@ export class ChantLine extends ChantLayoutElement {
         delete curr.lyrics[extraTextOnlyLyricIndex].lineWidth;
         if (!fitsOnLine || i === this.extraTextOnlyIndex) {
           curr.bounds.x = curr.lyrics[extraTextOnlyLyricIndex].origin.x;
-          let lastLyricRight =
-            i === 0
-              ? this.score.dropCap
-                ? this.score.dropCap.bounds.right()
-                : 0
-              : LyricArray.getRight(this.lastLyrics) +
-                  ctxt.minLyricWordSpacing || 0;
+          let lastLyricRight = ctxt.startExtraTextOnlyFromFirst
+            ? LyricArray.getRight(this.lastLyrics) +
+              (ctxt.minLyricWordSpacing || 0)
+            : 0;
           curr.lyrics[extraTextOnlyLyricIndex].setMaxWidth(
             ctxt,
             this.staffRight,
