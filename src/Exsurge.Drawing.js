@@ -1762,6 +1762,7 @@ export class TextElement extends ChantLayoutElement {
       delete this.firstLineMaxWidth;
       delete this.rightAligned;
       delete this.resize;
+      delete this.numLines;
       // replace newlines with spaces
       this.spans.forEach(span => {
         delete span.properties.xOffset;
@@ -1795,6 +1796,12 @@ export class TextElement extends ChantLayoutElement {
       this.origin.y = -bbox.y;
       this.origin.x = -bbox.x;
     }
+    this.numLines = this.spans.reduce(
+      (result, span) =>
+        result +
+        (span.properties.newLine ? parseInt(span.properties.newLine) || 1 : 0),
+      1
+    );
   }
 
   setMaxWidth(ctxt, maxWidth, firstLineMaxWidth = maxWidth) {
@@ -1954,13 +1961,13 @@ export class TextElement extends ChantLayoutElement {
     var options = {
       "source-index": span.index,
       style: useStyleObject
-        ? span.properties
+        ? Object.assign({}, span.properties)
         : getCssForProperties(span.properties)
     };
 
     if (span.properties.newLine) {
       var xOffset = span.properties.xOffset || 0;
-      options.dy = (parseInt(span.properties.newLine) || 1) + "em";
+      options.dy = 1.1 * (parseInt(span.properties.newLine) || 1) + "em";
       options.x = this.bounds.x + xOffset;
     } else if (span.properties.xOffset) {
       options.x = this.bounds.x + span.properties.xOffset;

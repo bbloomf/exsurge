@@ -228,21 +228,23 @@ export class ChantLine extends ChantLayoutElement {
     } else {
       let lastLyrics = null;
       let xOffset = 0;
-      offset = this.numLyricLines * this.lyricLineHeight;
+      offset = (this.numLyricLines - 1) * this.lyricLineHeight;
       offset += this.numTranslationLines * this.translationLineHeight;
+      let extraLines = 0;
       for (i = this.extraTextOnlyIndex; i < lastIndex; i++) {
         notation = notations[i];
         if (!notation.lyrics[extraTextOnlyLyricIndex]) continue;
         lastLyrics = notation.lyrics[extraTextOnlyLyricIndex];
         if (lastLyrics.lineWidth) {
           xOffset = this.staffRight - lastLyrics.lineWidth;
+          offset += this.lyricLineHeight;
+          extraLines++;
         }
+        extraLines += lastLyrics.numLines - 1;
         lastLyrics.bounds.y = offset + this.lyricLineBaseline;
         notation.bounds.x += xOffset;
       }
-      if (lastLyrics) {
-        this.extraTextOnlyHeight = this.lyricLineHeight;
-      }
+      this.extraTextOnlyHeight = this.lyricLineHeight * extraLines;
     }
 
     if (this.startingClef.hasLyrics()) {
@@ -928,6 +930,10 @@ export class ChantLine extends ChantLayoutElement {
           this.extraTextOnlyIndex === null &&
           notations[textOnlyStartIndex].lyrics.length
         ) {
+          if (textOnlyStartIndex === this.notationsStartIndex) {
+            textOnlyStartIndex = i;
+          }
+          textOnlyStartIndex = i
           // go back to the first in this string of consecutive TextOnly elements.
           this.extraTextOnlyIndex = textOnlyStartIndex;
           extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex = LyricArray.indexOfLyric(
@@ -954,12 +960,17 @@ export class ChantLine extends ChantLayoutElement {
             this.lastLyrics[extraTextOnlyLyricIndex] ||
             curr.lyrics[extraTextOnlyLyricIndex]
           ).bounds.height;
+          let lastLyricRight =
+            i === 0
+              ? this.score.dropCap
+                ? this.score.dropCap.bounds.right()
+                : 0
+              : LyricArray.getRight(this.lastLyrics) +
+                  ctxt.minLyricWordSpacing || 0;
           curr.lyrics[extraTextOnlyLyricIndex].setMaxWidth(
             ctxt,
             this.staffRight,
-            this.staffRight -
-              (LyricArray.getRight(this.lastLyrics) +
-                ctxt.minLyricWordSpacing || 0)
+            this.staffRight - lastLyricRight
           );
           firstOnLine = curr;
         }
