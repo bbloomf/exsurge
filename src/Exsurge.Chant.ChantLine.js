@@ -930,10 +930,20 @@ export class ChantLine extends ChantLayoutElement {
           this.extraTextOnlyIndex === null &&
           notations[textOnlyStartIndex].lyrics.length
         ) {
-          if (textOnlyStartIndex === this.notationsStartIndex) {
+          if (
+            textOnlyStartIndex === this.notationsStartIndex ||
+            !ctxt.startExtraTextOnlyFromFirst
+          ) {
             textOnlyStartIndex = i;
+            let lastNotationWithLyrics = notations
+              .slice(this.notationsStartIndex, i)
+              .reverse()
+              .find(notation => notation.hasLyrics());
+            lastLyricsBeforeTextOnly =
+              (lastNotationWithLyrics &&
+                lastNotationWithLyrics.lyrics.slice()) ||
+              [];
           }
-          textOnlyStartIndex = i
           // go back to the first in this string of consecutive TextOnly elements.
           this.extraTextOnlyIndex = textOnlyStartIndex;
           extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex = LyricArray.indexOfLyric(
@@ -944,22 +954,11 @@ export class ChantLine extends ChantLayoutElement {
           i = textOnlyStartIndex - 1;
           this.numNotationsOnLine =
             textOnlyStartIndex - this.notationsStartIndex;
-          notations[textOnlyStartIndex].lyrics[
-            extraTextOnlyLyricIndex
-          ].origin.y = 0;
           continue;
-        } else if (i !== this.extraTextOnlyIndex) {
-          curr.lyrics[extraTextOnlyLyricIndex].origin.y = this.lastLyrics[
-            extraTextOnlyLyricIndex
-          ].origin.y;
         }
         delete curr.lyrics[extraTextOnlyLyricIndex].lineWidth;
         if (!fitsOnLine || i === this.extraTextOnlyIndex) {
           curr.bounds.x = curr.lyrics[extraTextOnlyLyricIndex].origin.x;
-          curr.lyrics[extraTextOnlyLyricIndex].origin.y += (
-            this.lastLyrics[extraTextOnlyLyricIndex] ||
-            curr.lyrics[extraTextOnlyLyricIndex]
-          ).bounds.height;
           let lastLyricRight =
             i === 0
               ? this.score.dropCap
@@ -2113,7 +2112,12 @@ export class ChantLine extends ChantLayoutElement {
    */
   bisectNotationAtX(x, useMidpoint = true) {
     let minIndex = this.notationsStartIndex - 1,
-      maxIndex = this.notationsStartIndex + this.numNotationsOnLine,
+      maxIndex =
+        this.notationsStartIndex +
+        Math.min(
+          this.numNotationsOnLine,
+          this.extraTextOnlyIndex || Math.Infinity
+        ),
       curIndex = minIndex + ((maxIndex - minIndex) >> 1),
       notations = this.score.notations;
 
