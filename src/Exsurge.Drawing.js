@@ -50,12 +50,15 @@ function getFontFilenameForProperties(properties = {}, url = "{}") {
 
 const canAccessDOM = typeof document !== "undefined";
 
-const __getNeumeFromSvgElem = (score, elem) =>
-  score.notes[
-    elem.parentElement
-      .querySelector("[element-index]")
-      .getAttribute("element-index")
-  ].neume;
+const __getNeumeFromSvgElem = (score, elem) => {
+  let note =
+    score.notes[
+      elem.parentElement
+        .querySelector("[element-index]")
+        .getAttribute("element-index")
+    ];
+  return note.neume || note;
+};
 
 // for positioning markings on notes
 export var MarkingPositionHint = {
