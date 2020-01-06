@@ -879,8 +879,18 @@ export class ChantLine extends ChantLayoutElement {
           curr.constructor !== Custos &&
           curr.hasLyrics());
 
-      if (curr.constructor === TextOnly && prev === prevNeume) {
+      if (curr instanceof TextOnly && prev === prevNeume) {
         lastLyricsBeforeTextOnly = this.lastLyrics.slice();
+        textOnlyStartIndex = i;
+      }
+      if (
+        curr instanceof TextOnly &&
+        notations[textOnlyStartIndex] &&
+        !notations[textOnlyStartIndex].hasLyrics()
+      ) {
+        // we want textOnlyStartIndex to be the first TextOnly that actually has lyrics,
+        // so if the current "textOnlyStart" element does not have lyrics, and we have another textOnly
+        // that does have lyrics, we will use it instead
         textOnlyStartIndex = i;
       }
 
@@ -898,7 +908,7 @@ export class ChantLine extends ChantLayoutElement {
           prevNeume,
           curr,
           actualRightBoundary,
-          condensableSpaces
+          this.extraTextOnlyIndex? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
         );
       var candidateForExtraTextOnlyLine =
         curr.constructor === TextOnly &&
@@ -1959,12 +1969,16 @@ export class ChantLine extends ChantLayoutElement {
           let notationI = condensableSpaces
             .map(s => s.notation)
             .lastIndexOf(prevLyrics[i].notation);
-          condensableSpacesSincePrevLyric = condensableSpaces.slice(
-            notationI + 1
-          );
-          condensableSpacesSincePrevLyric.sum = condensableSpacesSincePrevLyric
-            .map(s => s.condensable)
-            .reduce((a, b) => a + b, 0);
+          if (notationI >= 0) {
+            condensableSpacesSincePrevLyric = condensableSpaces.slice(
+              notationI + 1
+            );
+            condensableSpacesSincePrevLyric.sum = condensableSpacesSincePrevLyric
+              .map(s => s.condensable)
+              .reduce((a, b) => a + b, 0);
+          } else {
+            condensableSpacesSincePrevLyric.sum = 0;
+          }
         }
 
         curr.lyrics[i].setNeedsConnector(false); // we hope for the best!
