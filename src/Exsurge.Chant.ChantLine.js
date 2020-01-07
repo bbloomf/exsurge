@@ -210,41 +210,43 @@ export class ChantLine extends ChantLayoutElement {
       }
     }
 
-    // handle placement of extra TextOnly elements:
     this.extraTextOnlyHeight = 0;
-    var extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex;
-    if (this.extraTextOnlyIndex === null) {
-      // even if extraTextOnlyIndex is null, there might be extra lines on the last lyric if it is TextOnly:
-      let lastNotation = notations[lastNeumeIndex - 1] || {};
-      if (lastNotation.constructor === ChantLineBreak)
-        lastNotation = notations[lastNeumeIndex - 2];
-      if (
-        lastNotation.constructor === TextOnly &&
-        lastNotation.lyrics.length === 1 &&
-        lastNotation.lyrics[0].bounds.height > this.lyricLineHeight
-      ) {
-        this.extraTextOnlyHeight = this.lyricLineHeight;
-      }
-    } else {
-      let lastLyrics = null;
-      let xOffset = 0;
-      offset = (this.numLyricLines - 1) * this.lyricLineHeight;
-      offset += this.numTranslationLines * this.translationLineHeight;
-      let extraLines = 0;
-      for (i = this.extraTextOnlyIndex; i < lastIndex; i++) {
-        notation = notations[i];
-        if (!notation.lyrics[extraTextOnlyLyricIndex]) continue;
-        lastLyrics = notation.lyrics[extraTextOnlyLyricIndex];
-        if (lastLyrics.lineWidth) {
-          xOffset = this.staffRight - lastLyrics.lineWidth;
-          offset += this.lyricLineHeight;
-          extraLines++;
+    // handle placement of extra TextOnly elements:
+    if (ctxt.useExtraTextOnly) {
+      var extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex;
+      if (this.extraTextOnlyIndex === null) {
+        // even if extraTextOnlyIndex is null, there might be extra lines on the last lyric if it is TextOnly:
+        let lastNotation = notations[lastNeumeIndex - 1] || {};
+        if (lastNotation.constructor === ChantLineBreak)
+          lastNotation = notations[lastNeumeIndex - 2];
+        if (
+          lastNotation.constructor === TextOnly &&
+          lastNotation.lyrics.length === 1 &&
+          lastNotation.lyrics[0].bounds.height > this.lyricLineHeight
+        ) {
+          this.extraTextOnlyHeight = this.lyricLineHeight;
         }
-        extraLines += lastLyrics.numLines - 1;
-        lastLyrics.bounds.y = offset + this.lyricLineBaseline;
-        notation.bounds.x += xOffset;
+      } else {
+        let lastLyrics = null;
+        let xOffset = 0;
+        offset = (this.numLyricLines - 1) * this.lyricLineHeight;
+        offset += this.numTranslationLines * this.translationLineHeight;
+        let extraLines = 0;
+        for (i = this.extraTextOnlyIndex; i < lastIndex; i++) {
+          notation = notations[i];
+          if (!notation.lyrics[extraTextOnlyLyricIndex]) continue;
+          lastLyrics = notation.lyrics[extraTextOnlyLyricIndex];
+          if (lastLyrics.lineWidth) {
+            xOffset = this.staffRight - lastLyrics.lineWidth;
+            offset += this.lyricLineHeight;
+            extraLines++;
+          }
+          extraLines += lastLyrics.numLines - 1;
+          lastLyrics.bounds.y = offset + this.lyricLineBaseline;
+          notation.bounds.x += xOffset;
+        }
+        this.extraTextOnlyHeight = this.lyricLineHeight * extraLines;
       }
-      this.extraTextOnlyHeight = this.lyricLineHeight * extraLines;
     }
 
     if (this.startingClef.hasLyrics()) {
@@ -911,6 +913,7 @@ export class ChantLine extends ChantLayoutElement {
           this.extraTextOnlyIndex ? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
         );
       var candidateForExtraTextOnlyLine =
+        ctxt.useExtraTextOnly &&
         curr.constructor === TextOnly &&
         LyricArray.hasOnlyOneLyric(curr.lyrics) &&
         (fitsOnLine === false || this.extraTextOnlyIndex !== null);
@@ -2124,11 +2127,7 @@ export class ChantLine extends ChantLayoutElement {
   bisectNotationAtX(x, useMidpoint = true) {
     let minIndex = this.notationsStartIndex - 1,
       maxIndex =
-        this.notationsStartIndex +
-        Math.min(
-          this.numNotationsOnLine,
-          this.extraTextOnlyIndex || Math.Infinity
-        ),
+        this.notationsStartIndex + Math.min(this.numNotationsOnLine, Infinity),
       curIndex = minIndex + ((maxIndex - minIndex) >> 1),
       notations = this.score.notations;
 

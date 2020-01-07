@@ -601,6 +601,8 @@ export class ChantContext {
     // some elements of the chant (directives become rubric color, etc.)
     this.autoColor = true;
 
+    this.useExtraTextOnly = true;
+
     this.insertFontsInDoc();
   }
 
