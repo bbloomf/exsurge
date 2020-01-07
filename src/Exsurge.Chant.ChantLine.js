@@ -2125,22 +2125,35 @@ export class ChantLine extends ChantLayoutElement {
    * @param {number} x
    */
   bisectNotationAtX(x, useMidpoint = true) {
-    let minIndex = this.notationsStartIndex - 1,
-      maxIndex =
-        this.notationsStartIndex + Math.min(this.numNotationsOnLine, Infinity),
+    let minIndex = -1,
+      maxIndex = Math.min(this.numNotationsOnLine, Infinity),
       curIndex = minIndex + ((maxIndex - minIndex) >> 1),
-      notations = this.score.notations;
+      notations = this.score.notations.slice(
+        this.notationsStartIndex,
+        this.notationsStartIndex + this.numNotationsOnLine
+      );
 
     while (minIndex < curIndex) {
       let notation = notations[curIndex];
-      let notationX =
-        notation.bounds.x + (useMidpoint ? notation.bounds.width / 2 : 0);
+      let notationX = notation.bounds.x;
       if (notationX > x) {
         maxIndex = curIndex;
       } else {
         minIndex = curIndex;
       }
       curIndex = minIndex + ((maxIndex - minIndex) >> 1);
+    }
+    let notation = notations[curIndex];
+    if (
+      useMidpoint &&
+      notation.bounds.width === 0 &&
+      curIndex + 1 < notations.length
+    ) {
+      let nextNotation = notations[curIndex + 1],
+        closenessToLeft = x - notation.bounds.x,
+        closenessToRight = nextNotation.bounds.x - x;
+      if (nextNotation.bounds.width === 0 && closenessToRight < closenessToLeft)
+        ++curIndex;
     }
     return notations[curIndex];
   }
