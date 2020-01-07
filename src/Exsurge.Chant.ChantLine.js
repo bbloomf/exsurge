@@ -2146,6 +2146,7 @@ export class ChantLine extends ChantLayoutElement {
     let notation = notations[curIndex];
     if (
       useMidpoint &&
+      notation &&
       notation.bounds.width === 0 &&
       curIndex + 1 < notations.length
     ) {
