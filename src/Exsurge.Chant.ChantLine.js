@@ -1283,7 +1283,7 @@ export class ChantLine extends ChantLayoutElement {
           prev = this.score.notations[i - 2];
         }
         if (prev && next) {
-          // if (prev instanceof TextOnly || next instanceof TextOnly) continue;
+          //if (prev instanceof TextOnly || next instanceof TextOnly) continue;
           var oldBoundsX = curr.bounds.x;
           var leftPoint =
               prev instanceof TextOnly && prev.hasLyrics()

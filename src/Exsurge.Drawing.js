@@ -2365,7 +2365,7 @@ export class Lyric extends TextElement {
     )[0].length;
     dropCap.sourceGabc = this.sourceGabc.slice(0, dropCapSourceGabcLength);
     this.sourceIndex += dropCap.sourceGabc.length;
-    this.sourceGabc = this.sourceGabc.slice(this.sourceIndex);
+    this.sourceGabc = this.sourceGabc.slice(dropCapSourceGabcLength);
 
     this.spans[0].text = this.spans[0].text.slice(1);
     this.text = this.text.slice(1);

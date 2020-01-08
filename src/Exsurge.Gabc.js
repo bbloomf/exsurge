@@ -62,7 +62,7 @@ import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
 
 // reusable reg exps
-var __syllablesRegex = /(?=\S)((?:[^(])*)(?:\(?([^)]*)\)?)?/g;
+var __syllablesRegex = /(?=\S)([^(]*)(?:\(?([^)]*)\)?)?/g;
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
 var __notationsRegex = /z0|z|Z|::|:|[,;][1-6]?|`|[cf][1-4]|cb[1-4]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
@@ -599,6 +599,7 @@ export class Gabc {
         insertionIndex -= elementCountForNotations(items);
 
       items[0].firstOfSyllable = !!lyricText;
+      items[0].firstOfParentheses = true;
       notations.push(...items);
 
       // add the lyrics and/or alText to the first notation that makes sense...
