@@ -65,7 +65,7 @@ export class English extends Language {
    * @retuns a custom class with three properties: {found: (true/false) startIndex: (start index in s of vowel segment) length ()}
    */
   findVowelSegment(s, startIndex) {
-    var regexLetter = /[a-zäëïöüÿáéíóúýàèìòùỳāēīōūȳăĕĭŏŭæœ]+/i;
+    var regexLetter = /[a-z\u0300-\u0311äëïöüÿáéíóúýàèìòùỳāēīōūȳăĕĭŏŭæœ]+/i;
     var match = regexLetter.exec(s.slice(startIndex));
     if (match)
       return {
