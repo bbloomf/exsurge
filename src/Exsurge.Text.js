@@ -31,6 +31,7 @@ import * as Exsurge from "./Exsurge.Core.js";
 export class Language {
   constructor(name) {
     this.name = typeof name !== "undefined" ? name : "<unknown>";
+    this.centerNeume = false;
   }
 
   /**
@@ -55,6 +56,7 @@ export class Language {
 export class English extends Language {
   constructor() {
     super("English");
+    this.centerNeume = true;
   }
 
   /**

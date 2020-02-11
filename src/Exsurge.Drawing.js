@@ -2255,7 +2255,8 @@ export class Lyric extends TextElement {
     // on manual override or language control.
     var offset = this.widthWithoutConnector / 2,
       x1,
-      x2;
+      x2,
+      vowelSegmentWidth = this.widthWithoutConnector;
 
     // some simple checks for sanity, and disable manual centering if the numbers are bad
     if (
@@ -2271,6 +2272,7 @@ export class Lyric extends TextElement {
       // Unless it's a drop cap, in which case we center the connector:
       if (this.dropCap && this.originalText) {
         offset = ctxt.hyphenWidth / 2;
+        vowelSegmentWidth = ctxt.hyphenWidth;
       }
     } else if (this.centerStartIndex >= 0) {
       // if we have manually overriden the centering logic for this lyric,
@@ -2292,7 +2294,8 @@ export class Lyric extends TextElement {
           this.centerStartIndex + this.centerLength
         );
       }
-      offset = x1 + (x2 - x1) / 2;
+      offset = (x1 + x2) / 2;
+      vowelSegmentWidth = x2 - x1;
     } else {
       // if it's a directive with no manual centering override, then
       // just center the text.
@@ -2337,9 +2340,12 @@ export class Lyric extends TextElement {
           x1 = this.measureSubstring(ctxt, result.startIndex);
           x2 = this.measureSubstring(ctxt, result.startIndex + result.length);
         }
-        offset = x1 + (x2 - x1) / 2;
+        offset = (x1 + x2) / 2;
+        vowelSegmentWidth = x2 - x1;
       }
     }
+
+    this.vowelSegmentWidth = vowelSegmentWidth;
 
     this.bounds.x = -offset;
     this.bounds.y = 0;
@@ -2805,8 +2811,18 @@ export class ChantNotationElement extends ChantLayoutElement {
   finishLayout(ctxt) {
     this.bounds.x = 0;
 
-    for (var i = 0; i < this.lyrics.length; i++)
-      this.lyrics[i].bounds.x = this.origin.x - this.lyrics[i].origin.x;
+    let language =
+      (this.lyrics[0] && this.lyrics[0].language) || ctxt.defaultLanguage;
+    // center the neume itself over the syllable, or just the first punctum
+    // if the neume is wider than the syllable + the width of a punctum, we always revert to centering just over the punctum
+    let calculateLyricX = language.centerNeume
+      ? lyric =>
+          (lyric.bounds.x =
+            this.bounds.width + ctxt.staffInterval < lyric.vowelSegmentWidth
+              ? this.bounds.width / 2 - lyric.origin.x
+              : this.origin.x - lyric.origin.x)
+      : lyric => (lyric.bounds.x = this.origin.x - lyric.origin.x);
+    this.lyrics.forEach(calculateLyricX);
 
     this.needsLayout = false;
   }

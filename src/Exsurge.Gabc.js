@@ -1932,7 +1932,7 @@ export class Gabc {
     gabcNotations = gabcNotations
       // .trim()
       // .replace(/\s/g, " ")
-      .replace(/\) (?=[^\)]*(?:\(|$))/g, ")\n");
+      .replace(/\)\s(?=[^\)]*(?:\(|$))/g, ")\n");
     return gabcNotations.split(/\n/g);
   }
 
