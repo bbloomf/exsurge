@@ -481,7 +481,8 @@ export class ChantContext {
     }
 
     // font styles
-    this.lyricTextColor = "#000";
+    this.textStyles = {};
+    this.textColor = "#000";
     this.setFont("'Palatino Linotype', 'Book Antiqua', Palatino, serif", 16);
 
     this.rubricColor = "#d00";
@@ -507,13 +508,13 @@ export class ChantContext {
       }
     };
 
-    this.alTextStyle = "<i>";
+    this.textStyles.al.prefix = "<i>";
 
-    this.translationTextStyle = "<i>";
+    this.textStyles.translation.prefix = "<i>";
 
-    this.dropCapPadding = 1; // minimum padding on either side of drop cap in staffIntervals
+    this.textStyles.dropCap.padding = 1; // minimum padding on either side of drop cap in staffIntervals
 
-    this.annotationPadding = 1; // minimum padding on either side of annotation in staffIntervals
+    this.textStyles.annotation.padding = 1; // minimum padding on either side of annotation in staffIntervals
 
     this.minLedgerSeparation = 2; // multiple of staffInterval
     this.minSpaceAboveStaff = 2; // multiple of staffInterval
@@ -619,11 +620,12 @@ export class ChantContext {
 
   setFont(font, size = 16, baseStyle = {}, opentypeFontDictionary) {
     for (let [key, textType] of Object.entries(TextTypes)) {
-      this[`${key}TextSize`] = textType.defaultSize
+      let textStyle = (this.textStyles[key] = this.textStyles[key] || {});
+      textStyle.size = textType.defaultSize
         ? textType.defaultSize(size, this)
         : textType.size(this);
-      this[`${key}TextFont`] = font;
-      this[`${key}TextColor`] = this.textColor || "#000";
+      textStyle.font = font;
+      textStyle.color = this.textColor || "#000";
     }
 
     this.baseTextStyle = baseStyle;
@@ -652,9 +654,7 @@ export class ChantContext {
     var style = "";
     for (let [key, textType] of Object.entries(TextTypes)) {
       var cssClass = textType.cssClass,
-        color = this[key + "TextColor"],
-        font = this[key + "TextFont"],
-        size = this[key + "TextSize"];
+        { color, font, size } = this.textStyles[key];
       style += `.${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
     }
     return style;
@@ -2137,9 +2137,9 @@ export class Lyric extends TextElement {
   constructor(ctxt, text, lyricType, notation, notations, sourceIndex) {
     super(
       ctxt,
-      (ctxt.lyricTextStyle || "") + text,
-      ctxt => ctxt.lyricTextFont,
-      ctxt => ctxt.lyricTextSize,
+      (ctxt.textStyles.lyric.prefix || "") + text,
+      ctxt => ctxt.textStyles.lyric.font,
+      ctxt => ctxt.textStyles.lyric.size,
       "start",
       sourceIndex,
       text
@@ -2400,8 +2400,8 @@ export class ChoralSign extends TextElement {
   constructor(ctxt, text, note, sourceIndex) {
     super(
       ctxt,
-      (ctxt.choralSignTextStyle || "") + text,
-      ctxt => ctxt.choralSignTextFont,
+      (ctxt.textStyles.choralSign.prefix || "") + text,
+      ctxt => ctxt.textStyles.choralSign.font,
       TextTypes.choralSign.size,
       "start",
       sourceIndex,
@@ -2445,9 +2445,9 @@ export class AboveLinesText extends TextElement {
   constructor(ctxt, text, notation, sourceIndex) {
     super(
       ctxt,
-      (ctxt.alTextStyle || "") + text,
-      ctxt => ctxt.alTextFont,
-      ctxt => ctxt.alTextSize,
+      (ctxt.textStyles.al.prefix || "") + text,
+      ctxt => ctxt.textStyles.al.font,
+      ctxt => ctxt.textStyles.al.size,
       "start",
       sourceIndex,
       text
@@ -2470,13 +2470,13 @@ export class TranslationText extends TextElement {
       text = "";
       anchor = "end";
     } else {
-      text = (ctxt.translationTextStyle || "") + text;
+      text = (ctxt.textStyles.translation.prefix || "") + text;
     }
     super(
       ctxt,
       text,
-      ctxt => ctxt.translationTextFont,
-      ctxt => ctxt.translationTextSize,
+      ctxt => ctxt.textStyles.translation.font,
+      ctxt => ctxt.textStyles.translation.size,
       anchor,
       sourceIndex,
       gabcSource
@@ -2495,16 +2495,16 @@ export class DropCap extends TextElement {
   constructor(ctxt, text, sourceIndex) {
     super(
       ctxt,
-      (ctxt.dropCapTextStyle || "") + text,
-      ctxt => ctxt.dropCapTextFont,
-      ctxt => ctxt.dropCapTextSize,
+      (ctxt.textStyles.dropCap.prefix || "") + text,
+      ctxt => ctxt.textStyles.dropCap.font,
+      ctxt => ctxt.textStyles.dropCap.size,
       "middle",
       sourceIndex,
       text
     );
     this.textType = TextTypes.dropCap;
 
-    this.padding = ctxt.staffInterval * ctxt.dropCapPadding;
+    this.padding = ctxt.staffInterval * ctxt.textStyles.dropCap.padding;
   }
 }
 
@@ -2534,16 +2534,16 @@ export class Supertitle extends TitleTextElement {
   constructor(ctxt, text, sourceIndex) {
     super(
       ctxt,
-      (ctxt.supertitleTextStyle || "") + text,
-      ctxt => ctxt.supertitleTextFont,
-      ctxt => ctxt.supertitleTextSize,
+      (ctxt.textStyles.supertitle.prefix || "") + text,
+      ctxt => ctxt.textStyles.supertitle.font,
+      ctxt => ctxt.textStyles.supertitle.size,
       "middle",
       sourceIndex,
       text
     );
     this.textType = TextTypes.supertitle;
 
-    this.padding = ctxt => ctxt.supertitleTextSize / 3;
+    this.padding = ctxt => ctxt.textStyles.supertitle.size / 3;
   }
 }
 
@@ -2551,16 +2551,16 @@ export class Title extends TitleTextElement {
   constructor(ctxt, text, sourceIndex) {
     super(
       ctxt,
-      (ctxt.titleTextStyle || "") + text,
-      ctxt => ctxt.titleTextFont,
-      ctxt => ctxt.titleTextSize,
+      (ctxt.textStyles.title.prefix || "") + text,
+      ctxt => ctxt.textStyles.title.font,
+      ctxt => ctxt.textStyles.title.size,
       "middle",
       sourceIndex,
       text
     );
     this.textType = TextTypes.title;
 
-    this.padding = ctxt => ctxt.titleTextSize / 3;
+    this.padding = ctxt => ctxt.textStyles.title.size / 3;
   }
 }
 
@@ -2568,16 +2568,16 @@ export class Subtitle extends TitleTextElement {
   constructor(ctxt, text, sourceIndex) {
     super(
       ctxt,
-      (ctxt.subtitleTextStyle || "") + text,
-      ctxt => ctxt.subtitleTextFont,
-      ctxt => ctxt.subtitleTextSize,
+      (ctxt.textStyles.subtitle.prefix || "") + text,
+      ctxt => ctxt.textStyles.subtitle.font,
+      ctxt => ctxt.textStyles.subtitle.size,
       "middle",
       sourceIndex,
       text
     );
     this.textType = TextTypes.subtitle;
 
-    this.padding = ctxt => ctxt.subtitleTextSize / 3;
+    this.padding = ctxt => ctxt.textStyles.subtitle.size / 3;
   }
 }
 
@@ -2585,9 +2585,9 @@ export class TextLeftRight extends TitleTextElement {
   constructor(ctxt, text, type, sourceIndex) {
     super(
       ctxt,
-      (ctxt.leftRightTextStyle || "") + text,
-      ctxt => ctxt.leftRightTextFont,
-      ctxt => ctxt.leftRightTextSize,
+      (ctxt.textStyles.leftRight.prefix || "") + text,
+      ctxt => ctxt.textStyles.leftRight.font,
+      ctxt => ctxt.textStyles.leftRight.size,
       type === "textLeft" ? "start" : "end",
       sourceIndex,
       text
@@ -2595,7 +2595,7 @@ export class TextLeftRight extends TitleTextElement {
     this.textType = TextTypes.leftRight;
     this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
     this.headerKey = type === "textLeft" ? "text-left" : "text-right";
-    this.padding = ctxt => ctxt.leftRightTextSize / 5;
+    this.padding = ctxt => ctxt.textStyles.leftRight.size / 5;
   }
 
   getCssClasses() {
@@ -2610,13 +2610,13 @@ export class Annotation extends TextElement {
   constructor(ctxt, text) {
     super(
       ctxt,
-      (ctxt.annotationTextStyle || "") + text,
-      ctxt => ctxt.annotationTextFont,
-      ctxt => ctxt.annotationTextSize,
+      (ctxt.textStyles.annotation.prefix || "") + text,
+      ctxt => ctxt.textStyles.annotation.font,
+      ctxt => ctxt.textStyles.annotation.size,
       "middle"
     );
     this.textType = TextTypes.annotation;
-    this.padding = ctxt.staffInterval * ctxt.annotationPadding;
+    this.padding = ctxt.staffInterval * ctxt.textStyles.annotation.padding;
     this.dominantBaseline = "hanging"; // so that annotations can be aligned at the top.
   }
 }

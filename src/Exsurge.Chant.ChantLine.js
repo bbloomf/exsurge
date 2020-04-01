@@ -117,7 +117,7 @@ export class ChantLine extends ChantLayoutElement {
     this.notationBounds.union(this.startingClef.bounds);
 
     // reset the lyric line offsets before we [re]calculate them now
-    this.lyricLineHeight = ctxt.lyricTextSize * 1.1;
+    this.lyricLineHeight = ctxt.textStyles.lyric.size * 1.1;
     this.lyricLineBaseline = 0;
     this.numLyricLines = 0;
 
@@ -125,7 +125,7 @@ export class ChantLine extends ChantLayoutElement {
     this.altLineBaseline = 0;
     this.numAltLines = 0;
 
-    this.translationLineHeight = ctxt.translationTextSize * 1.1;
+    this.translationLineHeight = ctxt.textStyles.translation.size * 1.1;
     this.translationLineBaseline = 0;
     this.numTranslationLines = 0;
 
@@ -205,7 +205,7 @@ export class ChantLine extends ChantLayoutElement {
         offset = 0;
         for (j = 0; j < notation.alText.length; j++) {
           notation.alText[j].bounds.y = offset + this.altLineBaseline;
-          offset -= ctxt.alTextSize * 1.1;
+          offset -= ctxt.textStyles.al.size * 1.1;
         }
       }
     }
@@ -267,7 +267,7 @@ export class ChantLine extends ChantLayoutElement {
           var lowestPossibleAnnotationY =
             this.lyricLineBaseline -
             this.score.annotation.bounds.height -
-            ctxt.staffInterval * ctxt.annotationPadding -
+            ctxt.staffInterval * ctxt.textStyles.annotation.padding -
             this.score.dropCap.origin.y;
           // if the annotation would overlap with the drop cap, move the annotation higher.
           // otherwise, center the annotation in the vertical space between the top of the drop cap and the top of the staff.
@@ -315,9 +315,9 @@ export class ChantLine extends ChantLayoutElement {
         this.notationBounds.y -
           this.altLineHeight -
           0.5 * ctxt.staffInterval -
-          ctxt.alTextSize * 1.1 * (this.numAltLines - 1),
+          ctxt.textStyles.al.size * 1.1 * (this.numAltLines - 1),
         0,
-        ctxt.alTextSize * 1.1 * this.numAltLines
+        ctxt.textStyles.al.size * 1.1 * this.numAltLines
       );
       this.notationBounds.union(altLineTextRect);
     }

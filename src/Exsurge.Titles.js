@@ -51,7 +51,7 @@ export class Titles extends ChantLayoutElement {
 
   setBoundsX(ctxt, elementName, width) {
     let element = this[elementName];
-    switch (ctxt[elementName + "TextAlignment"]) {
+    switch (ctxt.textStyles[elementName].alignment) {
       case "left":
         element.textAnchor = "start";
         element.bounds.x = 0;

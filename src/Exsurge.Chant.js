@@ -621,7 +621,7 @@ export class ChantScore {
 
     // check for sane value of hyphen width:
     ctxt.updateHyphenWidth();
-    if (!ctxt.hyphenWidth || ctxt.hyphenWidth / ctxt.lyricTextSize > 0.6) {
+    if (!ctxt.hyphenWidth || ctxt.hyphenWidth / ctxt.textStyles.lyric.size > 0.6) {
       setTimeout(() => {
         this.performLayoutAsync(ctxt, finishedCallback);
       }, 100);
