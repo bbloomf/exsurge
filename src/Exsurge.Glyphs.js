@@ -55,7 +55,7 @@ export let Glyphs = {
     bounds: {
       x: 0,
       y: 0,
-      width: 110.992,
+      width: 0, // TODO: figure out a better way to align this horizontally.  width should be 110.992,
       height: 125.794
     },
     origin: {
@@ -75,11 +75,11 @@ export let Glyphs = {
     bounds: {
       x: 0,
       y: 0,
-      width: 110.992,
+      width: 0, //110.992,
       height: 125.794
     },
     origin: {
-      x: -110.992,
+      x: 0, // -110.992,
       y: 125.274
     },
     align: "left"
