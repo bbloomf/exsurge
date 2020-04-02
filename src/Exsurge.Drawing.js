@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 
+import React from "react";
 import {
   Units,
   Pitch,
@@ -34,7 +35,7 @@ import {
   getCssForProperties
 } from "./Exsurge.Core.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
-import { Latin } from "./Exsurge.Text.js";
+import { latin } from "./Exsurge.Text.js";
 
 function getFontFilenameForProperties(properties = {}, url = "{}") {
   var italic = properties["font-style"] === "italic" ? "Italic" : "",
@@ -400,7 +401,7 @@ export var QuickSvg = {
       let source = props.source;
       if (source.sourceGabc) props["source-gabc"] = source.sourceGabc;
     }
-    return this.react.createElement(name, props, ...children);
+    return React.createElement(name, props, ...children);
   },
 
   createFragment: function(name, attributes, child) {
@@ -535,7 +536,7 @@ export class ChantContext {
     this.staffLineColor = "#000";
     this.dividerLineColor = "#000";
 
-    this.defaultLanguage = new Latin();
+    this.defaultLanguage = latin;
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio = window.devicePixelRatio || 1.0;
@@ -667,7 +668,7 @@ export class ChantContext {
   }
 
   createStyleReact() {
-    return QuickSvg.react.createElement("style", {}, this.createStyleCss(this));
+    return React.createElement("style", {}, this.createStyleCss(this));
   }
 
   createStyle() {
@@ -2690,11 +2691,7 @@ export class Annotations extends ChantLayoutElement {
       return annotation.createReact(ctxt);
     });
     this.updateBounds(-1);
-    return QuickSvg.react.createElement(
-      QuickSvg.react.Fragment,
-      null,
-      ...result
-    );
+    return React.createElement(React.Fragment, null, ...result);
   }
 
   createSvgFragment(ctxt) {
