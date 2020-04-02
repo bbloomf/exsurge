@@ -35,7 +35,7 @@ import {
   getCssForProperties
 } from "./Exsurge.Core.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
-import { latin } from "./Exsurge.Text.js";
+import { language } from "./Exsurge.Text.js";
 
 function getFontFilenameForProperties(properties = {}, url = "{}") {
   var italic = properties["font-style"] === "italic" ? "Italic" : "",
@@ -536,7 +536,7 @@ export class ChantContext {
     this.staffLineColor = "#000";
     this.dividerLineColor = "#000";
 
-    this.defaultLanguage = latin;
+    this.defaultLanguage = language.latin;
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio = window.devicePixelRatio || 1.0;

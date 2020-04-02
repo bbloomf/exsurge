@@ -79,8 +79,6 @@ export class English extends Language {
   }
 }
 
-export const english = new English();
-
 /**
  * @class
  */
@@ -376,8 +374,6 @@ export class Latin extends Language {
     return { found: false, startIndex: -1, length: -1 };
   }
 }
-
-export const latin = new Latin();
 
 /**
  * @class
@@ -680,4 +676,8 @@ export class Spanish extends Language {
   }
 }
 
-export const spanish = new Spanish();
+export const language = {
+  english: new English(),
+  latin: new Latin(),
+  spanish: new Spanish()
+};
