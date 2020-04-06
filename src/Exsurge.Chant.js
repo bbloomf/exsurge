@@ -438,24 +438,27 @@ export class ChantScore {
 
   updateSelection(selection) {
     this.selection = selection;
-    const elementSelection = (selection && selection.element) || [];
+    const elementSelection = (selection && selection.element) || {
+      indices: []
+    };
+    const selectedIndices = elementSelection.indices;
     let insertion = elementSelection.insertion;
     if (
       !insertion &&
-      elementSelection.length === 1 &&
-      this.notes[elementSelection[0]] instanceof TextOnly
+      selectedIndices.length === 1 &&
+      this.notes[selectedIndices[0]] instanceof TextOnly
     ) {
       // if there is only one selection, and its a text only, it should display as an insertion cursor:
-      insertion = { afterElementIndex: elementSelection[0] };
+      insertion = { afterElementIndex: selectedIndices[0] };
     }
     // update the selected elements so that they can be given a .selected class when rendered
     for (let i = 0; i < this.notes.length; ++i) {
       let element = this.notes[i];
-      element.selected = elementSelection.includes(i);
+      element.selected = selectedIndices.includes(i);
     }
     (
       this.startingClef.model || this.startingClef
-    ).selected = elementSelection.includes(-1);
+    ).selected = selectedIndices.includes(-1);
     for (let i = 0; i < this.lines.length; ++i) {
       this.lines[i].insertionCursor = null;
     }
@@ -492,7 +495,10 @@ export class ChantScore {
     this.hasLyrics = false;
     this.hasAboveLinesText = false;
     this.hasTranslations = false;
-    const elementSelection = (this.selection && this.selection.element) || [];
+    const elementSelection = (this.selection && this.selection.element) || {
+      indices: []
+    };
+    const selectedIndices = elementSelection.indices;
 
     // find the starting clef...
     // start with a default clef in case the notations don't provide one.
@@ -526,7 +532,7 @@ export class ChantScore {
         for (let element of elements) {
           let elementIndex = (element.elementIndex =
             this.notes.push(element) - 1);
-          element.selected = elementSelection.includes(elementIndex);
+          element.selected = selectedIndices.includes(elementIndex);
         }
       }
     }
@@ -621,7 +627,10 @@ export class ChantScore {
 
     // check for sane value of hyphen width:
     ctxt.updateHyphenWidth();
-    if (!ctxt.hyphenWidth || ctxt.hyphenWidth / ctxt.textStyles.lyric.size > 0.6) {
+    if (
+      !ctxt.hyphenWidth ||
+      ctxt.hyphenWidth / ctxt.textStyles.lyric.size > 0.6
+    ) {
       setTimeout(() => {
         this.performLayoutAsync(ctxt, finishedCallback);
       }, 100);
@@ -668,7 +677,7 @@ export class ChantScore {
     if (this.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
       let annotation = this.annotation,
         annotationSpans = annotation.annotations
-          ? annotation.annotations.map(annotation => annotation.spans)
+          ? annotation.annotations.map((annotation) => annotation.spans)
           : [annotation.spans];
       this.overrideTextLeft = new TextLeftRight(ctxt, "", "textLeft");
       this.overrideTextLeft.spans = this.mergeAnnotationWithTextLeft(
@@ -799,7 +808,7 @@ export class ChantScore {
       QuickSvg.createReact(
         "defs",
         {},
-        ...ctxt.makeDefs.map(makeDef => makeDef.makeReact()),
+        ...ctxt.makeDefs.map((makeDef) => makeDef.makeReact()),
         ctxt.createStyleReact()
       )
     ];
