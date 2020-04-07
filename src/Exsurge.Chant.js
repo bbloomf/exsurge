@@ -155,10 +155,10 @@ export class Note extends ChantLayoutElement {
     this.svgNode = this.glyphVisualizer.createSvgNode(ctxt, this);
     return this.svgNode;
   }
-  createReact(ctxt) {
+  createSvgTree(ctxt) {
     this.glyphVisualizer.bounds.x = this.bounds.x;
     this.glyphVisualizer.bounds.y = this.bounds.y;
-    return this.glyphVisualizer.createReact(ctxt, this);
+    return this.glyphVisualizer.createSvgTree(ctxt, this);
   }
 
   createSvgFragment(ctxt) {
@@ -802,26 +802,26 @@ export class ChantScore {
     return node;
   }
 
-  createReact(ctxt, zoom) {
+  createSvgTree(ctxt, zoom) {
     // create defs section
     var node = [
-      QuickSvg.createReact(
+      QuickSvg.createSvgTree(
         "defs",
         {},
-        ...ctxt.makeDefs.map((makeDef) => makeDef.makeReact()),
-        ctxt.createStyleReact()
+        ...ctxt.makeDefs.map((makeDef) => makeDef.makeSvgTree()),
+        ctxt.createStyleTree()
       )
     ];
 
-    if (this.titles) node.push(this.titles.createReact(ctxt));
+    if (this.titles) node.push(this.titles.createSvgTree(ctxt));
 
     for (var i = 0; i < this.lines.length; i++)
-      node.push(this.lines[i].createReact(ctxt));
+      node.push(this.lines[i].createSvgTree(ctxt));
 
-    node = QuickSvg.createReact("g", {}, ...node);
+    node = QuickSvg.createSvgTree("g", {}, ...node);
     let svgProps = this.getSvgProps(ctxt, zoom);
     svgProps.source = this;
-    node = QuickSvg.createReact("svg", svgProps, node);
+    node = QuickSvg.createSvgTree("svg", svgProps, node);
 
     return node;
   }

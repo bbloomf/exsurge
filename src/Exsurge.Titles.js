@@ -207,10 +207,10 @@ export class Titles extends ChantLayoutElement {
     return node;
   }
 
-  createReact(ctxt) {
-    var nodes = this.getInnerNodes(ctxt, "createReact");
+  createSvgTree(ctxt) {
+    var nodes = this.getInnerNodes(ctxt, "createSvgTree");
 
-    return QuickSvg.createReact(
+    return QuickSvg.createSvgTree(
       "g",
       { class: "Titles", source: this },
       ...nodes

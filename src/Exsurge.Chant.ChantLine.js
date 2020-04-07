@@ -465,7 +465,7 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     inner = [
-      QuickSvg[functionNames.quickSvg]("g", { class: "staffLines" }, inner)
+      QuickSvg[functionNames.quickSvg]("g", { class: "staffLines" }, ...inner)
     ];
 
     if (this.layoutInsertionCursor(ctxt)) {
@@ -541,13 +541,13 @@ export class ChantLine extends ChantLayoutElement {
     );
   }
 
-  createReact(ctxt, top = 0) {
+  createSvgTree(ctxt, top = 0) {
     let inner = this.getInnerNodes(ctxt, top, {
-      quickSvg: "createReact",
-      elements: "createReact"
+      quickSvg: "createSvgTree",
+      elements: "createSvgTree"
     });
 
-    return QuickSvg.createReact(
+    return QuickSvg.createSvgTree(
       "g",
       {
         class: "chantLine",

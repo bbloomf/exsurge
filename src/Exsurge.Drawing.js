@@ -23,7 +23,6 @@
 // THE SOFTWARE.
 //
 
-import React from "react";
 import {
   Units,
   Pitch,
@@ -75,27 +74,27 @@ export var MarkingPositionHint = {
 export const TextTypes = {
   supertitle: {
     display: "Supertitle",
-    defaultSize: size => (size * 7) / 6, // 14pt
-    containedInScore: score => score.titles.hasSupertitle(),
-    getFromScore: score => score.titles.supertitle
+    defaultSize: (size) => (size * 7) / 6, // 14pt
+    containedInScore: (score) => score.titles.hasSupertitle(),
+    getFromScore: (score) => score.titles.supertitle
   },
   title: {
     display: "Title",
-    defaultSize: size => (size * 3) / 2, // 18pt
-    containedInScore: score => score.titles.hasTitle(),
-    getFromScore: score => score.titles.title
+    defaultSize: (size) => (size * 3) / 2, // 18pt
+    containedInScore: (score) => score.titles.hasTitle(),
+    getFromScore: (score) => score.titles.title
   },
   subtitle: {
     display: "Subtitle",
-    defaultSize: size => size, // 12pt
-    containedInScore: score => score.titles.hasSubtitle(),
-    getFromScore: score => score.titles.subtitle
+    defaultSize: (size) => size, // 12pt
+    containedInScore: (score) => score.titles.hasSubtitle(),
+    getFromScore: (score) => score.titles.subtitle
   },
   leftRight: {
     display: "Left / Right Text",
     cssClass: "textLeftRight",
-    defaultSize: size => size * 0.9,
-    containedInScore: score =>
+    defaultSize: (size) => size * 0.9,
+    containedInScore: (score) =>
       score.titles.hasTextLeft() || score.titles.hasTextRight(),
     getFromScore: (score, elem) => score.titles[elem.extraClass],
     getFromSvgElem: (score, elem) =>
@@ -105,8 +104,8 @@ export const TextTypes = {
   },
   annotation: {
     display: "Annotation",
-    defaultSize: size => (size * 2) / 3,
-    containedInScore: score =>
+    defaultSize: (size) => (size * 2) / 3,
+    containedInScore: (score) =>
       !!score.annotation &&
       (!score.mergeAnnotationWithTextLeft || score.dropCap),
     getFromScore: (score, { elementIndex = 0 }) =>
@@ -117,15 +116,15 @@ export const TextTypes = {
   },
   dropCap: {
     display: "Drop Cap",
-    defaultSize: size => size * 4,
-    containedInScore: score => !!score.dropCap,
-    getFromScore: score => score.dropCap
+    defaultSize: (size) => size * 4,
+    containedInScore: (score) => !!score.dropCap,
+    getFromScore: (score) => score.dropCap
   },
   al: {
     display: "Above Staff",
     cssClass: "aboveLinesText",
-    defaultSize: size => size,
-    containedInScore: score => score.hasAboveLinesText,
+    defaultSize: (size) => size,
+    containedInScore: (score) => score.hasAboveLinesText,
     getFromScore: (score, elem) =>
       score.notations[elem.notation.notationIndex].alText[elem.alIndex],
     getFromSvgElem: (score, elem) =>
@@ -135,15 +134,15 @@ export const TextTypes = {
   },
   choralSign: {
     display: "Choral Sign",
-    size: ctxt => ctxt.staffInterval * 1.5,
-    containedInScore: score => false,
+    size: (ctxt) => ctxt.staffInterval * 1.5,
+    containedInScore: (score) => false,
     getFromScore: (score, elem) =>
       score.notes[elem.note.elementIndex].choralSign
   },
   lyric: {
     display: "Lyric",
-    defaultSize: size => size * 0.9,
-    containedInScore: score => score.hasLyrics,
+    defaultSize: (size) => size * 0.9,
+    containedInScore: (score) => score.hasLyrics,
     getFromScore: (score, elem) =>
       score.notations[elem.notation.notationIndex].lyrics[elem.lyricIndex],
     getFromSvgElem: (score, elem) =>
@@ -153,8 +152,8 @@ export const TextTypes = {
   },
   translation: {
     display: "Translation",
-    defaultSize: size => size * 0.75,
-    containedInScore: score => score.hasTranslations,
+    defaultSize: (size) => size * 0.75,
+    containedInScore: (score) => score.hasTranslations,
     getFromScore: (score, elem) =>
       score.notations[elem.notation.notationIndex].translationText[
         elem.translationIndex
@@ -172,7 +171,7 @@ Object.entries(TextTypes).forEach(([key, entry]) => {
   TextTypesByClass[cssClass] = entry;
 });
 
-export const DefaultTrailingSpace = ctxt =>
+export const DefaultTrailingSpace = (ctxt) =>
   ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier;
 DefaultTrailingSpace.isDefault = true;
 
@@ -240,12 +239,12 @@ export var QuickSvg = {
   xmlns: "http://www.w3.org/2000/xmlns/",
   xlink: "http://www.w3.org/1999/xlink",
 
-  hasDOMAccess: function() {
+  hasDOMAccess: function () {
     return canAccessDOM;
   },
 
   // create the root level svg object
-  svg: function(width, height) {
+  svg: function (width, height) {
     var node = document.createElementNS(this.ns, "svg");
 
     node.setAttribute("xmlns", this.ns);
@@ -261,7 +260,7 @@ export var QuickSvg = {
 
     node.defs = defs;
 
-    node.clearNotations = function() {
+    node.clearNotations = function () {
       // clear out all children except defs
       node.removeChild(defs);
 
@@ -273,7 +272,7 @@ export var QuickSvg = {
     return node;
   },
 
-  rect: function(width, height) {
+  rect: function (width, height) {
     var node = document.createElementNS(this.ns, "rect");
 
     node.setAttribute("width", width);
@@ -282,7 +281,7 @@ export var QuickSvg = {
     return node;
   },
 
-  line: function(x1, y1, x2, y2) {
+  line: function (x1, y1, x2, y2) {
     var node = document.createElementNS(this.ns, "line");
 
     node.setAttribute("x1", x1);
@@ -293,19 +292,19 @@ export var QuickSvg = {
     return node;
   },
 
-  g: function() {
+  g: function () {
     var node = document.createElementNS(this.ns, "g");
 
     return node;
   },
 
-  text: function() {
+  text: function () {
     var node = document.createElementNS(this.ns, "text");
 
     return node;
   },
 
-  tspan: function(str) {
+  tspan: function (str) {
     var node = document.createElementNS(this.ns, "tspan");
     node.textContent = str;
 
@@ -313,14 +312,14 @@ export var QuickSvg = {
   },
 
   // nodeRef should be the id of the object in defs (without the #)
-  use: function(nodeRef) {
+  use: function (nodeRef) {
     var node = document.createElementNS(this.ns, "use");
     node.setAttributeNS(this.xlink, "xlink:href", "#" + nodeRef);
 
     return node;
   },
 
-  svgFragmentForGlyph: function(glyph) {
+  svgFragmentForGlyph: function (glyph) {
     var svgSrc = "";
     for (var i = 0; i < glyph.paths.length; ++i) {
       var path = glyph.paths[i];
@@ -332,7 +331,7 @@ export var QuickSvg = {
     return svgSrc;
   },
 
-  nodesForGlyph: function(glyph, functionName = "createNode") {
+  nodesForGlyph: function (glyph, functionName = "createNode") {
     var nodes = [];
     for (var i = 0; i < glyph.paths.length; ++i) {
       var path = glyph.paths[i];
@@ -344,7 +343,7 @@ export var QuickSvg = {
     return nodes;
   },
 
-  createNode: function(name, attributes, children) {
+  createNode: function (name, attributes, children) {
     var node = document.createElementNS(this.ns, name);
     if (attributes && attributes.source) {
       node.source = attributes.source;
@@ -378,12 +377,12 @@ export var QuickSvg = {
     return node;
   },
 
-  createReact(name, props, ...children) {
+  createSvgTree(name, props, ...children) {
     if ("class" in props) {
       props.className = props.class;
       delete props.class;
     }
-    const convertKeysToCamelCase = obj => {
+    const convertKeysToCamelCase = (obj) => {
       for (let key of Object.keys(obj)) {
         if (/[-:][a-z]/.test(key)) {
           if (/^\w+-index$/.test(key)) continue;
@@ -401,10 +400,10 @@ export var QuickSvg = {
       let source = props.source;
       if (source.sourceGabc) props["source-gabc"] = source.sourceGabc;
     }
-    return React.createElement(name, props, ...children);
+    return { name, props, children };
   },
 
-  createFragment: function(name, attributes, child) {
+  createFragment: function (name, attributes, child) {
     if (child === undefined || child === null) child = "";
 
     var fragment = "<" + name + " ";
@@ -422,7 +421,7 @@ export var QuickSvg = {
     return fragment;
   },
 
-  parseFragment: function(fragment) {
+  parseFragment: function (fragment) {
     // create temporary holder
     var well = document.createElement("svg");
 
@@ -447,12 +446,12 @@ export var QuickSvg = {
     }
   },
 
-  translate: function(node, x, y) {
+  translate: function (node, x, y) {
     node.setAttribute("transform", "translate(" + x + "," + y + ")");
     return node;
   },
 
-  scale: function(node, sx, sy) {
+  scale: function (node, sx, sy) {
     node.setAttribute("transform", "scale(" + sx + "," + sy + ")");
     return node;
   }
@@ -493,7 +492,7 @@ export class ChantContext {
     };
     this.textBeforeSpecialChar = "";
     this.textAfterSpecialChar = ".";
-    this.specialCharText = char => char;
+    this.specialCharText = (char) => char;
 
     this.fontStyleDictionary = {
       b: { "font-weight": "bold" },
@@ -667,8 +666,8 @@ export class ChantContext {
     return node;
   }
 
-  createStyleReact() {
-    return React.createElement("style", {}, this.createStyleCss(this));
+  createStyleTree() {
+    return { name: "style", props: {}, children: [this.createStyleCss(this)] };
   }
 
   createStyle() {
@@ -857,8 +856,8 @@ export class DividerLineVisualizer extends ChantLayoutElement {
   createSvgNode(ctxt) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createReact(ctxt) {
-    return QuickSvg.createReact("rect", this.getSvgProps(ctxt));
+  createSvgTree(ctxt) {
+    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
   createSvgFragment(ctxt) {
@@ -936,8 +935,8 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
   createSvgNode(ctxt) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createReact(ctxt) {
-    return QuickSvg.createReact("rect", this.getSvgProps(ctxt));
+  createSvgTree(ctxt) {
+    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
   createSvgFragment(ctxt) {
@@ -992,8 +991,8 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
   createSvgNode(ctxt) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createReact(ctxt) {
-    return QuickSvg.createReact("rect", this.getSvgProps(ctxt));
+  createSvgTree(ctxt) {
+    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
   createSvgFragment(ctxt) {
@@ -1052,11 +1051,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
               )
             );
         };
-        makeDef.makeReact = () => {
-          return QuickSvg.createReact(
+        makeDef.makeSvgTree = () => {
+          return QuickSvg.createSvgTree(
             "g",
             getDefProps(),
-            ...QuickSvg.nodesForGlyph(this.glyph, "createReact")
+            ...QuickSvg.nodesForGlyph(this.glyph, "createSvgTree")
           );
         };
         makeDef();
@@ -1139,10 +1138,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
     attributes.source = source;
     return QuickSvg.createNode("use", attributes);
   }
-  createReact(ctxt, source) {
+  createSvgTree(ctxt, source) {
     var attributes = this.getSvgAttributes(ctxt, source);
     attributes.source = source;
-    return QuickSvg.createReact("use", attributes);
+    return QuickSvg.createSvgTree("use", attributes);
   }
 
   createSvgFragment(ctxt, source) {
@@ -1197,16 +1196,16 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
       );
     } else return node;
   }
-  createReact(ctxt) {
-    var node = QuickSvg.createReact("path", this.getSvgPathProps(ctxt));
+  createSvgTree(ctxt) {
+    var node = QuickSvg.createSvgTree("path", this.getSvgPathProps(ctxt));
     if (this.accent) {
-      return QuickSvg.createReact(
+      return QuickSvg.createSvgTree(
         "g",
         {
           class: "accentedBrace"
         },
         node,
-        this.accent.createReact(ctxt)
+        this.accent.createSvgTree(ctxt)
       );
     } else return node;
   }
@@ -1330,16 +1329,16 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
       );
     } else return node;
   }
-  createReact(ctxt) {
-    var node = QuickSvg.createReact("path", this.getSvgPathProps(ctxt));
+  createSvgTree(ctxt) {
+    var node = QuickSvg.createSvgTree("path", this.getSvgPathProps(ctxt));
     if (this.accent) {
-      return QuickSvg.createReact(
+      return QuickSvg.createSvgTree(
         "g",
         {
           class: "accentedBrace"
         },
         node,
-        this.accent.createReact(ctxt)
+        this.accent.createSvgTree(ctxt)
       );
     } else return node;
   }
@@ -1456,7 +1455,7 @@ function MarkupStackFrame(tagName, startIndex, properties = {}) {
   this.properties = properties;
 }
 
-MarkupStackFrame.createStackFrame = function(ctxt, tagName, startIndex) {
+MarkupStackFrame.createStackFrame = function (ctxt, tagName, startIndex) {
   return new MarkupStackFrame(
     tagName,
     startIndex,
@@ -1544,7 +1543,7 @@ export class TextElement extends ChantLayoutElement {
         new TextSpan(
           spanText,
           properties,
-          markupStack.map(frame => frame.tagName),
+          markupStack.map((frame) => frame.tagName),
           index
         )
       );
@@ -1597,7 +1596,7 @@ export class TextElement extends ChantLayoutElement {
           if (closingTag) {
             // out of order group close:
             let index = markupStack.findIndex(
-              frame => frame.tagName === tagName
+              (frame) => frame.tagName === tagName
             );
             if (index >= 0) {
               markupStack.splice(index, 1);
@@ -1770,7 +1769,7 @@ export class TextElement extends ChantLayoutElement {
       delete this.resize;
       delete this.numLines;
       // replace newlines with spaces
-      this.spans.forEach(span => {
+      this.spans.forEach((span) => {
         delete span.properties.xOffset;
         if (span.properties.newLine === true) {
           delete span.properties.newLine;
@@ -1811,7 +1810,7 @@ export class TextElement extends ChantLayoutElement {
   }
 
   setMaxWidth(ctxt, maxWidth, firstLineMaxWidth = maxWidth) {
-    if (this.spans.filter(s => s.properties.newLine === true).length) {
+    if (this.spans.filter((s) => s.properties.newLine === true).length) {
       // first get rid of any new lines set from a previous maxWidth
       this.recalculateMetrics(ctxt);
     }
@@ -1900,7 +1899,7 @@ export class TextElement extends ChantLayoutElement {
   }
 
   static escapeForTspan(string) {
-    return String(string).replace(/[&<>]/g, function(s) {
+    return String(string).replace(/[&<>]/g, function (s) {
       return __subsForTspans[s];
     });
   }
@@ -2018,21 +2017,21 @@ export class TextElement extends ChantLayoutElement {
 
     return (this.svgNode = QuickSvg.createNode("text", options, spans));
   }
-  createReact(ctxt) {
+  createSvgTree(ctxt) {
     var spans = [];
 
     for (var i = 0; i < this.spans.length; i++) {
       let span = this.spans[i];
       let options = this.getSpanOptions(span, ctxt, true);
 
-      spans.push(QuickSvg.createReact("tspan", options, span.text));
+      spans.push(QuickSvg.createSvgTree("tspan", options, span.text));
     }
 
     let options = this.getSvgProps();
     options.style = this.getExtraStyleProperties(ctxt);
     options.source = this;
 
-    return QuickSvg.createReact("text", options, ...spans);
+    return QuickSvg.createSvgTree("text", options, ...spans);
   }
 
   createSvgFragment(ctxt) {
@@ -2069,7 +2068,7 @@ export var LyricType = {
 };
 
 export var LyricArray = {
-  getLeft: function(lyricArray) {
+  getLeft: function (lyricArray) {
     if (lyricArray.length === 0) return NaN;
 
     var x = Number.MAX_VALUE;
@@ -2084,7 +2083,7 @@ export var LyricArray = {
     return x;
   },
 
-  getRight: function(lyricArray, presumeConnectorNeeded) {
+  getRight: function (lyricArray, presumeConnectorNeeded) {
     if (lyricArray.length === 0) return NaN;
 
     var x = Number.MIN_VALUE;
@@ -2105,28 +2104,28 @@ export var LyricArray = {
     return x;
   },
 
-  hasOnlyOneLyric: function(lyricArray) {
-    return lyricArray.filter(l => l.originalText).length === 1;
+  hasOnlyOneLyric: function (lyricArray) {
+    return lyricArray.filter((l) => l.originalText).length === 1;
   },
 
-  indexOfLyric: function(lyricArray) {
-    return lyricArray.indexOf(lyricArray.filter(l => l.originalText)[0]);
+  indexOfLyric: function (lyricArray) {
+    return lyricArray.indexOf(lyricArray.filter((l) => l.originalText)[0]);
   },
 
-  mergeIn: function(lyricArray, newLyrics) {
+  mergeIn: function (lyricArray, newLyrics) {
     for (var i = 0; i < newLyrics.length; ++i) {
       if (newLyrics[i].originalText || !lyricArray[i])
         lyricArray[i] = newLyrics[i];
     }
   },
 
-  mergeInArray: function(lyricArray, notations) {
+  mergeInArray: function (lyricArray, notations) {
     for (var i = 0; i < notations.length; ++i) {
       this.mergeIn(lyricArray, notations[i].lyrics);
     }
   },
 
-  setNotation: function(lyricArray, notation) {
+  setNotation: function (lyricArray, notation) {
     notation.lyrics = lyricArray;
     for (var i = 0; i < lyricArray.length; ++i) {
       lyricArray[i].notation = notation;
@@ -2139,8 +2138,8 @@ export class Lyric extends TextElement {
     super(
       ctxt,
       (ctxt.textStyles.lyric.prefix || "") + text,
-      ctxt => ctxt.textStyles.lyric.font,
-      ctxt => ctxt.textStyles.lyric.size,
+      (ctxt) => ctxt.textStyles.lyric.font,
+      (ctxt) => ctxt.textStyles.lyric.size,
       "start",
       sourceIndex,
       text
@@ -2402,7 +2401,7 @@ export class ChoralSign extends TextElement {
     super(
       ctxt,
       (ctxt.textStyles.choralSign.prefix || "") + text,
-      ctxt => ctxt.textStyles.choralSign.font,
+      (ctxt) => ctxt.textStyles.choralSign.font,
       TextTypes.choralSign.size,
       "start",
       sourceIndex,
@@ -2447,8 +2446,8 @@ export class AboveLinesText extends TextElement {
     super(
       ctxt,
       (ctxt.textStyles.al.prefix || "") + text,
-      ctxt => ctxt.textStyles.al.font,
-      ctxt => ctxt.textStyles.al.size,
+      (ctxt) => ctxt.textStyles.al.font,
+      (ctxt) => ctxt.textStyles.al.size,
       "start",
       sourceIndex,
       text
@@ -2476,8 +2475,8 @@ export class TranslationText extends TextElement {
     super(
       ctxt,
       text,
-      ctxt => ctxt.textStyles.translation.font,
-      ctxt => ctxt.textStyles.translation.size,
+      (ctxt) => ctxt.textStyles.translation.font,
+      (ctxt) => ctxt.textStyles.translation.size,
       anchor,
       sourceIndex,
       gabcSource
@@ -2497,8 +2496,8 @@ export class DropCap extends TextElement {
     super(
       ctxt,
       (ctxt.textStyles.dropCap.prefix || "") + text,
-      ctxt => ctxt.textStyles.dropCap.font,
-      ctxt => ctxt.textStyles.dropCap.size,
+      (ctxt) => ctxt.textStyles.dropCap.font,
+      (ctxt) => ctxt.textStyles.dropCap.size,
       "middle",
       sourceIndex,
       text
@@ -2536,15 +2535,15 @@ export class Supertitle extends TitleTextElement {
     super(
       ctxt,
       (ctxt.textStyles.supertitle.prefix || "") + text,
-      ctxt => ctxt.textStyles.supertitle.font,
-      ctxt => ctxt.textStyles.supertitle.size,
+      (ctxt) => ctxt.textStyles.supertitle.font,
+      (ctxt) => ctxt.textStyles.supertitle.size,
       "middle",
       sourceIndex,
       text
     );
     this.textType = TextTypes.supertitle;
 
-    this.padding = ctxt => ctxt.textStyles.supertitle.size / 3;
+    this.padding = (ctxt) => ctxt.textStyles.supertitle.size / 3;
   }
 }
 
@@ -2553,15 +2552,15 @@ export class Title extends TitleTextElement {
     super(
       ctxt,
       (ctxt.textStyles.title.prefix || "") + text,
-      ctxt => ctxt.textStyles.title.font,
-      ctxt => ctxt.textStyles.title.size,
+      (ctxt) => ctxt.textStyles.title.font,
+      (ctxt) => ctxt.textStyles.title.size,
       "middle",
       sourceIndex,
       text
     );
     this.textType = TextTypes.title;
 
-    this.padding = ctxt => ctxt.textStyles.title.size / 3;
+    this.padding = (ctxt) => ctxt.textStyles.title.size / 3;
   }
 }
 
@@ -2570,15 +2569,15 @@ export class Subtitle extends TitleTextElement {
     super(
       ctxt,
       (ctxt.textStyles.subtitle.prefix || "") + text,
-      ctxt => ctxt.textStyles.subtitle.font,
-      ctxt => ctxt.textStyles.subtitle.size,
+      (ctxt) => ctxt.textStyles.subtitle.font,
+      (ctxt) => ctxt.textStyles.subtitle.size,
       "middle",
       sourceIndex,
       text
     );
     this.textType = TextTypes.subtitle;
 
-    this.padding = ctxt => ctxt.textStyles.subtitle.size / 3;
+    this.padding = (ctxt) => ctxt.textStyles.subtitle.size / 3;
   }
 }
 
@@ -2587,8 +2586,8 @@ export class TextLeftRight extends TitleTextElement {
     super(
       ctxt,
       (ctxt.textStyles.leftRight.prefix || "") + text,
-      ctxt => ctxt.textStyles.leftRight.font,
-      ctxt => ctxt.textStyles.leftRight.size,
+      (ctxt) => ctxt.textStyles.leftRight.font,
+      (ctxt) => ctxt.textStyles.leftRight.size,
       type === "textLeft" ? "start" : "end",
       sourceIndex,
       text
@@ -2596,7 +2595,7 @@ export class TextLeftRight extends TitleTextElement {
     this.textType = TextTypes.leftRight;
     this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
     this.headerKey = type === "textLeft" ? "text-left" : "text-right";
-    this.padding = ctxt => ctxt.textStyles.leftRight.size / 5;
+    this.padding = (ctxt) => ctxt.textStyles.leftRight.size / 5;
   }
 
   getCssClasses() {
@@ -2612,8 +2611,8 @@ export class Annotation extends TextElement {
     super(
       ctxt,
       (ctxt.textStyles.annotation.prefix || "") + text,
-      ctxt => ctxt.textStyles.annotation.font,
-      ctxt => ctxt.textStyles.annotation.size,
+      (ctxt) => ctxt.textStyles.annotation.font,
+      (ctxt) => ctxt.textStyles.annotation.size,
       "middle"
     );
     this.textType = TextTypes.annotation;
@@ -2629,12 +2628,12 @@ export class Annotations extends ChantLayoutElement {
   constructor(ctxt, ...texts) {
     super();
 
-    this.annotations = texts.map(function(text) {
+    this.annotations = texts.map(function (text) {
       return new Annotation(ctxt, text);
     });
     this.padding = Math.max.apply(
       null,
-      this.annotations.map(function(annotation) {
+      this.annotations.map(function (annotation) {
         return annotation.padding;
       })
     );
@@ -2671,7 +2670,7 @@ export class Annotations extends ChantLayoutElement {
 
   draw(ctxt) {
     this.updateBounds();
-    this.annotations.forEach(function(annotation) {
+    this.annotations.forEach(function (annotation) {
       annotation.draw(ctxt);
     });
     this.updateBounds(-1);
@@ -2679,25 +2678,25 @@ export class Annotations extends ChantLayoutElement {
 
   createSvgNode(ctxt) {
     this.updateBounds();
-    var result = this.annotations.map(function(annotation) {
+    var result = this.annotations.map(function (annotation) {
       return annotation.createSvgNode(ctxt);
     });
     this.updateBounds(-1);
     return result;
   }
-  createReact(ctxt) {
+  createSvgTree(ctxt) {
     this.updateBounds();
-    var result = this.annotations.map(function(annotation) {
-      return annotation.createReact(ctxt);
+    var result = this.annotations.map(function (annotation) {
+      return annotation.createSvgTree(ctxt);
     });
     this.updateBounds(-1);
-    return React.createElement(React.Fragment, null, ...result);
+    return { children: result };
   }
 
   createSvgFragment(ctxt) {
     this.updateBounds();
     var result = this.annotations
-      .map(function(annotation) {
+      .map(function (annotation) {
         return annotation.createSvgFragment(ctxt);
       })
       .join("");
@@ -2813,12 +2812,12 @@ export class ChantNotationElement extends ChantLayoutElement {
     // center the neume itself over the syllable, or just the first punctum
     // if the neume is wider than the syllable + the width of a punctum, we always revert to centering just over the punctum
     let calculateLyricX = language.centerNeume
-      ? lyric =>
+      ? (lyric) =>
           (lyric.bounds.x =
             this.bounds.width + ctxt.staffInterval < lyric.vowelSegmentWidth
               ? this.bounds.width / 2 - lyric.origin.x
               : this.origin.x - lyric.origin.x)
-      : lyric => (lyric.bounds.x = this.origin.x - lyric.origin.x);
+      : (lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
     this.lyrics.forEach(calculateLyricX);
 
     this.needsLayout = false;
@@ -2862,9 +2861,9 @@ export class ChantNotationElement extends ChantLayoutElement {
       for (var i = 0; i < this.visualizers.length; i++)
         visualizers.push(this.visualizers[i][functionName](ctxt, this));
 
-      if (functionName === "createReact") {
+      if (functionName === "createSvgTree") {
         inner.push(
-          QuickSvg.createReact("g", { class: "Notations" }, ...visualizers)
+          QuickSvg.createSvgTree("g", { class: "Notations" }, ...visualizers)
         );
       } else {
         inner.push(
@@ -2889,11 +2888,11 @@ export class ChantNotationElement extends ChantLayoutElement {
     svgProps.source = this;
     return QuickSvg.createNode("g", svgProps, inner);
   }
-  createReact(ctxt) {
-    var inner = this.getInnerSvgNodes(ctxt, "createReact");
+  createSvgTree(ctxt) {
+    var inner = this.getInnerSvgNodes(ctxt, "createSvgTree");
     var svgProps = this.getSvgProps();
     svgProps.source = this;
-    return QuickSvg.createReact("g", svgProps, ...inner);
+    return QuickSvg.createSvgTree("g", svgProps, ...inner);
   }
 
   createSvgFragment(ctxt) {

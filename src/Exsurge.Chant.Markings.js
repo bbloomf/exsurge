@@ -215,8 +215,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
   createSvgNode(ctxt) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createReact(ctxt) {
-    return QuickSvg.createReact("rect", this.getSvgProps(ctxt));
+  createSvgTree(ctxt) {
+    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
   createSvgFragment(ctxt) {
