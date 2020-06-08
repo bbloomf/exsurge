@@ -655,7 +655,7 @@ export class ChantContext {
     for (let [key, textType] of Object.entries(TextTypes)) {
       var cssClass = textType.cssClass,
         { color, font, size } = this.textStyles[key];
-      style += `.${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
+      style += `svg.Exsurge .${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
     }
     return style;
   }
