@@ -775,7 +775,7 @@ export class ChantScore {
     return {
       xmlns: "http://www.w3.org/2000/svg",
       version: "1.1",
-      class: "ChantScore" + (ctxt.editable ? " EditableChantScore" : ""),
+      class: "Exsurge ChantScore" + (ctxt.editable ? " EditableChantScore" : ""),
       width,
       height,
       viewBox: [0, 0, this.bounds.width, this.bounds.height].join(" ")
@@ -865,7 +865,7 @@ export class ChantScore {
         {
           xmlns: "http://www.w3.org/2000/svg",
           version: "1.1",
-          class: "ChantScore",
+          class: "Exsurge ChantScore",
           width: this.bounds.width,
           height: height,
           viewBox: [0, 0, this.bounds.width, height].join(" ")
@@ -900,7 +900,7 @@ export class ChantScore {
           xmlns: "http://www.w3.org/2000/svg",
           version: "1.1",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          class: "ChantScore",
+          class: "Exsurge ChantScore",
           width: this.bounds.width,
           height: height
         },
