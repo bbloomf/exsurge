@@ -2063,9 +2063,9 @@ export class ChantLine extends ChantLayoutElement {
             if (condensableSpacesSincePrevLyric.sum) {
               condensableSpaceSincePrevLyric -= space.condensable;
               condensableSpacesSincePrevLyric.forEach(space => {
-                space.condensable =
-                  condensableSpaceSincePrevLyric *
-                  (space.condensable / condensableSpacesSincePrevLyric.sum);
+                space.condensable = Math.min(space.condensable, 
+                    condensableSpaceSincePrevLyric *
+                    (space.condensable / condensableSpacesSincePrevLyric.sum));
               });
               condensableSpaces.sum = condensableSpaces
                 .map(s => s.condensable)
