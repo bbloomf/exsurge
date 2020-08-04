@@ -9,7 +9,7 @@
     "build-dev": "webpack --mode=dev",
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.js",
-    "version": "npm run build && npm run changelog && git add CHANGELOG.md dist/",
+    "version": "npm run changelog && git add CHANGELOG.md dist/",
     "postversion": "git push && git push --tags",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
