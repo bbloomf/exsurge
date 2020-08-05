@@ -2058,14 +2058,12 @@ export class ChantLine extends ChantLayoutElement {
             condensableSpaceSincePrevLyric <
             condensableSpacesSincePrevLyric.sum + space.condensable
           ) {
-            let numSpaces = condensableSpacesSincePrevLyric.length + 1;
-            space.condensable = condensableSpaceSincePrevLyric / numSpaces;
+            // reduce condensable space so that lyrics retain at least the width of a space character between words:
+            let multiplier = condensableSpaceSincePrevLyric / (condensableSpacesSincePrevLyric.sum + space.condensable);
+            space.condensable *= multiplier;
             if (condensableSpacesSincePrevLyric.sum) {
-              condensableSpaceSincePrevLyric -= space.condensable;
               condensableSpacesSincePrevLyric.forEach(space => {
-                space.condensable = Math.min(space.condensable, 
-                    condensableSpaceSincePrevLyric *
-                    (space.condensable / condensableSpacesSincePrevLyric.sum));
+                space.condensable *= multiplier;
               });
               condensableSpaces.sum = condensableSpaces
                 .map(s => s.condensable)
