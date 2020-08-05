@@ -1,3 +1,12 @@
+## [1.0.2](https://github.com/frmatthew/exsurge/compare/v1.0.1...v1.0.2) (2020-08-05)
+
+
+### Bug Fixes
+
+* **exsurge:** Fix algorithm for controlling whether to condense the space between two lyric words during justification ([394fb62](https://github.com/frmatthew/exsurge/commit/394fb62c98e8ca0d34aacb7464baced7dd7ec311))
+
+
+
 ## [1.0.1](https://github.com/frmatthew/exsurge/compare/v1.0.0...v1.0.1) (2020-08-04)
 
 
