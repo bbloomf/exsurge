@@ -1,3 +1,12 @@
+## [1.0.3](https://github.com/frmatthew/exsurge/compare/v1.0.2...v1.0.3) (2020-08-26)
+
+
+### Bug Fixes
+
+* **english:** Center neume around elided syllables in English ([c37586b](https://github.com/frmatthew/exsurge/commit/c37586be3b3c67ca3da927f671c25e404b8eb8d6))
+
+
+
 ## [1.0.2](https://github.com/frmatthew/exsurge/compare/v1.0.1...v1.0.2) (2020-08-05)
 
 
