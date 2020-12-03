@@ -1,3 +1,14 @@
+## [1.0.4](https://github.com/frmatthew/exsurge/compare/v1.0.3...v1.0.4) (2020-12-03)
+
+
+### Bug Fixes
+
+* **english:** Center neume around elided syllables in English ([9cc7d0c](https://github.com/frmatthew/exsurge/commit/9cc7d0cd831643e8a6b2fb7cdcc004a3a83da3b2))
+* **exsurge:** Fix algorithm for controlling whether to condense the space between two lyric words during justification ([59bce69](https://github.com/frmatthew/exsurge/commit/59bce6911eed1813d6511d51d7ae8833e2e9993b))
+* **exsurge:** Fix rendering issue that was causing puncta to collide in some cases ([0fb6a2e](https://github.com/frmatthew/exsurge/commit/0fb6a2e8f8d53fec526e2671bd95fa51b4f41417))
+
+
+
 ## [1.0.3](https://github.com/frmatthew/exsurge/compare/v1.0.2...v1.0.3) (2020-08-26)
 
 
