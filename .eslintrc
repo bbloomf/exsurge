@@ -35,7 +35,7 @@ rules:
   no-obj-calls: 2
   no-regex-spaces: 2
   no-sparse-arrays: 2
-  no-unexpected-multiline: 2
+  no-unexpected-multiline: 0
   no-unreachable: 2
   use-isnan: 2
   valid-jsdoc: 0
@@ -71,7 +71,7 @@ rules:
   no-iterator: 2
   no-labels: 0
   no-lone-blocks: 2
-  no-loop-func: 2
+  no-loop-func: 0
   no-magic-number: 0
   no-multi-spaces: 0
   no-multi-str: 0
@@ -94,7 +94,7 @@ rules:
   no-void: 2
   no-warning-comments: 0
   no-with: 2
-  radix: 2
+  radix: 0
   vars-on-top: 0
   wrap-iife: 2
   yoda: 0
