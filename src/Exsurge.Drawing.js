@@ -508,6 +508,13 @@ export class ChantContext {
       }
     };
 
+    this.markupSymbolDictionary = {
+      "*": "b",
+      "_": "i",
+      "^": "c",
+      "%": "sc"
+    };
+
     this.textStyles.al.prefix = "<i>";
 
     this.textStyles.translation.prefix = "<i>";
@@ -1549,13 +1556,13 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|<(\/)?([bciu]|ul|sc)>(?=(?:(.+?)<\/\4>)?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|(?:([*_^%])|<(\/)?([bciu]|ul|sc)>)(?=(?:(.+?)(?:\3|<\/\5>))?)/gi;
 
     var match = null;
     var closeCurrentSpan = () =>
       closeSpan(text.substring(spanStartIndex, match.index), spanStartIndex);
     while ((match = markupRegex.exec(text))) {
-      var [, newLine, specialChar, closingTag, tagName] = match;
+      var [, newLine, specialChar, markupSymbol, closingTag, tagName, enclosedText] = match;
 
       // non-matching symbols first
       if (newLine) {
@@ -1576,6 +1583,14 @@ export class TextElement extends ChantLayoutElement {
         );
       } else {
         // otherwise we're dealing with matching markup delimeters
+        if (markupSymbol === '*' && !enclosedText) // we are only strict with the asterisk, because there are cases when it needs to be displayed rather than count as a markup symbol
+          continue;
+        if (markupSymbol) {
+          tagName = ctxt.markupSymbolDictionary[markupSymbol];
+          if (markupStack.length > 0 && markupStack[markupStack.length - 1].tagName === tagName) {
+            closingTag = true;
+          }
+        }
         if (
           markupStack.length > 0 &&
           markupStack[markupStack.length - 1].tagName === tagName
