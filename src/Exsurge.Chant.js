@@ -556,7 +556,9 @@ export class ChantScore {
     for (var i = 0; i < this.notations.length; i++) {
       if (
         this.notations[i].hasLyrics() &&
-        this.notations[i].lyrics[0] !== null
+        this.notations[i].lyrics[0] !== null &&
+        this.notations[i].lyrics[0].spans &&
+        this.notations[i].lyrics[0].spans.length
       ) {
         let notation = this.notations[i],
           lyrics = notation.lyrics[0];

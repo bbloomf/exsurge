@@ -465,7 +465,7 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     inner = [
-      QuickSvg[functionNames.quickSvg]("g", { class: "staffLines" }, ...inner)
+      QuickSvg[functionNames.quickSvg]("g", { class: "staffLines" }, inner)
     ];
 
     if (this.layoutInsertionCursor(ctxt)) {
@@ -1985,7 +1985,8 @@ export class ChantLine extends ChantLayoutElement {
         var currLyricLeft = curr.lyrics[i].getLeft();
         if (!prevLyrics[i] || prevLyrics[i].allowsConnector() === false) {
           // No connector needed, but include space between words if necessary!
-          if (prevLyricRight + ctxt.minLyricWordSpacing > currLyricLeft) {
+          let extraSpace = currLyricLeft - prevLyricRight - ctxt.minLyricWordSpacing;
+          if (extraSpace < 0) {
             // push the current element over a bit.
             let shift =
               prevLyricRight + ctxt.minLyricWordSpacing - currLyricLeft;
@@ -1993,8 +1994,7 @@ export class ChantLine extends ChantLayoutElement {
             condensableSpaceSincePrevLyric = 0;
             hasShifted = shift > 0.5;
           } else {
-            condensableSpaceSincePrevLyric =
-              currLyricLeft - prevLyricRight - ctxt.minLyricWordSpacing;
+            condensableSpaceSincePrevLyric = extraSpace;
           }
         } else {
           // we may need a connector yet...
