@@ -1,3 +1,12 @@
+## [1.0.5](https://github.com/frmatthew/exsurge/compare/v1.0.4...v1.0.5) (2020-12-04)
+
+
+### Bug Fixes
+
+* Fix a couple minor bugs ([dac8010](https://github.com/frmatthew/exsurge/commit/dac801094bea331cbc9339d302d5d9fd8cb459db))
+
+
+
 ## [1.0.4](https://github.com/frmatthew/exsurge/compare/v1.0.3...v1.0.4) (2020-12-03)
 
 
