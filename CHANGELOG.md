@@ -1,3 +1,12 @@
+## [1.0.6](https://github.com/frmatthew/exsurge/compare/v1.0.5...v1.0.6) (2020-12-07)
+
+
+### Bug Fixes
+
+* Allow children to be an array ([a141c82](https://github.com/frmatthew/exsurge/commit/a141c82de61ec24f1852c599dad2f3b25cce88af))
+
+
+
 ## [1.0.5](https://github.com/frmatthew/exsurge/compare/v1.0.4...v1.0.5) (2020-12-04)
 
 
