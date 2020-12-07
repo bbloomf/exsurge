@@ -382,6 +382,9 @@ export var QuickSvg = {
       props.className = props.class;
       delete props.class;
     }
+    if (children.length === 1 && children[0] instanceof Array) {
+      children = children[0];
+    }
     const convertKeysToCamelCase = (obj) => {
       for (let key of Object.keys(obj)) {
         if (/[-:][a-z]/.test(key)) {
