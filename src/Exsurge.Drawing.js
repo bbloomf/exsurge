@@ -1559,15 +1559,15 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|(?:([*_^%])|<(\/)?([bciu]|ul|sc)>)(?=(?:(.+?)(?:\3|<\/\5>))?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|(?:([*_^%])|<(\/)?([bciu]|ul|sc)>)(?=(?:(.+?)(?:\4|<\/\6>))?)/gi;
 
     var match = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
       closeSpan(text.substring(spanStartIndex, match.index), spanStartIndex);
     while ((match = markupRegex.exec(text))) {
-      var [, newLine, specialChar, markupSymbol, closingTag, tagName, enclosedText] = match;
-
+      var [, newLine, specialChar, specialChar2, markupSymbol, closingTag, tagName, enclosedText] = match;
+      specialChar = specialChar || specialChar2;
       // non-matching symbols first
       if (newLine) {
         // close the current span, if any:
