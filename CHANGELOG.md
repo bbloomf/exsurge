@@ -1,3 +1,12 @@
+# [1.1.0](https://github.com/frmatthew/exsurge/compare/v1.0.7...v1.1.0) (2020-12-08)
+
+
+### Features
+
+* Allow old style exsurge versicle/antiphon/symbol ([59d903a](https://github.com/frmatthew/exsurge/commit/59d903a7e24d5f02f085f0a389e1be1038bf0340))
+
+
+
 ## [1.0.7](https://github.com/frmatthew/exsurge/compare/v1.0.6...v1.0.7) (2020-12-08)
 
 
