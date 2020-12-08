@@ -1,3 +1,12 @@
+## [1.0.7](https://github.com/frmatthew/exsurge/compare/v1.0.6...v1.0.7) (2020-12-08)
+
+
+### Bug Fixes
+
+* Fix a bug with relaying out morae on a clivis ([83b8aa9](https://github.com/frmatthew/exsurge/commit/83b8aa946539b96f2b2f596e47cacefb71f5eb3b))
+
+
+
 ## [1.0.6](https://github.com/frmatthew/exsurge/compare/v1.0.5...v1.0.6) (2020-12-07)
 
 
