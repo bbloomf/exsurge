@@ -23,25 +23,18 @@
 // THE SOFTWARE.
 //
 
-import * as Exsurge from "./Exsurge.Core.js";
-import { Step, Pitch, Rect, Point, Margins } from "./Exsurge.Core.js";
 import {
-  QuickSvg,
-  ChantLayoutElement,
-  ChantNotationElement,
-  MarkingPositionHint,
-  GlyphCode,
-  GlyphVisualizer,
-  NeumeLineVisualizer,
-  VirgaLineVisualizer,
-  CurlyBraceVisualizer
-} from "./Exsurge.Drawing.js";
-import {
-  Note,
   LiquescentType,
   NoteShape,
   NoteShapeModifiers
 } from "./Exsurge.Chant.js";
+import {
+  ChantNotationElement,
+  GlyphCode,
+  MarkingPositionHint,
+  NeumeLineVisualizer,
+  VirgaLineVisualizer
+} from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 
 class NeumeBuilder {
@@ -529,18 +522,14 @@ export class Neume extends ChantNotationElement {
     return hasTopEpisema;
   }
   positionClivisMorae(firstNote, secondNote) {
-    // 1. morae need to be lined up if both notes have morae
+    // 1. second note of a clivis that ends on a line and goes down one step has its mora below:
     var morae = firstNote.morae.concat(secondNote.morae);
-    if (secondNote.morae.length) {
-      if (morae.length > 1)
-        morae[0].horizontalOffset +=
-          secondNote.bounds.right() - firstNote.bounds.right();
-      if (
-        firstNote.staffPosition - secondNote.staffPosition === 1 &&
-        Math.abs(secondNote.staffPosition % 2) === 1
-      ) {
-        morae.slice(-1)[0].positionHint = MarkingPositionHint.Below;
-      }
+    if (
+      secondNote.morae.length &&
+      firstNote.staffPosition - secondNote.staffPosition === 1 &&
+      Math.abs(secondNote.staffPosition % 2) === 1
+    ) {
+      morae.slice(-1)[0].positionHint = MarkingPositionHint.Below;
     }
   }
   positionClivisEpisemata(firstNote, secondNote) {
@@ -734,9 +723,11 @@ export class Distropha extends Neume {
 
   performLayout(ctxt) {
     super.performLayout(ctxt);
-    let glyphCodes = this.notes.map(note => Apostropha.getNoteGlyphCode(note));
+    let glyphCodes = this.notes.map((note) =>
+      Apostropha.getNoteGlyphCode(note)
+    );
     let glyphAdvance = ctxt.intraNeumeSpacing;
-    glyphCodes.slice(0, 2).forEach(glyphCode => {
+    glyphCodes.slice(0, 2).forEach((glyphCode) => {
       if (glyphCode === GlyphCode.Stropha)
         glyphAdvance -= ctxt.intraNeumeSpacing / 4;
     });
@@ -1142,9 +1133,7 @@ export class Scandicus extends Neume {
     var third = this.notes[2];
 
     if (third.shape === NoteShape.Virga) {
-      this.build(ctxt)
-        .withPodatus(first, second)
-        .virgaAt(third);
+      this.build(ctxt).withPodatus(first, second).virgaAt(third);
     } else {
       this.build(ctxt)
         .noteAt(
@@ -1354,7 +1343,9 @@ export class Tristropha extends Neume {
 
   performLayout(ctxt) {
     super.performLayout(ctxt);
-    let glyphCodes = this.notes.map(note => Apostropha.getNoteGlyphCode(note));
+    let glyphCodes = this.notes.map((note) =>
+      Apostropha.getNoteGlyphCode(note)
+    );
     let glyphAdvance =
       glyphCodes[0] === GlyphCode.Stropha
         ? ctxt.intraNeumeSpacing / 2

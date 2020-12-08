@@ -23,15 +23,14 @@
 // THE SOFTWARE.
 //
 
-import * as Exsurge from "./Exsurge.Core.js";
+import { NoteShape } from "./Exsurge.Chant.js";
 import {
-  QuickSvg,
   ChantLayoutElement,
-  MarkingPositionHint,
   GlyphCode,
-  GlyphVisualizer
+  GlyphVisualizer,
+  MarkingPositionHint,
+  QuickSvg
 } from "./Exsurge.Drawing.js";
-import { Note, NoteShape } from "./Exsurge.Chant.js";
 
 export class Accent extends GlyphVisualizer {
   constructor(ctxt, note, glyphCode = GlyphCode.AcuteAccent) {
@@ -309,47 +308,55 @@ export class Mora extends GlyphVisualizer {
   }
 
   performLayout(ctxt) {
+    this.setGlyph(ctxt, this.glyphCode);
+    this.horizontalOffset = ctxt.staffInterval / 2 + this.origin.x;
     var staffPosition = this.note.staffPosition;
 
     this.setStaffPosition(ctxt, staffPosition);
 
     var verticalOffset = 0;
-    if (this.horizontalOffset === ctxt.staffInterval / 2 + this.origin.x) {
-      // First, we need to find the next note in the neume.
-      var noteIndex = this.note.neume.notes.indexOf(this.note);
-      var nextNote;
-      if (noteIndex >= 0) {
-        ++noteIndex;
-        if (this.note.neume.notes.length > noteIndex) {
-          nextNote = this.note.neume.notes[noteIndex];
-          if (nextNote.bounds.right() > this.note.bounds.right()) {
-            // center the dot over the following note.
-            this.horizontalOffset =
-              (nextNote.bounds.right() -
-                this.note.bounds.right() -
-                this.bounds.right()) /
-              2;
-          } else {
-            nextNote = null;
-          }
-        } else if (this.note.neume.notes.length === noteIndex) {
-          // this note is the last in its neume:
-          if (this.note.neume.trailingSpace === 0) {
-            // if this was the last note in its neume, we only care about the next note if there is no trailing space at the end of this neume.
-            var notationIndex = this.note.neume.score.notations.indexOf(
-              this.note.neume
-            );
-            if (notationIndex >= 0) {
-              var nextNotation = this.note.neume.score.notations[
-                notationIndex + 1
-              ];
-              if (nextNotation && nextNotation.notes) {
-                nextNote = nextNotation.notes[0];
-              }
+    // First, we need to find the next note in the neume.
+    var noteIndex = this.note.neume.notes.indexOf(this.note);
+    var nextNote;
+    if (noteIndex >= 0) {
+      ++noteIndex;
+      if (this.note.neume.notes.length > noteIndex) {
+        nextNote = this.note.neume.notes[noteIndex];
+        if (
+          nextNote.morae &&
+          nextNote.morae.length &&
+          this.note.neume.notes.length === noteIndex + 1
+        ) {
+          // this note is the second to last in its neume, and the last note also has a mora
+          this.horizontalOffset +=
+            nextNote.bounds.right() - this.note.bounds.right();
+        } else if (nextNote.bounds.right() > this.note.bounds.right()) {
+          // center the dot over the following note.
+          this.horizontalOffset =
+            (nextNote.bounds.right() -
+              this.note.bounds.right() -
+              this.bounds.right()) /
+            2;
+        } else {
+          nextNote = null;
+        }
+      } else if (this.note.neume.notes.length === noteIndex) {
+        // this note is the last in its neume:
+        if (this.note.neume.trailingSpace === 0) {
+          // if this was the last note in its neume, we only care about the next note if there is no trailing space at the end of this neume.
+          var notationIndex = this.note.neume.score.notations.indexOf(
+            this.note.neume
+          );
+          if (notationIndex >= 0) {
+            var nextNotation = this.note.neume.score.notations[
+              notationIndex + 1
+            ];
+            if (nextNotation && nextNotation.notes) {
+              nextNote = nextNotation.notes[0];
             }
-          } else if (this.note.shape !== NoteShape.Inclinatum) {
-            this.note.neume.calculatedTrailingSpace += this.origin.x;
           }
+        } else if (this.note.shape !== NoteShape.Inclinatum) {
+          this.note.neume.calculatedTrailingSpace += this.origin.x;
         }
       }
     }
