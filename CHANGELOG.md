@@ -1,3 +1,12 @@
+## [1.1.1](https://github.com/frmatthew/exsurge/compare/v1.1.0...v1.1.1) (2020-12-11)
+
+
+### Bug Fixes
+
+* Fix null pointer exception ([a516d1c](https://github.com/frmatthew/exsurge/commit/a516d1c7aa0f10ccb3124402f17d867b67242cdf))
+
+
+
 # [1.1.0](https://github.com/frmatthew/exsurge/compare/v1.0.7...v1.1.0) (2020-12-08)
 
 
