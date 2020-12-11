@@ -479,7 +479,7 @@ export class ChantScore {
           this.insertionElement = this.insertionElement.neume;
         }
         if (!insertionLine) {
-          insertionLine = this.insertionElement.line;
+          insertionLine = this.insertionElement.line || this.lines[this.lines.length - 1];
         }
         insertionLine.insertionCursor = new InsertionCursor();
       }
