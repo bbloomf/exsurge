@@ -399,9 +399,9 @@ export var QuickSvg = {
     };
     convertKeysToCamelCase(props);
     if (props.style) convertKeysToCamelCase(props.style);
-    if ("source" in props) {
-      let source = props.source;
-      if (source.sourceGabc) props["source-gabc"] = source.sourceGabc;
+    let source = props.source;
+    if (source && source.sourceGabc) {
+      props["source-gabc"] = source.sourceGabc;
     }
     return { name, props, children };
   },
@@ -1123,15 +1123,17 @@ export class GlyphVisualizer extends ChantLayoutElement {
         : "";
     } else {
       let isSelected =
-        source.selected || (source.model && source.model.selected);
+        source && (source.selected || (source.model && source.model.selected));
       className = isSelected ? "selected" : "";
     }
     var result = {
-      "source-index": source.sourceIndex,
-      "element-index": source.elementIndex,
       "xlink:href": "#" + this.glyphCode,
       class: className
     };
+    if (source) {
+      result["source-index"] = source.sourceIndex;
+      result["element-index"] = source.elementIndex;
+    }
     if (ctxt.scaleDefs === true) {
       result.x = this.bounds.x + this.origin.x;
       result.y = this.bounds.y + this.origin.y;
@@ -1150,7 +1152,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
   }
   createSvgTree(ctxt, source) {
     var attributes = this.getSvgAttributes(ctxt, source);
-    attributes.source = source;
+    if (source) attributes.source = source;
     return QuickSvg.createSvgTree("use", attributes);
   }
 
@@ -1335,7 +1337,7 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
         {
           class: "accentedBrace"
         },
-        [node, this.accent.createNode(ctxt)]
+        [node, this.accent.createSvgNode(ctxt)]
       );
     } else return node;
   }
@@ -1566,7 +1568,16 @@ export class TextElement extends ChantLayoutElement {
     var closeCurrentSpan = () =>
       closeSpan(text.substring(spanStartIndex, match.index), spanStartIndex);
     while ((match = markupRegex.exec(text))) {
-      var [, newLine, specialChar, specialChar2, markupSymbol, closingTag, tagName, enclosedText] = match;
+      var [
+        ,
+        newLine,
+        specialChar,
+        specialChar2,
+        markupSymbol,
+        closingTag,
+        tagName,
+        enclosedText
+      ] = match;
       specialChar = specialChar || specialChar2;
       // non-matching symbols first
       if (newLine) {
@@ -1587,12 +1598,12 @@ export class TextElement extends ChantLayoutElement {
         );
       } else {
         // otherwise we're dealing with matching markup delimeters
-        if (markupSymbol === '*') {
+        if (markupSymbol === "*") {
           // we are only strict with the asterisk, because there are cases when it needs to be displayed rather than count as a markup symbol
           if (enclosedText && /[^\s*]/.test(enclosedText)) {
             openedAsterisk = true;
           } else if (openedAsterisk) {
-            openedAsterisk = false
+            openedAsterisk = false;
           } else {
             // actually use the asterisk, since it doesn't have a matching closing asterisk
             continue;
@@ -1600,7 +1611,10 @@ export class TextElement extends ChantLayoutElement {
         }
         if (markupSymbol) {
           tagName = ctxt.markupSymbolDictionary[markupSymbol];
-          if (markupStack.length > 0 && markupStack[markupStack.length - 1].tagName === tagName) {
+          if (
+            markupStack.length > 0 &&
+            markupStack[markupStack.length - 1].tagName === tagName
+          ) {
             closingTag = true;
           }
         }
@@ -1847,7 +1861,6 @@ export class TextElement extends ChantLayoutElement {
       var percentage = maxWidth / this.bounds.width;
       if (this instanceof Lyric && percentage >= 0.85) {
         this.resize = percentage;
-        // console.info(percentage, this.text);
       } else {
         if (firstLineMaxWidth < 0) firstLineMaxWidth = maxWidth;
         this.firstLineMaxWidth = firstLineMaxWidth;
