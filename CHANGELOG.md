@@ -1,3 +1,12 @@
+## [1.1.2](https://github.com/frmatthew/exsurge/compare/v1.1.1...v1.1.2) (2020-12-23)
+
+
+### Bug Fixes
+
+* Fix ocba (accented brace) ([6079102](https://github.com/frmatthew/exsurge/commit/6079102f72a31e7d603ef5ace521125b86003c0d))
+
+
+
 ## [1.1.1](https://github.com/frmatthew/exsurge/compare/v1.1.0...v1.1.1) (2020-12-11)
 
 
