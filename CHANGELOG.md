@@ -1,3 +1,12 @@
+# [1.2.0](https://github.com/frmatthew/exsurge/compare/v1.1.2...v1.2.0) (2021-01-12)
+
+
+### Features
+
+* Allow unicode ℣ and ℟ to be used for versicle response symbols ([ce55bc4](https://github.com/frmatthew/exsurge/commit/ce55bc418b1cb09537156ae310414df5ebcadde5))
+
+
+
 ## [1.1.2](https://github.com/frmatthew/exsurge/compare/v1.1.1...v1.1.2) (2020-12-23)
 
 
