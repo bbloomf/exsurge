@@ -467,6 +467,11 @@ export var TextMeasuringStrategy = {
   OpenTypeJS: 2
 };
 
+const specialCharMap = {
+  "℣": 'v',
+  "℟": 'r'
+};
+
 /*
  * ChantContext
  */
@@ -495,7 +500,7 @@ export class ChantContext {
     };
     this.textBeforeSpecialChar = "";
     this.textAfterSpecialChar = ".";
-    this.specialCharText = (char) => char;
+    this.specialCharText = (char) => specialCharMap[char] || char;
 
     this.fontStyleDictionary = {
       b: { "font-weight": "bold" },
@@ -1561,7 +1566,7 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|(?:([*_^%])|<(\/)?([bciu]|ul|sc)>)(?=(?:(.+?)(?:\4|<\/\6>))?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciu]|ul|sc)>)(?=(?:(.+?)(?:\4|<\/\6>))?)/gi;
 
     var match = null;
     var openedAsterisk = false;
@@ -1573,12 +1578,13 @@ export class TextElement extends ChantLayoutElement {
         newLine,
         specialChar,
         specialChar2,
+        specialChar3,
         markupSymbol,
         closingTag,
         tagName,
         enclosedText
       ] = match;
-      specialChar = specialChar || specialChar2;
+      specialChar = specialChar || specialChar2 || specialChar3;
       // non-matching symbols first
       if (newLine) {
         // close the current span, if any:
