@@ -1,3 +1,12 @@
+## [1.2.1](https://github.com/frmatthew/exsurge/compare/v1.2.0...v1.2.1) (2021-01-14)
+
+
+### Bug Fixes
+
+* Disallow versicle/response symbols for dropcap ([7be2db9](https://github.com/frmatthew/exsurge/commit/7be2db958190b40480bee4abfabebae211f17772))
+
+
+
 # [1.2.0](https://github.com/frmatthew/exsurge/compare/v1.1.2...v1.2.0) (2021-01-12)
 
 
