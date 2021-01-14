@@ -2402,6 +2402,10 @@ export class Lyric extends TextElement {
 
   generateDropCap(ctxt) {
     if (this.dropCap) return this.dropCap;
+    // disallow special characters:
+    if (this.spans[0].properties['font-family'] === ctxt.specialCharProperties['font-family']) {
+      return null;
+    }
     let dropCapSpan = this.spans[0].clone();
     dropCapSpan.text = dropCapSpan.text.slice(0, 1).toUpperCase();
     let dropCapLowerCase = dropCapSpan.text.toLowerCase();
