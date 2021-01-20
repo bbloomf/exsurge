@@ -1,3 +1,12 @@
+# [1.3.0](https://github.com/frmatthew/exsurge/compare/v1.2.1...v1.3.0) (2021-01-20)
+
+
+### Features
+
+* Add optional context function for mapping annotations to text left ([3726a9f](https://github.com/frmatthew/exsurge/commit/3726a9f5acd80b13899243396d67294bac095107))
+
+
+
 ## [1.2.1](https://github.com/frmatthew/exsurge/compare/v1.2.0...v1.2.1) (2021-01-14)
 
 
