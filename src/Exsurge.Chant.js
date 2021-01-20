@@ -682,6 +682,9 @@ export class ChantScore {
           ? annotation.annotations.map((annotation) => annotation.spans)
           : [annotation.spans];
       this.overrideTextLeft = new TextLeftRight(ctxt, "", "textLeft");
+      if (ctxt.mapAnnotationSpansToTextLeft) {
+        annotationSpans = annotationSpans.map(ctxt.mapAnnotationSpansToTextLeft);
+      }
       this.overrideTextLeft.spans = this.mergeAnnotationWithTextLeft(
         ...annotationSpans,
         this.titles.textLeft && this.titles.textLeft.spans
