@@ -1,3 +1,12 @@
+# [1.4.0](https://github.com/frmatthew/exsurge/compare/v1.3.0...v1.4.0) (2021-03-05)
+
+
+### Features
+
+* Add ids to note elements ([737a6f2](https://github.com/frmatthew/exsurge/commit/737a6f290d1c7beb63bb5be127d85fb25ae29d77))
+
+
+
 # [1.3.0](https://github.com/frmatthew/exsurge/compare/v1.2.1...v1.3.0) (2021-01-20)
 
 
