@@ -1141,8 +1141,16 @@ export class GlyphVisualizer extends ChantLayoutElement {
       result["source-index"] = source.sourceIndex;
       result["element-index"] = source.elementIndex;
       if ('noteIndex' in source) {
-        result.class += 'note';
+        result.class += ' note';
         result.id = ctxt.noteIdPrefix + (source.noteIndex + 1);
+        if (source.neume) {
+          const glyphCode = source.glyphVisualizer.glyphCode;
+          if (/^Porrectus/.test(glyphCode)) {
+            result.class += ' porrectus porrectus-start';
+          } else if (glyphCode === 'None') {
+            result.class += ' porrectus porrectus-end';
+          }
+        }
       }
     }
     if (ctxt.scaleDefs === true) {
