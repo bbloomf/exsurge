@@ -1,3 +1,12 @@
+## [1.4.1](https://github.com/frmatthew/exsurge/compare/v1.4.0...v1.4.1) (2021-03-05)
+
+
+### Bug Fixes
+
+* Fix an issue with note element class names ([ef6dd94](https://github.com/frmatthew/exsurge/commit/ef6dd941ea49ee5446f0176c3dda1ca6a210c278))
+
+
+
 # [1.4.0](https://github.com/frmatthew/exsurge/compare/v1.3.0...v1.4.0) (2021-03-05)
 
 
