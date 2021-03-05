@@ -499,6 +499,7 @@ export class ChantScore {
       indices: []
     };
     const selectedIndices = elementSelection.indices;
+    let nonNoteElementCount = 0;
 
     // find the starting clef...
     // start with a default clef in case the notations don't provide one.
@@ -532,6 +533,12 @@ export class ChantScore {
         for (let element of elements) {
           let elementIndex = (element.elementIndex =
             this.notes.push(element) - 1);
+          if (element instanceof Note) {
+            element.noteIndex = elementIndex - nonNoteElementCount;
+          } else {
+            ++nonNoteElementCount;
+          }
+          
           element.selected = selectedIndices.includes(elementIndex);
         }
       }

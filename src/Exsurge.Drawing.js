@@ -619,6 +619,8 @@ export class ChantContext {
 
     this.useExtraTextOnly = true;
 
+    this.noteIdPrefix = 'note-';
+
     this.insertFontsInDoc();
   }
 
@@ -1138,6 +1140,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
     if (source) {
       result["source-index"] = source.sourceIndex;
       result["element-index"] = source.elementIndex;
+      if ('noteIndex' in source) {
+        result.class += 'note';
+        result.id = ctxt.noteIdPrefix + (source.noteIndex + 1);
+      }
     }
     if (ctxt.scaleDefs === true) {
       result.x = this.bounds.x + this.origin.x;
