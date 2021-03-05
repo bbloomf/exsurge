@@ -2594,7 +2594,9 @@ export class Supertitle extends TitleTextElement {
     );
     this.textType = TextTypes.supertitle;
 
-    this.padding = (ctxt) => ctxt.textStyles.supertitle.size / 3;
+    this.padding = (ctxt) => (
+      (Number(ctxt.textStyles.supertitle.padding) || 1) * ctxt.textStyles.supertitle.size / 3
+    );
   }
 }
 
@@ -2611,7 +2613,9 @@ export class Title extends TitleTextElement {
     );
     this.textType = TextTypes.title;
 
-    this.padding = (ctxt) => ctxt.textStyles.title.size / 3;
+    this.padding = (ctxt) => (
+      (Number(ctxt.textStyles.title.padding) || 1) * ctxt.textStyles.title.size / 3
+    );
   }
 }
 
@@ -2628,7 +2632,9 @@ export class Subtitle extends TitleTextElement {
     );
     this.textType = TextTypes.subtitle;
 
-    this.padding = (ctxt) => ctxt.textStyles.subtitle.size / 3;
+    this.padding = (ctxt) => (
+      (Number(ctxt.textStyles.subtitle.padding) || 1) * ctxt.textStyles.subtitle.size / 3
+    );
   }
 }
 
@@ -2646,7 +2652,9 @@ export class TextLeftRight extends TitleTextElement {
     this.textType = TextTypes.leftRight;
     this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
     this.headerKey = type === "textLeft" ? "text-left" : "text-right";
-    this.padding = (ctxt) => ctxt.textStyles.leftRight.size / 5;
+    this.padding = (ctxt) => (
+      (Number(ctxt.textStyles.leftRight.padding) || 1) * ctxt.textStyles.leftRight.size / 5
+    );
   }
 
   getCssClasses() {
