@@ -513,7 +513,8 @@ export class ChantContext {
         "font-variant-caps": "small-caps",
         "font-feature-settings": "'smcp'",
         "-webkit-font-feature-settings": "'smcp'"
-      }
+      },
+      v: {}
     };
 
     this.markupSymbolDictionary = {
@@ -1580,7 +1581,7 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciu]|ul|sc)>)(?=(?:(.+?)(?:\4|<\/\6>))?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc)>)(?=(?:(.+?)(?:\4|<\/\6>))?)/gi;
 
     var match = null;
     var openedAsterisk = false;
