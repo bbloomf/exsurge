@@ -1581,7 +1581,7 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc)>)(?=(?:(.+?)(?:\4|<\/\6>))?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc)>)(?=(?:(.+?)(?:\5|<\/\7>))?)/gi;
 
     var match = null;
     var openedAsterisk = false;
