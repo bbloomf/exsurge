@@ -1,3 +1,12 @@
+## [1.4.2](https://github.com/frmatthew/exsurge/compare/v1.4.1...v1.4.2) (2021-07-28)
+
+
+### Bug Fixes
+
+* <v> tags in GABC can now include parentheses so that open parenthesis can be represented in lyrics ([52edd46](https://github.com/frmatthew/exsurge/commit/52edd46679bf68e8bbc1ec258e7e1ea3e6d646e1))
+
+
+
 ## [1.4.1](https://github.com/frmatthew/exsurge/compare/v1.4.0...v1.4.1) (2021-03-05)
 
 
