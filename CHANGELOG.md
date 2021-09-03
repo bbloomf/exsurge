@@ -1,3 +1,12 @@
+# [1.5.0](https://github.com/frmatthew/exsurge/compare/v1.4.2...v1.5.0) (2021-09-03)
+
+
+### Features
+
+* Support R and r0 modifiers and V ([401a02a](https://github.com/frmatthew/exsurge/commit/401a02a7fef13b980d3b7249bb1a83f835df2183))
+
+
+
 ## [1.4.2](https://github.com/frmatthew/exsurge/compare/v1.4.1...v1.4.2) (2021-07-28)
 
 
