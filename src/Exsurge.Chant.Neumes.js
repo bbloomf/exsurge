@@ -33,6 +33,7 @@ import {
   GlyphCode,
   MarkingPositionHint,
   NeumeLineVisualizer,
+  LineaVisualizer,
   VirgaLineVisualizer
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
@@ -95,6 +96,14 @@ class NeumeBuilder {
       if (!noteAlignsRight) this.x = line.bounds.x;
     }
 
+    if (note.shapeModifiers & NoteShapeModifiers.Linea) {
+      var linea = new LineaVisualizer(
+        this.ctxt,
+        note
+      );
+      this.neume.addVisualizer(linea);
+    }
+
     // if this is the first note of a right aligned glyph (probably an initio debilis),
     // then there's nothing to worry about. but if it's not then first, then this
     // subtraction will right align it visually
@@ -122,7 +131,11 @@ class NeumeBuilder {
     // add a line for the virga
     var line = new VirgaLineVisualizer(this.ctxt, note);
     this.x -= line.bounds.width;
-    line.bounds.x = this.x;
+    if (note.shapeModifers & NoteShapeModifiers.Reverse) {
+      line.bounds.x = 0;
+    } else {
+      line.bounds.x = this.x;
+    }
     this.neume.addVisualizer(line);
 
     this.lastNote = note;

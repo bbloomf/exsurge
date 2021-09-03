@@ -1673,8 +1673,12 @@ export class Gabc {
 
         //note shapes
         case "r":
-          if (haveLookahead && /^[1-5]$/.test(lookahead)) {
+          if (haveLookahead && /^[0-5]$/.test(lookahead)) {
             switch (lookahead) {
+              case "0":
+                note.shapeModifiers |= NoteShapeModifiers.Cavum;
+                note.shapeModifiers |= NoteShapeModifiers.Linea;
+                break;
               case "1":
                 note.accent = new Markings.Accent(
                   ctxt,
@@ -1711,6 +1715,10 @@ export class Gabc {
             i++;
           } else note.shapeModifiers |= NoteShapeModifiers.Cavum;
           break;
+        
+        case "R":
+          note.shapeModifiers |= NoteShapeModifiers.Linea;
+          break;
 
         case "s":
           if (note.shape === NoteShape.Stropha) {
@@ -1744,6 +1752,11 @@ export class Gabc {
           }
 
           note.shape = NoteShape.Virga;
+          break;
+        
+        case "V":
+          note.shape = NoteShape.Virga;
+          note.shapeModifers |= NoteShapeModifiers.Reverse;
           break;
 
         case "w":

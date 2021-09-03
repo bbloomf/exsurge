@@ -77,7 +77,9 @@ export var NoteShapeModifiers = {
   Ascending: 1 << 0,
   Descending: 1 << 1,
   Cavum: 1 << 2,
-  Stemmed: 1 << 3
+  Stemmed: 1 << 3,
+  Linea: 1 << 4,
+  Reverse: 1 << 5
 };
 
 /**

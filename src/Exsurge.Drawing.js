@@ -1018,6 +1018,75 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
   }
 }
 
+export class LineaVisualizer extends ChantLayoutElement {
+  constructor(ctxt, note) {
+    super();
+
+    var staffPosition = note.staffPosition;
+
+    var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition) - note.origin.y;
+    var y1 = y0 + note.bounds.height;
+
+    this.bounds.x = -ctxt.neumeLineWeight * 2.5;
+    this.bounds.y = y0;
+    this.bounds.width = ctxt.neumeLineWeight * 5 + note.bounds.width;
+    this.bounds.height = y1 - y0;
+
+    this.origin.x = 0;
+    this.origin.y = 0;
+  }
+
+  draw(ctxt) {
+    var canvasCtxt = ctxt.canvasCtxt;
+
+    canvasCtxt.fillStyle = ctxt.neumeLineColor;
+    canvasCtxt.fillRect(
+      this.bounds.x,
+      this.bounds.y,
+      ctxt.neumeLineWeight,
+      this.bounds.height
+    );
+    canvasCtxt.fillRect(
+      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight,
+      this.bounds.y,
+      ctxt.neumeLineWeight,
+      this.bounds.height
+    );
+  }
+
+  getSvgProps(ctxt, x) {
+    return {
+      x,
+      y: this.bounds.y,
+      width: ctxt.neumeLineWeight,
+      height: this.bounds.height,
+      fill: ctxt.neumeLineColor,
+      class: "neumeLine"
+    };
+  }
+
+  createSvgNode(ctxt) {
+    return QuickSvg.createNode("g", null, [
+      this.bounds.x,
+      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
+    ].map(x => QuickSvg.createNode("rect", this.getSvgProps(ctxt, x))));
+  }
+
+  createSvgTree(ctxt) {
+    return QuickSvg.createSvgTree("g", null, ...[
+      this.bounds.x,
+      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
+    ].map(x => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, x))));
+  }
+
+  createSvgFragment(ctxt) {
+    return QuickSvg.createFragment("g", null, [
+      this.bounds.x,
+      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
+    ].map(x => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, x)).join('')));
+  }
+}
+
 export class GlyphVisualizer extends ChantLayoutElement {
   constructor(ctxt, glyphCode) {
     super();
