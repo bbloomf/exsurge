@@ -1027,12 +1027,12 @@ export class LineaVisualizer extends ChantLayoutElement {
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition) - note.origin.y;
     var y1 = y0 + note.bounds.height;
 
-    this.bounds.x = -ctxt.neumeLineWeight * 2.5;
+    this.bounds.x = 0;
     this.bounds.y = y0;
     this.bounds.width = ctxt.neumeLineWeight * 5 + note.bounds.width;
     this.bounds.height = y1 - y0;
 
-    this.origin.x = 0;
+    this.origin.x = ctxt.neumeLineWeight * 2.5;
     this.origin.y = 0;
   }
 

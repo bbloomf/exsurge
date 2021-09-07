@@ -95,13 +95,16 @@ class NeumeBuilder {
 
       if (!noteAlignsRight) this.x = line.bounds.x;
     }
-
+    
+    let xOffset = 0;
     if (note.shapeModifiers & NoteShapeModifiers.Linea) {
       var linea = new LineaVisualizer(
         this.ctxt,
         note
       );
       this.neume.addVisualizer(linea);
+      note.origin.x += linea.origin.x;
+      xOffset = linea.origin.x;
     }
 
     // if this is the first note of a right aligned glyph (probably an initio debilis),
@@ -110,8 +113,8 @@ class NeumeBuilder {
     if (noteAlignsRight && this.lastNote)
       note.bounds.x = this.x - note.bounds.width;
     else {
-      note.bounds.x = this.x;
-      this.x += note.bounds.width;
+      note.bounds.x = this.x + xOffset;
+      this.x += note.bounds.width + xOffset;
     }
 
     this.neume.addVisualizer(note);
