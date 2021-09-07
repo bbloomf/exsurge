@@ -1,3 +1,12 @@
+## [1.5.2](https://github.com/frmatthew/exsurge/compare/v1.5.1...v1.5.2) (2021-09-07)
+
+
+### Bug Fixes
+
+* Fix an issue with linea visualizer's createSvgFragment method ([3a82fd3](https://github.com/frmatthew/exsurge/commit/3a82fd3004ba53d362c75cbd7059abcb59f6283c))
+
+
+
 ## [1.5.1](https://github.com/frmatthew/exsurge/compare/v1.5.0...v1.5.1) (2021-09-07)
 
 
