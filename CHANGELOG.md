@@ -1,3 +1,12 @@
+## [1.5.1](https://github.com/frmatthew/exsurge/compare/v1.5.0...v1.5.1) (2021-09-07)
+
+
+### Bug Fixes
+
+* Fix an issue with spacing around puncta cava with linea ([eda9ad9](https://github.com/frmatthew/exsurge/commit/eda9ad94581aff55ab47cd2e783b882d12e85576))
+
+
+
 # [1.5.0](https://github.com/frmatthew/exsurge/compare/v1.4.2...v1.5.0) (2021-09-03)
 
 
