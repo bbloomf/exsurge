@@ -1083,7 +1083,7 @@ export class LineaVisualizer extends ChantLayoutElement {
     return QuickSvg.createFragment("g", null, [
       this.bounds.x,
       this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-    ].map(x => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, x)).join('')));
+    ].map(x => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, x))).join(''));
   }
 }
 
