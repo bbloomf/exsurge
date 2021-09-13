@@ -1,3 +1,12 @@
+## [1.5.3](https://github.com/frmatthew/exsurge/compare/v1.5.2...v1.5.3) (2021-09-13)
+
+
+### Bug Fixes
+
+* Fix issue with rendering punca linea ([557b172](https://github.com/frmatthew/exsurge/commit/557b172227e199a8bfd0f3c8941f953357a751ba))
+
+
+
 ## [1.5.2](https://github.com/frmatthew/exsurge/compare/v1.5.1...v1.5.2) (2021-09-07)
 
 
