@@ -1073,7 +1073,7 @@ export class LineaVisualizer extends ChantLayoutElement {
   }
 
   createSvgTree(ctxt) {
-    return QuickSvg.createSvgTree("g", null, ...[
+    return QuickSvg.createSvgTree("g", {}, ...[
       this.bounds.x,
       this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
     ].map(x => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, x))));
