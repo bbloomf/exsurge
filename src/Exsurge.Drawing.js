@@ -496,7 +496,8 @@ export class ChantContext {
     this.rubricColor = "#d00";
     this.specialCharProperties = {
       "font-family": "'Exsurge Characters'",
-      fill: this.rubricColor
+      fill: this.rubricColor,
+      class: 'rubric'
     };
     this.textBeforeSpecialChar = "";
     this.textAfterSpecialChar = ".";
@@ -507,7 +508,7 @@ export class ChantContext {
       i: { "font-style": "italic" },
       u: { "text-decoration": "underline" },
       ul: { "text-decoration": "underline" },
-      c: { fill: this.rubricColor },
+      c: { fill: this.rubricColor, class: 'rubric' },
       sc: {
         "font-variant": "small-caps",
         "font-variant-caps": "small-caps",
@@ -2096,6 +2097,7 @@ export class TextElement extends ChantLayoutElement {
   getSpanOptions(span, ctxt, useStyleObject = false) {
     var options = {
       "source-index": span.index,
+      class: span.properties.class,
       style: useStyleObject
         ? Object.assign({}, span.properties)
         : getCssForProperties(span.properties)
@@ -2143,7 +2145,11 @@ export class TextElement extends ChantLayoutElement {
     }
 
     let options = this.getSvgProps();
-    options.style = getCssForProperties(this.getExtraStyleProperties(ctxt));
+    const extraStyleProperties = this.getExtraStyleProperties(ctxt);
+    options.style = getCssForProperties(extraStyleProperties);
+    if (extraStyleProperties.class) {
+      options.class = extraStyleProperties.class + ' ' + options.class;
+    }
     options.source = this;
 
     return (this.svgNode = QuickSvg.createNode("text", options, spans));
@@ -2160,6 +2166,9 @@ export class TextElement extends ChantLayoutElement {
 
     let options = this.getSvgProps();
     options.style = this.getExtraStyleProperties(ctxt);
+    if (options.style.class) {
+      options.class = options.style.class + ' ' + options.class;
+    }
     options.source = this;
 
     return QuickSvg.createSvgTree("text", options, ...spans);
@@ -2180,7 +2189,11 @@ export class TextElement extends ChantLayoutElement {
     }
 
     let options = this.getSvgProps();
-    options.style = getCssForProperties(this.getExtraStyleProperties(ctxt));
+    const extraStyleProperties = this.getExtraStyleProperties(ctxt)
+    options.style = getCssForProperties(extraStyleProperties);
+    if (extraStyleProperties.class) {
+      options.class = extraStyleProperties.class + ' ' + options.class;
+    }
     if (ctxt.setFontFamilyAttributes) {
       options["font-size"] = this.fontSize(ctxt);
     }

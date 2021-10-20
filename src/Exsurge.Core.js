@@ -332,5 +332,9 @@ export function generateRandomGuid() {
 }
 
 export function getCssForProperties(properties) {
-  return Object.keys(properties).map(key => `${key}: ${properties[key]};`).join('');
+  return Object.entries(properties)
+    .map(([key, val]) =>
+      key && val && key !== "class" ? `${key}: ${val};` : ""
+    )
+    .join("");
 }
