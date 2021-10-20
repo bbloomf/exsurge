@@ -1,3 +1,12 @@
+# [1.6.0](https://github.com/frmatthew/exsurge/compare/v1.5.3...v1.6.0) (2021-10-20)
+
+
+### Features
+
+* Add rubric class to rubrical tspans ([01bc6d5](https://github.com/frmatthew/exsurge/commit/01bc6d5bf9a0f0a1555fd605d8d84b1588b95788))
+
+
+
 ## [1.5.3](https://github.com/frmatthew/exsurge/compare/v1.5.2...v1.5.3) (2021-09-13)
 
 
