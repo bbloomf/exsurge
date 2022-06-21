@@ -866,7 +866,7 @@ export class ChantLine extends ChantLayoutElement {
         !(
           curr.constructor === TextOnly &&
           curr.hasLyrics() &&
-          /^[*†]$/.test(curr.lyrics[0].text)
+          /^(?:[*†]|i+j\.?)$/.test(curr.lyrics[0].text)
         ) &&
         lastNotationIndex - i > 1 &&
         !prevNeume.keepWithNext &&
@@ -988,10 +988,17 @@ export class ChantLine extends ChantLayoutElement {
             extraTextOnlyLyricIndex
           ].getRight();
       } else if (fitsOnLine === false) {
+        const isTextOnlyBeforeDivider = (i) => {
+          const curr = notations[i];
+          if (curr.constructor !== TextOnly) return false;
+          const firstDivider = notations.slice(i + 1).findIndex(notation => notation.isDivider);
+          if (firstDivider < 0) return false;
+          return notations.slice(i + 1, i + 1 + firstDivider).every(notation => notation.constructor === TextOnly);
+        }
         // first check for elements that cannot begin a system: dividers and custodes
         while (
           this.numNotationsOnLine > 1 &&
-          (curr.isDivider || curr.constructor === Custos)
+          (curr.isDivider || curr.constructor === Custos || isTextOnlyBeforeDivider(i))
         ) {
           curr = notations[--i];
           this.numNotationsOnLine--;
