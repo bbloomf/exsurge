@@ -1300,7 +1300,13 @@ export class ChantLine extends ChantLayoutElement {
               next instanceof TextOnly && next.hasLyrics()
                 ? next.lyrics[0].getLeft()
                 : next.bounds.x;
-          curr.bounds.x = (leftPoint + rightPoint - curr.bounds.width) / 2;
+          if (leftPoint > rightPoint && prev instanceof TextOnly) {
+            let prev = this.score.notations.slice(this.notationsStartIndex, i).reverse().find(notation => !(notation instanceof TextOnly));
+            leftPoint = prev ? prev.bounds.right() : 0;
+          }
+          if (leftPoint) {
+            curr.bounds.x = (leftPoint + rightPoint - curr.bounds.width) / 2;
+          }
           if (curr.hasLyrics()) {
             var offset = oldBoundsX - curr.bounds.x;
             for (j = curr.lyrics.length - 1; j >= 0; j--) {
