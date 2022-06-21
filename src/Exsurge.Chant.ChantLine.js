@@ -1288,6 +1288,9 @@ export class ChantLine extends ChantLayoutElement {
           i + 1 === lastIndex ? this.custos : this.score.notations[i + 1];
         if (prev === next && next === this.custos) {
           prev = this.score.notations[i - 2];
+          // force custos to right edge in this case, since it is a custos that exists
+          // regardless of line break, and would normally be before the double bar, but in this case it ends the line:
+          next.bounds.x = this.staffRight - next.bounds.width;
         }
         if (prev && next) {
           //if (prev instanceof TextOnly || next instanceof TextOnly) continue;
