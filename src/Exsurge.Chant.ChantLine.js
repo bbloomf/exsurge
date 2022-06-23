@@ -1002,6 +1002,9 @@ export class ChantLine extends ChantLayoutElement {
         ) {
           curr = notations[--i];
           this.numNotationsOnLine--;
+          if (this.lastLyricsBeforeTextOnly && isTextOnlyBeforeDivider(i)) {
+            delete this.lastLyricsBeforeTextOnly;
+          }
         }
 
         if (lastTranslationTextWithEndNeume) {
