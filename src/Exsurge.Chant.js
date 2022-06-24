@@ -23,22 +23,16 @@
 // THE SOFTWARE.
 //
 
-import * as Exsurge from "./Exsurge.Core.js";
-import { Step, Pitch, Rect, Point, Margins } from "./Exsurge.Core.js";
+import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
+import { InsertionCursor } from "./Exsurge.Chant.Signs.js";
+import { Pitch, Rect, Step } from "./Exsurge.Core.js";
 import {
-  QuickSvg,
-  ChantLayoutElement,
+  Annotation, ChantLayoutElement,
   ChantNotationElement,
   GlyphCode,
-  GlyphVisualizer,
-  Lyric,
-  Annotation,
-  DropCap,
-  TextLeftRight,
+  GlyphVisualizer, QuickSvg, TextLeftRight,
   TextSpan
 } from "./Exsurge.Drawing.js";
-import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
-import { AccidentalType, InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import { Gabc } from "./Exsurge.Gabc.js";
 import { Titles } from "./Exsurge.Titles.js";
 

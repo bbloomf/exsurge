@@ -25,10 +25,8 @@
 
 import { Step } from "./Exsurge.Core.js";
 import {
-  GlyphCode,
-  GlyphVisualizer,
-  DividerLineVisualizer,
-  ChantNotationElement
+  ChantNotationElement, DividerLineVisualizer, GlyphCode,
+  GlyphVisualizer
 } from "./Exsurge.Drawing.js";
 
 /*

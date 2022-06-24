@@ -23,15 +23,9 @@
 // THE SOFTWARE.
 //
 
-import * as Exsurge from "./Exsurge.Core.js";
-import { Step, Pitch, Rect, Point, Margins } from "./Exsurge.Core.js";
+import { Rect } from "./Exsurge.Core.js";
 import {
-  QuickSvg,
-  ChantLayoutElement,
-  Supertitle,
-  Title,
-  Subtitle,
-  TextLeftRight
+  ChantLayoutElement, QuickSvg, Subtitle, Supertitle, TextLeftRight, Title
 } from "./Exsurge.Drawing.js";
 
 export class Titles extends ChantLayoutElement {

@@ -30,11 +30,8 @@ import {
 } from "./Exsurge.Chant.js";
 import {
   ChantNotationElement,
-  GlyphCode,
-  MarkingPositionHint,
-  NeumeLineVisualizer,
-  LineaVisualizer,
-  VirgaLineVisualizer
+  GlyphCode, LineaVisualizer, MarkingPositionHint,
+  NeumeLineVisualizer, VirgaLineVisualizer
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 

@@ -24,14 +24,8 @@
 //
 
 import {
-  Units,
-  Pitch,
-  Point,
-  Rect,
-  Margins,
-  Size,
-  Step,
-  getCssForProperties
+  getCssForProperties, Point,
+  Rect
 } from "./Exsurge.Core.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import { language } from "./Exsurge.Text.js";
