@@ -1298,6 +1298,7 @@ export class ChantLine extends ChantLayoutElement {
         if (prev && next) {
           //if (prev instanceof TextOnly || next instanceof TextOnly) continue;
           var oldBoundsX = curr.bounds.x;
+          var barWidth = curr.bounds.width;
           var leftPoint =
               prev instanceof TextOnly && prev.hasLyrics()
                 ? prev.lyrics[0].getRight()
@@ -1306,12 +1307,12 @@ export class ChantLine extends ChantLayoutElement {
               next instanceof TextOnly && next.hasLyrics()
                 ? next.lyrics[0].getLeft()
                 : next.bounds.x;
-          if (leftPoint > rightPoint && prev instanceof TextOnly) {
+          if (prev instanceof TextOnly) {
             let prev = this.score.notations.slice(this.notationsStartIndex, i).reverse().find(notation => !(notation instanceof TextOnly));
             leftPoint = prev ? prev.bounds.right() : 0;
           }
           if (leftPoint) {
-            curr.bounds.x = (leftPoint + rightPoint - curr.bounds.width) / 2;
+            curr.bounds.x = (leftPoint + rightPoint - barWidth) / 2;
           }
           if (curr.hasLyrics()) {
             var offset = oldBoundsX - curr.bounds.x;
