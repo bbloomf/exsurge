@@ -1,3 +1,12 @@
+## [1.6.3](https://github.com/frmatthew/exsurge/compare/v1.6.2...v1.6.3) (2022-06-24)
+
+
+### Bug Fixes
+
+* Fix an issue with centering bars between neumes ([5fa3194](https://github.com/frmatthew/exsurge/commit/5fa3194bc01a57ab7611dd9dac3433357a519547))
+
+
+
 ## [1.6.2](https://github.com/frmatthew/exsurge/compare/v1.6.1...v1.6.2) (2022-06-23)
 
 
