@@ -1,3 +1,7 @@
+## [1.6.5](https://github.com/frmatthew/exsurge/compare/v1.6.4...v1.6.5) (2022-06-27)
+
+
+
 ## [1.6.4](https://github.com/frmatthew/exsurge/compare/v1.6.3...v1.6.4) (2022-06-24)
 
 
