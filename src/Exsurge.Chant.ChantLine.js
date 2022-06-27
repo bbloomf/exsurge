@@ -1038,6 +1038,10 @@ export class ChantLine extends ChantLayoutElement {
             this.numNotationsOnLine--;
           } else break;
         }
+        if (this.extraTextOnlyIndex && (this.notationsStartIndex + this.numNotationsOnLine) <= this.extraTextOnlyIndex) {
+          // we've cut back to before the extra text only index, so we have to remove it:
+          this.extraTextOnlyIndex = null;
+        }
 
         // if for some reason not a single notation can fit on the line, we'd better put it on anyway, to avoid an infinite loop:
         if (this.numNotationsOnLine === 0) this.numNotationsOnLine = 1;
