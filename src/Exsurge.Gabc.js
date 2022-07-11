@@ -572,7 +572,10 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
-      var lyricText = match[1].replace(/~/g, " ");
+      var lyricText = match[1].replace(
+        /(^|<\/sp>)([\s\S]*?)($|<sp>)/g,
+        (_, pre, main, post) => `${pre}${main.replace(/~/g, " ")}${post}`
+      );
       var alText = [];
       var translationText = [];
       var notationData = match[2];
@@ -759,26 +762,33 @@ export class Gabc {
         sourceIndex
       );
 
-      if (centerStartIndex) {
+      if (centerStartIndex >= 0) {
         // update indices in case there had been any tags, etc.
         let textIndex = 0,
           centerEndIndex = -1;
         for (let span of lyric.spans) {
           if (
-            centerStartIndex >= span.sourceIndex &&
-            centerStartIndex < span.sourceIndex + span.text.length
+            centerStartIndex >= span.index &&
+            centerStartIndex < span.index + span.text.length
           ) {
-            centerStartIndex += textIndex - span.sourceIndex;
             centerEndIndex = centerStartIndex + centerLength;
-          } else if (
+            centerStartIndex += textIndex - span.index;
+          }
+          if (
             centerEndIndex >= 0 &&
-            centerEndIndex >= span.sourceIndex &&
-            centerEndIndex < span.sourceIndex + span.text.length
+            centerEndIndex >= span.index &&
+            centerEndIndex < span.index + span.text.length
           ) {
-            centerEndIndex += textIndex - span.sourceIndex;
+            centerEndIndex += textIndex - span.index;
+            centerLength = centerEndIndex - centerStartIndex;
+            centerEndIndex = -1;
             break;
           }
           textIndex += span.text.length;
+        }
+        if (centerEndIndex >= 0) {
+          centerEndIndex = textIndex;
+          centerLength = centerEndIndex - centerStartIndex;
         }
       }
 

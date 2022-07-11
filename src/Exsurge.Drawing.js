@@ -29,6 +29,8 @@ import {
 } from "./Exsurge.Core.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import { language } from "./Exsurge.Text.js";
+import { addAccent } from "./addAccent.js";
+import { makeLigature } from "./makeLigature.js";
 
 function getFontFilenameForProperties(properties = {}, url = "{}") {
   var italic = properties["font-style"] === "italic" ? "Italic" : "",
@@ -1645,7 +1647,7 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>([arv])\/<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc)>)(?=(?:(.+?)(?:\5|<\/\7>))?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc)>)(?=(?:(.+?)(?:\5|<\/\7>))?)/gi;
 
     var match = null;
     var openedAsterisk = false;
@@ -1655,6 +1657,9 @@ export class TextElement extends ChantLayoutElement {
       var [
         ,
         newLine,
+        tilde,
+        accent,
+        vowelLigature,
         specialChar,
         specialChar2,
         specialChar3,
@@ -1672,6 +1677,14 @@ export class TextElement extends ChantLayoutElement {
         }
         // add the newline span:
         newLineInNextSpan++;
+      } else if (tilde) {
+        closeCurrentSpan();
+        closeSpan('∼', match.index);
+      } else if (vowelLigature) {
+        let vowel = makeLigature(vowelLigature);
+        if (accent) vowel = addAccent(vowel);
+        closeCurrentSpan();
+        closeSpan(vowel, match.index);
       } else if (specialChar) {
         closeCurrentSpan();
         closeSpan(
