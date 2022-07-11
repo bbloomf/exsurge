@@ -1,3 +1,12 @@
+# [1.7.0](https://github.com/frmatthew/exsurge/compare/v1.6.5...v1.7.0) (2022-07-11)
+
+
+### Features
+
+* Add <sp>'oe</sp> notation ([8fe32b5](https://github.com/frmatthew/exsurge/commit/8fe32b5f61c1db9109f6ee4803b46162de077ec2))
+
+
+
 ## [1.6.5](https://github.com/frmatthew/exsurge/compare/v1.6.4...v1.6.5) (2022-06-27)
 
 
