@@ -1553,11 +1553,11 @@ function MarkupStackFrame(tagName, startIndex, properties = {}) {
   this.properties = properties;
 }
 
-MarkupStackFrame.createStackFrame = function (ctxt, tagName, startIndex) {
+MarkupStackFrame.createStackFrame = function (ctxt, tagName, startIndex, extraProperties = {}) {
   return new MarkupStackFrame(
     tagName,
     startIndex,
-    ctxt.fontStyleDictionary[tagName]
+    Object.assign({}, ctxt.fontStyleDictionary[tagName], extraProperties)
   );
 };
 
@@ -1647,7 +1647,7 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc)>)(?=(?:(.+?)(?:\5|<\/\7>))?)/gi;
+    var markupRegex = /(<br\/?>)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\8|<\/\10>))?)/gi;
 
     var match = null;
     var openedAsterisk = false;
@@ -1666,6 +1666,9 @@ export class TextElement extends ChantLayoutElement {
         markupSymbol,
         closingTag,
         tagName,
+        family,
+        fill,
+        cssClass,
         enclosedText
       ] = match;
       specialChar = specialChar || specialChar2 || specialChar3;
@@ -1743,8 +1746,12 @@ export class TextElement extends ChantLayoutElement {
             }
           } else {
             // group open
+            const extraProperties = {};
+            if (family) extraProperties['font-family'] = family;
+            if (fill) extraProperties.fill = fill;
+            if (cssClass) extraProperties.class = cssClass;
             markupStack.push(
-              MarkupStackFrame.createStackFrame(ctxt, tagName, match.index)
+              MarkupStackFrame.createStackFrame(ctxt, tagName, match.index, extraProperties)
             );
           }
         }
