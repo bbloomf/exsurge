@@ -1,3 +1,12 @@
+# [1.8.0](https://github.com/frmatthew/exsurge/compare/v1.7.0...v1.8.0) (2022-07-13)
+
+
+### Features
+
+* Add support for font tag and family="" class="" and fill="" attributes ([09e73be](https://github.com/frmatthew/exsurge/commit/09e73bebebfa552b1746941f78ee93f1f5131d51))
+
+
+
 # [1.7.0](https://github.com/frmatthew/exsurge/compare/v1.6.5...v1.7.0) (2022-07-11)
 
 
