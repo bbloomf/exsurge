@@ -1618,13 +1618,13 @@ export class TextElement extends ChantLayoutElement {
 
     // save ourselves a lot of grief for a very common text:
     if (text === "*" || text === "+" || text === "†") {
-      text = ctxt.specialCharText(text) || text;
       let properties =
         text === "*"
           ? ctxt.asteriskProperties
           : text === "+"
           ? ctxt.plusProperties
           : null;
+      text = ctxt.specialCharText(text) || text;
       this.spans.push(new TextSpan(text, properties));
       return;
     }
