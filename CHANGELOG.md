@@ -1,3 +1,12 @@
+# [1.9.0](https://github.com/frmatthew/exsurge/compare/v1.8.0...v1.9.0) (2022-07-14)
+
+
+### Features
+
+* Add greextra glyph names etc. ([8af0145](https://github.com/frmatthew/exsurge/commit/8af01454ee8ed65b19f615a656ae317b767edf34))
+
+
+
 # [1.8.0](https://github.com/frmatthew/exsurge/compare/v1.7.0...v1.8.0) (2022-07-13)
 
 
