@@ -1,3 +1,12 @@
+## [1.9.2](https://github.com/frmatthew/exsurge/compare/v1.9.1...v1.9.2) (2022-07-14)
+
+
+### Bug Fixes
+
+* Fix an issue with character substitution etc happening within <v> tags ([0fa6fdc](https://github.com/frmatthew/exsurge/commit/0fa6fdce73ad371cf713178224ad1fe7b48632a4))
+
+
+
 ## [1.9.1](https://github.com/frmatthew/exsurge/compare/v1.9.0...v1.9.1) (2022-07-14)
 
 
