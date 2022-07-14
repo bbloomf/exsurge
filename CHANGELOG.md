@@ -1,3 +1,12 @@
+## [1.9.6](https://github.com/frmatthew/exsurge/compare/v1.9.5...v1.9.6) (2022-07-14)
+
+
+### Bug Fixes
+
+* Fix an issue with asterisk properties typeo ([88a31d8](https://github.com/frmatthew/exsurge/commit/88a31d8c46788f76383910469f37d3f73ec22d3d))
+
+
+
 ## [1.9.5](https://github.com/frmatthew/exsurge/compare/v1.9.4...v1.9.5) (2022-07-14)
 
 
