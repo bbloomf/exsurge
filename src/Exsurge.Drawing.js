@@ -1653,8 +1653,8 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<v>(?:(\\grecross)|\{greextra\}\{([^}]*)\})<\/v>|(\*)(?=\s*\*|[^*]*$)|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\12|<\/\14>))?)/gi;
-
+    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*$)|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
+    var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}/g;
     var match = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
@@ -1663,8 +1663,7 @@ export class TextElement extends ChantLayoutElement {
       var [
         ,
         newLine,
-        grecross,
-        greextra,
+        vTag,
         asterisk,
         plus,
         tilde,
@@ -1682,11 +1681,6 @@ export class TextElement extends ChantLayoutElement {
         enclosedText
       ] = match;
       specialChar = specialChar || specialChar2 || specialChar3;
-      if (grecross) {
-        // grecross is just the command for the Cross:
-        // set up greextra so it will get handled with it below:
-        greextra = 'Cross';
-      }
       // non-matching symbols first
       if (newLine) {
         // close the current span, if any:
@@ -1695,11 +1689,31 @@ export class TextElement extends ChantLayoutElement {
         }
         // add the newline span:
         newLineInNextSpan++;
-      } else if (greextra) {
+      } else if (vTag) {
         closeCurrentSpan();
-        const char = greextraGlyphs[greextra];
-        if (char) {
-          closeSpan(char, match.index, { 'font-family': 'greextra' })
+        let vMatch;
+        let lastIndex = 0;
+        let iOffset = 0;
+        while ((vMatch = vTagRegex.exec(vTag))) {
+          if (lastIndex < vMatch.lastIndex) {
+            closeSpan(vTag.slice(lastIndex, vTagRegex.lastIndex), match.index + lastIndex + iOffset);
+            iOffset = 3; // length of '<v>'
+          }
+          let [, grecross, greextra] = vMatch;
+          if (grecross) {
+            // grecross is just the command for the Cross:
+            // set up greextra so it will get handled with it below:
+            greextra = 'Cross';
+          }    
+          const char = greextraGlyphs[greextra];
+          if (char) {
+            closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
+          }
+          lastIndex = vTagRegex.lastIndex;
+          iOffset = 3; // length of '<v>'
+        }
+        if (lastIndex < vTag.length) {
+          closeSpan(vTag.slice(lastIndex), match.index + lastIndex + iOffset);
         }
       } else if (asterisk) {
         closeCurrentSpan();

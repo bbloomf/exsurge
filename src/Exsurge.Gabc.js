@@ -795,7 +795,7 @@ export class Gabc {
         for (let span of lyric.spans) {
           if (
             centerStartIndex >= span.index &&
-            centerStartIndex < span.index + span.text.length
+            centerStartIndex <= span.index + span.text.length
           ) {
             centerEndIndex = centerStartIndex + centerLength;
             centerStartIndex += textIndex - span.index;
@@ -803,7 +803,7 @@ export class Gabc {
           if (
             centerEndIndex >= 0 &&
             centerEndIndex >= span.index &&
-            centerEndIndex < span.index + span.text.length
+            centerEndIndex <= span.index + span.text.length
           ) {
             centerEndIndex += textIndex - span.index;
             centerLength = centerEndIndex - centerStartIndex;
