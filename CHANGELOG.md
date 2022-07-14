@@ -1,3 +1,12 @@
+## [1.9.4](https://github.com/frmatthew/exsurge/compare/v1.9.3...v1.9.4) (2022-07-14)
+
+
+### Bug Fixes
+
+* Fix an issue with mixing commands and text inside v tags ([758e4f2](https://github.com/frmatthew/exsurge/commit/758e4f2a791c7e39f0fc39d5ebe73dcc0d279a2a))
+
+
+
 ## [1.9.3](https://github.com/frmatthew/exsurge/compare/v1.9.2...v1.9.3) (2022-07-14)
 
 
