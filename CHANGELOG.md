@@ -1,3 +1,12 @@
+## [1.9.3](https://github.com/frmatthew/exsurge/compare/v1.9.2...v1.9.3) (2022-07-14)
+
+
+### Bug Fixes
+
+* Fix an issue with asterisk replacement ([f01c9fe](https://github.com/frmatthew/exsurge/commit/f01c9fe9abaafbc0e9b8d9e53bf59a0489dc4ef1))
+
+
+
 ## [1.9.2](https://github.com/frmatthew/exsurge/compare/v1.9.1...v1.9.2) (2022-07-14)
 
 
