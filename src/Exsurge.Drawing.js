@@ -1617,8 +1617,15 @@ export class TextElement extends ChantLayoutElement {
     this.spans = [];
 
     // save ourselves a lot of grief for a very common text:
-    if (text === "*" || text === "†") {
-      this.spans.push(new TextSpan(text));
+    if (text === "*" || text === "+" || text === "†") {
+      text = ctxt.specialCharText(text) || text;
+      let properties =
+        text === "*"
+          ? ctxt.asterisProperties
+          : text === "+"
+          ? ctxt.plusProperties
+          : null;
+      this.spans.push(new TextSpan(text, properties));
       return;
     }
 
