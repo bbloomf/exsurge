@@ -31,6 +31,7 @@ import { Glyphs } from "./Exsurge.Glyphs.js";
 import { language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { makeLigature } from "./makeLigature.js";
+import { greextraGlyphs } from "./greextraGlyphs.js";
 
 function getFontFilenameForProperties(properties = {}, url = "{}") {
   var italic = properties["font-style"] === "italic" ? "Italic" : "",
@@ -463,11 +464,6 @@ export var TextMeasuringStrategy = {
   OpenTypeJS: 2
 };
 
-const specialCharMap = {
-  "℣": 'v',
-  "℟": 'r'
-};
-
 /*
  * ChantContext
  */
@@ -497,7 +493,15 @@ export class ChantContext {
     };
     this.textBeforeSpecialChar = "";
     this.textAfterSpecialChar = ".";
-    this.specialCharText = (char) => specialCharMap[char] || char;
+    this.specialCharMap = {
+      "℣": 'v',
+      "℟": 'r',
+      "+": "+",
+      "*": "*"
+    };
+    this.plusProperties = {};
+    this.asteriskProperties = {};
+    this.specialCharText = (char) => this.specialCharMap[char] || char;
 
     this.fontStyleDictionary = {
       b: { "font-weight": "bold" },
@@ -1547,17 +1551,19 @@ export class TextSpan {
   }
 }
 
-function MarkupStackFrame(tagName, startIndex, properties = {}) {
+function MarkupStackFrame(tagName, startIndex, properties = {}, symbol) {
   this.tagName = tagName;
   this.startIndex = startIndex;
   this.properties = properties;
+  if (symbol) this.symbol = symbol;
 }
 
-MarkupStackFrame.createStackFrame = function (ctxt, tagName, startIndex, extraProperties = {}) {
+MarkupStackFrame.createStackFrame = function (ctxt, tagName, startIndex, extraProperties = {}, symbol = '') {
   return new MarkupStackFrame(
     tagName,
     startIndex,
-    Object.assign({}, ctxt.fontStyleDictionary[tagName], extraProperties)
+    Object.assign({}, ctxt.fontStyleDictionary[tagName], extraProperties),
+    symbol
   );
 };
 
@@ -1647,7 +1653,7 @@ export class TextElement extends ChantLayoutElement {
       );
     };
 
-    var markupRegex = /(<br\/?>)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\8|<\/\10>))?)/gi;
+    var markupRegex = /(<br\/?>)|<v>(?:(\\grecross)|\{greextra\}\{([^}]*)\})<\/v>|(\*)(?=\s*\*|[^*]*$)|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\12|<\/\14>))?)/gi;
 
     var match = null;
     var openedAsterisk = false;
@@ -1657,6 +1663,10 @@ export class TextElement extends ChantLayoutElement {
       var [
         ,
         newLine,
+        grecross,
+        greextra,
+        asterisk,
+        plus,
         tilde,
         accent,
         vowelLigature,
@@ -1672,6 +1682,11 @@ export class TextElement extends ChantLayoutElement {
         enclosedText
       ] = match;
       specialChar = specialChar || specialChar2 || specialChar3;
+      if (grecross) {
+        // grecross is just the command for the Cross:
+        // set up greextra so it will get handled with it below:
+        greextra = 'Cross';
+      }
       // non-matching symbols first
       if (newLine) {
         // close the current span, if any:
@@ -1680,6 +1695,28 @@ export class TextElement extends ChantLayoutElement {
         }
         // add the newline span:
         newLineInNextSpan++;
+      } else if (greextra) {
+        closeCurrentSpan();
+        const char = greextraGlyphs[greextra];
+        if (char) {
+          closeSpan(char, match.index, { 'font-family': 'greextra' })
+        }
+      } else if (asterisk) {
+        closeCurrentSpan();
+        // first checkc if it is just a symbol to close:
+        if (
+          markupStack.length > 0 &&
+          markupStack[markupStack.length - 1].symbol === asterisk
+        ) {
+          // close asterisk tag
+          markupStack.pop();
+        } else {
+          // add special asterisk:
+          closeSpan(ctxt.specialCharText(asterisk) || '*', match.index, ctxt.asteriskProperties);
+        }
+      } else if (plus) {
+        closeCurrentSpan();
+        closeSpan(ctxt.specialCharText(plus) || '+', match.index, ctxt.plusProperties);
       } else if (tilde) {
         closeCurrentSpan();
         closeSpan('∼', match.index);
@@ -1714,7 +1751,8 @@ export class TextElement extends ChantLayoutElement {
           tagName = ctxt.markupSymbolDictionary[markupSymbol];
           if (
             markupStack.length > 0 &&
-            markupStack[markupStack.length - 1].tagName === tagName
+            markupStack[markupStack.length - 1].tagName === tagName &&
+            markupStack[markupStack.length - 1].symbol === markupSymbol
           ) {
             closingTag = true;
           }
@@ -1751,7 +1789,7 @@ export class TextElement extends ChantLayoutElement {
             if (fill) extraProperties.fill = fill;
             if (cssClass) extraProperties.class = cssClass;
             markupStack.push(
-              MarkupStackFrame.createStackFrame(ctxt, tagName, match.index, extraProperties)
+              MarkupStackFrame.createStackFrame(ctxt, tagName, match.index, extraProperties, markupSymbol)
             );
           }
         }

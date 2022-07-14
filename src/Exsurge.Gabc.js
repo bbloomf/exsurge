@@ -733,19 +733,45 @@ export class Gabc {
       // look like "f{i}re" or "{fenced}" to center on the i or on the entire
       // word, respectively. Here we determine if the lyric should be spaced
       // manually with this method of using braces.
-      var centerStartIndex = lyricText.indexOf("{");
+      // however, we don't want to consider any braces inside of v tags, so we
+      // do a bit of text processing here:
+      var lyricTextWithoutVTags = lyricText;
+      const vtagRegex = /<v>[\s\S]*?<\/v>/;
+      let match;
+      const vtags = [];
+      while ((match = vtagRegex.exec(lyricTextWithoutVTags))) {
+        let index = match.index;
+        let length = match[0].length;
+        vtags[index] = length;
+        lyricTextWithoutVTags = lyricTextWithoutVTags.slice(0, index) + lyricTextWithoutVTags.slice(index + length);
+      }
+      var centerStartIndex = lyricTextWithoutVTags.indexOf("{");
       var centerLength = 0;
 
       if (centerStartIndex >= 0) {
-        let indexClosingBracket = lyricText.indexOf("}");
+        let indexClosingBracket = lyricTextWithoutVTags.indexOf("}");
 
         if (
           indexClosingBracket >= 0 &&
           indexClosingBracket > centerStartIndex
         ) {
+          const getTrueIndex = (indexWithoutVTags) => {
+            // map indices back to the lyricText with the V tags:
+            let accum = 0;
+            for (let index in vtags) {
+              if (vtags.hasOwnProperty(index) && indexWithoutVTags >= index) {
+                accum += vtags[index];
+              } else {
+                break;
+              }
+            }
+            return indexWithoutVTags + accum;
+          }
+          centerStartIndex = getTrueIndex(centerStartIndex);
+          indexClosingBracket = getTrueIndex(indexClosingBracket);
           centerLength = indexClosingBracket - centerStartIndex - 1;
 
-          // strip out the brackets...is this better than string.replace?
+          // strip out the brackets:
           lyricText =
             lyricText.substring(0, centerStartIndex) +
             lyricText.substring(centerStartIndex + 1, indexClosingBracket) +
