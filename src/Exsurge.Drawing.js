@@ -1621,7 +1621,7 @@ export class TextElement extends ChantLayoutElement {
       text = ctxt.specialCharText(text) || text;
       let properties =
         text === "*"
-          ? ctxt.asterisProperties
+          ? ctxt.asteriskProperties
           : text === "+"
           ? ctxt.plusProperties
           : null;
@@ -1724,7 +1724,7 @@ export class TextElement extends ChantLayoutElement {
         }
       } else if (asterisk) {
         closeCurrentSpan();
-        // first checkc if it is just a symbol to close:
+        // first check if it is just a symbol to close:
         if (
           markupStack.length > 0 &&
           markupStack[markupStack.length - 1].symbol === asterisk
