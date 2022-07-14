@@ -1,3 +1,12 @@
+## [1.9.7](https://github.com/frmatthew/exsurge/compare/v1.9.6...v1.9.7) (2022-07-14)
+
+
+### Bug Fixes
+
+* Fix another issue with getting properties for plus or asterisk ([944d01a](https://github.com/frmatthew/exsurge/commit/944d01a73567d7e8526c4f2c169c7ecf2514ec0d))
+
+
+
 ## [1.9.6](https://github.com/frmatthew/exsurge/compare/v1.9.5...v1.9.6) (2022-07-14)
 
 
