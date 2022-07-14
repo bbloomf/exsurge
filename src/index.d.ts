@@ -174,12 +174,13 @@ declare module "exsurge" {
     setFont(font: string, size: number): any;
     rubricColor: string;
     
-    specialCharProperties: {
-      [key: string]: string;
-    };
+    specialCharProperties: { [key: string]: string; };
     specialCharText?: (char: string) => string;
     textBeforeSpecialChar: string;
     textAfterSpecialChar: string;
+    specialCharMap: { [key in '℣'|'℟'|'*'|'+']: string; };
+    asteriskProperties: { [key: string]: string; };
+    plusProperties: { [key: string]: string; };
     fontStyleDictionary: {
       [tag: string]: {
         [cssProp: string]: string;
@@ -270,6 +271,90 @@ declare module "exsurge" {
   }
   export interface Selection {
     element?: ElementSelection;
+  }
+  
+
+  export const greextraGlyphs: {
+    MedicaeaFlat: string;
+    HufnagelCustosUpShort: string;
+    HufnagelCustosUpLong: string;
+    HufnagelCustosUpMedium: string;
+    HufnagelCustosDownShort: string;
+    HufnagelCustosDownLong: string;
+    HufnagelCustosDownMedium: string;
+    MedicaeaCustosUpShort: string;
+    MedicaeaCustosUpLong: string;
+    MedicaeaCustosUpMedium: string;
+    MedicaeaCustosDownShort: string;
+    MedicaeaCustosDownLong: string;
+    MedicaeaCustosDownMedium: string;
+    MensuralCustosUpShort: string;
+    MensuralCustosUpLong: string;
+    MensuralCustosUpMedium: string;
+    MensuralCustosDownShort: string;
+    MensuralCustosDownLong: string;
+    MensuralCustosDownMedium: string;
+    MensuralFlat: string;
+    HufnagelFlat: string;
+    MedicaeaCClef: string;
+    MedicaeaCClefChange: string;
+    MedicaeaFClef: string;
+    MedicaeaFClefChange: string;
+    HufnagelCClef: string;
+    HufnagelCClefChange: string;
+    HufnagelFClef: string;
+    HufnagelFClefChange: string;
+    HugnagelCFClef: string;
+    HufnagelCFClefChange: string;
+    MensuralFlatHole: string;
+    HufnagelFlatHole: string;
+    MedicaeaFlatHole: string;
+    StarSix: string;
+    Dagger: string;
+    "Bar.alt": string;
+    StarHeight: string;
+    Cross: string;
+    "RBar.alt": string;
+    "VBar.alt": string;
+    Drawing1: string;
+    Drawing2: string;
+    RWithBarGoth: string;
+    VWithBarGoth: string;
+    Line1: string;
+    Line2: string;
+    Line3: string;
+    Line4: string;
+    Line5: string;
+    "Cross.alt": string;
+    ABarCaption: string;
+    RBarCaption: string;
+    VBarCaption: string;
+    ABarCaptionSC: string;
+    RBarCaptionSC: string;
+    VBarCaptionSC: string;
+    ABar: string;
+    RBar: string;
+    VBar: string;
+    ABarSC: string;
+    RBarSC: string;
+    VBarSC: string;
+    ABarSmall: string;
+    RBarSmall: string;
+    VBarSmall: string;
+    ABarSmallSC: string;
+    RBarSmallSC: string;
+    VBarSmallSC: string;
+    "RBar.alt2": string;
+    "VBar.alt2": string;
+    ABarCaptionSlant: string;
+    RBarCaptionSlant: string;
+    VBarCaptionSlant: string;
+    ABarSlant: string;
+    RBarSlant: string;
+    VBarSlant: string;
+    ABarSmallSlant: string;
+    RBarSmallSlant: string;
+    VBarSmallSlant: string;
   }
 }
 
