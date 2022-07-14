@@ -1,3 +1,12 @@
+## [1.9.1](https://github.com/frmatthew/exsurge/compare/v1.9.0...v1.9.1) (2022-07-14)
+
+
+### Bug Fixes
+
+* Update type definitions ([e9ce2cc](https://github.com/frmatthew/exsurge/commit/e9ce2ccfbd358df5da54d7c3f10352215d68d35b))
+
+
+
 # [1.9.0](https://github.com/frmatthew/exsurge/compare/v1.8.0...v1.9.0) (2022-07-14)
 
 

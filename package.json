@@ -1,6 +1,6 @@
 {
   "name": "exsurge",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "A JavaScript library for rendering Gregorian Chant in square note notation",
   "main": "src/index.js",
   "types": "src/index.d.ts",
