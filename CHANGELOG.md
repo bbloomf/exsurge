@@ -1,3 +1,12 @@
+## [1.9.5](https://github.com/frmatthew/exsurge/compare/v1.9.4...v1.9.5) (2022-07-14)
+
+
+### Bug Fixes
+
+* Fix character replacement of a single + or * ([040e15d](https://github.com/frmatthew/exsurge/commit/040e15dfea812a1a6ef25e6a7d5bcc0f851eb613))
+
+
+
 ## [1.9.4](https://github.com/frmatthew/exsurge/compare/v1.9.3...v1.9.4) (2022-07-14)
 
 
