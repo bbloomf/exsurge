@@ -1695,8 +1695,8 @@ export class TextElement extends ChantLayoutElement {
         let lastIndex = 0;
         let iOffset = 0;
         while ((vMatch = vTagRegex.exec(vTag))) {
-          if (lastIndex < vMatch.lastIndex) {
-            closeSpan(vTag.slice(lastIndex, vTagRegex.lastIndex), match.index + lastIndex + iOffset);
+          if (lastIndex < vMatch.index) {
+            closeSpan(vTag.slice(lastIndex, vMatch.index), match.index + lastIndex + iOffset);
             iOffset = 3; // length of '<v>'
           }
           let [, grecross, greextra] = vMatch;
