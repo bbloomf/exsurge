@@ -1,3 +1,12 @@
+# [1.10.0](https://github.com/frmatthew/exsurge/compare/v1.9.7...v1.10.0) (2022-08-16)
+
+
+### Features
+
+* Support new context properties for controlling a minimum number of syllables and notes on the last system ([6798238](https://github.com/frmatthew/exsurge/commit/67982388826b526fc8f451dbbc8d8df5d9f0edf4))
+
+
+
 ## [1.9.7](https://github.com/frmatthew/exsurge/compare/v1.9.6...v1.9.7) (2022-07-14)
 
 
