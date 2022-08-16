@@ -1002,8 +1002,8 @@ export class ChantLine extends ChantLayoutElement {
         let countSyllables = 0;
         let countNotes = 0;
         if (ctxt.minSyllablesLastLine && ctxt.minNotesLastLine) {
-          countSyllables = notationsAfterBreak.flatMap(notation => notation.notes).filter(note => !!note).length;
-          countNotes = notationsAfterBreak.filter(notation => notation.hasLyrics()).length;
+          countSyllables = notationsAfterBreak.filter(notation => notation.hasLyrics()).length;
+          countNotes = notationsAfterBreak.flatMap(notation => notation.notes).filter(note => !!note).length;
         }
 
         // check if the prev elements want to be kept with this one
