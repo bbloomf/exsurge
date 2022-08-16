@@ -997,6 +997,15 @@ export class ChantLine extends ChantLayoutElement {
           // TODO?: need to go back to before the last translation text start:
         }
 
+        // count syllables and notes
+        const notationsAfterBreak = notations.slice(i + 1);
+        let countSyllables = 0;
+        let countNotes = 0;
+        if (ctxt.minSyllablesLastLine && ctxt.minNotesLastLine) {
+          countSyllables = notationsAfterBreak.flatMap(notation => notation.notes).filter(note => !!note).length;
+          countNotes = notationsAfterBreak.filter(notation => notation.hasLyrics()).length;
+        }
+
         // check if the prev elements want to be kept with this one
         for (j = i - 1; j > this.notationsStartIndex; j--) {
           var cne = notations[j];
@@ -1004,6 +1013,10 @@ export class ChantLine extends ChantLayoutElement {
 
           // curr is the first notation on the next line
           // cne is the last notation on this line
+          if (ctxt.minSyllablesLastLine && ctxt.minNotesLastLine) {
+            countSyllables += curr.hasLyrics() ? 1 : 0;
+            countNotes += (curr.notes || []).length;
+          }
 
           if (cne.firstWithNoWidth) {
             this.numNotationsOnLine--;
@@ -1026,6 +1039,11 @@ export class ChantLine extends ChantLayoutElement {
             (curr.notes[0].shape === NoteShape.Quilisma ||
               curr.notes[0].shape === NoteShape.Inclinatum)
           ) {
+            this.numNotationsOnLine--;
+            continue;
+          }
+
+          if (countSyllables < ctxt.minSyllablesLastLine && countNotes < ctxt.minNotesLastLine) {
             this.numNotationsOnLine--;
             continue;
           }

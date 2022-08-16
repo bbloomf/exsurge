@@ -601,6 +601,9 @@ export class ChantContext {
     this.activeNotations = null;
     this.currNotationIndex = -1;
 
+    this.minSyllablesLastLine = 0;
+    this.minNotesLastLine = 0;
+
     // chant notation elements are normally separated by a minimum fixed amount of space
     // on the staff line. It can happen, however, that two text elements are almost close
     // enough to merge, only to be separated much more by the required hyphen (or other
