@@ -1,3 +1,12 @@
+## [1.10.3](https://github.com/frmatthew/exsurge/compare/v1.10.2...v1.10.3) (2022-08-16)
+
+
+### Bug Fixes
+
+* Fix the count of syllables and notes ([4ab8c17](https://github.com/frmatthew/exsurge/commit/4ab8c1738580a29e7e748020f4a9d7a41e9d5ee6))
+
+
+
 ## [1.10.2](https://github.com/frmatthew/exsurge/compare/v1.10.1...v1.10.2) (2022-08-16)
 
 
