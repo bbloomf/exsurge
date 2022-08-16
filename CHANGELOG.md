@@ -1,3 +1,12 @@
+## [1.10.2](https://github.com/frmatthew/exsurge/compare/v1.10.1...v1.10.2) (2022-08-16)
+
+
+### Bug Fixes
+
+* Fix types ([78f9c2d](https://github.com/frmatthew/exsurge/commit/78f9c2d29f7e5752069b4e7a070de5f319680a6d))
+
+
+
 ## [1.10.1](https://github.com/frmatthew/exsurge/compare/v1.10.0...v1.10.1) (2022-08-16)
 
 
