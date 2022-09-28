@@ -474,6 +474,9 @@ export class Neume extends ChantNotationElement {
     // 1. episema on lower note by default be below, upper note above
     this.positionEpisemataBelow(bottomNote);
     this.positionEpisemataAbove(topNote);
+    if (topNote.ictus) {
+      topNote.ictus.positionHint = MarkingPositionHint.Above;
+    }
   }
   positionInclinataMorae(notes) {
     notes = notes.slice(-2);
