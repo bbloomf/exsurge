@@ -684,16 +684,16 @@ export class ChantContext {
 
   createStyleNode() {
     var node = QuickSvg.createNode("style", {});
-    node.textContent = this.createStyleCss(this);
+    node.textContent = this.createStyleCss();
     return node;
   }
 
   createStyleTree() {
-    return { name: "style", props: {}, children: [this.createStyleCss(this)] };
+    return { name: "style", props: {}, children: [this.createStyleCss()] };
   }
 
   createStyle() {
-    return "<style>" + this.createStyleCss(this) + "</style>";
+    return "<style>" + this.createStyleCss() + "</style>";
   }
 
   updateHyphenWidth() {
@@ -1107,16 +1107,16 @@ export class GlyphVisualizer extends ChantLayoutElement {
         glyphCode === null ||
         glyphCode === ""
       )
-        this.glyphCode = GlyphCode.None;
+        glyphCode = this.glyphCode = GlyphCode.None;
       else this.glyphCode = glyphCode;
 
-      this.glyph = Glyphs[this.glyphCode];
+      let glyph = this.glyph = Glyphs[glyphCode];
 
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing
-      if (!ctxt.defs.hasOwnProperty(this.glyphCode)) {
+      if (!ctxt.defs.hasOwnProperty(glyphCode)) {
         var getDefProps = () => {
           var options = {
-            id: this.glyphCode,
+            id: glyphCode,
             class: "glyph"
           };
           if (ctxt.scaleDefs === true) {
@@ -1127,10 +1127,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
         var makeDef = () => {
           let options = getDefProps();
           // create the ref
-          ctxt.defs[this.glyphCode] = QuickSvg.createFragment(
+          ctxt.defs[glyphCode] = QuickSvg.createFragment(
             "g",
             options,
-            QuickSvg.svgFragmentForGlyph(this.glyph)
+            QuickSvg.svgFragmentForGlyph(glyph)
           );
 
           if (ctxt.defsNode)
@@ -1138,7 +1138,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
               QuickSvg.createNode(
                 "g",
                 options,
-                QuickSvg.nodesForGlyph(this.glyph)
+                QuickSvg.nodesForGlyph(glyph)
               )
             );
         };
@@ -1146,9 +1146,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
           return QuickSvg.createSvgTree(
             "g",
             getDefProps(),
-            ...QuickSvg.nodesForGlyph(this.glyph, "createSvgTree")
+            ...QuickSvg.nodesForGlyph(glyph, "createSvgTree")
           );
         };
+        makeDef.glyphCode = glyphCode;
         makeDef();
         ctxt.makeDefs.push(makeDef);
       }
