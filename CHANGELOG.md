@@ -1,3 +1,12 @@
+## [1.10.5](https://github.com/frmatthew/exsurge/compare/v1.10.4...v1.10.5) (2022-10-21)
+
+
+### Bug Fixes
+
+* Fix an issue with episema above a punctum ([486cb3b](https://github.com/frmatthew/exsurge/commit/486cb3b4c6060beef80fbe7059401eb31d6c0b2a))
+
+
+
 ## [1.10.4](https://github.com/frmatthew/exsurge/compare/v1.10.3...v1.10.4) (2022-09-28)
 
 
