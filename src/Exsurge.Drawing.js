@@ -2861,6 +2861,7 @@ export class Annotations extends ChantLayoutElement {
   constructor(ctxt, ...texts) {
     super();
 
+    this.lineHeight = 1.1;
     this.annotations = texts.map(function (text) {
       return new Annotation(ctxt, text);
     });
@@ -2891,13 +2892,15 @@ export class Annotations extends ChantLayoutElement {
     this.origin.x = 0;
     this.origin.y = 0;
 
+    let y = 0;
     for (var i = 0; i < this.annotations.length; ++i) {
       var annotation = this.annotations[i];
       annotation.recalculateMetrics(ctxt);
       this.bounds.width = Math.max(this.bounds.width, annotation.bounds.width);
-      annotation.bounds.y += this.bounds.height;
-      this.bounds.height += annotation.bounds.height;
+      annotation.bounds.y += y;
+      this.bounds.height = annotation.bounds.bottom();
       this.origin.y = this.origin.y || annotation.origin.y;
+      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * this.lineHeight;
     }
   }
 
