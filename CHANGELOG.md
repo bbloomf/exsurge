@@ -1,3 +1,7 @@
+## [1.10.6](https://github.com/frmatthew/exsurge/compare/v1.10.5...v1.10.6) (2023-01-19)
+
+
+
 ## [1.10.5](https://github.com/frmatthew/exsurge/compare/v1.10.4...v1.10.5) (2022-10-21)
 
 
