@@ -57,18 +57,6 @@ const __getNeumeFromSvgElem = (score, elem) => {
   return note.neume || note;
 };
 
-const __connectorSpan = new TextSpan(" • ");
-const __mergeAnnotationWithTextLeft = (...annotationSpans) =>
-    annotationSpans.reduce((result, spans) => {
-      if (result && result.length) {
-        if (spans && spans.length) return result.concat(__connectorSpan, spans);
-        else return result;
-      } else if (spans && spans.length) {
-        return spans;
-      }
-      return [];
-    });
-
 // for positioning markings on notes
 export var MarkingPositionHint = {
   Default: 0,
@@ -638,6 +626,7 @@ export class ChantContext {
     this.noteIdPrefix = 'note-';
 
     this.insertFontsInDoc();
+    this.setMergeAnnotationWithTextLeft(true);
   }
 
   getFontForProperties(properties = {}, fontFamily) {
@@ -3166,3 +3155,15 @@ export class ChantNotationElement extends ChantLayoutElement {
     return QuickSvg.createFragment("g", this.getSvgProps(), inner);
   }
 }
+
+const __connectorSpan = new TextSpan(" • ");
+const __mergeAnnotationWithTextLeft = (...annotationSpans) =>
+    annotationSpans.reduce((result, spans) => {
+      if (result && result.length) {
+        if (spans && spans.length) return result.concat(__connectorSpan, spans);
+        else return result;
+      } else if (spans && spans.length) {
+        return spans;
+      }
+      return [];
+    });
