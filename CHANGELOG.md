@@ -1,3 +1,12 @@
+# [1.11.0](https://github.com/frmatthew/exsurge/compare/v1.10.6...v1.11.0) (2023-04-11)
+
+
+### Features
+
+* Move setting for whether to merge annotation with text-left into ChantContext ([13e820b](https://github.com/frmatthew/exsurge/commit/13e820bd3a28f7b471dea18025001a3a198979bd))
+
+
+
 ## [1.10.6](https://github.com/frmatthew/exsurge/compare/v1.10.5...v1.10.6) (2023-01-19)
 
 
