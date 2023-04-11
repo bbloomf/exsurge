@@ -1,3 +1,12 @@
+## [1.11.1](https://github.com/frmatthew/exsurge/compare/v1.11.0...v1.11.1) (2023-04-11)
+
+
+### Bug Fixes
+
+* Fix code order ([5d1ff43](https://github.com/frmatthew/exsurge/commit/5d1ff43db4bd424890af537ee52f7498c4de1094))
+
+
+
 # [1.11.0](https://github.com/frmatthew/exsurge/compare/v1.10.6...v1.11.0) (2023-04-11)
 
 
