@@ -57,6 +57,18 @@ const __getNeumeFromSvgElem = (score, elem) => {
   return note.neume || note;
 };
 
+const __connectorSpan = new TextSpan(" • ");
+const __mergeAnnotationWithTextLeft = (...annotationSpans) =>
+    annotationSpans.reduce((result, spans) => {
+      if (result && result.length) {
+        if (spans && spans.length) return result.concat(__connectorSpan, spans);
+        else return result;
+      } else if (spans && spans.length) {
+        return spans;
+      }
+      return [];
+    });
+
 // for positioning markings on notes
 export var MarkingPositionHint = {
   Default: 0,
@@ -103,8 +115,7 @@ export const TextTypes = {
     display: "Annotation",
     defaultSize: (size) => (size * 2) / 3,
     containedInScore: (score) =>
-      !!score.annotation &&
-      (!score.mergeAnnotationWithTextLeft || score.dropCap),
+      !!score.annotation,
     getFromScore: (score, { elementIndex = 0 }) =>
       score.annotation &&
       (score.annotation.annotations
@@ -662,6 +673,10 @@ export class ChantContext {
     this.rubricColor = color;
     this.specialCharProperties.fill = color;
     this.fontStyleDictionary.c.fill = color;
+  }
+
+  setMergeAnnotationWithTextLeft(merge) {
+    this.mergeAnnotationWithTextLeft = merge ? __mergeAnnotationWithTextLeft : undefined;
   }
 
   setScaleDefs(scaleDefs) {

@@ -117,7 +117,6 @@ declare module "exsurge" {
     pages: ChantScore[];
     updateSelection(selection: Selection);
     createSvgTree(ctxt: ChantContext, zoom?: number): SvgTreeNode;
-    mergeAnnotationWithTextLeft(...annotationSpan: TextSpan[]);
     recreateDropCap(ctxt: ChantContext): void;
     updateNotations(ctxt: ChantContext): void;
     performLayout(ctxt: ChantContext, forceLayout: boolean): void;
@@ -248,6 +247,7 @@ declare module "exsurge" {
       opentypeFontDictionary: any
     ): void;
     setRubricColor(color: string): void;
+    setMergeAnnotationWithTextLeft(merge: boolean): void;
     setScaleDefs(scaleDefs: boolean);
     createStyleCss(): string;
     createStyleNode(): HTMLOrSVGElement;
@@ -262,6 +262,7 @@ declare module "exsurge" {
     makeCanvasIfNeeded(): void;
     setCanvasSize(width: number, height: number, scale?: number): void;
     mapAnnotationSpansToTextLeft?: AnnotationSpansToTextLeftMapper;
+    mergeAnnotationWithTextLeft?: (...annotationSpan: TextSpan[]) => TextSpan[];
   }
 
   export const TextTypes: TextTypes;

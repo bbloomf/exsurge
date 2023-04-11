@@ -368,18 +368,6 @@ export class ChantMapping {
   }
 }
 
-const __connectorSpan = new TextSpan(" • "),
-  __mergeAnnotationWithTextLeft = (...annotationSpans) =>
-    annotationSpans.reduce((result, spans) => {
-      if (result && result.length) {
-        if (spans && spans.length) return result.concat(__connectorSpan, spans);
-        else return result;
-      } else if (spans && spans.length) {
-        return spans;
-      }
-      return [];
-    });
-
 /*
  * Score, document
  */
@@ -406,8 +394,6 @@ export class ChantScore {
 
     // valid after chant lines are created...
     this.bounds = new Rect();
-
-    this.mergeAnnotationWithTextLeft = __mergeAnnotationWithTextLeft;
 
     if (ctxt) this.updateNotations(ctxt);
   }
@@ -679,7 +665,7 @@ export class ChantScore {
   layoutChantLines(ctxt, width, finishedCallback) {
     this.lines = [];
 
-    if (this.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
+    if (ctxt.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
       let annotation = this.annotation,
         annotationSpans = annotation.annotations
           ? annotation.annotations.map((annotation) => annotation.spans)
@@ -688,7 +674,7 @@ export class ChantScore {
       if (ctxt.mapAnnotationSpansToTextLeft) {
         annotationSpans = annotationSpans.map(ctxt.mapAnnotationSpansToTextLeft);
       }
-      this.overrideTextLeft.spans = this.mergeAnnotationWithTextLeft(
+      this.overrideTextLeft.spans = ctxt.mergeAnnotationWithTextLeft(
         ...annotationSpans,
         this.titles.textLeft && this.titles.textLeft.spans
       );

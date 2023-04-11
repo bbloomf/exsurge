@@ -388,7 +388,7 @@ export class ChantLine extends ChantLayoutElement {
 
       if (
         this.score.annotation !== null &&
-        (!this.score.mergeAnnotationWithTextLeft || this.score.dropCap)
+        (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
       )
         // only draw it if there is a dropCap or there is no mergeAnnotationWithTextLeft
         this.score.annotation.draw(ctxt);
@@ -486,7 +486,7 @@ export class ChantLine extends ChantLayoutElement {
 
       if (
         this.score.annotation !== null &&
-        (!this.score.mergeAnnotationWithTextLeft || this.score.dropCap)
+        (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
       )
         // only draw it if there is a dropCap or there is no mergeAnnotationWithTextLeft
         inner = inner.concat(
@@ -598,7 +598,7 @@ export class ChantLine extends ChantLayoutElement {
 
       if (
         this.score.annotation !== null &&
-        (!this.score.mergeAnnotationWithTextLeft || this.score.dropCap)
+        (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
       )
         // only draw it if there is a dropCap or there is no mergeAnnotationWithTextLeft
         inner += this.score.annotation.createSvgFragment(ctxt);
@@ -726,7 +726,7 @@ export class ChantLine extends ChantLayoutElement {
 
       if (
         this.score.annotation !== null &&
-        (!this.score.mergeAnnotationWithTextLeft || this.score.dropCap)
+        (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
       )
         padding = Math.max(
           padding,
