@@ -1,3 +1,12 @@
+# [1.12.0](https://github.com/frmatthew/exsurge/compare/v1.11.1...v1.12.0) (2023-04-14)
+
+
+### Features
+
+* Improve efficiency of re-rendering after changing context tag properties ([407b6c5](https://github.com/frmatthew/exsurge/commit/407b6c506e544d8135b3a1d7885569946e4428cd))
+
+
+
 ## [1.11.1](https://github.com/frmatthew/exsurge/compare/v1.11.0...v1.11.1) (2023-04-11)
 
 
