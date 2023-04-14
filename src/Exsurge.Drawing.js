@@ -1539,41 +1539,61 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
 }
 
 export class TextSpan {
-  constructor(text, properties, activeTags, index = 0) {
-    if (typeof properties === "undefined" || properties === null)
-      properties = {};
+  constructor(text, propertyArray, activeTags, index = 0, extraProps) {
+    if (typeof propertyArray === "undefined" || propertyArray === null)
+      propertyArray = [];
 
     this.text = text;
-    this.properties = properties;
+    this.propertyArray = propertyArray;
     this.activeTags = activeTags || [];
     this.index = index;
+    if (extraProps) {
+      if ('xOffset' in extraProps) this.xOffset = extraProps.xOffset;
+      if ('newLine' in extraProps) this.newLine = extraProps.newLine;
+    }
+  }
+
+  get properties() {
+    const result = Object.assign.apply(null, [{}].concat(this.propertyArray).concat());
+    if ('xOffset' in this) result.xOffset = this.xOffset;
+    if ('newLine' in this) result.newLine = this.newLine;
+    return result;
   }
 
   clone() {
-    return new TextSpan(
+    const result = new TextSpan(
       this.text,
-      this.properties,
+      this.propertyArray,
       this.activeTags,
       this.index
     );
+    if ('xOffset' in this) result.xOffset = this.xOffset;
+    if ('newLine' in this) result.newLine = this.newLine;
+    return result;
   }
 }
 
-function MarkupStackFrame(tagName, startIndex, properties = {}, symbol) {
-  this.tagName = tagName;
-  this.startIndex = startIndex;
-  this.properties = properties;
-  if (symbol) this.symbol = symbol;
-}
+class MarkupStackFrame {
+  constructor(tagName, startIndex, propertyArray = [], symbol) {
+    this.tagName = tagName;
+    this.startIndex = startIndex;
+    this.propertyArray = propertyArray;
+    if (symbol) this.symbol = symbol;
+  }
 
-MarkupStackFrame.createStackFrame = function (ctxt, tagName, startIndex, extraProperties = {}, symbol = '') {
-  return new MarkupStackFrame(
-    tagName,
-    startIndex,
-    Object.assign({}, ctxt.fontStyleDictionary[tagName], extraProperties),
-    symbol
-  );
-};
+  get properties() {
+    return Object.assign.apply(null, [{}].concat(this.propertyArray));
+  }
+
+  static createStackFrame(ctxt, tagName, startIndex, extraProperties = {}, symbol = '') {
+    return new MarkupStackFrame(
+      tagName,
+      startIndex,
+      [ctxt.fontStyleDictionary[tagName], extraProperties],
+      symbol
+    );
+  }
+}
 
 // for escaping html strings before they go into the svgs
 // adapted from http://stackoverflow.com/a/12034334/5720160
@@ -1628,9 +1648,9 @@ export class TextElement extends ChantLayoutElement {
     if (text === "*" || text === "+" || text === "†") {
       let properties =
         text === "*"
-          ? ctxt.asteriskProperties
+          ? [ctxt.asteriskProperties]
           : text === "+"
-          ? ctxt.plusProperties
+          ? [ctxt.plusProperties]
           : null;
       text = ctxt.specialCharText(text) || text;
       this.spans.push(new TextSpan(text, properties));
@@ -1648,24 +1668,24 @@ export class TextElement extends ChantLayoutElement {
 
       this.text += spanText;
 
-      var properties = {};
-      for (var i = 0; i < markupStack.length; i++)
-        Object.assign(properties, markupStack[i].properties);
+      var properties = [];
+      for (var i = 0; i < markupStack.length; i++) {
+        properties.push.apply(properties, markupStack[i].propertyArray);
+      }
 
-      if (extraProperties) Object.assign(properties, extraProperties);
+      if (extraProperties) properties.push(extraProperties);
+      const span = new TextSpan(
+        spanText,
+        properties,
+        markupStack.map((frame) => frame.tagName),
+        index
+      );
+      this.spans.push(span);
       if (newLineInNextSpan) {
-        properties.newLine = newLineInNextSpan;
+        span.newLine = newLineInNextSpan;
         newLineInNextSpan = 0;
       }
 
-      this.spans.push(
-        new TextSpan(
-          spanText,
-          properties,
-          markupStack.map((frame) => frame.tagName),
-          index
-        )
-      );
     };
 
     var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
@@ -1871,10 +1891,10 @@ export class TextElement extends ChantLayoutElement {
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i],
         myText = span.text.slice(0, length - subStringLength);
-      if (span.properties.newLine) {
-        numLines += parseInt(span.properties.newLine) || 1;
+      if (span.newLine) {
+        numLines += parseInt(span.newLine) || 1;
         if (!lines && this.rightAligned === true && length === Infinity) {
-          newLineSpans[newLineSpans.length - 1].properties.xOffset =
+          newLineSpans[newLineSpans.length - 1].xOffset =
             this.firstLineMaxWidth - width;
           newLineSpans.push(span);
         } else if (--lines === 0) break;
@@ -1961,7 +1981,7 @@ export class TextElement extends ChantLayoutElement {
       this.rightAligned === true &&
       length === Infinity
     ) {
-      newLineSpans[newLineSpans.length - 1].properties.xOffset =
+      newLineSpans[newLineSpans.length - 1].xOffset =
         this.firstLineMaxWidth - width;
     }
     width = Math.max(width, ...widths);
@@ -1984,9 +2004,9 @@ export class TextElement extends ChantLayoutElement {
       delete this.numLines;
       // replace newlines with spaces
       this.spans.forEach((span) => {
-        delete span.properties.xOffset;
-        if (span.properties.newLine === true) {
-          delete span.properties.newLine;
+        delete span.xOffset;
+        if (span.newLine === true) {
+          delete span.newLine;
           span.text = " " + span.text;
         }
       });
@@ -2018,13 +2038,13 @@ export class TextElement extends ChantLayoutElement {
     this.numLines = this.spans.reduce(
       (result, span) =>
         result +
-        (span.properties.newLine ? parseInt(span.properties.newLine) || 1 : 0),
+        (span.newLine ? parseInt(span.newLine) || 1 : 0),
       1
     );
   }
 
   setMaxWidth(ctxt, maxWidth, firstLineMaxWidth = maxWidth) {
-    if (this.spans.filter((s) => s.properties.newLine === true).length) {
+    if (this.spans.filter((s) => s.newLine === true).length) {
       // first get rid of any new lines set from a previous maxWidth
       this.recalculateMetrics(ctxt);
     }
@@ -2051,7 +2071,7 @@ export class TextElement extends ChantLayoutElement {
               length = 0;
             while (length < lastMatch.index && spanIndex < this.spans.length) {
               let span = this.spans[spanIndex++];
-              length += span.text.length + (span.properties.newLine ? 1 : 0);
+              length += span.text.length + (span.newLine ? 1 : 0);
             }
             if (length > lastMatch.index) {
               let span = this.spans[--spanIndex];
@@ -2069,7 +2089,7 @@ export class TextElement extends ChantLayoutElement {
               newSpans.push(
                 new TextSpan(
                   textLeft,
-                  splitSpan.properties,
+                  splitSpan.propertyArray,
                   splitSpan.activeTags
                 )
               );
@@ -2077,12 +2097,14 @@ export class TextElement extends ChantLayoutElement {
               newSpans.push(
                 new TextSpan(
                   textRight,
-                  Object.assign({}, splitSpan.properties, { newLine: true }),
-                  splitSpan.activeTags
+                  splitSpan.propertyArray,
+                  splitSpan.activeTags,
+                  undefined,
+                  { newLine: true }
                 )
               );
             } else if (this.spans[spanIndex + 1]) {
-              this.spans[spanIndex + 1].properties.newLine = true;
+              this.spans[spanIndex + 1].newLine = true;
             }
             this.spans.splice(spanIndex, 1, ...newSpans);
             this.needsLayout = true;
@@ -2127,9 +2149,9 @@ export class TextElement extends ChantLayoutElement {
       translateHeight = 0;
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
-      var xOffset = span.properties.xOffset || 0;
-      if (span.properties.newLine) {
-        count = parseInt(span.properties.newLine) || 1;
+      var xOffset = span.xOffset || 0;
+      if (span.newLine) {
+        count = parseInt(span.newLine) || 1;
         canvasCtxt.translate(
           translateWidth + xOffset,
           this.fontSize(ctxt) * count
@@ -2151,7 +2173,7 @@ export class TextElement extends ChantLayoutElement {
         span.text,
         this.bounds.x,
         this.bounds.y,
-        span.properties.textLength || undefined
+        span.textLength || undefined
       );
       var metrics = canvasCtxt.measureText(
         span.text,
@@ -2184,15 +2206,15 @@ export class TextElement extends ChantLayoutElement {
         : getCssForProperties(span.properties)
     };
 
-    if (span.properties.newLine) {
-      var xOffset = span.properties.xOffset || 0;
-      options.dy = 1.1 * (parseInt(span.properties.newLine) || 1) + "em";
+    if (span.newLine) {
+      var xOffset = span.xOffset || 0;
+      options.dy = 1.1 * (parseInt(span.newLine) || 1) + "em";
       options.x = this.bounds.x + xOffset;
-    } else if (span.properties.xOffset) {
-      options.x = this.bounds.x + span.properties.xOffset;
+    } else if (span.xOffset) {
+      options.x = this.bounds.x + span.xOffset;
     }
-    if (span.properties.textLength) {
-      options.textLength = span.properties.textLength;
+    if (span.textLength) {
+      options.textLength = span.textLength;
       options.lengthAdjust = "spacingAndGlyphs";
       options.y = this.bounds.y;
     }
@@ -2441,11 +2463,7 @@ export class Lyric extends TextElement {
 
   setConnectorWidth(width) {
     this.connectorWidth = width;
-    this.connectorSpan.properties = Object.assign(
-      {},
-      this.connectorSpan.properties,
-      { textLength: width }
-    );
+    this.connectorSpan.textLength = width;
     if (this.needsConnector)
       this.bounds.width = this.widthWithoutConnector + this.getConnectorWidth();
   }
