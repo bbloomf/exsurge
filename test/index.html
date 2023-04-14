@@ -37,7 +37,7 @@
     import * as exsurge from '../src/index.js'
     window.exsurge = exsurge;
     /* testing exsurge */
-    var ctxt = new exsurge.ChantContext();
+    var ctxt = window.ctxt = new exsurge.ChantContext();
 
     // ctxt.specialCharProperties['font-family'] = "'Versiculum'";
     // ctxt.specialCharText = char => char.toLowerCase();
@@ -48,7 +48,7 @@
     ctxt.textMeasuringStrategy = exsurge.TextMeasuringStrategy.Canvas;
     ctxt.minLyricWordSpacing = ctxt.hyphenWidth * 0.7;
 
-    var score;
+    window.score = null;
     var gabcSource = document.getElementById('gabcSource');
     var chantContainer = document.getElementById('chant-container');
     var chantCanvasContainer = document.getElementById('chant-canvas-container');
