@@ -1,15 +1,15 @@
 declare module "exsurge" {
   // TODO: Add types for these:
-  // type ChantNotation = unknown;
-  // type ChantLine = unknown;
-  // type Note = unknown;
-  // type Titles = unknown;
-  // type Clef = unknown;
-  // type DropCap = unknown;
-  // type Annotation = unknown;
-  // type Rect = unknown;
-  // type ExsurgeLanguage = unknown;
-  // type ChantNotationElement = unknown;
+  type ChantNotation = unknown;
+  type ChantLine = unknown;
+  type Note = unknown;
+  type Titles = unknown;
+  type Clef = unknown;
+  type DropCap = unknown;
+  type Annotation = unknown;
+  type Rect = unknown;
+  type ExsurgeLanguage = unknown;
+  type ChantNotationElement = unknown;
 
 
   export interface Language {
