@@ -32,6 +32,7 @@ export class English extends Language {
   constructor() {
     super("English");
     this.centerNeume = true;
+    this.regexLetter = /[a-z\u00c0-\u02af\u0300-\u036f\u1e00-\u1eff‿]+/i;
   }
 
   /**
@@ -40,8 +41,7 @@ export class English extends Language {
    * @retuns a custom class with three properties: {found: (true/false) startIndex: (start index in s of vowel segment) length ()}
    */
   findVowelSegment(s, startIndex) {
-    var regexLetter = /[a-z\u0300-\u0311äëïöüÿáéíóúýàèìòùỳāēīōūȳăĕĭŏŭæœ‿]+/i;
-    var match = regexLetter.exec(s.slice(startIndex));
+    var match = this.regexLetter.exec(s.slice(startIndex));
     if (match)
       return {
         found: true,

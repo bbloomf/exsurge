@@ -19,8 +19,11 @@ declare module "exsurge" {
       startingIndex: number
     ): { found: boolean; startIndex: number; length: number };
   }
+  export interface English extends Language {
+    regexLetter: RegExp;
+  }
   export const language: {
-    english: Language;
+    english: English;
     latin: Language;
   };
   
