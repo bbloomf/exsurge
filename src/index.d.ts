@@ -3,14 +3,21 @@ declare module "exsurge" {
   type ChantNotation = unknown;
   type ChantLine = unknown;
   type Note = unknown;
-  type Titles = unknown;
   type Clef = unknown;
   type DropCap = unknown;
   type Annotation = unknown;
   type Rect = unknown;
   type ExsurgeLanguage = unknown;
   type ChantNotationElement = unknown;
-
+  
+  export interface Titles {
+    score: ChantScore;
+    setSupertitle(ctxt: ChantContext, supertitle: string): Supertitle;
+    setTitle(ctxt: ChantContext, title: string): Title;
+    setSubtitle(ctxt: ChantContext, subtitle: string): Subtitle;
+    setTextLeft(ctxt: ChantContext, textLeft: string): TextLeft;
+    setTextRight(ctxt: ChantContext, textRight: string): TextRight;
+  };
 
   export interface Language {
     syllabify(text: string): Array<Array<string>>;
