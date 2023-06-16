@@ -176,6 +176,13 @@ declare module "exsurge" {
 
   export class ChantContext {
     constructor(textMeasuringStrategy?: TextMeasuringStrategy);
+    getFontFilenameForProperties: (
+      properties?: {
+        "font-style"?: string;
+        "font-weight"?: string;
+      },
+      url = "{}"
+    ) => string;
 
     textStyles: TextTypeStyles;
 
@@ -183,14 +190,14 @@ declare module "exsurge" {
     lyricTextColor: string;
     setFont(font: string, size: number): any;
     rubricColor: string;
-    
-    specialCharProperties: { [key: string]: string; };
+
+    specialCharProperties: { [key: string]: string };
     specialCharText?: (char: string) => string;
     textBeforeSpecialChar: string;
     textAfterSpecialChar: string;
-    specialCharMap: { [key in '℣'|'℟'|'*'|'+']: string; };
-    asteriskProperties: { [key: string]: string; };
-    plusProperties: { [key: string]: string; };
+    specialCharMap: { [key in "℣" | "℟" | "*" | "+"]: string };
+    asteriskProperties: { [key: string]: string };
+    plusProperties: { [key: string]: string };
     fontStyleDictionary: {
       [tag: string]: {
         [cssProp: string]: string;
@@ -254,7 +261,7 @@ declare module "exsurge" {
       font: string,
       size: number,
       baseStyle: any,
-      opentypeFontDictionary: any
+      opentypeFontDictionary: { [key: string]: import('opentype.js').Font }
     ): void;
     setRubricColor(color: string): void;
     setMergeAnnotationWithTextLeft(merge: boolean): void;

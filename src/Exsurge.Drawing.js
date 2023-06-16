@@ -473,6 +473,7 @@ export class ChantContext {
       : TextMeasuringStrategy.OpenTypeJS
   ) {
     this.textMeasuringStrategy = textMeasuringStrategy;
+    this.getFontFilenameForProperties = getFontFilenameForProperties;
     this.defs = {};
     this.makeDefs = [];
     if (QuickSvg.hasDOMAccess()) {
@@ -630,8 +631,8 @@ export class ChantContext {
   }
 
   getFontForProperties(properties = {}, fontFamily) {
-    let key = getFontFilenameForProperties(properties),
-      keyWithFontFamily = getFontFilenameForProperties(properties, fontFamily);
+    let key = this.getFontFilenameForProperties(properties),
+      keyWithFontFamily = this.getFontFilenameForProperties(properties, fontFamily);
     return (
       this.fontDictionary &&
       (this.fontDictionary[keyWithFontFamily] ||
