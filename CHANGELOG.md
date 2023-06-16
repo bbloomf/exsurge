@@ -1,3 +1,12 @@
+# [1.13.0](https://github.com/frmatthew/exsurge/compare/v1.12.3...v1.13.0) (2023-06-16)
+
+
+### Features
+
+* Add a way to override getFontFilenameForProperties ([3f70422](https://github.com/frmatthew/exsurge/commit/3f704222bb32f46b3e1aa5137d3307462d836f73))
+
+
+
 ## [1.12.3](https://github.com/frmatthew/exsurge/compare/v1.12.2...v1.12.3) (2023-05-01)
 
 
