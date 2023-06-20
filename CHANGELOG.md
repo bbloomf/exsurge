@@ -1,3 +1,12 @@
+## [1.13.2](https://github.com/frmatthew/exsurge/compare/v1.13.1...v1.13.2) (2023-06-20)
+
+
+### Bug Fixes
+
+* Fix issue with running from node ([76b1437](https://github.com/frmatthew/exsurge/commit/76b14371123387a3852f0b866b91b6ba373b7ce0))
+
+
+
 ## [1.13.1](https://github.com/frmatthew/exsurge/compare/v1.13.0...v1.13.1) (2023-06-19)
 
 
