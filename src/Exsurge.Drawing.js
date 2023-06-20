@@ -555,7 +555,10 @@ export class ChantContext {
     this.defaultLanguage = language.latin;
 
     // calculate the pixel ratio for drawing to a canvas
-    this.pixelRatio = window.devicePixelRatio || 1.0;
+    this.pixelRatio =
+      typeof window === 'undefined'
+        ? 1.0
+        : (window.devicePixelRatio || 1.0);
 
     //this.canvasCtxt.scale(this.pixelRatio, this.pixelRatio);
 
