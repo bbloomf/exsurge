@@ -1,3 +1,12 @@
+## [1.13.5](https://github.com/frmatthew/exsurge/compare/v1.13.5-2...v1.13.5) (2023-06-20)
+
+
+### Reverts
+
+* Revert "part of last non-release commit" ([c6074e2](https://github.com/frmatthew/exsurge/commit/c6074e28e2e851a5c9cc918a4d34ce66ddd1d500))
+
+
+
 ## [1.13.5-2](https://github.com/frmatthew/exsurge/compare/v1.13.5-1...v1.13.5-2) (2023-06-20)
 
 
