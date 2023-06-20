@@ -2,7 +2,7 @@
   "name": "exsurge",
   "version": "1.13.5-2",
   "description": "A JavaScript library for rendering Gregorian Chant in square note notation",
-  "main": "dist/exsurge.js",
+  "main": "dist/exsurge.min.js",
   "types": "src/index.d.ts",
   "module": "src/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "build-dev": "webpack --mode=dev",
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.js",
-    "preversion": "npm run build-dev",
+    "preversion": "npm run build",
     "version": "npm run changelog && git add CHANGELOG.md dist/",
     "postversion": "git push && git push --tags",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
