@@ -127,7 +127,7 @@ declare module "exsurge" {
     pages: ChantScore[];
     updateSelection(selection: Selection);
     createSvgTree(ctxt: ChantContext, zoom?: number): SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
+    createSvg(ctxt: ChantContext): string;
     recreateDropCap(ctxt: ChantContext): void;
     updateNotations(ctxt: ChantContext): void;
     performLayout(ctxt: ChantContext, forceLayout: boolean): void;
