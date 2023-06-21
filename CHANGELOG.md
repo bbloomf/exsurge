@@ -1,3 +1,12 @@
+## [1.13.7](https://github.com/frmatthew/exsurge/compare/v1.13.6...v1.13.7) (2023-06-21)
+
+
+### Bug Fixes
+
+* Fixed xml namespace ([c6bbb00](https://github.com/frmatthew/exsurge/commit/c6bbb00ff17c20bf454ee0d854f4fda4ffc9573b))
+
+
+
 ## [1.13.6](https://github.com/frmatthew/exsurge/compare/v1.13.5...v1.13.6) (2023-06-21)
 
 
