@@ -767,7 +767,8 @@ export class ChantScore {
       height = zoom ? undefined : this.bounds.height;
 
     return {
-      xmlns: "http://www.w3.org/2000/svg",
+      xmlns: QuickSvg.ns,
+      "xmlns:xlink": QuickSvg.xlinkns,
       version: "1.1",
       class: "Exsurge ChantScore" + (ctxt.editable ? " EditableChantScore" : ""),
       width,
