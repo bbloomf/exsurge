@@ -768,7 +768,7 @@ export class ChantScore {
 
     return {
       xmlns: QuickSvg.ns,
-      "xmlns:xlink": QuickSvg.xlinkns,
+      "xmlns:xlink": QuickSvg.xlink,
       version: "1.1",
       class: "Exsurge ChantScore" + (ctxt.editable ? " EditableChantScore" : ""),
       width,
@@ -858,7 +858,7 @@ export class ChantScore {
       lineFragment = QuickSvg.createNode(
         "svg",
         {
-          xmlns: "http://www.w3.org/2000/svg",
+          xmlns: QuickSvg.ns,
           version: "1.1",
           class: "Exsurge ChantScore",
           width: this.bounds.width,
@@ -892,9 +892,9 @@ export class ChantScore {
       lineFragment = QuickSvg.createFragment(
         "svg",
         {
-          xmlns: "http://www.w3.org/2000/svg",
+          xmlns: QuickSvg.ns,
           version: "1.1",
-          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          "xmlns:xlink": QuickSvg.xlink,
           class: "Exsurge ChantScore",
           width: this.bounds.width,
           height: height
