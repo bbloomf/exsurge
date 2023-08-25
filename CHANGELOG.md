@@ -1,3 +1,12 @@
+## [1.13.8](https://github.com/frmatthew/exsurge/compare/v1.13.7...v1.13.8) (2023-08-25)
+
+
+### Bug Fixes
+
+* Fix handling of sc tag when calculating GABC source on drop cap ([14296df](https://github.com/frmatthew/exsurge/commit/14296df77962cfd9f909c3ab1fecba62e3f54bb6))
+
+
+
 ## [1.13.7](https://github.com/frmatthew/exsurge/compare/v1.13.6...v1.13.7) (2023-06-21)
 
 
