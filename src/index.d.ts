@@ -130,7 +130,7 @@ declare module "exsurge" {
     createSvg(ctxt: ChantContext): string;
     recreateDropCap(ctxt: ChantContext): void;
     updateNotations(ctxt: ChantContext): void;
-    performLayout(ctxt: ChantContext, forceLayout: boolean): void;
+    performLayout(ctxt: ChantContext, forceLayout?: boolean): void;
     layoutChantLines(ctxt: ChantContext, width: number): void;
     paginate(height: number): void;
   }

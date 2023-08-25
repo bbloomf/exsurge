@@ -232,7 +232,7 @@ export let GlyphCode = {
 export var QuickSvg = {
   // namespaces
   ns: "http://www.w3.org/2000/svg",
-  xmlns: "http://www.w3.org/2000/xmlns/",
+  xmlns: "https://www.w3.org/2000/xmlns/",
   xlink: "http://www.w3.org/1999/xlink",
 
   hasDOMAccess: function () {
@@ -2618,7 +2618,7 @@ export class Lyric extends TextElement {
     var dropCap = (this.dropCap = new DropCap(ctxt, "", this.sourceIndex));
     dropCap.spans = [dropCapSpan];
     let dropCapSourceGabcLength = this.sourceGabc.match(
-      /^(?:<\/?[^>]>)*.?(?:<\/[^>]>)*/
+      /^(?:<\/?[^>]+>)*.?(?:<\/[^>]+>)*/
     )[0].length;
     dropCap.sourceGabc = this.sourceGabc.slice(0, dropCapSourceGabcLength);
     this.sourceIndex += dropCap.sourceGabc.length;
