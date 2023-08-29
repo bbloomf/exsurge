@@ -1,3 +1,12 @@
+## [1.13.9](https://github.com/frmatthew/exsurge/compare/v1.13.8...v1.13.9) (2023-08-29)
+
+
+### Bug Fixes
+
+* Set sourceGabc in Annotation constructor ([ee305cf](https://github.com/frmatthew/exsurge/commit/ee305cfba31f68bbdf36e2588cd6fe2a93bbb1ea))
+
+
+
 ## [1.13.8](https://github.com/frmatthew/exsurge/compare/v1.13.7...v1.13.8) (2023-08-25)
 
 
