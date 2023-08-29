@@ -110,7 +110,7 @@ export const TextTypes = {
         ? score.annotation.annotations[elementIndex]
         : score.annotation),
     getFromSvgElem: (score, elem) =>
-      score.annotations &&
+      score.annotation &&
       (score.annotation.annotations
         ? score.annotation.annotations[Array.from(elem.parentElement.querySelectorAll("text.annotation")).indexOf(elem)]
         : score.annotation)
