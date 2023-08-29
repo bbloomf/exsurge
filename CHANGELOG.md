@@ -1,3 +1,12 @@
+## [1.13.11](https://github.com/frmatthew/exsurge/compare/v1.13.10...v1.13.11) (2023-08-29)
+
+
+### Bug Fixes
+
+* Fix typo ([0d58cc3](https://github.com/frmatthew/exsurge/commit/0d58cc3ef2ecf3caf477560d2324f7f5569b6cc4))
+
+
+
 ## [1.13.10](https://github.com/frmatthew/exsurge/compare/v1.13.9...v1.13.10) (2023-08-29)
 
 
