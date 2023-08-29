@@ -108,11 +108,6 @@ export const TextTypes = {
       score.annotation &&
       (score.annotation.annotations
         ? score.annotation.annotations[elementIndex]
-        : score.annotation),
-    getFromSvgElem: (score, elem) =>
-      score.annotation &&
-      (score.annotation.annotations
-        ? score.annotation.annotations[Array.from(elem.parentElement.querySelectorAll("text.annotation")).indexOf(elem)]
         : score.annotation)
   },
   dropCap: {
@@ -2871,7 +2866,7 @@ export class Annotation extends TextElement {
   /**
    * @param {String} text
    */
-  constructor(ctxt, text) {
+  constructor(ctxt, text, elementIndex) {
     super(
       ctxt,
       (ctxt.textStyles.annotation.prefix || "") + text,
@@ -2880,6 +2875,7 @@ export class Annotation extends TextElement {
       "middle"
     );
     this.sourceGabc = text;
+    if (typeof elementIndex === 'number') this.elementIndex = elementIndex;
     this.textType = TextTypes.annotation;
     this.padding = ctxt.staffInterval * ctxt.textStyles.annotation.padding;
     this.dominantBaseline = "hanging"; // so that annotations can be aligned at the top.
@@ -2894,8 +2890,8 @@ export class Annotations extends ChantLayoutElement {
     super();
 
     this.lineHeight = 1.1;
-    this.annotations = texts.map(function (text) {
-      return new Annotation(ctxt, text);
+    this.annotations = texts.map(function (text, i) {
+      return new Annotation(ctxt, text, i);
     });
     this.padding = Math.max.apply(
       null,
