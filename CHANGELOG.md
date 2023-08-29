@@ -1,3 +1,12 @@
+## [1.13.13](https://github.com/frmatthew/exsurge/compare/v1.13.12...v1.13.13) (2023-08-29)
+
+
+### Bug Fixes
+
+* add back in annotation.getFromSvgElem ([f08243a](https://github.com/frmatthew/exsurge/commit/f08243a7d87afff77a500a1bbf08b53d70bc386b))
+
+
+
 ## [1.13.12](https://github.com/frmatthew/exsurge/compare/v1.13.11...v1.13.12) (2023-08-29)
 
 
