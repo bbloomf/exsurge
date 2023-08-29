@@ -2874,6 +2874,7 @@ export class Annotation extends TextElement {
       (ctxt) => ctxt.textStyles.annotation.size,
       "middle"
     );
+    this.sourceGabc = text;
     this.textType = TextTypes.annotation;
     this.padding = ctxt.staffInterval * ctxt.textStyles.annotation.padding;
     this.dominantBaseline = "hanging"; // so that annotations can be aligned at the top.
