@@ -1,3 +1,12 @@
+## [1.13.12](https://github.com/frmatthew/exsurge/compare/v1.13.11...v1.13.12) (2023-08-29)
+
+
+### Bug Fixes
+
+* Fix isse with annotations ([239610e](https://github.com/frmatthew/exsurge/commit/239610e26ce7d812858745a74b6b4820113a4321))
+
+
+
 ## [1.13.11](https://github.com/frmatthew/exsurge/compare/v1.13.10...v1.13.11) (2023-08-29)
 
 
