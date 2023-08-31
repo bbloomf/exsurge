@@ -1,3 +1,12 @@
+## [1.13.14](https://github.com/frmatthew/exsurge/compare/v1.13.13...v1.13.14) (2023-08-31)
+
+
+### Bug Fixes
+
+* Fix bug with InsertionCursor class being missing from minified produced SVG ([c6da0bc](https://github.com/frmatthew/exsurge/commit/c6da0bc2e4964bde9a78a484d788216f26098d2d))
+
+
+
 ## [1.13.13](https://github.com/frmatthew/exsurge/compare/v1.13.12...v1.13.13) (2023-08-29)
 
 
