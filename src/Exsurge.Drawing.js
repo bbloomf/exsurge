@@ -3146,7 +3146,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   getSvgProps() {
     return {
       // this.constructor.name will not be the same after being mangled by UglifyJS
-      class: "ChantNotationElement " + this.constructor.name,
+      class: "ChantNotationElement " + (this.cssClass || this.constructor.name),
       transform: "translate(" + this.bounds.x + "," + 0 + ")"
     };
   }

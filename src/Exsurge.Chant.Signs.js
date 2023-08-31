@@ -150,6 +150,7 @@ export class FullBar extends Divider {
 export class InsertionCursor extends Divider {
   performLayout(ctxt) {
     super.performLayout(ctxt);
+    this.cssClass = 'InsertionCursor';
 
     this.addVisualizer(new DividerLineVisualizer(ctxt, -4, 4));
 
