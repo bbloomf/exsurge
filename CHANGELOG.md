@@ -1,3 +1,12 @@
+## [1.13.15](https://github.com/frmatthew/exsurge/compare/v1.13.14...v1.13.15) (2023-09-18)
+
+
+### Bug Fixes
+
+* Fix handling of clivis with terminating liquescent ([3b0d58c](https://github.com/frmatthew/exsurge/commit/3b0d58cba935503595746e95661629f3b4684733))
+
+
+
 ## [1.13.14](https://github.com/frmatthew/exsurge/compare/v1.13.13...v1.13.14) (2023-08-31)
 
 
