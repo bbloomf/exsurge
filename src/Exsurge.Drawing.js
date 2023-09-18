@@ -914,6 +914,10 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
       staffPosition1 = temp;
     }
 
+    if (hanging && staffPosition0 - staffPosition1 > 4) {
+      staffPosition1 = staffPosition0 - 4;
+    }
+
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition0);
     var y1 = 0;
 

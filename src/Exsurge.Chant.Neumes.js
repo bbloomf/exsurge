@@ -206,13 +206,24 @@ class NeumeBuilder {
     return this;
   }
 
-  withClivis(upper, lower) {
-    var lowerGlyph;
-
+  withClivisUpper(upper, lower, glyph = GlyphCode.PunctumQuadratum) {
     if (upper.shape === NoteShape.Oriscus)
       this.noteAt(upper, GlyphCode.OriscusDes, false);
-    else this.lineFrom(lower).noteAt(upper, GlyphCode.PunctumQuadratum);
+    else {
+      if (lower) {
+        this.lineFrom(lower);
+        this.lineIsHanging = lower.staffPosition < upper.staffPosition;
+        if (lower.liquescent & LiquescentType.Small) {
+          glyph = GlyphCode.BeginningDesLiquescent;
+        }
+      }
+      this.noteAt(upper, glyph);
+    }
+    return this;
+  }
 
+  withClivisLower(lower) {
+    var lowerGlyph;
     if (lower.liquescent & LiquescentType.Small) {
       lowerGlyph = GlyphCode.TerminatingDesLiquescent;
     } else if (lower.liquescent === LiquescentType.Ascending)
@@ -221,7 +232,12 @@ class NeumeBuilder {
       lowerGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
     else lowerGlyph = GlyphCode.PunctumQuadratum;
 
-    this.noteAt(lower, lowerGlyph);
+    return this.noteAt(lower, lowerGlyph);
+  }
+
+  withClivis(upper, lower) {
+    this.withClivisUpper(upper, lower);
+    this.withClivisLower(lower);
 
     // make sure we don't have lines connected to the clivis
     this.lastNote = null;
@@ -720,6 +736,40 @@ export class Clivis extends Neume {
     var lower = this.notes[1];
 
     this.build(ctxt).withClivis(upper, lower);
+
+    this.finishLayout(ctxt);
+  }
+}
+
+/*
+ * Ancus
+ */
+export class Ancus extends Neume {
+  positionMarkings() {
+    this.positionClivisMarkings(this.notes[0], this.notes[2]);
+    this.positionClivisMarkings(this.notes[1], this.notes[2]);
+  }
+
+  performLayout(ctxt) {
+    super.performLayout(ctxt);
+
+    var upper = this.notes[0];
+    var middle = this.notes[1];
+    var lower = this.notes[2];
+
+    var builder = this.build(ctxt);
+    builder.withClivisUpper(upper, middle);
+    let middleGlyph = GlyphCode.PunctumQuadratum;
+    if (lower.liquescent & LiquescentType.Small) {
+      middleGlyph = GlyphCode.BeginningDesLiquescent;
+    }
+    if (upper.staffPosition - middle.staffPosition > 1) {
+      builder.withClivisUpper(middle, upper, middleGlyph);
+    } else {
+      builder.withClivisUpper(middle, null, middleGlyph);
+    }
+    builder.withClivisLower(lower);
+    builder.lastNote = null;
 
     this.finishLayout(ctxt);
   }

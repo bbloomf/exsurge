@@ -1255,7 +1255,7 @@ export class Gabc {
           if (prevNote.ictus)
             prevNote.ictus.positionHint = MarkingPositionHint.Above;
           if (currNote.shape === NoteShape.Inclinatum) return climacusState;
-          else if (prevNote.staffPosition - currNote.staffPosition <= 4) {
+          else {
             return clivisState;
           }
         } else if (!prevNote.morae || !prevNote.morae.length) {
@@ -1341,7 +1341,14 @@ export class Gabc {
           if (currNote.ictus)
             currNote.ictus.positionHint = MarkingPositionHint.Above;
           return porrectusState;
-        } else return createNeume(new Neumes.Clivis(), false);
+        } else if (
+          currNote.staffPosition < prevNote.staffPosition &&
+          currNote.liquescent & LiquescentType.Small
+        ) {
+          return createNeume(new Neumes.Ancus(), true);
+        } else {
+          return createNeume(new Neumes.Clivis(), false);
+        }
       }
     };
 
