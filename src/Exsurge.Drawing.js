@@ -465,7 +465,7 @@ export var TextMeasuringStrategy = {
   // shapes
   Svg: 0,
   Canvas: 1,
-  FontDictionary: 2
+  OpenTypeJS: 2
 };
 
 /*
@@ -475,7 +475,7 @@ export class ChantContext {
   constructor(
     textMeasuringStrategy = QuickSvg.hasDOMAccess()
       ? TextMeasuringStrategy.Canvas
-      : TextMeasuringStrategy.FontDictionary
+      : TextMeasuringStrategy.OpenTypeJS
   ) {
     /**
      * font dictionary
@@ -680,7 +680,7 @@ export class ChantContext {
     this.baseTextStyle = baseStyle;
 
     if (fontDictionary) {
-      this.textMeasuringStrategy = TextMeasuringStrategy.FontDictionary;
+      this.textMeasuringStrategy = TextMeasuringStrategy.OpenTypeJS;
       this.fontDictionary = fontDictionary;
     }
   }
@@ -1969,7 +1969,7 @@ export class TextElement extends ChantLayoutElement {
         }
         width += metrics.width;
       } else if (
-        ctxt.textMeasuringStrategy === TextMeasuringStrategy.FontDictionary &&
+        ctxt.textMeasuringStrategy === TextMeasuringStrategy.OpenTypeJS &&
         ctxt.fontDictionary
       ) {
         // get the bounding box for the substring, placing it at x = width, y = fontSize * (numLines - 1)
