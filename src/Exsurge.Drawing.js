@@ -479,7 +479,7 @@ export class ChantContext {
   ) {
     /**
      * font dictionary
-     * @type {{ [key: string]: import('opentype.js').Font | import('fontkit').Font | undefined }}
+     * @type {{ [key: string]: import('opentype.js').Font }}
      */
     this.fontDictionary = undefined;
     this.textMeasuringStrategy = textMeasuringStrategy;
@@ -665,7 +665,7 @@ export class ChantContext {
    * @param {string} font : ;
    * @param {number} size 
    * @param {any} baseStyle 
-   * @param {{ [key: string]: import('opentype.js').Font | import('fontkit').Font }} fontDictionary 
+   * @param {{ [key: string]: import('opentype.js').Font }} fontDictionary 
    */
   setFont(font, size = 16, baseStyle = {}, fontDictionary) {
     for (let [key, textType] of Object.entries(TextTypes)) {
