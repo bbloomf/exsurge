@@ -465,7 +465,7 @@ export var TextMeasuringStrategy = {
   // shapes
   Svg: 0,
   Canvas: 1,
-  OpenTypeJS: 2
+  FontDictionary: 2
 };
 
 /*
@@ -475,8 +475,13 @@ export class ChantContext {
   constructor(
     textMeasuringStrategy = QuickSvg.hasDOMAccess()
       ? TextMeasuringStrategy.Canvas
-      : TextMeasuringStrategy.OpenTypeJS
+      : TextMeasuringStrategy.FontDictionary
   ) {
+    /**
+     * font dictionary
+     * @type {{ [key: string]: import('opentype.js').Font | import('fontkit').Font | undefined }}
+     */
+    this.fontDictionary = undefined;
     this.textMeasuringStrategy = textMeasuringStrategy;
     this.getFontFilenameForProperties = getFontFilenameForProperties;
     this.defs = {};
@@ -638,6 +643,12 @@ export class ChantContext {
     this.setMergeAnnotationWithTextLeft(true);
   }
 
+  /**
+   * 
+   * @param {*} properties 
+   * @param {string} fontFamily 
+   * @returns {import('opentype.js').Font | undefined}
+   */
   getFontForProperties(properties = {}, fontFamily) {
     let key = this.getFontFilenameForProperties(properties),
       keyWithFontFamily = this.getFontFilenameForProperties(properties, fontFamily);
@@ -649,7 +660,14 @@ export class ChantContext {
     );
   }
 
-  setFont(font, size = 16, baseStyle = {}, opentypeFontDictionary) {
+  /**
+   * 
+   * @param {string} font : ;
+   * @param {number} size 
+   * @param {any} baseStyle 
+   * @param {{ [key: string]: import('opentype.js').Font | import('fontkit').Font }} fontDictionary 
+   */
+  setFont(font, size = 16, baseStyle = {}, fontDictionary) {
     for (let [key, textType] of Object.entries(TextTypes)) {
       let textStyle = (this.textStyles[key] = this.textStyles[key] || {});
       textStyle.size = textType.defaultSize
@@ -661,9 +679,9 @@ export class ChantContext {
 
     this.baseTextStyle = baseStyle;
 
-    if (opentypeFontDictionary) {
-      this.textMeasuringStrategy = TextMeasuringStrategy.OpenTypeJS;
-      this.fontDictionary = opentypeFontDictionary;
+    if (fontDictionary) {
+      this.textMeasuringStrategy = TextMeasuringStrategy.FontDictionary;
+      this.fontDictionary = fontDictionary;
     }
   }
 
@@ -1885,7 +1903,14 @@ export class TextElement extends ChantLayoutElement {
     return this.measureSubstring(ctxt, length, true);
   }
 
-  // if length is undefined and this.rightAligned === true, then offsets will be marked for each newLine span
+  /**
+   * if length is undefined and this.rightAligned === true, then offsets will be marked for each newLine span
+   * 
+   * @param {ChantContext} ctxt 
+   * @param {number} length 
+   * @param {boolean} returnBBox 
+   * @returns measured substring, as a simple width unless returnBBox == true
+   */
   measureSubstring(ctxt, length, returnBBox = false) {
     if (length === 0) return 0;
     if (!length) length = Infinity;
@@ -1944,7 +1969,7 @@ export class TextElement extends ChantLayoutElement {
         }
         width += metrics.width;
       } else if (
-        ctxt.textMeasuringStrategy === TextMeasuringStrategy.OpenTypeJS &&
+        ctxt.textMeasuringStrategy === TextMeasuringStrategy.FontDictionary &&
         ctxt.fontDictionary
       ) {
         // get the bounding box for the substring, placing it at x = width, y = fontSize * (numLines - 1)
@@ -1952,6 +1977,9 @@ export class TextElement extends ChantLayoutElement {
           span.properties,
           span.properties["font-family"] || this.fontFamily(ctxt)
         );
+        /**
+         * @type {{ features: { liga: boolean; smcp?: boolean; } }}
+         */
         let options = { features: { liga: true } };
         if (span.properties["font-variant"] === "small-caps") {
           options.features.smcp = true;

@@ -189,7 +189,6 @@ declare module "exsurge" {
 
     textMeasuringStrategy: TextMeasuringStrategy;
     lyricTextColor: string;
-    setFont(font: string, size: number): any;
     rubricColor: string;
 
     specialCharProperties: { [key: string]: string };
@@ -261,8 +260,8 @@ declare module "exsurge" {
     setFont(
       font: string,
       size: number,
-      baseStyle: any,
-      opentypeFontDictionary: { [key: string]: import('opentype.js').Font }
+      baseStyle?: any,
+      fontDictionary?: { [key: string]: import('opentype.js').Font }
     ): void;
     setRubricColor(color: string): void;
     setMergeAnnotationWithTextLeft(merge: boolean): void;
