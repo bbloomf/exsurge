@@ -1,3 +1,12 @@
+## [1.13.17](https://github.com/frmatthew/exsurge/compare/v1.13.16...v1.13.17) (2023-11-28)
+
+
+### Bug Fixes
+
+* Fix typing ([2c733d0](https://github.com/frmatthew/exsurge/commit/2c733d06e9a3d9bbf3d14ac7c17c88352576366c))
+
+
+
 ## [1.13.16](https://github.com/frmatthew/exsurge/compare/v1.13.15...v1.13.16) (2023-11-28)
 
 
