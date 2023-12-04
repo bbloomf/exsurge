@@ -1,3 +1,12 @@
+# [1.14.0](https://github.com/frmatthew/exsurge/compare/v1.13.18...v1.14.0) (2023-12-04)
+
+
+### Features
+
+* Add support for 5 line staff ([a3e403a](https://github.com/frmatthew/exsurge/commit/a3e403aac263584ec61d126109a3521123fe0157))
+
+
+
 ## [1.13.18](https://github.com/frmatthew/exsurge/compare/v1.13.17...v1.13.18) (2023-11-28)
 
 
