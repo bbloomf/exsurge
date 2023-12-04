@@ -92,9 +92,9 @@ export class Note extends ChantLayoutElement {
     this.glyphVisualizer = null;
 
     // The staffPosition on a note is an integer that indicates the vertical position on the staff.
-    // 0 is the center space on the staff (equivalent to gabc 'g'). Positive numbers go up
-    // the staff, and negative numbers go down, i.e., 1 is gabc 'h', 2 is gabc 'i', -1 is gabc 'f', etc.
-    this.staffPosition = 0;
+    // 0 is the space just below the lowest line on the staff (equivalent to gabc 'c'). Positive numbers go up
+    // the staff, and negative numbers go down, i.e., 1 is gabc 'd', 2 is gabc 'e', -1 is gabc 'b', etc.
+    this.staffPosition = 4;
     this.liquescent = LiquescentType.None;
     this.shape = NoteShape.Default;
     this.shapeModifiers = NoteShapeModifiers.None;
@@ -263,7 +263,7 @@ export class DoClef extends Clef {
   }
 }
 
-var __defaultDoClef = new DoClef(3, 2);
+var __defaultDoClef = new DoClef(7, 2);
 
 export class FaClef extends Clef {
   constructor(staffPosition, octave, defaultAccidental = null) {
@@ -328,7 +328,7 @@ export class TextOnly extends ChantNotationElement {
     this.addVisualizer(new GlyphVisualizer(ctxt, GlyphCode.None));
 
     this.origin.x = 0;
-    this.origin.y = 0;
+    this.origin.y = -ctxt.staffInterval;
 
     this.finishLayout(ctxt);
   }
@@ -378,6 +378,7 @@ export class ChantScore {
 
     this.lines = [];
     this.notes = [];
+    this.staffLineCount = 4;
     if (ctxt) this.titles = new Titles(ctxt, this);
 
     this.startingClef = null;
@@ -572,6 +573,7 @@ export class ChantScore {
     ctxt.activeClef = this.startingClef;
     ctxt.notations = this.notations;
     ctxt.currNotationIndex = 0;
+    ctxt.staffLineCount = this.staffLineCount;
 
     if (this.dropCap) this.dropCap.recalculateMetrics(ctxt);
 

@@ -65,7 +65,7 @@ import * as Neumes from "./Exsurge.Chant.Neumes.js";
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
-var __notationsRegex = /z0|z|Z|::|:|[,;][1-6]?|`|[cf][1-4]|cb[1-4]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|::|:|[,;][1-6]?|`|[cf][1-5]|cb[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_insideBraces = 1;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
@@ -973,75 +973,34 @@ export class Gabc {
         // other gregorio dividers are not supported yet
 
         case "c1":
-          addNotation((ctxt.activeClef = new DoClef(-3, 2)));
-          break;
-
         case "c2":
-          addNotation((ctxt.activeClef = new DoClef(-1, 2)));
-          break;
-
         case "c3":
-          addNotation((ctxt.activeClef = new DoClef(1, 2)));
-          break;
-
         case "c4":
-          addNotation((ctxt.activeClef = new DoClef(3, 2)));
+        case "c5":
+          addNotation((ctxt.activeClef = new DoClef(2 * parseInt(atom[1], 10) - 1, 2)));
           break;
-
         case "f1":
-          addNotation((ctxt.activeClef = new FaClef(-3, 2)));
-          break;
-
         case "f2":
-          addNotation((ctxt.activeClef = new FaClef(-1, 2)));
-          break;
-
         case "f3":
-          addNotation((ctxt.activeClef = new FaClef(1, 2)));
-          break;
-
         case "f4":
-          addNotation((ctxt.activeClef = new FaClef(3, 2)));
+        case "f5":
+          addNotation((ctxt.activeClef = new FaClef(2 * parseInt(atom[1], 10) - 1, 2)));
           break;
-
         case "cb1":
-          addNotation(
-            (ctxt.activeClef = new DoClef(
-              -3,
-              2,
-              new Signs.Accidental(-4, Signs.AccidentalType.Flat)
-            ))
-          );
-          break;
-
         case "cb2":
-          addNotation(
-            (ctxt.activeClef = new DoClef(
-              -1,
-              2,
-              new Signs.Accidental(-2, Signs.AccidentalType.Flat)
-            ))
-          );
-          break;
-
         case "cb3":
-          addNotation(
-            (ctxt.activeClef = new DoClef(
-              1,
-              2,
-              new Signs.Accidental(0, Signs.AccidentalType.Flat)
-            ))
-          );
-          break;
-
         case "cb4":
-          addNotation(
-            (ctxt.activeClef = new DoClef(
-              3,
-              2,
-              new Signs.Accidental(2, Signs.AccidentalType.Flat)
-            ))
-          );
+        case "cb5":
+          {
+            const line = 2 * parseInt(atom[2], 10) - 1;
+            addNotation(
+              (ctxt.activeClef = new DoClef(
+                line,
+                2,
+                new Signs.Accidental(line - 1, Signs.AccidentalType.Flat)
+              ))
+            );
+          }
           break;
 
         case "z":
@@ -2034,7 +1993,7 @@ export class Gabc {
 
   // returns pitch
   static gabcHeightToExsurgeHeight(gabcHeight) {
-    return gabcHeight.toLowerCase().charCodeAt(0) - "a".charCodeAt(0) - 6;
+    return gabcHeight.toLowerCase().charCodeAt(0) - "c".charCodeAt(0);
   }
 
   // returns pitch

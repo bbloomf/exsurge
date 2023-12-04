@@ -482,6 +482,7 @@ export class ChantContext {
      * @type {{ [key: string]: import('opentype.js').Font }}
      */
     this.fontDictionary = undefined;
+    this.staffLineCount = 4;
     this.textMeasuringStrategy = textMeasuringStrategy;
     this.getFontFilenameForProperties = getFontFilenameForProperties;
     this.defs = {};
@@ -641,6 +642,20 @@ export class ChantContext {
 
     this.insertFontsInDoc();
     this.setMergeAnnotationWithTextLeft(true);
+  }
+
+  /**
+   * convert a staff position counting from the first space below the staff (gabc notation "c")
+   * into a position counting from the middle space (variable based on how many staff lines there are)
+   * @param {number} staffPosition 
+   * @returns {number}
+   */
+  convertStaffPositionToSymmetric(staffPosition) {
+    return staffPosition - this.staffLineCount;
+  }
+
+  convertSymmetricStaffPosition(staffPositionSymmetric) {
+    return staffPositionSymmetric + this.staffLineCount;
   }
 
   /**
@@ -3018,7 +3033,14 @@ export class ChantNotationElement extends ChantLayoutElement {
 
     this.lyrics = [];
 
+    /**
+     * @type {ChantScore}
+     */
     this.score = null; // the ChantScore
+
+    /**
+     * @type {ChantLine}
+     */
     this.line = null; // the ChantLine
 
     this.visualizers = [];

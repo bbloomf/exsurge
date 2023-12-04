@@ -78,14 +78,20 @@ export class ChantLine extends ChantLayoutElement {
     this.lastLyrics = [];
   }
 
+  get staffSpaces() {
+    return this.score.staffLineCount - 1;
+  }
+
   performLayout(ctxt) {
     // start off with a rectangle that holds at least the four staff lines
+    const staffSpaces = this.staffSpaces;
+    const staffLineCount = this.score.staffLineCount;
     this.notationBounds = new Rect(
       this.staffLeft,
-      -(ctxt.staffLineWeight / 2 + 3 + ctxt.minSpaceAboveStaff) *
+      -(ctxt.staffLineWeight / 2 + staffLineCount * 2 - 1 + ctxt.minSpaceAboveStaff) *
         ctxt.staffInterval,
       this.staffRight - this.staffLeft,
-      (ctxt.staffLineWeight + 6 + ctxt.minSpaceAboveStaff) * ctxt.staffInterval
+      (ctxt.staffLineWeight + (staffSpaces * 2) + ctxt.minSpaceAboveStaff) * ctxt.staffInterval
     );
 
     // run through all the elements of the line and calculate the bounds of the notations,
@@ -117,7 +123,8 @@ export class ChantLine extends ChantLayoutElement {
     for (i = this.notationsStartIndex; i < lastNeumeIndex; i++) {
       notation = notations[i];
 
-      this.notationBounds.union(notation.bounds);
+      if (notation.bounds.height || notation.bounds.width)
+        this.notationBounds.union(notation.bounds);
 
       // keep track of lyric line offsets
       if (notation.lyrics.length && notation.lyrics[0].text) {
@@ -247,7 +254,7 @@ export class ChantLine extends ChantLayoutElement {
       if (this.score.annotation !== null) {
         // annotations use dominant-baseline to align text to the top
         this.score.annotation.bounds.x = this.staffLeft / 2;
-        this.score.annotation.bounds.y = -ctxt.staffInterval * 3;
+        this.score.annotation.bounds.y = -ctxt.staffInterval * (staffLineCount * 2 - 1);
         if (this.score.dropCap !== null) {
           var lowestPossibleAnnotationY =
             this.lyricLineBaseline -
@@ -310,9 +317,9 @@ export class ChantLine extends ChantLayoutElement {
     this.notationBounds.union(
       new Rect(
         0,
+        -ctxt.staffInterval, // lowest staff line
         0,
-        0,
-        (3 + ctxt.staffLineWeight / 2 + ctxt.minSpaceBelowStaff) *
+        (ctxt.staffLineWeight / 2 + ctxt.minSpaceBelowStaff) *
           ctxt.staffInterval
       )
     );
@@ -356,7 +363,7 @@ export class ChantLine extends ChantLayoutElement {
     canvasCtxt.lineWidth = ctxt.staffLineWeight;
     canvasCtxt.strokeStyle = ctxt.staffLineColor;
 
-    for (i = -3; i <= 3; i += 2) {
+    for (i = this.score.staffLineCount * -2 + 1; i < 0; i += 2) {
       y = ctxt.staffInterval * i;
 
       canvasCtxt.beginPath();
@@ -419,22 +426,22 @@ export class ChantLine extends ChantLayoutElement {
     var i,
       x1 = this.staffLeft,
       x2 = this.staffRight;
-
+    const staffSpaces = this.staffSpaces;
     if (ctxt.editable) {
       inner.push(
         QuickSvg[functionNames.quickSvg]("rect", {
           key: "insertion",
           x: x1,
-          y: ctxt.staffInterval * -3,
+          y: ctxt.staffInterval * this.score.staffLineCount * -2 + 1,
           width: x2 - x1,
-          height: ctxt.staffInterval * 6,
+          height: ctxt.staffInterval * 2 * staffSpaces,
           fill: "none"
         })
       );
     }
 
     // create the staff lines
-    for (i = -3; i <= 3; i += 2) {
+    for (i = this.score.staffLineCount * -2 + 1; i < 0; i += 2) {
       inner.push(
         QuickSvg[functionNames.quickSvg]("line", {
           key: i,
@@ -553,7 +560,7 @@ export class ChantLine extends ChantLayoutElement {
       x2 = this.staffRight;
 
     // create the staff lines
-    for (i = -3; i <= 3; i += 2) {
+    for (i = this.score.staffLineCount * -2 + 1; i < 0; i += 2) {
       inner += QuickSvg.createFragment("line", {
         x1: x1,
         y1: ctxt.staffInterval * i,
@@ -1548,14 +1555,14 @@ export class ChantLine extends ChantLayoutElement {
 
     if (startBrace.isAbove) {
       y = Math.min(
-        ctxt.calculateHeightFromStaffPosition(4),
+        ctxt.calculateHeightFromStaffPosition(this.score.staffLineCount * 2),
         ...[startNote, note]
           .concat(notations.slice(k, i + 1))
           .map(n => n.bounds.y - dy)
       );
     } else {
       y = Math.max(
-        ctxt.calculateHeightFromStaffPosition(-4),
+        ctxt.calculateHeightFromStaffPosition(0),
         ...[startNote, note]
           .concat(notations.slice(k, i + 1))
           .map(n => n.bounds.bottom() + dy)
@@ -1610,8 +1617,8 @@ export class ChantLine extends ChantLayoutElement {
       offsetX = element.neume ? element.neume.bounds.x : 0
     ) => {
       // do we need a ledger line for this note?
-
-      if (staffPosition >= 5 || staffPosition <= -5) {
+      const ledgerLinePositionAbove = ctxt.staffLineCount * 2 + 1;
+      if (staffPosition >= ledgerLinePositionAbove || staffPosition <= -1) {
         var x1 = offsetX + element.bounds.x - ctxt.intraNeumeSpacing;
         var x2 =
           offsetX +
@@ -1645,9 +1652,9 @@ export class ChantLine extends ChantLayoutElement {
 
         // finally, add the ledger line
         this.ledgerLines.push({
-          x1: x1,
-          x2: x2,
-          staffPosition: staffPosition
+          x1,
+          x2,
+          staffPosition
         });
       }
     };

@@ -113,6 +113,7 @@ declare module "exsurge" {
 
     mappings: ChantMapping[];
     lines: ChantLine[];
+    staffLineCount: number;
     notes: Note;
     titles?: Titles;
     startingClef: Clef;
@@ -256,6 +257,7 @@ declare module "exsurge" {
     condensingTolerance: number;
 
     autoColor: boolean;
+    staffLineCount: number;
 
     setFont(
       font: string,

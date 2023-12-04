@@ -44,7 +44,7 @@ export class Accent extends GlyphVisualizer {
 
     // this puts the acute accent either over the staff lines, or over the note if the
     // note is above the staff lines
-    this.setStaffPosition(ctxt, Math.max(this.note.staffPosition + 1, 4));
+    this.setStaffPosition(ctxt, Math.max(this.note.staffPosition + 1, 2 * ctxt.staffLineCount));
   }
 }
 
@@ -97,6 +97,9 @@ export class HorizontalEpisema extends ChantLayoutElement {
 
     if (this.positionHint === MarkingPositionHint.Below) {
       y = this.note.bounds.bottom() + minDistanceAway; // the highest the line could be at
+      // convert y to be based around center Y between top and bottom staff lines so that it is symmetric:
+      y += ctxt.staffLineCount * ctxt.staffInterval;
+
       if (glyphCode === GlyphCode.None)
         // correction for episema under the second note of a porrectus
         y += ctxt.staffInterval / 2;
@@ -111,7 +114,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
         // if it's an odd step, that means we're on a staff line,
         // so we shift to between the staff line
         if (Math.abs(step) % 2 === 1) {
-          if (Math.abs(step) < 4 || ledgerLine.staffPosition === -step) {
+          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition) === -step) {
             step += 2 / 3;
           } else {
             // no ledger line, but we don't want the episema to be at exactly the same height the ledger line would occupy:
@@ -121,6 +124,9 @@ export class HorizontalEpisema extends ChantLayoutElement {
       }
     } else {
       y = this.note.bounds.y - minDistanceAway; // the lowest the line could be at
+      // convert y to be based around center Y between top and bottom staff lines so that it is symmetric:
+      y += ctxt.staffLineCount * ctxt.staffInterval;
+
       step = Math.floor(y / ctxt.staffInterval);
       // if there's enough space, center the episema between the punctum and the next staff line
       if (step % 2 === 0) {
@@ -132,7 +138,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
         // find nearest acceptable third between staff lines (or staff line)
         if (Math.abs(step) % 2 === 1) {
           // if it was a staff line, we need to adjust
-          if (Math.abs(step) < 4 || ledgerLine.staffPosition === -step) {
+          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition) === -step) {
             step -= 2 / 3;
           } else {
             // no ledger line, but we don't want the episema to be at exactly the same height the ledger line would occupy:
@@ -142,7 +148,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
       }
     }
 
-    y = step * ctxt.staffInterval;
+    y = (step - ctxt.staffLineCount) * ctxt.staffInterval;
 
     var width = this.note.bounds.width;
     var x = this.note.bounds.x;
@@ -250,7 +256,7 @@ export class Ictus extends GlyphVisualizer {
     var extraOffset = 0;
     var collisionWithStaffLine =
       staffPosition % 2 &&
-      (Math.abs(staffPosition) < 4 ||
+      (Math.abs(ctxt.convertStaffPositionToSymmetric(staffPosition)) < ctxt.staffLineCount ||
         (this.note.neume.ledgerLines[0] || {}).staffPosition === staffPosition);
 
     // The porrectus requires special handling of the note width,

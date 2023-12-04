@@ -38,7 +38,7 @@ export class Custos extends ChantNotationElement {
   constructor(auto = false) {
     super();
     this.auto = auto;
-    this.staffPosition = 0; // default sane value
+    this.staffPosition = 2; // default sane value
   }
 
   performLayout(ctxt) {
@@ -54,9 +54,9 @@ export class Custos extends ChantNotationElement {
 
       // in case there was a weird fa/do clef change, let's sanitize the staffPosition by making sure it is
       // within reasonable bounds
-      while (this.staffPosition < -6) this.staffPosition += 7;
+      while (this.staffPosition < -2) this.staffPosition += 7;
 
-      while (this.staffPosition > 6) this.staffPosition -= 7;
+      while (this.staffPosition > 2 * ctxt.staffLineCount + 2) this.staffPosition -= 7;
     }
 
     var glyph = new GlyphVisualizer(
@@ -76,12 +76,12 @@ export class Custos extends ChantNotationElement {
   }
 
   static getGlyphCode(staffPosition) {
-    if (staffPosition <= 2) {
-      // ascending custodes
+    if (staffPosition <= ctxt.staffLineCount * 2 - 2) {
+      // ascending custos
       if (Math.abs(staffPosition) % 2 === 1) return GlyphCode.CustosLong;
       else return GlyphCode.CustosShort;
     } else {
-      // descending custodes
+      // descending custos
       if (Math.abs(staffPosition) % 2 === 1) return GlyphCode.CustosDescLong;
       else return GlyphCode.CustosDescShort;
     }
@@ -106,7 +106,8 @@ export class Divider extends ChantNotationElement {
 export class QuarterBar extends Divider {
   performLayout(ctxt) {
     super.performLayout(ctxt);
-    this.addVisualizer(new DividerLineVisualizer(ctxt, 2, 4, this));
+    const top = ctxt.staffLineCount * 2;
+    this.addVisualizer(new DividerLineVisualizer(ctxt, top - 2, top, this));
 
     this.origin.x = this.bounds.width / 2;
 
@@ -121,7 +122,8 @@ export class HalfBar extends Divider {
   performLayout(ctxt) {
     super.performLayout(ctxt);
 
-    this.addVisualizer(new DividerLineVisualizer(ctxt, -2, 2, this));
+    const offset = ctxt.staffLineCount === 2 ? 1.5 : 2;
+    this.addVisualizer(new DividerLineVisualizer(ctxt, offset, ctxt.staffLineCount * 2 - offset, this));
 
     this.origin.x = this.bounds.width / 2;
 
@@ -136,7 +138,7 @@ export class FullBar extends Divider {
   performLayout(ctxt) {
     super.performLayout(ctxt);
 
-    this.addVisualizer(new DividerLineVisualizer(ctxt, -3, 3, this));
+    this.addVisualizer(new DividerLineVisualizer(ctxt, 1, ctxt.staffLineCount * 2 - 1, this));
 
     this.origin.x = this.bounds.width / 2;
 
@@ -152,7 +154,7 @@ export class InsertionCursor extends Divider {
     super.performLayout(ctxt);
     this.cssClass = 'InsertionCursor';
 
-    this.addVisualizer(new DividerLineVisualizer(ctxt, -4, 4));
+    this.addVisualizer(new DividerLineVisualizer(ctxt, 0, ctxt.staffLineCount * 2));
 
     this.origin.x = this.bounds.width / 2;
     this.bounds.width = 0;
@@ -198,11 +200,12 @@ export class DoubleBar extends Divider {
   performLayout(ctxt) {
     super.performLayout(ctxt);
 
-    var line0 = new DividerLineVisualizer(ctxt, -3, 3, this);
+    const top = ctxt.staffLineCount * 2 - 1;
+    var line0 = new DividerLineVisualizer(ctxt, 1, top, this);
     line0.bounds.x = 0;
     this.addVisualizer(line0);
 
-    var line1 = new DividerLineVisualizer(ctxt, -3, 3, this);
+    var line1 = new DividerLineVisualizer(ctxt, 1, top, this);
     line1.bounds.x = ctxt.intraNeumeSpacing * 2 - line1.bounds.width;
     this.addVisualizer(line1);
 

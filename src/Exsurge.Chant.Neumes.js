@@ -375,7 +375,7 @@ export class Neume extends ChantNotationElement {
   }
 
   finishLayout(ctxt) {
-    this.ledgerLines = this.requiresLedgerLine();
+    this.ledgerLines = this.requiresLedgerLine(ctxt);
 
     // allow subclasses an opportunity to position their own markings...
     this.positionMarkings();
@@ -423,34 +423,35 @@ export class Neume extends ChantNotationElement {
     super.finishLayout(ctxt);
   }
 
-  requiresLedgerLine() {
+  requiresLedgerLine(ctxt) {
     var firstAbove = false,
       needsAbove = false,
       firstBelow = false,
       needsBelow = false,
       // isPorrectus = false,
-      result = [];
+      result = [],
+      ledgerLinePositionAbove = ctxt.staffLineCount * 2 + 1;
 
     if (!this.notes) return result;
 
     for (var i = 0; i < this.notes.length; ++i) {
       var note = this.notes[i];
       var staffPosition = note.staffPosition;
-      if (staffPosition >= 4) {
-        needsAbove = needsAbove || staffPosition >= 5;
+      if (staffPosition >= ledgerLinePositionAbove - 1) {
+        needsAbove = needsAbove || staffPosition >= ledgerLinePositionAbove;
         if (firstAbove === false) firstAbove = Math.max(0, i - 1);
-        if (staffPosition >= 5) continue;
-      } else if (staffPosition <= -4) {
-        needsBelow = needsBelow || staffPosition <= -5;
+        if (staffPosition >= ledgerLinePositionAbove) continue;
+      } else if (staffPosition <= 0) {
+        needsBelow = needsBelow || staffPosition <= -1;
         if (firstBelow === false) firstBelow = Math.max(0, i - 1);
-        if (staffPosition <= -5) continue;
+        if (staffPosition <= -1) continue;
       }
       if (needsAbove || needsBelow) {
         var endI = i; // Math.abs(staffPosition) >= 4? i : i - 1;
         result.push({
           element: this.notes[firstAbove || firstBelow || 0],
           endElem: this.notes[endI],
-          staffPosition: needsAbove ? 5 : -5
+          staffPosition: needsAbove ? ledgerLinePositionAbove : -1
         });
         firstAbove = firstBelow = needsAbove = needsBelow = false;
       }
@@ -460,7 +461,7 @@ export class Neume extends ChantNotationElement {
       result.push({
         element: this.notes[firstAbove || firstBelow || 0],
         endElem: this.notes[this.notes.length - 1],
-        staffPosition: needsAbove ? 5 : -5
+        staffPosition: needsAbove ? ledgerLinePositionAbove : -1
       });
     }
     return result;
