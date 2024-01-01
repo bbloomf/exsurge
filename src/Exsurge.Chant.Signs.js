@@ -61,7 +61,7 @@ export class Custos extends ChantNotationElement {
 
     var glyph = new GlyphVisualizer(
       ctxt,
-      Custos.getGlyphCode(this.staffPosition)
+      Custos.getGlyphCode(this.staffPosition, ctxt.staffLineCount)
     );
     glyph.setStaffPosition(ctxt, this.staffPosition);
     this.addVisualizer(glyph);
@@ -75,8 +75,14 @@ export class Custos extends ChantNotationElement {
     if (this.auto) this.needsLayout = true;
   }
 
-  static getGlyphCode(staffPosition) {
-    if (staffPosition <= ctxt.staffLineCount * 2 - 2) {
+  /**
+   * 
+   * @param {number} staffPosition position of custos
+   * @param {number} staffLineCount number of lines on staff
+   * @returns 
+   */
+  static getGlyphCode(staffPosition, staffLineCount = 4) {
+    if (staffPosition <= staffLineCount * 2 - 2) {
       // ascending custos
       if (Math.abs(staffPosition) % 2 === 1) return GlyphCode.CustosLong;
       else return GlyphCode.CustosShort;
