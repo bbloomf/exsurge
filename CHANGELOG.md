@@ -1,3 +1,12 @@
+## [1.14.1](https://github.com/frmatthew/exsurge/compare/v1.14.0...v1.14.1) (2024-01-01)
+
+
+### Bug Fixes
+
+* Fix issue with custos layout ([b8e5fe2](https://github.com/frmatthew/exsurge/commit/b8e5fe286c4135f5348bc20dc7f576a7901e1c24))
+
+
+
 # [1.14.0](https://github.com/frmatthew/exsurge/compare/v1.13.18...v1.14.0) (2023-12-04)
 
 
