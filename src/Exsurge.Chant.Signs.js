@@ -176,8 +176,7 @@ export class InsertionCursor extends Divider {
 export class DominicanBar extends Divider {
   constructor(staffPosition) {
     super();
-    staffPosition--;
-    var parity = staffPosition % 2;
+    var parity = (staffPosition + 1) % 2;
 
     this.staffPosition = staffPosition - 2 * parity;
   }
@@ -187,8 +186,8 @@ export class DominicanBar extends Divider {
     this.addVisualizer(
       new DividerLineVisualizer(
         ctxt,
-        this.staffPosition - 3,
         this.staffPosition,
+        this.staffPosition + 3,
         this
       )
     );

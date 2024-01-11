@@ -65,7 +65,7 @@ import * as Neumes from "./Exsurge.Chant.Neumes.js";
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
-var __notationsRegex = /z0|z|Z|::|:|[,;][1-6]?|`|[cf][1-5]|cb[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|::|:|[,;][1-8]?|`|[cf][1-5]|cb[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_insideBraces = 1;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
@@ -956,12 +956,16 @@ export class Gabc {
         case ";4":
         case ";5":
         case ";6":
+        case ";7":
+        case ";8":
         case ",1":
         case ",2":
         case ",3":
         case ",4":
         case ",5":
         case ",6":
+        case ",7":
+        case ",8":
           addNotation(new Signs.DominicanBar(parseInt(atom[1], 10)));
           break;
         case ":":
