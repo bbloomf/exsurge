@@ -1,3 +1,7 @@
+## [1.14.2](https://github.com/frmatthew/exsurge/compare/v1.14.1...v1.14.2) (2024-01-11)
+
+
+
 ## [1.14.1](https://github.com/frmatthew/exsurge/compare/v1.14.0...v1.14.1) (2024-01-01)
 
 
