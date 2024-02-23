@@ -1,3 +1,12 @@
+# [1.15.0](https://github.com/frmatthew/exsurge/compare/v1.14.2...v1.15.0) (2024-02-23)
+
+
+### Features
+
+* Add support for lyric line height ([0ba8212](https://github.com/frmatthew/exsurge/commit/0ba8212b9ebbc9845f5effdec0cc1ef42a833b3d))
+
+
+
 ## [1.14.2](https://github.com/frmatthew/exsurge/compare/v1.14.1...v1.14.2) (2024-01-11)
 
 
