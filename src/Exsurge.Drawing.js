@@ -520,12 +520,7 @@ export class ChantContext {
       u: { "text-decoration": "underline" },
       ul: { "text-decoration": "underline" },
       c: { fill: this.rubricColor, class: 'rubric' },
-      sc: {
-        "font-variant": "small-caps",
-        "font-variant-caps": "small-caps",
-        "font-feature-settings": "'smcp'",
-        "-webkit-font-feature-settings": "'smcp'"
-      },
+      sc: { "font-variant": "small-caps" },
       v: {}
     };
 

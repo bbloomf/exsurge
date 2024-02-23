@@ -108,7 +108,7 @@ export class ChantLine extends ChantLayoutElement {
     this.notationBounds.union(this.startingClef.bounds);
 
     // reset the lyric line offsets before we [re]calculate them now
-    this.lyricLineHeight = ctxt.textStyles.lyric.size * 1.1;
+    this.lyricLineHeight = ctxt.textStyles.lyric.size * (ctxt.textStyles.lyric.lineHeight || 1.1);
     this.lyricLineBaseline = 0;
     this.numLyricLines = 0;
 
@@ -116,9 +116,11 @@ export class ChantLine extends ChantLayoutElement {
     this.altLineBaseline = 0;
     this.numAltLines = 0;
 
-    this.translationLineHeight = ctxt.textStyles.translation.size * 1.1;
+    this.translationLineHeight = ctxt.textStyles.translation.size * (ctxt.textStyles.translation.lineHeight || 1.1);
     this.translationLineBaseline = 0;
     this.numTranslationLines = 0;
+
+    const aboveLinesLineHeight = ctxt.textStyles.al.size * (ctxt.textStyles.al.lineHeight || 1.1);
 
     for (i = this.notationsStartIndex; i < lastNeumeIndex; i++) {
       notation = notations[i];
@@ -197,7 +199,7 @@ export class ChantLine extends ChantLayoutElement {
         offset = 0;
         for (j = 0; j < notation.alText.length; j++) {
           notation.alText[j].bounds.y = offset + this.altLineBaseline;
-          offset -= ctxt.textStyles.al.size * 1.1;
+          offset -= aboveLinesLineHeight;
         }
       }
     }
@@ -307,9 +309,9 @@ export class ChantLine extends ChantLayoutElement {
         this.notationBounds.y -
           this.altLineHeight -
           0.5 * ctxt.staffInterval -
-          ctxt.textStyles.al.size * 1.1 * (this.numAltLines - 1),
+          aboveLinesLineHeight * (this.numAltLines - 1),
         0,
-        ctxt.textStyles.al.size * 1.1 * this.numAltLines
+        aboveLinesLineHeight * this.numAltLines
       );
       this.notationBounds.union(altLineTextRect);
     }

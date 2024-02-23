@@ -157,6 +157,11 @@ declare module "exsurge" {
     size: number;
     font: string;
     color?: string;
+    /**
+     * Currently only used on lyrics, translations, and above lines text
+     * Defaults to 1.1
+     */
+    lineHeight?: number;
   }
 
   export interface TextStyleWithAlignment {
