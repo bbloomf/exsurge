@@ -1,3 +1,12 @@
+## [1.15.1](https://github.com/frmatthew/exsurge/compare/v1.15.0...v1.15.1) (2024-02-28)
+
+
+### Bug Fixes
+
+* Fix error that happens when pasting in long texts ([b88f6f6](https://github.com/frmatthew/exsurge/commit/b88f6f6e672177372b996e7f7d631cd46f504828))
+
+
+
 # [1.15.0](https://github.com/frmatthew/exsurge/compare/v1.14.2...v1.15.0) (2024-02-23)
 
 
