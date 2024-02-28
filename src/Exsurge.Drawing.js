@@ -2124,7 +2124,7 @@ export class TextElement extends ChantLayoutElement {
               let span = this.spans[spanIndex++];
               length += span.text.length + (span.newLine ? 1 : 0);
             }
-            if (length > lastMatch.index) {
+            if (length > lastMatch.index || spanIndex >= this.spans.length) {
               let span = this.spans[--spanIndex];
               length -= span.text.length;
             }
@@ -2202,7 +2202,7 @@ export class TextElement extends ChantLayoutElement {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
       if (span.newLine) {
-        count = parseInt(span.newLine) || 1;
+        let count = parseInt(span.newLine) || 1;
         canvasCtxt.translate(
           translateWidth + xOffset,
           this.fontSize(ctxt) * count
