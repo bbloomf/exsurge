@@ -1,3 +1,12 @@
+# [1.16.0](https://github.com/frmatthew/exsurge/compare/v1.15.1...v1.16.0) (2024-03-13)
+
+
+### Features
+
+* Add basic support for elision <e> tag ([b5c8dd4](https://github.com/frmatthew/exsurge/commit/b5c8dd4d37d8e4deab28ce75a22f27dc6b66d618))
+
+
+
 ## [1.15.1](https://github.com/frmatthew/exsurge/compare/v1.15.0...v1.15.1) (2024-02-28)
 
 
