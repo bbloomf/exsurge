@@ -521,7 +521,8 @@ export class ChantContext {
       ul: { "text-decoration": "underline" },
       c: { fill: this.rubricColor, class: 'rubric' },
       sc: { "font-variant": "small-caps" },
-      v: {}
+      v: {},
+      e: { "font-style": "italic", "font-size": "90%" }
     };
 
     this.markupSymbolDictionary = {
@@ -1729,7 +1730,7 @@ export class TextElement extends ChantLayoutElement {
 
     };
 
-    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bciuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
+    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
     var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}/g;
     var match = null;
     var openedAsterisk = false;
