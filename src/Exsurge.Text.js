@@ -75,7 +75,7 @@ export class Latin extends Language {
       "éu",
       "úi"
     ]);
-    this.regexVowel = /(i|(?:[qg]|^)u)?([eé][iu]|[uú]i|[ao][eé]|[aá]u|[aeiouáéíóúäëïöüāēīōūăĕĭŏŭåe̊o̊ůæœǽyýÿ])/i;
+    this.regexVowel = /(i|(?:[qg]|^)u)?([eé][iu]|[uú]i|[ao][eé]|[aá]u|[aeiouáéíóúäëïöüāēīōūăĕĭŏŭåe̊o̊ůæœǽyýÿ])/gi;
 
     // some words that are simply exceptions to standard syllabification rules!
     var wordExceptions = new Object();
@@ -331,8 +331,16 @@ export class Latin extends Language {
    * @param {Number} startIndex The index at which to start searching for a vowel in the string
    * @retuns a custom class with three properties: {found: (true/false) startIndex: (start index in s of vowel segment) length ()}
    */
-  findVowelSegment(s, startIndex) {
-    var match = this.regexVowel.exec(s.slice(startIndex));
+  findVowelSegment(s, startIndex, ignore) {
+    this.regexVowel.lastIndex = 0;
+    let stringSlice = s.slice(startIndex);
+    var match = this.regexVowel.exec(stringSlice);
+    var isIgnoredMatch = ({ index, endIndex }) => (index <= match.index && endIndex > match.index) || (index < this.regexVowel.lastIndex && endIndex >= this.regexVowel.lastIndex);
+    let inIgnore = match && ignore && ignore.length && ignore.find(isIgnoredMatch);
+    while (inIgnore) {
+      match = this.regexVowel.exec(stringSlice);
+      inIgnore = match && ignore.find(isIgnoredMatch);
+    }
     if (match) {
       if (match[1]) {
         // the first group should be ignored, as it is to separate an i or u that is used as a consonant.

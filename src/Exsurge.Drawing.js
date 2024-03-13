@@ -2608,8 +2608,23 @@ export class Lyric extends TextElement {
           startIndex = 0;
         }
 
+        // find indices of e tags to ignore when finding vowel segment:
+        var ignore = [];
+        let index = 0;
+        let indexOffset = startIndex;
+        for (var span of this.spans) {
+          let endIndex = index + span.text.length;
+          if (span.activeTags.includes('e')) {
+            if (index <= startIndex) {
+              startIndex = endIndex;
+            } else {
+              ignore.push({ index: index - indexOffset, endIndex: endIndex - indexOffset });
+            }
+          }
+          index = endIndex;
+        }
         // Non-directive elements are lined up to the chant notation based on vowel segments,
-        var result = activeLanguage.findVowelSegment(this.text, startIndex);
+        var result = activeLanguage.findVowelSegment(this.text, startIndex, ignore);
 
         if (result.found !== true) {
           var match = this.text.slice(startIndex).match(/[a-z]+/i);
