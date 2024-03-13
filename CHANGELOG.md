@@ -1,3 +1,12 @@
+## [1.16.1](https://github.com/frmatthew/exsurge/compare/v1.16.0...v1.16.1) (2024-03-13)
+
+
+### Bug Fixes
+
+* Handle e tag properly by not considering e tags when searching for vowels ([1cbc3bc](https://github.com/frmatthew/exsurge/commit/1cbc3bc7370fcc94d7c0b72e26376ffd98a97e1f))
+
+
+
 # [1.16.0](https://github.com/frmatthew/exsurge/compare/v1.15.1...v1.16.0) (2024-03-13)
 
 
