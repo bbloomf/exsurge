@@ -1,3 +1,18 @@
+## [1.16.2](https://github.com/frmatthew/exsurge/compare/v1.16.1...v1.16.2) (2024-03-19)
+
+
+### Bug Fixes
+
+* **typings:** Add GabcHeader to type definitions ([9eceece](https://github.com/frmatthew/exsurge/commit/9eceece2c46de31f22dbb73965abb69345f5437d))
+* Fix issue with episema placement with odd number of staff lines ([43da242](https://github.com/frmatthew/exsurge/commit/43da24212f8bc0dbf2ed290744112dea54cbc035))
+
+
+### Features
+
+* Add support for treble clef ([ceac137](https://github.com/frmatthew/exsurge/commit/ceac137203cc7a725ab7f2bd67733436ac872d22))
+
+
+
 ## [1.16.1](https://github.com/frmatthew/exsurge/compare/v1.16.0...v1.16.1) (2024-03-13)
 
 
