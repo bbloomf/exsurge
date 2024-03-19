@@ -95,6 +95,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
       }
     }
 
+    const staffLineCountParity = (ctxt.staffLineCount % 2) || 0;
+    const staffLineCountNonParity = (staffLineCountParity + 1) % 2;
     if (this.positionHint === MarkingPositionHint.Below) {
       y = this.note.bounds.bottom() + minDistanceAway; // the highest the line could be at
       // convert y to be based around center Y between top and bottom staff lines so that it is symmetric:
@@ -105,15 +107,15 @@ export class HorizontalEpisema extends ChantLayoutElement {
         y += ctxt.staffInterval / 2;
       step = Math.ceil(y / ctxt.staffInterval);
       // if there's enough space, center the episema between the punctum and the next staff line
-      if (step % 2 === 0) {
+      if (Math.abs(step % 2) === staffLineCountParity) {
         step = (step + 3 / 4 + (y - minDistanceAway) / ctxt.staffInterval) / 2;
       } else {
         // otherwise, find nearest acceptable third between staff lines (or staff line)
-        step = (Math.ceil((1.5 * y) / ctxt.staffInterval - 0.5) * 2 + 1) / 3;
+        step = (Math.ceil((1.5 * y) / ctxt.staffInterval - 0.5) * 2 + staffLineCountNonParity) / 3;
 
         // if it's an odd step, that means we're on a staff line,
         // so we shift to between the staff line
-        if (Math.abs(step) % 2 === 1) {
+        if (Math.abs(step) % 2 === staffLineCountNonParity) {
           if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition) === -step) {
             step += 2 / 3;
           } else {
@@ -129,14 +131,14 @@ export class HorizontalEpisema extends ChantLayoutElement {
 
       step = Math.floor(y / ctxt.staffInterval);
       // if there's enough space, center the episema between the punctum and the next staff line
-      if (step % 2 === 0) {
+      if (Math.abs(step % 2) === staffLineCountParity) {
         step = (step - 3 / 4 + (y + minDistanceAway) / ctxt.staffInterval) / 2;
       } else {
         // otherwise, find nearest acceptable third between staff lines (or staff line)
-        step = (Math.floor((1.5 * y) / ctxt.staffInterval - 0.5) * 2 + 1) / 3;
+        step = (Math.floor((1.5 * y) / ctxt.staffInterval - 0.5) * 2 + staffLineCountNonParity) / 3;
 
         // find nearest acceptable third between staff lines (or staff line)
-        if (Math.abs(step) % 2 === 1) {
+        if (Math.abs(step) % 2 === staffLineCountNonParity) {
           // if it was a staff line, we need to adjust
           if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition) === -step) {
             step -= 2 / 3;
