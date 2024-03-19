@@ -100,6 +100,14 @@ declare module "exsurge" {
     );
   }
 
+  export class GabcHeader {
+    static getLength(gabc: string): number;
+    constructor(text: string);
+    toString(): string;
+    [key: `${prop}Array`]: string[];
+    [key: string]: string;
+  }
+
   export interface SvgTreeNode {
     name?: string;
     props?: {
