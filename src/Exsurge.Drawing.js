@@ -198,6 +198,8 @@ export let GlyphCode = {
   // clefs and other markings
   DoClef: "DoClef",
   FaClef: "FaClef",
+  TrebleClef: "TrebleClef",
+  TrebleClefSmall: "TrebleClefSmall",
   Flat: "Flat",
   Mora: "Mora",
   Natural: "Natural",

@@ -54,6 +54,7 @@ import {
   Clef,
   DoClef,
   FaClef,
+  TrebleClef,
   TextOnly,
   ChantLineBreak
 } from "./Exsurge.Chant.js";
@@ -65,7 +66,7 @@ import * as Neumes from "./Exsurge.Chant.Neumes.js";
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
-var __notationsRegex = /z0|z|Z|::|:|[,;][1-8]?|`|[cf][1-5]|cb[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|::|:|[,;][1-8]?|`|(?:[cfg]|cb|treble-?)[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_insideBraces = 1;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
@@ -989,6 +990,18 @@ export class Gabc {
         case "f4":
         case "f5":
           addNotation((ctxt.activeClef = new FaClef(2 * parseInt(atom[1], 10) - 1, 2)));
+          break;
+        case "treble1":
+        case "treble2":
+        case "treble3":
+        case "treble4":
+        case "treble5":
+        case "treble-1":
+        case "treble-2":
+        case "treble-3":
+        case "treble-4":
+        case "treble-5":
+          addNotation((ctxt.activeClef = new TrebleClef(2 * parseInt(atom.slice(-1), 10) - 1, 2, null, atom[6] === '-')));
           break;
         case "cb1":
         case "cb2":

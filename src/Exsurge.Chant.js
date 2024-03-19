@@ -213,6 +213,7 @@ export class Clef extends ChantNotationElement {
       this.octave,
       this.defaultAccidental
     );
+    clone.small = this.small;
     clone.sourceGabc = this.sourceGabc;
     clone.sourceIndex = this.sourceIndex;
     clone.elementIndex = this.elementIndex;
@@ -225,7 +226,7 @@ export class DoClef extends Clef {
   constructor(staffPosition, octave, defaultAccidental = null) {
     super(staffPosition, octave, defaultAccidental);
 
-    this.leadingSpace = 0.0;
+    this.leadingSpace = 0;
   }
 
   pitchToStaffPosition(pitch) {
@@ -269,8 +270,6 @@ export class FaClef extends Clef {
   constructor(staffPosition, octave, defaultAccidental = null) {
     super(staffPosition, octave, defaultAccidental);
 
-    this.octave = octave;
-
     this.leadingSpace = 0;
   }
 
@@ -302,6 +301,49 @@ export class FaClef extends Clef {
     super.performLayout(ctxt);
 
     var glyph = new GlyphVisualizer(ctxt, GlyphCode.FaClef);
+    glyph.setStaffPosition(ctxt, this.staffPosition);
+    this.addVisualizer(glyph);
+
+    this.finishLayout(ctxt);
+  }
+}
+
+export class TrebleClef extends Clef {
+  constructor(staffPosition, octave, defaultAccidental = null, small = false) {
+    super(staffPosition, octave, defaultAccidental);
+
+    this.leadingSpace = 0;
+    this.small = small;
+  }
+
+  pitchToStaffPosition(pitch) {
+    return (
+      (pitch.octave - this.octave) * 7 +
+      this.staffPosition +
+      Pitch.stepToStaffOffset(pitch.step) -
+      Pitch.stepToStaffOffset(Step.So)
+    );
+  }
+
+  staffPositionToPitch(staffPosition) {
+    var offset = staffPosition - this.staffPosition + 4; // + 4 because it's a sol clef (4 == offset from Do)
+    var octaveOffset = Math.floor(offset / 7);
+
+    var step = Pitch.staffOffsetToStep(offset);
+
+    if (
+      this.activeAccidental &&
+      this.activeAccidental.staffPosition === staffPosition
+    )
+      step += this.activeAccidental.accidentalType;
+
+    return new Pitch(step, this.octave + octaveOffset);
+  }
+
+  performLayout(ctxt) {
+    super.performLayout(ctxt);
+
+    var glyph = new GlyphVisualizer(ctxt, this.small ? GlyphCode.TrebleClefSmall : GlyphCode.TrebleClef);
     glyph.setStaffPosition(ctxt, this.staffPosition);
     this.addVisualizer(glyph);
 
