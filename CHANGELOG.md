@@ -1,3 +1,12 @@
+# [1.17.0](https://github.com/frmatthew/exsurge/compare/v1.16.2...v1.17.0) (2024-03-28)
+
+
+### Features
+
+* Add support for <v>\'ae</v> style ligatures ([7c8dcf3](https://github.com/frmatthew/exsurge/commit/7c8dcf37cbd78161d898e3824c26288483f1667b))
+
+
+
 ## [1.16.2](https://github.com/frmatthew/exsurge/compare/v1.16.1...v1.16.2) (2024-03-19)
 
 
