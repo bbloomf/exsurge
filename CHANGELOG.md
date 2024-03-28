@@ -1,3 +1,12 @@
+## [1.17.1](https://github.com/frmatthew/exsurge/compare/v1.17.0...v1.17.1) (2024-03-28)
+
+
+### Bug Fixes
+
+* Fix font of ligatures ([fa72ff5](https://github.com/frmatthew/exsurge/commit/fa72ff55c90be9ebf235abdf5f6938f62ec38015))
+
+
+
 # [1.17.0](https://github.com/frmatthew/exsurge/compare/v1.16.2...v1.17.0) (2024-03-28)
 
 
