@@ -1783,6 +1783,7 @@ export class TextElement extends ChantLayoutElement {
           if (diphthong) {
             char = makeLigature(diphthong);
             if (accent) char = addAccent(char);
+            closeSpan(char, match.index + vMatch.index + iOffset)
           } else {
             if (grecross) {
               // grecross is just the command for the Cross:
@@ -1790,9 +1791,9 @@ export class TextElement extends ChantLayoutElement {
               greextra = 'Cross';
             }    
             char = greextraGlyphs[greextra];
-          }
-          if (char) {
-            closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
+            if (char) {
+              closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
+            }
           }
           lastIndex = vTagRegex.lastIndex;
           iOffset = 3; // length of '<v>'
