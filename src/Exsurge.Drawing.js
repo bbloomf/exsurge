@@ -1733,7 +1733,7 @@ export class TextElement extends ChantLayoutElement {
     };
 
     var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
-    var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}/g;
+    var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
     var match = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
@@ -1778,13 +1778,19 @@ export class TextElement extends ChantLayoutElement {
             closeSpan(vTag.slice(lastIndex, vMatch.index), match.index + lastIndex + iOffset);
             iOffset = 3; // length of '<v>'
           }
-          let [, grecross, greextra] = vMatch;
-          if (grecross) {
-            // grecross is just the command for the Cross:
-            // set up greextra so it will get handled with it below:
-            greextra = 'Cross';
-          }    
-          const char = greextraGlyphs[greextra];
+          let [, grecross, greextra, accent, diphthong] = vMatch;
+          let char = '';
+          if (diphthong) {
+            char = makeLigature(diphthong);
+            if (accent) char = addAccent(char);
+          } else {
+            if (grecross) {
+              // grecross is just the command for the Cross:
+              // set up greextra so it will get handled with it below:
+              greextra = 'Cross';
+            }    
+            char = greextraGlyphs[greextra];
+          }
           if (char) {
             closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
           }
