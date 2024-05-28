@@ -729,12 +729,12 @@ export class ChantLine extends ChantLayoutElement {
     if (this.notationsStartIndex === 0) {
       var padding = 0;
 
-      if (this.score.dropCap !== null)
+      if (this.score.dropCap)
         padding =
           this.score.dropCap.bounds.width + this.score.dropCap.padding * 2;
 
       if (
-        this.score.annotation !== null &&
+        this.score.annotation &&
         (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
       )
         padding = Math.max(
@@ -743,7 +743,7 @@ export class ChantLine extends ChantLayoutElement {
         );
 
       this.staffLeft += padding;
-      if (this.score.dropCap !== null)
+      if (this.score.dropCap)
         this.paddingLeft = (padding - this.score.dropCap.bounds.width) / 2;
     } else {
       prev = notations[newElementStart - 1];
@@ -752,7 +752,7 @@ export class ChantLine extends ChantLayoutElement {
         prev.hasLyrics() &&
         (prev.lyrics.length > 1 || !prev.lyrics[0].text.match(/^(i\.?)+j\.?/))
       ) {
-        beginningLyrics = prev.lyrics.map(function(lyric) {
+        beginningLyrics = prev.lyrics.map((lyric) => {
           var newLyric = new Lyric(
             ctxt,
             lyric.originalText,
@@ -768,13 +768,9 @@ export class ChantLine extends ChantLayoutElement {
           return newLyric;
         });
         var minX = beginningLyrics
-          .map(function(l) {
-            return l.bounds.x;
-          })
-          .reduce(function(a, b) {
-            return a < b ? a : b;
-          });
-        beginningLyrics.forEach(function(l) {
+          .map(l => l.bounds.x)
+          .reduce((a, b) => a < b ? a : b);
+        beginningLyrics.forEach(l => {
           l.bounds.x -= minX;
         });
       }
@@ -1277,9 +1273,12 @@ export class ChantLine extends ChantLayoutElement {
     // if the provided width is less than zero, then set the width of the line
     // based on the last notation
     if (width <= 0) {
-      this.staffRight = notations[
+      const lastNotation = this.staffRight = notations[
         this.notationsStartIndex + this.numNotationsOnLine - 1
-      ].bounds.right();
+      ];
+      if (lastNotation) {
+        this.staffRight = lastNotation.bounds.right();
+      }
       this.justify = false;
     }
 
