@@ -1,3 +1,12 @@
+## [1.17.2](https://github.com/frmatthew/exsurge/compare/v1.17.1...v1.17.2) (2024-05-28)
+
+
+### Bug Fixes
+
+* Fix handling of 0 width when no chant was given ([0d18ae2](https://github.com/frmatthew/exsurge/commit/0d18ae2df556683f211ed3b0d4c4cbb4c64f3055))
+
+
+
 ## [1.17.1](https://github.com/frmatthew/exsurge/compare/v1.17.0...v1.17.1) (2024-03-28)
 
 
