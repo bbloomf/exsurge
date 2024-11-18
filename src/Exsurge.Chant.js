@@ -434,6 +434,7 @@ export class ChantScore {
 
     this.autoColoring = true;
     this.needsLayout = true;
+    this.extendLastSystemStaffLines = true;
 
     // valid after chant lines are created...
     this.bounds = new Rect();
@@ -746,11 +747,11 @@ export class ChantScore {
       y += line.bounds.height + spaceBetweenSystems;
     } while (currIndex < this.notations.length);
 
-    var lastLine = this.lines[this.lines.length - 1];
+    var firstLine = this.lines[0];
 
     this.bounds.x = 0;
     this.bounds.y = 0;
-    this.bounds.width = lastLine.bounds.width;
+    this.bounds.width = firstLine.bounds.width;
     this.bounds.height = y - spaceBetweenSystems;
 
     this.pages = [this];

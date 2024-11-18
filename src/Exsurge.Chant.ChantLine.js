@@ -1273,7 +1273,7 @@ export class ChantLine extends ChantLayoutElement {
     // if the provided width is less than zero, then set the width of the line
     // based on the last notation
     if (width <= 0) {
-      const lastNotation = this.staffRight = notations[
+      const lastNotation = notations[
         this.notationsStartIndex + this.numNotationsOnLine - 1
       ];
       if (lastNotation) {
@@ -1286,6 +1286,16 @@ export class ChantLine extends ChantLayoutElement {
     this.justifyElements(ctxt, this.justify, condensableSpaces);
 
     this.centerDividers();
+
+    if (width > 0 && isLastLine && this.score.extendLastSystemStaffLines !== true) {
+      // set the staff lines to only extend to the last element
+      const lastNotation = notations[
+        this.notationsStartIndex + this.numNotationsOnLine - 1
+      ];
+      if (lastNotation) {
+        this.staffRight = lastNotation.bounds.right();
+      }
+    }
 
     this.finishLayout(ctxt);
   }

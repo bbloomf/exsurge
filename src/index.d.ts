@@ -131,6 +131,7 @@ declare module "exsurge" {
     compiled: boolean;
     autoColoring: boolean;
     needsLayout: boolean;
+    extendLastSystemStaffLines: boolean;
     bounds: Rect;
     forceLayout: boolean;
     pages: ChantScore[];
