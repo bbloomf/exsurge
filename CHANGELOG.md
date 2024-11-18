@@ -1,3 +1,12 @@
+# [1.18.0](https://github.com/frmatthew/exsurge/compare/v1.17.2...v1.18.0) (2024-11-18)
+
+
+### Features
+
+* Add new score option extendLastSystemStaffLines ([13b9825](https://github.com/frmatthew/exsurge/commit/13b98256c3145ba4a6fb103f5d3b5862cd19f279))
+
+
+
 ## [1.17.2](https://github.com/frmatthew/exsurge/compare/v1.17.1...v1.17.2) (2024-05-28)
 
 
