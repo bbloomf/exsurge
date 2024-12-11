@@ -5,7 +5,7 @@ declare module "exsurge" {
   type Note = unknown;
   type Clef = unknown;
   type DropCap = unknown;
-  type Annotation = unknown;
+  type Annotation = { recalculateMetrics: (ctxt: ChantContext) => void; };
   type Rect = unknown;
   type ExsurgeLanguage = unknown;
   type ChantNotationElement = unknown;
@@ -81,6 +81,7 @@ declare module "exsurge" {
 
   export class Annotations {
     constructor(ctxt: ChantContext, ...string);
+    recalculateMetrics(ctxt: ChantContext): void;
   }
 
   class ChantMapping {
@@ -127,7 +128,7 @@ declare module "exsurge" {
     startingClef: Clef;
     useDropCap: boolean;
     dropCap: DropCap;
-    annotation: Annotation;
+    annotation: Annotation | null;
     compiled: boolean;
     autoColoring: boolean;
     needsLayout: boolean;
