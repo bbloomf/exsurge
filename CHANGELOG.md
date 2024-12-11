@@ -1,3 +1,12 @@
+# [1.19.0](https://github.com/frmatthew/exsurge/compare/v1.18.0...v1.19.0) (2024-12-11)
+
+
+### Features
+
+* Add support for carryover (,_) etc. ([64acd8d](https://github.com/frmatthew/exsurge/commit/64acd8dff0beb56689f7295d6ccdf4e5032c200e))
+
+
+
 # [1.18.0](https://github.com/frmatthew/exsurge/compare/v1.17.2...v1.18.0) (2024-11-18)
 
 
