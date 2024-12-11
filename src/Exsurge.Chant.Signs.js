@@ -26,7 +26,8 @@
 import { Step } from "./Exsurge.Core.js";
 import {
   ChantNotationElement, DividerLineVisualizer, GlyphCode,
-  GlyphVisualizer
+  GlyphVisualizer,
+  RoundBraceVisualizer
 } from "./Exsurge.Drawing.js";
 
 /*
@@ -98,11 +99,22 @@ export class Custos extends ChantNotationElement {
  * Divider
  */
 export class Divider extends ChantNotationElement {
-  constructor() {
+  constructor(withCarryover = false) {
     super();
 
     this.isDivider = true;
+    this.hasCarryover = withCarryover || false;
     this.resetsAccidentals = true;
+  }
+
+  performLayout(ctxt) {
+    super.performLayout(ctxt);
+    if (this.hasCarryover) {
+      const top = ctxt.staffLineCount * 2;
+      const y = ctxt.calculateHeightFromStaffPosition(top);
+      this.addVisualizer(new RoundBraceVisualizer(ctxt, -ctxt.staffInterval * 1.5, ctxt.staffInterval * 1.5, y, true));
+    }
+    
   }
 }
 
@@ -114,7 +126,6 @@ export class QuarterBar extends Divider {
     super.performLayout(ctxt);
     const top = ctxt.staffLineCount * 2;
     this.addVisualizer(new DividerLineVisualizer(ctxt, top - 2, top, this));
-
     this.origin.x = this.bounds.width / 2;
 
     this.finishLayout(ctxt);
@@ -304,8 +315,8 @@ export class Accidental extends ChantNotationElement {
  * Virgula
  */
 export class Virgula extends Divider {
-  constructor() {
-    super();
+  constructor(withCarryover = false) {
+    super(withCarryover);
 
     // unlike other dividers a virgula does not reset accidentals
     this.resetsAccidentals = false;
@@ -314,7 +325,7 @@ export class Virgula extends Divider {
     // can be placed on different lines (top or bottom) depending on the
     // notation tradition of what is being notated (e.g., Benedictine has it
     //  on top line, Norbertine at the bottom)
-    this.staffPosition = 3;
+    this.staffPosition = 7;
   }
 
   performLayout(ctxt) {

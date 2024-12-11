@@ -917,7 +917,7 @@ export let Glyphs = {
       height: 175.221
     },
     origin: {
-      x: 1.074,
+      x: 1.074 - 98.014 / 2, // centered
       y: 88.86
     },
     align: "left"

@@ -1306,6 +1306,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
 export class RoundBraceVisualizer extends ChantLayoutElement {
   constructor(ctxt, x1, x2, y, isAbove) {
     super();
+    this.ignoreBounds = true;
 
     if (x1 > x2) {
       // swap the xs
@@ -1326,6 +1327,19 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
 
     this.origin.x = 0;
     this.origin.y = 0;
+  }
+
+  draw(ctxt) {
+    /**
+     * @type CanvasRenderingContext2D
+     */
+    var d = ctxt.canvasCtxt;
+
+    const { x1, x2, y, cx1, cx2, cy } = this.getPathPoints();
+    d.beginPath();
+    d.moveTo(x1, y);
+    d.bezierCurveTo(cx1, cy, cx2, cy, x2, y);
+    d.stroke();
   }
 
   getSvgPathProps(ctxt) {
@@ -1380,8 +1394,7 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
     } else return fragment;
   }
 
-  // returns svg path d string
-  generatePathString() {
+  getPathPoints() {
     var x1 = this.bounds.x;
     var x2 = this.bounds.right();
     var width = this.bounds.width;
@@ -1400,6 +1413,13 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
     var cx1 = x1 + dx;
     var cy = y + dy;
     var cx2 = x2 - dx;
+
+    return { x1, x2, y, cx1, cx2, cy };
+  }
+
+  // returns svg path d string
+  generatePathString() {
+    const { x1, x2, y, cx1, cx2, cy } = this.getPathPoints();
 
     // two decimal points should be enough, but if we need more precision, we can
     // up it here.

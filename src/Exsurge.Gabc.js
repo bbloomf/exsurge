@@ -66,8 +66,9 @@ import * as Neumes from "./Exsurge.Chant.Neumes.js";
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
-var __notationsRegex = /z0|z|Z|::|:|[,;][1-8]?|`|(?:[cfg]|cb|treble-?)[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
-var __notationsRegex_group_insideBraces = 1;
+var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?)[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex_group_bar = 1;
+var __notationsRegex_group_insideBraces = 2;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
 
@@ -932,24 +933,30 @@ export class Gabc {
       }
     };
 
-    var regex = new RegExp(__notationsRegex.source, "g");
+    var regex = new RegExp(__notationsRegex);
     var match;
 
     while ((match = regex.exec(data))) {
       sourceIndex = baseSourceIndex + match.index;
       sourceLength = match[0].length;
       var atom = match[0];
+      var bar = match[__notationsRegex_group_bar];
+
+      let barWithCarryover = !!bar && bar.endsWith('_');
+      if (barWithCarryover) {
+        atom = atom.slice(0, -1);
+      }
 
       // handle the clefs and dividers here
       switch (atom) {
         case ",":
-          addNotation(new Signs.QuarterBar());
+          addNotation(new Signs.QuarterBar(barWithCarryover));
           break;
         case "`":
-          addNotation(new Signs.Virgula());
+          addNotation(new Signs.Virgula(barWithCarryover));
           break;
         case ";":
-          addNotation(new Signs.HalfBar());
+          addNotation(new Signs.HalfBar(barWithCarryover));
           break;
         case ";1":
         case ";2":
@@ -970,7 +977,7 @@ export class Gabc {
           addNotation(new Signs.DominicanBar(parseInt(atom[1], 10)));
           break;
         case ":":
-          addNotation(new Signs.FullBar());
+          addNotation(new Signs.FullBar(barWithCarryover));
           break;
         case "::":
           addNotation(new Signs.DoubleBar());
