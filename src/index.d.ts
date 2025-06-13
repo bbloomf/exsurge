@@ -76,7 +76,10 @@ declare module "exsurge" {
   export enum TextMeasuringStrategy {
     Svg,
     Canvas,
-    OpenTypeJS,
+    /**
+     * also used font fontkit
+     */
+    OpenTypeJS
   }
 
   export class Annotations {

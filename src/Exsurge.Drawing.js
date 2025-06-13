@@ -660,7 +660,7 @@ export class ChantContext {
    * 
    * @param {*} properties 
    * @param {string} fontFamily 
-   * @returns {import('opentype.js').Font | undefined}
+   * @returns {import('opentype.js').Font | import('fontkit').Font | undefined}
    */
   getFontForProperties(properties = {}, fontFamily) {
     let key = this.getFontFilenameForProperties(properties),
@@ -2028,29 +2028,51 @@ export class TextElement extends ChantLayoutElement {
         if (/%$/.test(span.properties["font-size"])) {
           spanFontSize *= fontSize / 100;
         }
-        let subBbox = font
-          .getPath(
-            myText,
-            width,
-            fontSize * (numLines - 1),
-            spanFontSize,
-            options
-          )
-          .getBoundingBox();
-        let subWidth = font.getAdvanceWidth(myText, spanFontSize, options);
-
-        bbox.union(
-          new Rect(
-            width + subBbox.x1,
-            subBbox.y1,
-            subWidth - subBbox.x1,
-            subBbox.y2 - subBbox.y1
-          )
-        );
-        width += subWidth;
-        if (this instanceof DropCap) {
-          width -= subBbox.x1;
-        }
+        const y = fontSize * (numLines - 1);
+        if ('getPath' in font) {
+          // opentype.js
+          let subBbox = font
+            .getPath(
+              myText,
+              width,
+              y,
+              spanFontSize,
+              options
+            )
+            .getBoundingBox();
+          let subWidth = font.getAdvanceWidth(myText, spanFontSize, options);
+          bbox.union(
+            new Rect(
+              width + subBbox.x1,
+              subBbox.y1,
+              subWidth - subBbox.x1,
+              subBbox.y2 - subBbox.y1
+            )
+          );
+          width += subWidth;
+          if (this instanceof DropCap) {
+            width -= subBbox.x1;
+          }
+        } else {
+          // fontkit
+          const run = font.layout(myText, options.features);
+          const { unitsPerEm }= font;
+          const multiplier = spanFontSize / unitsPerEm;
+          let subBbox = run.bbox;
+          let subWidth = run.advanceWidth * multiplier;
+          bbox.union(
+            new Rect(
+              width + subBbox.minX * multiplier,
+              y - subBbox.maxY * multiplier,
+              subWidth - subBbox.minX * multiplier,
+              (subBbox.height) * multiplier
+            )
+          );
+          width += subWidth;
+          if (this instanceof DropCap) {
+            width -= subBbox.minX * multiplier;
+          }
+        }        
       }
       subStringLength += myText.length;
       if (subStringLength === length) break;
