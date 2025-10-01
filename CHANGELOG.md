@@ -1,3 +1,12 @@
+## [1.20.1](https://github.com/frmatthew/exsurge/compare/v1.20.0...v1.20.1) (2025-10-01)
+
+
+### Bug Fixes
+
+* Fix issue with multiple v tags ([f2a862f](https://github.com/frmatthew/exsurge/commit/f2a862f9a6e8316d411c7a6d86f08f91ec3b8f28))
+
+
+
 # [1.20.0](https://github.com/frmatthew/exsurge/compare/v1.19.1...v1.20.0) (2025-06-13)
 
 
