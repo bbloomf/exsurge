@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 
-var should = require('chai').should(), Exsurge = require('../dist/exsurge.js');
+var should = require('chai').should(), Exsurge = require('../dist/exsurge.min.js');
 
 
 describe('Core functionality', function() {

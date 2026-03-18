@@ -108,7 +108,7 @@ declare module "exsurge" {
     static getLength(gabc: string): number;
     constructor(text: string);
     toString(): string;
-    [key: `${prop}Array`]: string[];
+    [key: `${string}Array`]: string[];
     [key: string]: string;
   }
 

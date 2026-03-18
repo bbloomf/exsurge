@@ -16,24 +16,21 @@
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "devDependencies": {
-    "@types/fontkit": "^2.0.8",
-    "@types/opentype.js": "^1.3.8",
-    "babel": "^6.5.2",
-    "babel-core": "^6.5.2",
+    "@types/fontkit": "^2.0.9",
+    "@types/opentype.js": "^1.3.9",
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.3",
     "babel-eslint": "^4.1.8",
     "babel-loader": "^6.2.2",
     "babel-plugin-add-module-exports": "^0.1.2",
     "babel-preset-es2015": "^6.24.1",
     "chai": "^3.5.0",
-    "conventional-changelog-cli": "^2.0.34",
-    "eslint": "^1.6.0",
-    "eslint-loader": "^1.2.1",
-    "file-loader": "^0.8.5",
+    "conventional-changelog-cli": "^5.0.0",
+    "eslint": "^1.10.3",
+    "eslint-loader": "^1.9.0",
     "mocha": "^2.4.5",
-    "surge": "^0.17.7",
-    "url-loader": "^0.5.7",
-    "webpack": "^1.12.13",
-    "yargs": "^4.1.0"
+    "webpack": "^1.15.0",
+    "yargs": "^4.8.1"
   },
   "repository": {
     "type": "git",
