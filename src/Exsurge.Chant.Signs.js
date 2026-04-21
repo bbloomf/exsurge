@@ -48,10 +48,13 @@ export class Custos extends ChantNotationElement {
     if (this.auto) {
       var neume = ctxt.findNextNeume();
 
-      if (neume)
+      if (neume) {
+        const note = neume.notes[0];
         this.staffPosition = ctxt.activeClef.pitchToStaffPosition(
-          neume.notes[0].pitch
-        );
+          note.pitch
+        ) + (note.staffPositionOffset || 0);
+        this.staffPositionOffset = note.staffPositionOffset;
+      }
 
       // in case there was a weird fa/do clef change, let's sanitize the staffPosition by making sure it is
       // within reasonable bounds

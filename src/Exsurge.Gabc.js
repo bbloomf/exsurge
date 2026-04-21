@@ -66,7 +66,7 @@ import * as Neumes from "./Exsurge.Chant.Neumes.js";
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?)[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'012345]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?)[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'0123459]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 
@@ -1057,11 +1057,11 @@ export class Gabc {
             trailingSpace = TrailingSpaceMultiple(atom.length);
             addToLastSourceGabc(atom);
             addNotation(null);
-          } else if (atom.length > 1 && atom[1] === "+") {
+          } else if (atom.length > 1 && atom.endsWith("+")) {
             // custos
             var custos = new Signs.Custos();
 
-            custos.staffPosition = this.gabcHeightToExsurgeHeight(atom[0]);
+            this.setStaffPositionAndOffset(custos, atom);
 
             addNotation(custos);
           } else if (atom.length > 1 && /[xy#]/.test(atom[1])) {
@@ -1091,10 +1091,7 @@ export class Gabc {
               noteArray[0].staffPosition,
               accidentalType
             );
-            accidental.pitch = this.gabcHeightToExsurgePitch(
-              ctxt.activeClef,
-              atom[0]
-            );
+            accidental.pitch = ctxt.activeClef.staffPositionToPitch(noteArray[0].staffPosition);
             accidental.sourceIndex = sourceIndex;
             accidental.sourceLength = sourceLength;
             accidental.trailingSpace = TrailingSpaceForAccidental;
@@ -1587,13 +1584,10 @@ export class Gabc {
 
     if (data.length < 1) throw "Invalid note data: " + data;
 
-    // the next char is always the pitch
-    var pitch = this.gabcHeightToExsurgePitch(clef, data[0]);
-
     if (data[0] === data[0].toUpperCase()) note.shape = NoteShape.Inclinatum;
 
-    note.staffPosition = this.gabcHeightToExsurgeHeight(data[0]);
-    note.pitch = pitch;
+    this.setStaffPositionAndOffset(note, data);
+    note.pitch = clef.staffPositionToPitch(note.staffPosition - note.staffPositionOffset);
 
     var mark;
 
@@ -2015,17 +2009,38 @@ export class Gabc {
     return syllables;
   }
 
-  // returns pitch
+  /**
+   * 
+   * @param {*} gabcHeight gabc letter a through m
+   * @returns pitch
+   */
   static gabcHeightToExsurgeHeight(gabcHeight) {
     return gabcHeight.toLowerCase().charCodeAt(0) - "c".charCodeAt(0);
   }
 
-  // returns pitch
-  static gabcHeightToExsurgePitch(clef, gabcHeight) {
-    var exsurgeHeight = this.gabcHeightToExsurgeHeight(gabcHeight);
+  /**
+   * 
+   * @param {*} staffPosition
+   * @param {*} zeroOrNine 0 or 9 or nothing, to shift a little down or up
+   * @returns staffposition offset
+   */
+  static getStaffPositionOffset(staffPosition, zeroOrNine) {
+    let offset = 0;
+    if (/0|9/.test(zeroOrNine)) {
+      const basis = staffPosition % 2 ? 2 : 1;
+      offset = (Number(zeroOrNine) ? basis : -basis) / 3;
+    }
+    return offset;
+  }
 
-    var pitch = clef.staffPositionToPitch(exsurgeHeight);
-
-    return pitch;
+  /**
+   * 
+   * @param {*} note to set staffPosition and staffPositionOffset on
+   * @param {*} gabcAtom gabc letter from a to m with modifiers
+   */
+  static setStaffPositionAndOffset(note, gabcAtom) {
+    const staffPosition = this.gabcHeightToExsurgeHeight(gabcAtom[0]);
+    note.staffPositionOffset = this.getStaffPositionOffset(staffPosition, gabcAtom[1]);
+    note.staffPosition = staffPosition + note.staffPositionOffset;
   }
 }
