@@ -1,3 +1,10 @@
+## [1.21.1](https://github.com/frmatthew/exsurge/compare/v1.21.0...v1.21.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* Restore podatus glyphs ([9a90599](https://github.com/frmatthew/exsurge/commit/9a90599e7796b7993693a6822cef280128d56351))
+
 # [1.21.0](https://github.com/frmatthew/exsurge/compare/v1.20.1...v1.21.0) (2026-04-21)
 
 
