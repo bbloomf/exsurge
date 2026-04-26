@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/frmatthew/exsurge/compare/v1.22.0...v1.22.1) (2026-04-26)
+
+
+### Bug Fixes
+
+* Update clef size ([dca950e](https://github.com/frmatthew/exsurge/commit/dca950e29ed53cd770a4092504b7872d249d0873))
+
 # [1.22.0](https://github.com/frmatthew/exsurge/compare/v1.21.1...v1.22.0) (2026-04-26)
 
 
