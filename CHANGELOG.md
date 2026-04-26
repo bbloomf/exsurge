@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/frmatthew/exsurge/compare/v1.21.1...v1.22.0) (2026-04-26)
+
+
+### Features
+
+* Add support for ☧ clef ([0701173](https://github.com/frmatthew/exsurge/commit/070117368b3709b698ea9617823d6bc8a2127266))
+
 ## [1.21.1](https://github.com/frmatthew/exsurge/compare/v1.21.0...v1.21.1) (2026-04-22)
 
 
