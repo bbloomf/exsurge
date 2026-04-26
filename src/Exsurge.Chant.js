@@ -214,6 +214,7 @@ export class Clef extends ChantNotationElement {
       this.defaultAccidental
     );
     clone.small = this.small;
+    clone.sans = this.sans;
     clone.sourceGabc = this.sourceGabc;
     clone.sourceIndex = this.sourceIndex;
     clone.elementIndex = this.elementIndex;
@@ -344,6 +345,51 @@ export class TrebleClef extends Clef {
     super.performLayout(ctxt);
 
     var glyph = new GlyphVisualizer(ctxt, this.small ? GlyphCode.TrebleClefSmall : GlyphCode.TrebleClef);
+    glyph.setStaffPosition(ctxt, this.staffPosition);
+    this.addVisualizer(glyph);
+
+    this.finishLayout(ctxt);
+  }
+}
+
+export class ChiRhoClef extends Clef {
+  constructor(staffPosition, octave, defaultAccidental = null, sans = false) {
+    super(staffPosition, octave, defaultAccidental);
+
+    this.leadingSpace = 0;
+    this.sans = sans;
+  }
+
+  // TODO: actually handle this correctly?
+  pitchToStaffPosition(pitch) {
+    return (
+      (pitch.octave - this.octave) * 7 +
+      this.staffPosition +
+      Pitch.stepToStaffOffset(pitch.step) -
+      Pitch.stepToStaffOffset(Step.Do)
+    );
+  }
+
+  // TODO: actually handle this correctly?
+  staffPositionToPitch(staffPosition) {
+    var offset = staffPosition - this.staffPosition;
+    var octaveOffset = Math.floor(offset / 7);
+
+    var step = Pitch.staffOffsetToStep(offset);
+
+    if (
+      this.activeAccidental &&
+      this.activeAccidental.staffPosition === staffPosition
+    )
+      step += this.activeAccidental.accidentalType;
+
+    return new Pitch(step, this.octave + octaveOffset);
+  }
+
+  performLayout(ctxt) {
+    super.performLayout(ctxt);
+
+    var glyph = new GlyphVisualizer(ctxt, this.sans ? GlyphCode.ChiRhoClefSans : GlyphCode.ChiRhoClef);
     glyph.setStaffPosition(ctxt, this.staffPosition);
     this.addVisualizer(glyph);
 

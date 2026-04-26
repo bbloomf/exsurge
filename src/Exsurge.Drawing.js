@@ -30,8 +30,8 @@ import {
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import { language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
-import { makeLigature } from "./makeLigature.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
+import { makeLigature } from "./makeLigature.js";
 
 function getFontFilenameForProperties(properties = {}, url = "{}") {
   var italic = properties["font-style"] === "italic" ? "Italic" : "",
@@ -200,6 +200,8 @@ export let GlyphCode = {
   FaClef: "FaClef",
   TrebleClef: "TrebleClef",
   TrebleClefSmall: "TrebleClefSmall",
+  ChiRhoClef: "ChiRhoClef",
+  ChiRhoClefSans: "ChiRhoClefSans",
   Flat: "Flat",
   Mora: "Mora",
   Natural: "Natural",

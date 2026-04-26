@@ -56,7 +56,8 @@ import {
   FaClef,
   TrebleClef,
   TextOnly,
-  ChantLineBreak
+  ChantLineBreak,
+  ChiRhoClef
 } from "./Exsurge.Chant.js";
 import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
@@ -66,7 +67,7 @@ import * as Neumes from "./Exsurge.Chant.Neumes.js";
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?)[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'0123459]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?[a-mA-M][oOwWvVrRsxy#~\+><_\.'0123459]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 
@@ -1009,6 +1010,18 @@ export class Gabc {
         case "treble-4":
         case "treble-5":
           addNotation((ctxt.activeClef = new TrebleClef(2 * parseInt(atom.slice(-1), 10) - 1, 2, null, atom[6] === '-')));
+          break;
+        case "xp1":
+        case "xp2":
+        case "xp3":
+        case "xp4":
+        case "xp5":
+        case "xp-1":
+        case "xp-2":
+        case "xp-3":
+        case "xp-4":
+        case "xp-5":
+          addNotation((ctxt.activeClef = new ChiRhoClef(2 * parseInt(atom.slice(-1), 10) - 1, 2, null, atom.slice(-2, -1) === '-')));
           break;
         case "cb1":
         case "cb2":
