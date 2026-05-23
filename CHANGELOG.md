@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/frmatthew/exsurge/compare/v1.22.1...v1.23.0) (2026-05-23)
+
+
+### Features
+
+* Add support for 8th and 16th note beams ([13fced0](https://github.com/frmatthew/exsurge/commit/13fced04d0ac0b257849af1d500ab086a7ec504c))
+
 ## [1.22.1](https://github.com/frmatthew/exsurge/compare/v1.22.0...v1.22.1) (2026-04-26)
 
 
