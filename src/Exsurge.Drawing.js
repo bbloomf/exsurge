@@ -938,7 +938,12 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
     super();
 
     var staffPosition0 = note0.staffPosition;
-    var staffPosition1 = note1.staffPosition;
+    var staffPosition1 =
+      typeof note1 === "number"
+        ? note1
+        : note1
+          ? note1.staffPosition
+          : note0.staffPosition + 4;
 
     // note0 should be the upper one for our calculations here
     if (staffPosition0 < staffPosition1) {
@@ -1013,6 +1018,75 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
 
   createSvgFragment(ctxt) {
     return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
+  }
+}
+
+export class NeumeBeamVisualizer extends ChantLayoutElement {
+  constructor(ctxt, x0, x1, staffPosition0, staffPosition1, yOffset = 0) {
+    super();
+    
+    var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition0);
+    var y1 = ctxt.calculateHeightFromStaffPosition(staffPosition1);
+    
+    if (y0 === y1 && x0 === x1) {
+      y0 -= ctxt.staffInterval / 2;
+      x0 -= ctxt.staffInterval * 2 / 3;
+    }
+
+    this.bounds.x = x0;
+    this.bounds.y = y0 + (yOffset * ctxt.neumeLineWeight * 6);
+    this.bounds.width = x1 - x0;
+    this.bounds.height = y1 - y0;
+
+
+    this.origin.x = 0;
+    this.origin.y = 0;
+  }
+  getPoints(ctxt) {
+    const lineHeight = ctxt.neumeLineWeight * 3;
+    return {
+      x0: this.bounds.x - ctxt.neumeLineWeight / 2,
+      x1: this.bounds.x + this.bounds.width + ctxt.neumeLineWeight / 2,
+      y0: this.bounds.y,
+      y1: this.bounds.y + this.bounds.height,
+      height: lineHeight
+    };
+  }
+
+  draw(ctxt) {
+    var canvasCtxt = ctxt.canvasCtxt;
+    const points = this.getPoints(ctxt);
+
+    canvasCtxt.fillStyle = ctxt.neumeLineColor;
+    canvasCtxt.beginPath();
+    canvasCtxt.moveTo(points.x0, points.y0 + points.height / 2);
+    canvasCtxt.lineTo(points.x0, points.y0 - points.height / 2);
+    canvasCtxt.lineTo(points.x1, points.y1 - points.height / 2);
+    canvasCtxt.lineTo(points.x1, points.y1 + points.height / 2);
+    canvasCtxt.closePath();
+    canvasCtxt.fill();
+  }
+
+  getSvgProps(ctxt) {
+    const points = this.getPoints(ctxt);
+    return {
+      points: `${points.x0},${points.y0 + points.height / 2} ${points.x0},${points.y0 - points.height / 2} ${
+        points.x1
+      },${points.y1 - points.height / 2} ${points.x1},${points.y1 + points.height / 2}`,
+      fill: ctxt.neumeLineColor,
+      class: "neumeBeam"
+    };
+  }
+
+  createSvgNode(ctxt) {
+    return QuickSvg.createNode("polygon", this.getSvgProps(ctxt));
+  }
+  createSvgTree(ctxt) {
+    return QuickSvg.createSvgTree("polygon", this.getSvgProps(ctxt));
+  }
+
+  createSvgFragment(ctxt) {
+    return QuickSvg.createFragment("polygon", this.getSvgProps(ctxt));
   }
 }
 

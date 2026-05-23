@@ -31,6 +31,7 @@ import {
 import {
   ChantNotationElement,
   GlyphCode, LineaVisualizer, MarkingPositionHint,
+  NeumeBeamVisualizer,
   NeumeLineVisualizer, VirgaLineVisualizer
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
@@ -256,9 +257,13 @@ class NeumeBuilder {
     var advanceWidth =
       Glyphs.PunctumInclinatum.bounds.width * this.ctxt.glyphScaling;
 
+    const stemNotes = [];
+    let beamCount;
     // now add all the punctum inclinatum
     for (var i = 0; i < notes.length; i++, prevStaffPosition = staffPosition) {
       var note = notes[i];
+      var beams = notes.slice(i).find(note => note.inclinataFlags);
+      beamCount = beamCount || (beams && beams.inclinataFlags);
 
       if (note.liquescent & LiquescentType.Small)
         note.setGlyph(this.ctxt, GlyphCode.PunctumInclinatumLiquescent);
@@ -277,7 +282,7 @@ class NeumeBuilder {
           multiple = 1.1;
           break;
         default:
-          multiple *= 2 / 3;
+          multiple *= (multiple >= 1 ? 2 : 4) / 3;
           break;
       }
 
@@ -286,6 +291,35 @@ class NeumeBuilder {
       note.bounds.x = this.x;
 
       this.neume.addVisualizer(note);
+      if (beams) {
+        stemNotes.push(note);
+      }
+    }
+    if (stemNotes.length) {
+      const firstNote = stemNotes[0];
+      const lastNote = stemNotes[stemNotes.length - 1];
+      const startCoord = { x: firstNote.bounds.x, staffPosition: firstNote.staffPosition + 4 };
+      const endCoord = { x: lastNote.bounds.x, staffPosition: lastNote.staffPosition + 4 };
+      // Linear interpolation: y = y1 + (x - x1) * (y2 - y1) / (x2 - x1)
+      const getStaffPositionForX = (x) =>
+        x === startCoord.x ? startCoord.staffPosition :
+        startCoord.staffPosition +
+        ((x - startCoord.x) / (endCoord.x - startCoord.x)) *
+          (endCoord.staffPosition - startCoord.staffPosition);
+      
+      for (const note of stemNotes) {
+        var stem = new NeumeLineVisualizer(
+          this.ctxt,
+          note,
+          getStaffPositionForX(note.bounds.x)
+        );
+        this.neume.addVisualizer(stem);
+        stem.bounds.x = note.bounds.x + (note.bounds.width / 2) - (stem.bounds.width / 2);
+      }
+      while (beamCount > 0) {
+        var beams = new NeumeBeamVisualizer(this.ctxt, startCoord.x + (firstNote.bounds.width / 2), endCoord.x + (lastNote.bounds.width / 2), startCoord.staffPosition, endCoord.staffPosition, --beamCount);
+        this.neume.addVisualizer(beams);
+      }
     }
 
     return this;
