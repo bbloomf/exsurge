@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/frmatthew/exsurge/compare/v1.23.0...v1.23.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* Fix redeclar ([997e8e3](https://github.com/frmatthew/exsurge/commit/997e8e39004bb7fea73d06ba060230ee5cd5aa5c))
+
 # [1.23.0](https://github.com/frmatthew/exsurge/compare/v1.22.1...v1.23.0) (2026-05-23)
 
 
