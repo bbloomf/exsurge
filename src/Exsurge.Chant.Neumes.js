@@ -262,7 +262,7 @@ class NeumeBuilder {
     // now add all the punctum inclinatum
     for (var i = 0; i < notes.length; i++, prevStaffPosition = staffPosition) {
       var note = notes[i];
-      var beams = notes.slice(i).find(note => note.inclinataFlags);
+      let beams = notes.slice(i).find(note => note.inclinataFlags);
       beamCount = beamCount || (beams && beams.inclinataFlags);
 
       if (note.liquescent & LiquescentType.Small)
@@ -317,7 +317,7 @@ class NeumeBuilder {
         stem.bounds.x = note.bounds.x + (note.bounds.width / 2) - (stem.bounds.width / 2);
       }
       while (beamCount > 0) {
-        var beams = new NeumeBeamVisualizer(this.ctxt, startCoord.x + (firstNote.bounds.width / 2), endCoord.x + (lastNote.bounds.width / 2), startCoord.staffPosition, endCoord.staffPosition, --beamCount);
+        let beams = new NeumeBeamVisualizer(this.ctxt, startCoord.x + (firstNote.bounds.width / 2), endCoord.x + (lastNote.bounds.width / 2), startCoord.staffPosition, endCoord.staffPosition, --beamCount);
         this.neume.addVisualizer(beams);
       }
     }
