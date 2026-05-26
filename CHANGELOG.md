@@ -1,3 +1,15 @@
+# [1.24.0](https://github.com/frmatthew/exsurge/compare/v1.23.1...v1.24.0) (2026-05-26)
+
+
+### Bug Fixes
+
+* Fix issue with ledger line above ([70acc8a](https://github.com/frmatthew/exsurge/commit/70acc8ae65240e78d11c1f76654f64456022f6d4))
+
+
+### Features
+
+* Allow n notes ([8e5fee9](https://github.com/frmatthew/exsurge/commit/8e5fee9fa19b05c0a32f94a2e4db7404a4f14b58))
+
 ## [1.23.1](https://github.com/frmatthew/exsurge/compare/v1.23.0...v1.23.1) (2026-05-23)
 
 
