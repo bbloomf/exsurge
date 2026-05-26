@@ -472,7 +472,7 @@ export class Neume extends ChantNotationElement {
       var note = this.notes[i];
       var staffPosition = note.staffPosition;
       if (staffPosition >= ledgerLinePositionAbove - 1) {
-        needsAbove = needsAbove || staffPosition >= ledgerLinePositionAbove;
+        needsAbove = needsAbove || staffPosition >= ledgerLinePositionAbove - 0.9;
         if (firstAbove === false) firstAbove = Math.max(0, i - 1);
         if (staffPosition >= ledgerLinePositionAbove) continue;
       } else if (staffPosition <= 0) {
