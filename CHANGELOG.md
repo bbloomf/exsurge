@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/frmatthew/exsurge/compare/v1.24.0...v1.24.1) (2026-06-05)
+
+
+### Bug Fixes
+
+* Fix podatus lower glyph when larger than a single step, and placement of upper glyph in same situations ([eb78bf2](https://github.com/frmatthew/exsurge/commit/eb78bf2a40beaa3c7c6fdc8ec5d2f74fd33d553a))
+
 # [1.24.0](https://github.com/frmatthew/exsurge/compare/v1.23.1...v1.24.0) (2026-05-26)
 
 
