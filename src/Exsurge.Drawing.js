@@ -211,6 +211,8 @@ export let GlyphCode = {
 
   PodatusLower: "PodatusLower",
   PodatusUpper: "PodatusUpper",
+  PodatusLowerShort: "PodatusLowerShort",
+  PodatusUpperShort: "PodatusUpperShort",
 
   Porrectus1: "Porrectus1", // 1 staff line difference,
   Porrectus2: "Porrectus2", // 2 lines difference, etc...

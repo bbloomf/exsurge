@@ -191,9 +191,10 @@ class NeumeBuilder {
       lowerGlyph = GlyphCode.PunctumQuadratum;
       upperGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
     } else {
+      const diff = upperNote.staffPosition - lowerNote.staffPosition;
       // standard shape
-      lowerGlyph = GlyphCode.PodatusLower;
-      upperGlyph = GlyphCode.PodatusUpper;
+      lowerGlyph = diff > 1 ? GlyphCode.PodatusLower : GlyphCode.PodatusLowerShort;
+      upperGlyph = diff > 1 ? GlyphCode.PodatusUpper : GlyphCode.PodatusUpperShort;
     }
 
     // allow a quilisma pes
