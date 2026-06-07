@@ -1004,7 +1004,11 @@ export class Porrectus extends Neume {
       thirdGlyph = GlyphCode.TerminatingAscLiquescent;
     else if (third.liquescent & LiquescentType.Descending)
       thirdGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
-    else thirdGlyph = GlyphCode.PodatusUpper;
+    else
+      thirdGlyph =
+        third.staffPosition - second.staffPosition > 1
+          ? GlyphCode.PodatusUpper
+          : GlyphCode.PodatusUpperShort;
 
     this.build(ctxt)
       .lineFrom(second)
