@@ -1,3 +1,10 @@
+## [1.24.2](https://github.com/frmatthew/exsurge/compare/v1.24.1...v1.24.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* Adjust the podatus upper glyph at the end of a porrectus ([6183c28](https://github.com/frmatthew/exsurge/commit/6183c28d88fbafef37f9933ece2555947bb05af4))
+
 ## [1.24.1](https://github.com/frmatthew/exsurge/compare/v1.24.0...v1.24.1) (2026-06-05)
 
 
