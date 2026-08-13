@@ -837,8 +837,10 @@ export class Gabc {
   static makeLyric(ctxt, text, lyricType, notation, notations, sourceIndex) {
     var elides = false;
     var forceConnector = false;
+    var preventConnector = false;
     if (text.length > 1) {
-      if (text[text.length - 1] === "-") {
+      const lastChar = text.slice(-1);
+      if (lastChar === "-") {
         forceConnector = true;
         if (lyricType === LyricType.EndingSyllable)
           lyricType = LyricType.MiddleSyllable;
@@ -846,13 +848,18 @@ export class Gabc {
           lyricType = LyricType.BeginningSyllable;
 
         text = text.slice(0, -1);
-      } else if (text[text.length - 1] === " ") {
+      } else if (lastChar === " ") {
         if (lyricType === LyricType.MiddleSyllable)
           lyricType = LyricType.EndingSyllable;
         else if (lyricType === LyricType.BeginningSyllable)
           lyricType = LyricType.SingleSyllable;
 
         text = text.slice(0, -1);
+      } else if (lastChar === "—") {
+        // an em dash remains part of the syllable text and prevents a
+        // connecting hyphen from ever being drawn before the next syllable,
+        // but the syllables are still laid out as part of a single word
+        preventConnector = true;
       } else if (/<\/i>$/.test(text)) {
         // must be an elision
         elides = true;
@@ -871,6 +878,7 @@ export class Gabc {
     );
     lyric.elidesToNext = elides;
     if (forceConnector) lyric.setForceConnector(true);
+    if (preventConnector) lyric.setPreventConnector(true);
 
     return lyric;
   }

@@ -2544,7 +2544,10 @@ export var LyricArray = {
           l.notation.bounds.x +
             l.bounds.x +
             l.bounds.width +
-            (presumeConnectorNeeded && l.allowsConnector() && !l.needsConnector
+            (presumeConnectorNeeded &&
+            l.allowsConnector() &&
+            !l.preventConnector &&
+            !l.needsConnector
               ? l.getConnectorWidth()
               : 0)
         );
@@ -2618,6 +2621,7 @@ export class Lyric extends TextElement {
     this.centerLength = text.length;
 
     this.needsConnector = false;
+    this.preventConnector = false;
 
     // Lyrics can have their own language defined, which affects the alignment
     // of the text with the notation element
@@ -2638,8 +2642,14 @@ export class Lyric extends TextElement {
     this.forceConnector = force && this.allowsConnector();
   }
 
+  // prevents a connector from ever being drawn after this lyric, without
+  // affecting how the syllables are otherwise laid out within the word
+  setPreventConnector(prevent) {
+    this.preventConnector = prevent && this.allowsConnector();
+  }
+
   setNeedsConnector(needs, width) {
-    if (needs === true || this.forceConnector) {
+    if ((needs === true || this.forceConnector) && !this.preventConnector) {
       this.needsConnector = true;
       if (typeof width !== "undefined") {
         this.setConnectorWidth(width);
