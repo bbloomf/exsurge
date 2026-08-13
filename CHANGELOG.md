@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/frmatthew/exsurge/compare/v1.25.2...v1.26.0) (2026-08-13)
+
+
+### Features
+
+* Handle em dash with no surrounding whitespace ([29305df](https://github.com/frmatthew/exsurge/commit/29305df3de56d45918f2e5952c2c192891a36758))
+
 ## [1.25.2](https://github.com/frmatthew/exsurge/compare/v1.25.1...v1.25.2) (2026-07-08)
 
 
