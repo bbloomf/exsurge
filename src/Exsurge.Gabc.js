@@ -855,8 +855,8 @@ export class Gabc {
           lyricType = LyricType.SingleSyllable;
 
         text = text.slice(0, -1);
-      } else if (lastChar === "—") {
-        // an em dash remains part of the syllable text and prevents a
+      } else if (["—", "–"].includes(lastChar)) {
+        // an em dash or en dash remains part of the syllable text and prevents a
         // connecting hyphen from ever being drawn before the next syllable,
         // but the syllables are still laid out as part of a single word
         preventConnector = true;
