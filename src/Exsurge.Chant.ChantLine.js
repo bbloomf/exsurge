@@ -212,7 +212,7 @@ export class ChantLine extends ChantLayoutElement {
         // even if extraTextOnlyIndex is null, there might be extra lines on the last lyric if it is TextOnly:
         let lastNotation = notations[lastNeumeIndex - 1] || {};
         if (lastNotation.constructor === ChantLineBreak)
-          lastNotation = notations[lastNeumeIndex - 2];
+          lastNotation = notations[lastNeumeIndex - 2] || {};
         if (
           lastNotation.constructor === TextOnly &&
           lastNotation.lyrics.length === 1 &&
