@@ -1,3 +1,10 @@
+## [1.26.2](https://github.com/frmatthew/exsurge/compare/v1.26.1...v1.26.2) (2026-09-14)
+
+
+### Bug Fixes
+
+* Fix undefined reference ([137bcdf](https://github.com/frmatthew/exsurge/commit/137bcdf72ec69e3aa2b8277c51aeaeb2011f18ad))
+
 ## [1.26.1](https://github.com/frmatthew/exsurge/compare/v1.26.0...v1.26.1) (2026-08-17)
 
 
