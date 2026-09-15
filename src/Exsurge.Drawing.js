@@ -326,25 +326,29 @@ export var QuickSvg = {
     return node;
   },
 
-  svgFragmentForGlyph: function (glyph) {
+  svgFragmentForGlyph: function (glyph, negativeFillColor = "#fff") {
     var svgSrc = "";
     for (var i = 0; i < glyph.paths.length; ++i) {
       var path = glyph.paths[i];
       svgSrc += QuickSvg.createFragment(path.data ? "path" : "g", {
         d: path.data || undefined,
-        fill: path.type === "negative" ? "#fff" : undefined
+        fill: path.type === "negative" ? negativeFillColor : undefined
       });
     }
     return svgSrc;
   },
 
-  nodesForGlyph: function (glyph, functionName = "createNode") {
+  nodesForGlyph: function (
+    glyph,
+    functionName = "createNode",
+    negativeFillColor = "#fff"
+  ) {
     var nodes = [];
     for (var i = 0; i < glyph.paths.length; ++i) {
       var path = glyph.paths[i];
       let props = {};
       if (path.data) props.d = path.data;
-      if (path.type === "negative") props.fill = "#fff";
+      if (path.type === "negative") props.fill = negativeFillColor;
       nodes.push(QuickSvg[functionName](path.data ? "path" : "g", props));
     }
     return nodes;
@@ -564,6 +568,13 @@ export class ChantContext {
     this.neumeLineColor = "#000";
     this.staffLineColor = "#000";
     this.dividerLineColor = "#000";
+    // fill for the "negative" parts of a glyph (e.g. the hole of a punctum
+    // cavum), which have to match whatever the chant is drawn on rather than
+    // the chant itself.  Glyphs are shared through <use>, and CSS selectors do
+    // not reach into a use element's shadow tree, so a caller that follows a
+    // page theme needs to set this rather than style the paths from a
+    // stylesheet.
+    this.negativeFillColor = "#fff";
 
     this.defaultLanguage = language.latin;
 
@@ -1257,7 +1268,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
           ctxt.defs[glyphCode] = QuickSvg.createFragment(
             "g",
             options,
-            QuickSvg.svgFragmentForGlyph(glyph)
+            QuickSvg.svgFragmentForGlyph(glyph, ctxt.negativeFillColor)
           );
 
           if (ctxt.defsNode)
@@ -1265,7 +1276,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
               QuickSvg.createNode(
                 "g",
                 options,
-                QuickSvg.nodesForGlyph(glyph)
+                QuickSvg.nodesForGlyph(
+                  glyph,
+                  "createNode",
+                  ctxt.negativeFillColor
+                )
               )
             );
         };
@@ -1273,7 +1288,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
           return QuickSvg.createSvgTree(
             "g",
             getDefProps(),
-            ...QuickSvg.nodesForGlyph(glyph, "createSvgTree")
+            ...QuickSvg.nodesForGlyph(
+              glyph,
+              "createSvgTree",
+              ctxt.negativeFillColor
+            )
           );
         };
         makeDef.glyphCode = glyphCode;
@@ -1318,7 +1337,9 @@ export class GlyphVisualizer extends ChantLayoutElement {
     for (var i = 0; i < this.glyph.paths.length; i++) {
       var path = this.glyph.paths[i];
       canvasCtxt.fillStyle =
-        path.type === "negative" ? "#fff" : ctxt.neumeLineColor;
+        path.type === "negative"
+          ? ctxt.negativeFillColor
+          : ctxt.neumeLineColor;
       canvasCtxt.fill(new Path2D(path.data));
     }
 

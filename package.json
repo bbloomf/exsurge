@@ -6,7 +6,7 @@
   "types": "src/index.d.ts",
   "module": "src/index.js",
   "scripts": {
-    "build": "webpack --progress --colors --mode=build",
+    "build:lib": "webpack --progress --colors --mode=build",
     "build-dev": "webpack --mode=dev",
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.js",

@@ -250,6 +250,7 @@ declare module "exsurge" {
     neumeLineColor: string;
     staffLineColor: string;
     dividerLineColor: string;
+    negativeFillColor: string;
 
     defaultLanguage: ExsurgeLanguage;
 
