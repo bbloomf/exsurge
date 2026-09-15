@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/frmatthew/exsurge/compare/v1.26.2...v1.27.0) (2026-09-15)
+
+
+### Features
+
+* Add support for negativeFillColor ([dd1e471](https://github.com/frmatthew/exsurge/commit/dd1e4710db26549e81cf03a1cc00f32d352eaabd))
+
 ## [1.26.2](https://github.com/frmatthew/exsurge/compare/v1.26.1...v1.26.2) (2026-09-14)
 
 
