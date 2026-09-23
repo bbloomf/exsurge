@@ -1,3 +1,10 @@
+## [1.27.1](https://github.com/frmatthew/exsurge/compare/v1.27.0...v1.27.1) (2026-09-23)
+
+
+### Bug Fixes
+
+* Fix issue with double drawing custos when one is explicitly given at the end of the chant (using + in the gabc) ([96a1dc9](https://github.com/frmatthew/exsurge/commit/96a1dc932ffb2a5a0b2e2acf1f492d73eda1eb6d))
+
 # [1.27.0](https://github.com/frmatthew/exsurge/compare/v1.26.2...v1.27.0) (2026-09-15)
 
 
