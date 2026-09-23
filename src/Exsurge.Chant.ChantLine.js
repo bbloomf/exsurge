@@ -403,12 +403,12 @@ export class ChantLine extends ChantLayoutElement {
         this.score.annotation.draw(ctxt);
     }
 
-    // draw the notations
+    // The ending custos is drawn separately, even when it is an explicit notation.
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
 
     for (i = this.notationsStartIndex; i < lastIndex; i++)
-      notations[i].draw(ctxt);
+      if (notations[i] !== this.custos) notations[i].draw(ctxt);
 
     this.startingClef.draw(ctxt);
 
@@ -508,9 +508,10 @@ export class ChantLine extends ChantLayoutElement {
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
 
-    // add all of the notations
+    // The ending custos is added separately, even when it is an explicit notation.
     for (i = this.notationsStartIndex; i < lastIndex; i++)
-      inner.push(notations[i][functionNames.elements](ctxt));
+      if (notations[i] !== this.custos)
+        inner.push(notations[i][functionNames.elements](ctxt));
 
     if (this.custos) inner.push(this.custos[functionNames.elements](ctxt));
     return inner;
@@ -618,9 +619,10 @@ export class ChantLine extends ChantLayoutElement {
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
 
-    // add all of the notations
+    // The ending custos is added separately, even when it is an explicit notation.
     for (i = this.notationsStartIndex; i < lastIndex; i++)
-      inner += notations[i].createSvgFragment(ctxt);
+      if (notations[i] !== this.custos)
+        inner += notations[i].createSvgFragment(ctxt);
 
     if (this.custos) inner += this.custos.createSvgFragment(ctxt);
 
