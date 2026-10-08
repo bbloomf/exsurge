@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/frmatthew/exsurge/compare/v1.27.1...v1.28.0) (2026-10-08)
+
+
+### Features
+
+* Support Gregorio's soft accidentals (X, Y, and ##) ([8aa8c33](https://github.com/frmatthew/exsurge/commit/8aa8c33f687e69dd54c9401e504cb32edce893ea))
+
 ## [1.27.1](https://github.com/frmatthew/exsurge/compare/v1.27.0...v1.27.1) (2026-09-23)
 
 
