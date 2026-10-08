@@ -28,6 +28,7 @@ import {
   BraceAttachment, BracePoint, BraceShape, HorizontalEpisemaAlignment
 } from "./Exsurge.Chant.Markings.js";
 import {
+  AccidentalType,
   Custos,
   DoubleBar,
   FullBar
@@ -39,6 +40,10 @@ import {
   LyricType, MarkingPositionHint, QuickSvg, RoundBraceVisualizer
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
+
+// a soft accidental that isn't printed takes no space, unless it has to hold lyrics
+const isHiddenAccidental = notation =>
+  notation.isAccidental && notation.hidden && !notation.hasLyrics();
 
 // a chant line represents one staff line on the page. ChantLines are created by the score
 // and laid out by the page
@@ -818,10 +823,18 @@ export class ChantLine extends ChantLayoutElement {
     var textOnlyStartIndex;
 
     for (i = newElementStart; i <= lastNotationIndex; i++) {
-      prev = curr;
-      if (curr.constructor !== TextOnly) prevNeume = curr;
+      // a hidden soft accidental takes no space, so the notation after it is
+      // positioned as though it weren't there
+      if (!isHiddenAccidental(curr)) {
+        prev = curr;
+        if (curr.constructor !== TextOnly) prevNeume = curr;
+      }
 
       curr = notations[i];
+
+      if (curr.isAccidental && curr.soft)
+        curr.setHidden(ctxt, !this.isSoftAccidentalVisible(i));
+      else if (curr.isNeume) this.spaceNeumeBeforeSoftAccidental(ctxt, i);
 
       var actualRightBoundary;
       if (
@@ -894,16 +907,23 @@ export class ChantLine extends ChantLayoutElement {
 
       // try to fit the curr element on this line.
       // if it doesn't fit, we finish up here.
-      var fitsOnLine =
-        !forceBreak &&
-        this.positionNotationElement(
-          ctxt,
-          this.lastLyrics,
-          prevNeume,
-          curr,
-          actualRightBoundary,
-          this.extraTextOnlyIndex ? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
-        );
+      var fitsOnLine;
+      if (isHiddenAccidental(curr)) {
+        // it will be moved to the notation that follows it in alignHiddenAccidentals()
+        curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
+        fitsOnLine = true;
+      } else {
+        fitsOnLine =
+          !forceBreak &&
+          this.positionNotationElement(
+            ctxt,
+            this.lastLyrics,
+            prevNeume,
+            curr,
+            actualRightBoundary,
+            this.extraTextOnlyIndex ? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
+          );
+      }
       var candidateForExtraTextOnlyLine =
         ctxt.useExtraTextOnly &&
         curr.constructor === TextOnly &&
@@ -1287,6 +1307,8 @@ export class ChantLine extends ChantLayoutElement {
     // Justify the line if we need to
     this.justifyElements(ctxt, this.justify, condensableSpaces);
 
+    this.alignHiddenAccidentals();
+
     this.centerDividers();
 
     if (width > 0 && isLastLine && this.score.extendLastSystemStaffLines !== true) {
@@ -1356,6 +1378,108 @@ export class ChantLine extends ChantLayoutElement {
           curr.bounds.x = this.staffRight - curr.bounds.width;
         }
       }
+    }
+  }
+
+  // Soft accidentals (gabc X, Y, and ##) follow Gregorio's default
+  // \gresetalterationeffect{line}: an accidental, printed or not, stays in effect on
+  // its staff position until the end of the line (as in Dominican chant books) or
+  // until another accidental there replaces it. A soft flat or sharp is printed only
+  // when it isn't already in effect, and a soft natural only when a flat or sharp is.
+  // A clef's flat counts as in effect from the clef onward.
+  isSoftAccidentalVisible(index) {
+    var notations = this.score.notations;
+    var accidental = notations[index];
+    var clef = this.startingClef;
+    var inEffect = null;
+
+    for (var i = index - 1; i >= this.notationsStartIndex; i--) {
+      var notation = notations[i];
+      if (
+        notation.isAccidental &&
+        notation.staffPosition === accidental.staffPosition
+      ) {
+        inEffect = notation.accidentalType;
+        break;
+      }
+      if (notation.isClef) {
+        clef = notation;
+        break;
+      }
+    }
+
+    if (
+      inEffect === null &&
+      clef.defaultAccidental &&
+      clef.defaultAccidental.staffPosition === accidental.staffPosition
+    )
+      inEffect = clef.defaultAccidental.accidentalType;
+
+    if (accidental.accidentalType === AccidentalType.Natural)
+      return inEffect !== null && inEffect !== AccidentalType.Natural;
+
+    return inEffect !== accidental.accidentalType;
+  }
+
+  // A soft accidental in the middle of a run of notes (as in "hgfgXgh") splits
+  // the run into separate neumes. When it isn't printed, the neume before it is
+  // spaced as though the run had simply been split there (see createNeume in
+  // Gabc.createNeumesFromNotes) rather than as a neume before an accidental.
+  // This is decided before that neume is positioned, since it changes its spacing.
+  spaceNeumeBeforeSoftAccidental(ctxt, index) {
+    var notations = this.score.notations;
+    var neume = notations[index];
+    var accidental = notations[index + 1];
+    var next = notations[index + 2];
+    if (
+      !accidental ||
+      !accidental.soft ||
+      accidental.firstOfParentheses ||
+      !next ||
+      !next.isNeume ||
+      next.firstOfParentheses ||
+      !neume.trailingSpace.isDefault
+    )
+      return;
+
+    accidental.setHidden(ctxt, !this.isSoftAccidentalVisible(index + 1));
+
+    // The neume's trailing space may have been adjusted in its layout (e.g., for a
+    // mora), so it is shifted rather than replaced. A shift left from an earlier
+    // line is undone first, unless the neume has been laid out again since.
+    var shift = neume.softAccidentalShift;
+    if (shift && neume.calculatedTrailingSpace === shift.shifted)
+      neume.calculatedTrailingSpace = shift.unshifted;
+    neume.softAccidentalShift = null;
+
+    neume.keepWithNext = accidental.hidden;
+    neume.allowLineBreakBeforeNext = false;
+    if (accidental.hidden) {
+      var splitSpace = 0;
+      if (next.notes[0].shape !== NoteShape.Quilisma) {
+        splitSpace = ctxt.intraNeumeSpacing;
+        neume.allowLineBreakBeforeNext = true;
+      }
+      shift = { unshifted: neume.calculatedTrailingSpace };
+      neume.calculatedTrailingSpace += splitSpace - neume.trailingSpace(ctxt);
+      shift.shifted = neume.calculatedTrailingSpace;
+      neume.softAccidentalShift = shift;
+    }
+  }
+
+  // keep each hidden accidental at the position of the notation that follows it
+  alignHiddenAccidentals() {
+    var notations = this.score.notations;
+    var next = null;
+
+    for (
+      var i = this.notationsStartIndex + this.numNotationsOnLine - 1;
+      i >= this.notationsStartIndex;
+      i--
+    ) {
+      var notation = notations[i];
+      if (!isHiddenAccidental(notation)) next = notation;
+      else if (next) notation.bounds.x = next.bounds.x;
     }
   }
 
@@ -2142,7 +2266,7 @@ export class ChantLine extends ChantLayoutElement {
       LyricArray.getRight(curr.lyrics, true) <=
         this.staffRight + condensableSpaces.sum + space.condensable
     ) {
-      if (prev.isAccidental) {
+      if (prev.isAccidental && !prev.hidden) {
         // move the previous accidental up next to the current note:
         let shift =
           curr.bounds.x -

@@ -67,7 +67,7 @@ import * as Neumes from "./Exsurge.Chant.Neumes.js";
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?[a-nA-N][oOwWvVrRsxy#~\+><_\.'0123459|]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?[a-nA-N][oOwWvVrRsxXyY#~\+><_\.'0123459|]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 
@@ -1085,11 +1085,12 @@ export class Gabc {
             this.setStaffPositionAndOffset(custos, atom);
 
             addNotation(custos);
-          } else if (atom.length > 1 && /[xy#]/.test(atom[1])) {
+          } else if (atom.length > 1 && /[xXyY#]/.test(atom[1])) {
             var accidentalType;
 
             switch (atom[1]) {
               case "y":
+              case "Y":
                 accidentalType = Signs.AccidentalType.Natural;
                 break;
               case "#":
@@ -1108,9 +1109,11 @@ export class Gabc {
               noteArray,
               sourceIndex
             );
+            // X, Y, and ## are Gregorio's soft flat, natural, and sharp
             var accidental = new Signs.Accidental(
               noteArray[0].staffPosition,
-              accidentalType
+              accidentalType,
+              /^.(?:[XY]|##)/.test(atom)
             );
             accidental.pitch = ctxt.activeClef.staffPositionToPitch(noteArray[0].staffPosition);
             accidental.sourceIndex = sourceIndex;
@@ -1849,10 +1852,12 @@ export class Gabc {
 
         // accidentals
         case "x":
+        case "X":
           if (note.pitch.step === Step.Mi) note.pitch.step = Step.Me;
           else if (note.pitch.step === Step.Ti) note.pitch.step = Step.Te;
           break;
         case "y":
+        case "Y":
           if (note.pitch.step === Step.Te) note.pitch.step = Step.Ti;
           else if (note.pitch.step === Step.Me) note.pitch.step = Step.Mi;
           else if (note.pitch.step === Step.Du) note.pitch.step = Step.Do;
@@ -1883,7 +1888,7 @@ export class Gabc {
       this.needToEndBrace &&
       !note.braceStart &&
       !note.braceEnd &&
-      !/[xy#]/.test(c)
+      !/[xXyY#]/.test(c)
     ) {
       note.braceEnd = new Markings.BracePoint(
         note,
