@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 
-import { Step } from "./Exsurge.Core.js";
+import { Rect, Step } from "./Exsurge.Core.js";
 import {
   ChantNotationElement, DividerLineVisualizer, GlyphCode,
   GlyphVisualizer,
@@ -244,21 +244,44 @@ export const AccidentalType = {
  * Accidental
  */
 export class Accidental extends ChantNotationElement {
-  constructor(staffPosition, accidentalType) {
+  constructor(staffPosition, accidentalType, soft = false) {
     super();
     this.isAccidental = true;
     this.keepWithNext = true; // accidentals should always stay connected...
 
     this.staffPosition = staffPosition;
     this.accidentalType = accidentalType;
+
+    // a soft accidental always alters the pitch, but it is only printed if it
+    // changes the accidental in effect on its line (see ChantLine.isSoftAccidentalVisible)
+    this.soft = soft;
+    this.hidden = false;
   }
 
   performLayout(ctxt) {
     super.performLayout(ctxt);
 
-    this.addVisualizer(this.createGlyphVisualizer(ctxt));
+    if (this.hidden) {
+      // nothing to draw, and no space to take up
+      this.calculatedTrailingSpace = 0;
+      this.bounds = new Rect(
+        0,
+        ctxt.calculateHeightFromStaffPosition(this.staffPosition),
+        0,
+        0
+      );
+    } else {
+      this.addVisualizer(this.createGlyphVisualizer(ctxt));
+    }
 
     this.finishLayout(ctxt);
+  }
+
+  setHidden(ctxt, hidden) {
+    if (this.hidden === hidden) return;
+
+    this.hidden = hidden;
+    this.performLayout(ctxt);
   }
 
   // creation of the glyph visualizer is refactored out or performLayout
