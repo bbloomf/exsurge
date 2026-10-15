@@ -2,18 +2,7 @@ var assert = require('assert');
 var Chant = require('../src/Exsurge.Chant');
 var Drawing = require('../src/Exsurge.Drawing');
 var Gabc = require('../src/Exsurge.Gabc').Gabc;
-
-// stands in for a fontkit font: a hyphen is hyphenWidth em wide and every other character half an em
-function fakeFont(hyphenWidth) {
-  return {
-    unitsPerEm: 2048,
-    layout: function(text) {
-      var width = 0;
-      for (var i = 0; i < text.length; i++) width += text[i] === '-' ? hyphenWidth * 2048 : 1024;
-      return { advanceWidth: width, bbox: { minX: 0, maxY: 1434, height: 1843 } };
-    }
-  };
-}
+var fakeFont = require('./helpers/fonts').fakeFont;
 
 // Courier New's hyphen, like every glyph in it, is 1229/2048em wide
 var courierNew = fakeFont(1229 / 2048);
@@ -63,6 +52,37 @@ describe('Asynchronous layout', function() {
     return performLayoutAsync(ctxt, score).then(function() {
       assertLaidOut(score);
       assert(ctxt.hyphenWidth / ctxt.textStyles.lyric.size > 0.6);
+    });
+  });
+
+  it('waits only once for the same lyric font whose hyphen is wider than 0.6em', function() {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Courier New', 16, {}, { Regular: courierNew });
+    ctxt.fontLoadTimeout = 300;
+    var first = createScore(ctxt), second = createScore(ctxt), third = createScore(ctxt);
+    return performLayoutAsync(ctxt, first).then(function(elapsed) {
+      assert(elapsed >= 300, 'laid out after ' + elapsed + 'ms');
+      return performLayoutAsync(ctxt, second);
+    }).then(function(elapsed) {
+      assertLaidOut(second);
+      assert(elapsed < 200, 'waited ' + elapsed + 'ms again for the same font');
+      // but a different lyric font gets its own wait
+      ctxt.setFont('Courier', 16);
+      return performLayoutAsync(ctxt, third);
+    }).then(function(elapsed) {
+      assertLaidOut(third);
+      assert(elapsed >= 300, 'laid out after ' + elapsed + 'ms');
+    });
+  });
+
+  it('does not wait for the old ctxt.onFontLoaded callbacks', function() {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: palatino });
+    ctxt.onFontLoaded = [];
+    var score = createScore(ctxt);
+    return performLayoutAsync(ctxt, score).then(function() {
+      assertLaidOut(score);
+      assert.deepEqual(ctxt.onFontLoaded, []);
     });
   });
 
@@ -155,6 +175,35 @@ describe('Asynchronous layout', function() {
         assert(elapsed < 1000, 'laid out after ' + elapsed + 'ms, long after the font loaded');
         assert.deepEqual(loaded, [["14.4px 'Webfont', serif", '-']]);
         assert(Math.abs(ctxt.hyphenWidth / ctxt.textStyles.lyric.size - 0.33) < 1e-9);
+      });
+    });
+
+    it('asks document.fonts about the face that the hyphen is drawn in', function() {
+      var ctxt = new Drawing.ChantContext();
+      ctxt.setFont("'Webfont', serif", 16);
+      ctxt.textStyles.lyric.prefix = '<i>';
+      var font = fakeFont(0.8);
+      useFakeCanvas(ctxt, function() { return font; });
+      ctxt.fontLoadTimeout = 5000;
+      var checked = [], loaded = [];
+      global.document = {
+        fonts: {
+          check: function(fontString, text) {
+            checked.push([fontString, text]);
+            return false;
+          },
+          load: function(fontString, text) {
+            loaded.push([fontString, text]);
+            font = palatino;
+            return Promise.resolve([{}]);
+          }
+        }
+      };
+      var score = createScore(ctxt);
+      return performLayoutAsync(ctxt, score).then(function() {
+        assertLaidOut(score);
+        assert.deepEqual(checked, [["italic 14.4px 'Webfont', serif", '-']]);
+        assert.deepEqual(loaded, [["italic 14.4px 'Webfont', serif", '-']]);
       });
     });
 
