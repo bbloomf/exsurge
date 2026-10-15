@@ -55,6 +55,26 @@ describe('Asynchronous layout', function() {
     });
   });
 
+  it('waits only once for the same lyric font whose hyphen is wider than 0.6em', function() {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Courier New', 16, {}, { Regular: courierNew });
+    ctxt.fontLoadTimeout = 300;
+    var first = createScore(ctxt), second = createScore(ctxt), third = createScore(ctxt);
+    return performLayoutAsync(ctxt, first).then(function(elapsed) {
+      assert(elapsed >= 300, 'laid out after ' + elapsed + 'ms');
+      return performLayoutAsync(ctxt, second);
+    }).then(function(elapsed) {
+      assertLaidOut(second);
+      assert(elapsed < 200, 'waited ' + elapsed + 'ms again for the same font');
+      // but a different lyric font gets its own wait
+      ctxt.setFont('Courier', 16);
+      return performLayoutAsync(ctxt, third);
+    }).then(function(elapsed) {
+      assertLaidOut(third);
+      assert(elapsed >= 300, 'laid out after ' + elapsed + 'ms');
+    });
+  });
+
   it('lays out with no lyric font at all', function() {
     var ctxt = new Drawing.ChantContext();
     ctxt.fontLoadTimeout = 300;

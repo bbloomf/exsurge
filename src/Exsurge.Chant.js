@@ -457,6 +457,10 @@ export class ChantMapping {
   }
 }
 
+// for each ChantContext, the lyric fonts that ChantScore.waitForLyricFont()
+// last gave up waiting for when it had no document.fonts to ask.
+const __lyricFontsWaitedFor = new WeakMap();
+
 /*
  * Score, document
  */
@@ -720,7 +724,9 @@ export class ChantScore {
    * waiting longer won't help.  A missing hyphen width, or one wider than
    * 0.6em, usually means that the lyric font hasn't loaded yet, but some real
    * fonts have hyphens that wide (Courier New's is 1229/2048em), so this waits
-   * at most ctxt.fontLoadTimeout milliseconds.
+   * at most ctxt.fontLoadTimeout milliseconds.  Without document.fonts to say
+   * whether the font has loaded, a ctxt waits that long only once for the
+   * same lyric font.
    * @param  {ChantContext} ctxt
    * @param  {function(): void} ready
    */
@@ -785,10 +791,22 @@ export class ChantScore {
       return;
     }
 
+    // without document.fonts, a font that hasn't loaded looks just like one
+    // with a wide hyphen, so once a wait for these fonts has run out, don't
+    // make every later layout wait for them again.
+    const fontsKey = hyphenFonts.map(({ font }) => font).join("|");
+    if (__lyricFontsWaitedFor.get(ctxt) === fontsKey) {
+      ready();
+      return;
+    }
     const deadline = Date.now() + ctxt.fontLoadTimeout;
     const retry = () => {
-      if (hasSaneHyphenWidth() || Date.now() >= deadline) ready();
-      else setTimeout(retry, 100);
+      if (hasSaneHyphenWidth()) {
+        ready();
+      } else if (Date.now() >= deadline) {
+        __lyricFontsWaitedFor.set(ctxt, fontsKey);
+        ready();
+      } else setTimeout(retry, 100);
     };
     setTimeout(retry, 100);
   }
