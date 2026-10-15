@@ -795,6 +795,13 @@ export class ChantContext {
 
     this.intraNeumeSpacing = this.staffInterval / 2.0;
 
+    // some text (e.g., choral signs) is sized by the staff rather than by the
+    // font size given to setFont(), so keep its style in step with the staff.
+    for (let [key, textType] of Object.entries(TextTypes)) {
+      if (textType.size && this.textStyles[key])
+        this.textStyles[key].size = textType.size(this);
+    }
+
     while (this.defsNode && this.defsNode.firstChild)
       this.defsNode.removeChild(this.defsNode.firstChild);
     for (var i = 0; i < this.makeDefs.length; ++i) {
