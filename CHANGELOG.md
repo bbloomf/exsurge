@@ -1,3 +1,21 @@
+# [1.29.0](https://github.com/frmatthew/exsurge/compare/v1.28.0...v1.29.0) (2026-10-15)
+
+
+### Bug Fixes
+
+* Ask document.fonts about the face that the lyric hyphen is drawn in ([7ad3771](https://github.com/frmatthew/exsurge/commit/7ad3771a07f0019beaab8a49571d1aba852220f1))
+* Bring ChantContext and ChantScore typings in line with the source ([f687b60](https://github.com/frmatthew/exsurge/commit/f687b6005f37455e690a0e0ceeb0a84fb3880597))
+* Clear the remaining strict errors in index.d.ts ([14fa78a](https://github.com/frmatthew/exsurge/commit/14fa78a8bced430cf7347003ec1d828c01664769))
+* Keep textStyles.choralSign.size in step with the staff ([5b62688](https://github.com/frmatthew/exsurge/commit/5b62688883f615fcc34e6ab31348e4ad2a0307a6))
+* Keep the lyric word spacing ratio across a hyphen with no width ([514244d](https://github.com/frmatthew/exsurge/commit/514244d084a31cda58d66c60bc7384aeb1586208))
+* Make npm test run once instead of watching ([da666de](https://github.com/frmatthew/exsurge/commit/da666de6ff7dfb9aea517502575317fc03db5d0c))
+* Remove the leftover ctxt.onFontLoaded hook from performLayoutAsync ([8259fc6](https://github.com/frmatthew/exsurge/commit/8259fc6375147e9bc31d3aea2eed84334cabc9aa))
+* Stop performLayoutAsync from waiting forever for a lyric font ([6cd09a6](https://github.com/frmatthew/exsurge/commit/6cd09a6206fe06cbc777e0da78892843e5dcd02f))
+* Style choral signs at the size they are measured at ([c842fe2](https://github.com/frmatthew/exsurge/commit/c842fe23405b5217a3f72fd285dc309ecbb99519))
+* Type ctxt.minLyricWordSpacingRatio ([5b06a7f](https://github.com/frmatthew/exsurge/commit/5b06a7fbd9b0e8cff2a2b2b0702212d397a6433a)), closes [#5](https://github.com/frmatthew/exsurge/issues/5)
+* Type text type lookups and title elements as the source has them ([5a9b461](https://github.com/frmatthew/exsurge/commit/5a9b461c75d4969770e852dae205ff401d5c64a5))
+* Wait only once per context for a lyric font without document.fonts ([59ac17e](https://github.com/frmatthew/exsurge/commit/59ac17e28c792baffdb570be0af6cd62d130d14d))
+
 # [1.28.0](https://github.com/frmatthew/exsurge/compare/v1.27.1...v1.28.0) (2026-10-08)
 
 
