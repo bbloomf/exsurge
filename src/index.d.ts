@@ -12,12 +12,12 @@ declare module "exsurge" {
   
   export interface Titles {
     score: ChantScore;
-    setSupertitle(ctxt: ChantContext, supertitle: string): Supertitle;
-    setTitle(ctxt: ChantContext, title: string): Title;
-    setSubtitle(ctxt: ChantContext, subtitle: string): Subtitle;
-    setTextLeft(ctxt: ChantContext, textLeft: string): TextLeft;
-    setTextRight(ctxt: ChantContext, textRight: string): TextRight;
-  };
+    setSupertitle(ctxt: ChantContext, supertitle: string): void;
+    setTitle(ctxt: ChantContext, title: string): void;
+    setSubtitle(ctxt: ChantContext, subtitle: string): void;
+    setTextLeft(ctxt: ChantContext, textLeft: string): void;
+    setTextRight(ctxt: ChantContext, textRight: string): void;
+  }
 
   export interface Language {
     syllabify(text: string): Array<Array<string>>;
@@ -68,10 +68,9 @@ declare module "exsurge" {
     getFromSvgElem(score: any, elem: any): any;
   }
 
-  interface TextTypeWithSvgAndCss {
-    TextTypeWithSvgElem;
-    TextTypeWithCssClass;
-  }
+  interface TextTypeWithSvgAndCss
+    extends TextTypeWithSvgElem,
+      TextTypeWithCssClass {}
 
   export enum TextMeasuringStrategy {
     Svg,
@@ -83,7 +82,7 @@ declare module "exsurge" {
   }
 
   export class Annotations {
-    constructor(ctxt: ChantContext, ...string);
+    constructor(ctxt: ChantContext, ...texts: string[]);
     recalculateMetrics(ctxt: ChantContext): void;
   }
 
@@ -94,30 +93,58 @@ declare module "exsurge" {
   }
 
   export class Gabc {
-    static createMappingsFromSource(ctxt: ChantContext, gabcSource: string);
+    static createMappingsFromSource(
+      ctxt: ChantContext,
+      gabcSource: string
+    ): ChantMapping[];
+    /**
+     * Updates mappings in place to match newGabcSource, and returns the length
+     * of newGabcSource's header.
+     */
     static updateMappingsFromSource(
       ctxt: ChantContext,
       mappings: ChantMapping[],
       newGabcSource: string,
       insertionIndex?: number,
       oldInsertionIndex?: number
-    );
+    ): number;
   }
 
-  export class GabcHeader {
-    static getLength(gabc: string): number;
-    constructor(text: string);
+  interface GabcHeaderMembers {
+    /** the text of the header, through the %% line */
+    original: string;
+    /** the header's comment lines, by line number */
+    comments: string[];
+    /** the values of commented-out header lines ("%name: value;") */
+    cValues: { [key: string]: string };
     toString(): string;
-    [key: `${string}Array`]: string[];
-    [key: string]: string;
   }
+  /**
+   * A gabc header.  Each field is set under its gabc name (e.g. "office-part")
+   * and, if different, its camelCase name (e.g. "officePart").  A field that
+   * appears more than once also gets an array of all its values, e.g.
+   * "commentaryArray".
+   *
+   * This is an intersection rather than a class so that the index signatures
+   * don't have to allow the types of the members above.
+   */
+  export type GabcHeader = GabcHeaderMembers & {
+    [key: `${string}Array`]: string[];
+  } & {
+    [key: string]: string;
+  };
+  export const GabcHeader: {
+    new (text?: string): GabcHeader;
+    getLength(gabc: string): number;
+  };
 
   export interface SvgTreeNode {
     name?: string;
     props?: {
       [key: string]: any;
     };
-    children: SvgTreeNode[];
+    /** strings are text content, e.g. of a tspan */
+    children: Array<SvgTreeNode | string>;
   }
 
   export class ChantScore {
@@ -213,7 +240,10 @@ declare module "exsurge" {
     annotation: TextType;
     dropCap: TextType;
     al: TextType & TextTypeWithSvgAndCss;
-    choralSign: TextType;
+    choralSign: Omit<TextType, "defaultSize"> & {
+      /** choral signs are sized relative to the staff, not the lyrics */
+      size(ctxt: ChantContext): number;
+    };
     lyric: TextType & TextTypeWithSvgElem;
     translation: TextType & TextTypeWithSvgElem;
   }
