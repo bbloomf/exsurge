@@ -384,6 +384,11 @@ declare module "exsurge" {
     // set by updateHyphenWidth():
     hyphenWidth: number;
     minLyricWordSpacing: number;
+    /**
+     * minLyricWordSpacing / hyphenWidth, as of the last hyphen that had a
+     * width; updateHyphenWidth() keeps minLyricWordSpacing at this ratio.
+     */
+    minLyricWordSpacingRatio?: number;
 
     maxExtraSpaceInStaffIntervals: number;
 
