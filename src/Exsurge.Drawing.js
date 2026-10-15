@@ -740,6 +740,9 @@ export class ChantContext {
     for (let [key, textType] of Object.entries(TextTypes)) {
       var cssClass = textType.cssClass,
         { color, font, size } = this.textStyles[key];
+      // some text (e.g., choral signs) is measured at a size that follows the
+      // staff rather than the text style, so draw it at that size too.
+      if (textType.size) size = textType.size(this);
       style += `svg.Exsurge .${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
     }
     return style;
