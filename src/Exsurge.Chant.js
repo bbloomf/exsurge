@@ -31,6 +31,7 @@ import {
   ChantNotationElement,
   GlyphCode,
   GlyphVisualizer, QuickSvg, TextLeftRight,
+  TextMeasuringStrategy,
   TextSpan
 } from "./Exsurge.Drawing.js";
 import { Gabc } from "./Exsurge.Gabc.js";
@@ -707,21 +708,77 @@ export class ChantScore {
       return;
     }
 
-    // check for sane value of hyphen width:
-    ctxt.updateHyphenWidth();
-    if (
-      !ctxt.hyphenWidth ||
-      ctxt.hyphenWidth / ctxt.textStyles.lyric.size > 0.6
-    ) {
-      setTimeout(() => {
-        this.performLayoutAsync(ctxt, finishedCallback);
-      }, 100);
+    this.waitForLyricFont(ctxt, () => {
+      this.initializeLayout(ctxt);
+
+      setTimeout(() => this.layoutElementsAsync(ctxt, 0, finishedCallback), 0);
+    });
+  }
+
+  /**
+   * Calls ready() once the lyric font gives a sane hyphen width, or once
+   * waiting longer won't help.  A missing hyphen width, or one wider than
+   * 0.6em, usually means that the lyric font hasn't loaded yet, but some real
+   * fonts have hyphens that wide (Courier New's is 1229/2048em), so this waits
+   * at most ctxt.fontLoadTimeout milliseconds.
+   * @param  {ChantContext} ctxt
+   * @param  {function(): void} ready
+   */
+  waitForLyricFont(ctxt, ready) {
+    const hasSaneHyphenWidth = () => {
+      ctxt.updateHyphenWidth();
+      return (
+        ctxt.hyphenWidth > 0 &&
+        ctxt.hyphenWidth / ctxt.textStyles.lyric.size <= 0.6
+      );
+    };
+    if (hasSaneHyphenWidth()) {
+      ready();
       return;
     }
 
-    this.initializeLayout(ctxt);
+    const fonts =
+      ctxt.textMeasuringStrategy !== TextMeasuringStrategy.OpenTypeJS &&
+      typeof document !== "undefined" &&
+      document.fonts;
+    if (fonts) {
+      // the browser knows whether the font is still loading, so ask it
+      // rather than polling until the deadline.
+      const { size, font } = ctxt.textStyles.lyric;
+      const cssFont = `${size}px ${font}`;
+      let loaded;
+      try {
+        loaded = fonts.check(cssFont, ctxt.syllableConnector);
+      } catch (e) {
+        loaded = true; // not a valid CSS font, so there's nothing to wait for
+      }
+      if (loaded) {
+        ready();
+        return;
+      }
 
-    setTimeout(() => this.layoutElementsAsync(ctxt, 0, finishedCallback), 0);
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timeout);
+        ctxt.updateHyphenWidth();
+        ready();
+      };
+      const timeout = setTimeout(finish, ctxt.fontLoadTimeout);
+      // finish from a timer rather than from the promise, so that layout
+      // errors aren't swallowed as unhandled rejections.
+      const finishSoon = () => setTimeout(finish, 0);
+      fonts.load(cssFont, ctxt.syllableConnector).then(finishSoon, finishSoon);
+      return;
+    }
+
+    const deadline = Date.now() + ctxt.fontLoadTimeout;
+    const retry = () => {
+      if (hasSaneHyphenWidth() || Date.now() >= deadline) ready();
+      else setTimeout(retry, 100);
+    };
+    setTimeout(retry, 100);
   }
 
   layoutElementsAsync(ctxt, index, finishedCallback) {
