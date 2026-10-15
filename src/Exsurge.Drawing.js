@@ -601,6 +601,10 @@ export class ChantContext {
     // for connecting neume syllables...
     this.syllableConnector = "-";
 
+    // how long ChantScore.performLayoutAsync() waits, in milliseconds, for a
+    // lyric font that seems not to have loaded yet before laying out anyway.
+    this.fontLoadTimeout = 3000;
+
     // set whether to scale the def tags (scaleDefs = true) or the use tags.
     this.scaleDefs = true;
 

@@ -260,6 +260,13 @@ declare module "exsurge" {
 
     syllableConnector: string;
 
+    /**
+     * How long ChantScore.performLayoutAsync() waits, in milliseconds, for a
+     * lyric font that seems not to have loaded yet before laying out anyway.
+     * Defaults to 3000.
+     */
+    fontLoadTimeout: number;
+
     scaleDefs: boolean;
 
     interSyllabicMultiplier: number;
