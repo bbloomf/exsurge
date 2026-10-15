@@ -769,12 +769,18 @@ export class ChantContext {
       this.syllableConnector,
       LyricType.SingleSyllable
     );
-    var multiplier =
-      this.minLyricWordSpacing /
-        (this.hyphenWidth || this.minLyricWordSpacing) || 1;
+    // minLyricWordSpacing follows the hyphen width, keeping whatever ratio a
+    // caller has set it to.  A hyphen with no width (e.g., when there's no
+    // lyric font to measure with yet) says nothing about that ratio, so keep
+    // the ratio from the last hyphen that had a width.
+    if (this.hyphenWidth > 0 && this.minLyricWordSpacing >= 0)
+      this.minLyricWordSpacingRatio =
+        this.minLyricWordSpacing / this.hyphenWidth;
     this.hyphenWidth = hyphen.bounds.width;
 
-    this.minLyricWordSpacing = multiplier * this.hyphenWidth;
+    this.minLyricWordSpacing =
+      (this.minLyricWordSpacingRatio >= 0 ? this.minLyricWordSpacingRatio : 1) *
+      this.hyphenWidth;
   }
 
   setStaffHeight(staffHeight, glyphMultiplier = 1) {

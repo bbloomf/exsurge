@@ -2,18 +2,7 @@ var assert = require('assert');
 var Chant = require('../src/Exsurge.Chant');
 var Drawing = require('../src/Exsurge.Drawing');
 var Gabc = require('../src/Exsurge.Gabc').Gabc;
-
-// stands in for a fontkit font: a hyphen is hyphenWidth em wide and every other character half an em
-function fakeFont(hyphenWidth) {
-  return {
-    unitsPerEm: 2048,
-    layout: function(text) {
-      var width = 0;
-      for (var i = 0; i < text.length; i++) width += text[i] === '-' ? hyphenWidth * 2048 : 1024;
-      return { advanceWidth: width, bbox: { minX: 0, maxY: 1434, height: 1843 } };
-    }
-  };
-}
+var fakeFont = require('./helpers/fonts').fakeFont;
 
 // Courier New's hyphen, like every glyph in it, is 1229/2048em wide
 var courierNew = fakeFont(1229 / 2048);
