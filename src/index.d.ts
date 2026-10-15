@@ -9,9 +9,22 @@ declare module "exsurge" {
   type Rect = unknown;
   type ExsurgeLanguage = unknown;
   type ChantNotationElement = unknown;
+  /** e.g. a Lyric, Title, DropCap or Annotation */
+  type TextElement = unknown;
   
   export interface Titles {
     score: ChantScore;
+    // each is null when the score doesn't have it:
+    supertitle: TextElement | null;
+    title: TextElement | null;
+    subtitle: TextElement | null;
+    textLeft: TextElement | null;
+    textRight: TextElement | null;
+    hasSupertitle(): boolean;
+    hasTitle(): boolean;
+    hasSubtitle(): boolean;
+    hasTextLeft(): boolean;
+    hasTextRight(): boolean;
     setSupertitle(ctxt: ChantContext, supertitle: string): void;
     setTitle(ctxt: ChantContext, title: string): void;
     setSubtitle(ctxt: ChantContext, subtitle: string): void;
@@ -54,23 +67,36 @@ declare module "exsurge" {
   export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
   interface TextType {
     display: string;
+    /** this type's key in TextTypes (set when exsurge loads) */
+    key: keyof TextTypes;
+    /** the class of this type's svg text elements; defaults to the key */
+    cssClass: string;
 
     defaultSize(size: number): number;
     containedInScore(score: ChantScore): boolean;
-    getFromScore(score: ChantScore): string;
+    /**
+     * Returns the element in score that matches elem, a text element of this
+     * type (e.g. from before the score was updated), or null or undefined if
+     * there isn't one.
+     */
+    getFromScore(
+      score: ChantScore,
+      elem: TextElement
+    ): TextElement | null | undefined;
   }
 
-  interface TextTypeWithCssClass {
-    cssClass: string;
+  /** a text type that a score has at most one of, so elem isn't needed */
+  interface SingleTextType extends TextType {
+    getFromScore(score: ChantScore, elem?: TextElement): TextElement | null;
   }
 
   interface TextTypeWithSvgElem {
-    getFromSvgElem(score: any, elem: any): any;
+    /** Returns the element in score that elem, an svg text element, shows. */
+    getFromSvgElem(
+      score: ChantScore,
+      elem: Element
+    ): TextElement | null | undefined;
   }
-
-  interface TextTypeWithSvgAndCss
-    extends TextTypeWithSvgElem,
-      TextTypeWithCssClass {}
 
   export enum TextMeasuringStrategy {
     Svg,
@@ -233,13 +259,13 @@ declare module "exsurge" {
   };
 
   export interface TextTypes {
-    supertitle: TextType;
-    title: TextType;
-    subtitle: TextType;
-    leftRight: TextType & TextTypeWithSvgAndCss;
-    annotation: TextType;
-    dropCap: TextType;
-    al: TextType & TextTypeWithSvgAndCss;
+    supertitle: SingleTextType;
+    title: SingleTextType;
+    subtitle: SingleTextType;
+    leftRight: TextType & TextTypeWithSvgElem;
+    annotation: TextType & TextTypeWithSvgElem;
+    dropCap: SingleTextType;
+    al: TextType & TextTypeWithSvgElem;
     choralSign: Omit<TextType, "defaultSize"> & {
       /** choral signs are sized relative to the staff, not the lyrics */
       size(ctxt: ChantContext): number;
