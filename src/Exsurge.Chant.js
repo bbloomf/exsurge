@@ -705,13 +705,6 @@ export class ChantScore {
       return; // nothing to do here!
     }
 
-    if (ctxt.onFontLoaded) {
-      ctxt.onFontLoaded.push(() =>
-        this.performLayoutAsync(ctxt, finishedCallback)
-      );
-      return;
-    }
-
     this.waitForLyricFont(ctxt, () => {
       this.initializeLayout(ctxt);
 

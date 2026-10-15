@@ -75,6 +75,17 @@ describe('Asynchronous layout', function() {
     });
   });
 
+  it('does not wait for the old ctxt.onFontLoaded callbacks', function() {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: palatino });
+    ctxt.onFontLoaded = [];
+    var score = createScore(ctxt);
+    return performLayoutAsync(ctxt, score).then(function() {
+      assertLaidOut(score);
+      assert.deepEqual(ctxt.onFontLoaded, []);
+    });
+  });
+
   it('lays out with no lyric font at all', function() {
     var ctxt = new Drawing.ChantContext();
     ctxt.fontLoadTimeout = 300;
