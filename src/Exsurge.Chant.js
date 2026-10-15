@@ -30,7 +30,7 @@ import {
   Annotation, ChantLayoutElement,
   ChantNotationElement,
   GlyphCode,
-  GlyphVisualizer, QuickSvg, TextLeftRight,
+  GlyphVisualizer, Lyric, LyricType, QuickSvg, TextLeftRight,
   TextMeasuringStrategy,
   TextSpan
 } from "./Exsurge.Drawing.js";
@@ -737,6 +737,18 @@ export class ChantScore {
       return;
     }
 
+    // the fonts that the hyphen is measured in, which a lyric prefix such as
+    // <i> can make differ from the plain lyric font.
+    const hyphen = new Lyric(
+      ctxt,
+      ctxt.syllableConnector,
+      LyricType.SingleSyllable
+    );
+    const hyphenFonts = hyphen.spans.map((span) => ({
+      font: hyphen.getCanvasFontForProperties(ctxt, span.properties),
+      text: span.text
+    }));
+
     const fonts =
       ctxt.textMeasuringStrategy !== TextMeasuringStrategy.OpenTypeJS &&
       typeof document !== "undefined" &&
@@ -744,11 +756,9 @@ export class ChantScore {
     if (fonts) {
       // the browser knows whether the font is still loading, so ask it
       // rather than polling until the deadline.
-      const { size, font } = ctxt.textStyles.lyric;
-      const cssFont = `${size}px ${font}`;
       let loaded;
       try {
-        loaded = fonts.check(cssFont, ctxt.syllableConnector);
+        loaded = hyphenFonts.every(({ font, text }) => fonts.check(font, text));
       } catch (e) {
         loaded = true; // not a valid CSS font, so there's nothing to wait for
       }
@@ -769,7 +779,9 @@ export class ChantScore {
       // finish from a timer rather than from the promise, so that layout
       // errors aren't swallowed as unhandled rejections.
       const finishSoon = () => setTimeout(finish, 0);
-      fonts.load(cssFont, ctxt.syllableConnector).then(finishSoon, finishSoon);
+      Promise.all(
+        hyphenFonts.map(({ font, text }) => fonts.load(font, text))
+      ).then(finishSoon, finishSoon);
       return;
     }
 

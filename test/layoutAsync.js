@@ -147,6 +147,35 @@ describe('Asynchronous layout', function() {
       });
     });
 
+    it('asks document.fonts about the face that the hyphen is drawn in', function() {
+      var ctxt = new Drawing.ChantContext();
+      ctxt.setFont("'Webfont', serif", 16);
+      ctxt.textStyles.lyric.prefix = '<i>';
+      var font = fakeFont(0.8);
+      useFakeCanvas(ctxt, function() { return font; });
+      ctxt.fontLoadTimeout = 5000;
+      var checked = [], loaded = [];
+      global.document = {
+        fonts: {
+          check: function(fontString, text) {
+            checked.push([fontString, text]);
+            return false;
+          },
+          load: function(fontString, text) {
+            loaded.push([fontString, text]);
+            font = palatino;
+            return Promise.resolve([{}]);
+          }
+        }
+      };
+      var score = createScore(ctxt);
+      return performLayoutAsync(ctxt, score).then(function() {
+        assertLaidOut(score);
+        assert.deepEqual(checked, [["italic 14.4px 'Webfont', serif", '-']]);
+        assert.deepEqual(loaded, [["italic 14.4px 'Webfont', serif", '-']]);
+      });
+    });
+
     it('stops waiting for a font that never finishes loading', function() {
       var ctxt = new Drawing.ChantContext();
       ctxt.setFont("'Webfont', serif", 16);
