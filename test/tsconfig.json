@@ -1,0 +1,13 @@
+{
+  // type-checks src/index.d.ts, and test/types.ts against it (npm run test:types)
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "es2020",
+    "lib": ["es2020", "dom"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["opentype.js"]
+  },
+  "files": ["types.ts", "../src/index.d.ts"]
+}

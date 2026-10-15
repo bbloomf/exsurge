@@ -9,10 +9,32 @@ declare module "exsurge" {
   type Rect = unknown;
   type ExsurgeLanguage = unknown;
   type ChantNotationElement = unknown;
-  /** e.g. a Lyric, Title, DropCap or Annotation */
-  type TextElement = unknown;
+  /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
+  export interface TextElement {
+    /** the text, split up by style */
+    spans: TextSpan[];
+    /** the text as given, without its text style's prefix */
+    sourceGabc?: string;
+    bounds: Rect;
+    /**
+     * The matching element in score (see TextType.getFromScore()).  For title
+     * text, score needs titles.
+     */
+    getFromScore(score: ChantScore): TextElement | null | undefined;
+  }
   
-  export interface Titles {
+  export class Titles {
+    constructor(
+      ctxt: ChantContext,
+      score: ChantScore,
+      titles?: {
+        supertitle?: string;
+        title?: string;
+        subtitle?: string;
+        textLeft?: string;
+        textRight?: string;
+      }
+    );
     score: ChantScore;
     // each is null when the score doesn't have it:
     supertitle: TextElement | null;
@@ -30,6 +52,12 @@ declare module "exsurge" {
     setSubtitle(ctxt: ChantContext, subtitle: string): void;
     setTextLeft(ctxt: ChantContext, textLeft: string): void;
     setTextRight(ctxt: ChantContext, textRight: string): void;
+    /** Lays out the titles across width, and returns their total height. */
+    layoutTitles(ctxt: ChantContext, width: number): number;
+    draw(ctxt: ChantContext, scale?: number): void;
+    createSvgNode(ctxt: ChantContext): SVGGElement;
+    createSvgTree(ctxt: ChantContext): SvgTreeNode;
+    createSvgFragment(ctxt: ChantContext): string;
   }
 
   export interface Language {
@@ -65,7 +93,13 @@ declare module "exsurge" {
   }
 
   export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
-  interface TextType {
+  /**
+   * A score with titles.  A score made without a ChantContext, or a later page
+   * from paginate(), has none.
+   */
+  export type ScoreWithTitles = ChantScore & { titles: Titles };
+
+  interface TextType<Score = ChantScore> {
     display: string;
     /** this type's key in TextTypes (set when exsurge loads) */
     key: keyof TextTypes;
@@ -73,27 +107,27 @@ declare module "exsurge" {
     cssClass: string;
 
     defaultSize(size: number): number;
-    containedInScore(score: ChantScore): boolean;
+    containedInScore(score: Score): boolean;
     /**
      * Returns the element in score that matches elem, a text element of this
      * type (e.g. from before the score was updated), or null or undefined if
      * there isn't one.
      */
     getFromScore(
-      score: ChantScore,
+      score: Score,
       elem: TextElement
     ): TextElement | null | undefined;
   }
 
   /** a text type that a score has at most one of, so elem isn't needed */
-  interface SingleTextType extends TextType {
-    getFromScore(score: ChantScore, elem?: TextElement): TextElement | null;
+  interface SingleTextType<Score = ChantScore> extends TextType<Score> {
+    getFromScore(score: Score, elem?: TextElement): TextElement | null;
   }
 
-  interface TextTypeWithSvgElem {
+  interface TextTypeWithSvgElem<Score = ChantScore> {
     /** Returns the element in score that elem, an svg text element, shows. */
     getFromSvgElem(
-      score: ChantScore,
+      score: Score,
       elem: Element
     ): TextElement | null | undefined;
   }
@@ -149,15 +183,15 @@ declare module "exsurge" {
    * A gabc header.  Each field is set under its gabc name (e.g. "office-part")
    * and, if different, its camelCase name (e.g. "officePart").  A field that
    * appears more than once also gets an array of all its values, e.g.
-   * "commentaryArray".
+   * "commentaryArray".  Fields that aren't in the header are undefined.
    *
    * This is an intersection rather than a class so that the index signatures
    * don't have to allow the types of the members above.
    */
   export type GabcHeader = GabcHeaderMembers & {
-    [key: `${string}Array`]: string[];
+    [key: `${string}Array`]: string[] | undefined;
   } & {
-    [key: string]: string;
+    [key: string]: string | undefined;
   };
   export const GabcHeader: {
     new (text?: string): GabcHeader;
@@ -206,15 +240,15 @@ declare module "exsurge" {
      * Not read by exsurge; available for clients to track whether they need
      * to pass `force` to performLayout().
      */
-    forceLayout: boolean;
+    forceLayout?: boolean;
     pages: ChantScore[];
     selection?: Selection;
     copyLines(startLine: number, endLine: number): ChantScore;
     updateSelection(selection: Selection): void;
     /**
-     * @param zoom a number sets the width to zoom times the score's width and
-     * leaves out the height; `true` leaves out both, so that the svg fills its
-     * container.
+     * @param zoom a nonzero number sets the width to zoom times the score's
+     * width and leaves out the height (0 makes the width 0 and keeps the
+     * height); `true` leaves out both, so that the svg fills its container.
      */
     createSvgTree(ctxt: ChantContext, zoom?: number | boolean): SvgTreeNode;
     createSvgNode(ctxt: ChantContext): SVGSVGElement;
@@ -228,7 +262,6 @@ declare module "exsurge" {
     draw(ctxt: ChantContext, scale?: number): void;
     recreateDropCap(ctxt: ChantContext): void;
     updateNotations(ctxt: ChantContext): void;
-    initializeLayout(ctxt: ChantContext): void;
     performLayout(ctxt: ChantContext, forceLayout?: boolean): void;
     /**
      * Lays out the notations a few at a time, so as not to block the UI
@@ -241,11 +274,6 @@ declare module "exsurge" {
      * at most ctxt.fontLoadTimeout milliseconds.
      */
     waitForLyricFont(ctxt: ChantContext, ready: () => void): void;
-    layoutElementsAsync(
-      ctxt: ChantContext,
-      index: number,
-      finishedCallback?: () => void
-    ): void;
     layoutChantLines(
       ctxt: ChantContext,
       width: number,
@@ -259,10 +287,10 @@ declare module "exsurge" {
   };
 
   export interface TextTypes {
-    supertitle: SingleTextType;
-    title: SingleTextType;
-    subtitle: SingleTextType;
-    leftRight: TextType & TextTypeWithSvgElem;
+    supertitle: SingleTextType<ScoreWithTitles>;
+    title: SingleTextType<ScoreWithTitles>;
+    subtitle: SingleTextType<ScoreWithTitles>;
+    leftRight: TextType<ScoreWithTitles> & TextTypeWithSvgElem<ScoreWithTitles>;
     annotation: TextType & TextTypeWithSvgElem;
     dropCap: SingleTextType;
     al: TextType & TextTypeWithSvgElem;
@@ -294,12 +322,15 @@ declare module "exsurge" {
     alignment?: string;
   }
   export interface TextStyleWithPadding {
-    /**
-     * For the drop cap and annotation, the minimum padding on either side, in
-     * staff intervals (defaults to 1).  For titles and left/right text, a
-     * multiplier of the default padding (defaults to 1).
-     */
+    /** A multiplier of the default padding.  Unset or 0 means 1. */
     padding?: number;
+  }
+  export interface TextStyleWithStaffPadding {
+    /**
+     * The minimum padding on either side, in staff intervals.  ChantContext's
+     * constructor sets it to 1, and nothing falls back to 1 if it's unset.
+     */
+    padding: number;
   }
 
   export type TextTypeStyles = {
@@ -309,9 +340,30 @@ declare module "exsurge" {
     title: TextStyleWithAlignment & TextStyleWithPadding;
     subtitle: TextStyleWithAlignment & TextStyleWithPadding;
     leftRight: TextStyleWithPadding;
-    annotation: TextStyleWithPadding;
-    dropCap: TextStyleWithPadding;
+    annotation: TextStyleWithStaffPadding;
+    dropCap: TextStyleWithStaffPadding;
+    choralSign: {
+      /**
+       * Has no effect: choral signs are sized by the staff (see
+       * TextTypes.choralSign.size()), and setGlyphScaling() resets this.
+       */
+      size: number;
+    };
   };
+
+  /** a fontkit font, as far as exsurge uses one (fontkit's Font fits this) */
+  interface FontkitFont {
+    unitsPerEm: number;
+    layout(
+      text: string,
+      features?: { [feature: string]: boolean }
+    ): {
+      advanceWidth: number;
+      bbox: { minX: number; maxY: number; height: number };
+    };
+  }
+  /** a font that exsurge can measure text with */
+  type MeasuringFont = import('opentype.js').Font | FontkitFont;
 
   export class ChantContext {
     constructor(textMeasuringStrategy?: TextMeasuringStrategy);
@@ -326,8 +378,8 @@ declare module "exsurge" {
     getFontForProperties(
       properties?: { "font-style"?: string; "font-weight"?: string },
       fontFamily?: string
-    ): import('opentype.js').Font | undefined;
-    fontDictionary?: { [key: string]: import('opentype.js').Font };
+    ): MeasuringFont | undefined;
+    fontDictionary?: { [key: string]: MeasuringFont };
 
     /**
      * Each text type's size, font, color, etc.  setFont() resets the size,
@@ -355,7 +407,7 @@ declare module "exsurge" {
     };
     /** maps a markup symbol (e.g. "*") to a fontStyleDictionary tag (e.g. "b") */
     markupSymbolDictionary: { [symbol: string]: string };
-    editable: boolean;
+    editable?: boolean;
     useExtraTextOnly: boolean;
     /** prefix for the id of each note's svg element; defaults to "note-" */
     noteIdPrefix: string;
@@ -386,9 +438,10 @@ declare module "exsurge" {
     minLyricWordSpacing: number;
     /**
      * minLyricWordSpacing / hyphenWidth, as of the last hyphen that had a
-     * width; updateHyphenWidth() keeps minLyricWordSpacing at this ratio.
+     * width; updateHyphenWidth() keeps minLyricWordSpacing at this ratio.  It
+     * recomputes this from minLyricWordSpacing, so set that instead.
      */
-    minLyricWordSpacingRatio?: number;
+    readonly minLyricWordSpacingRatio?: number;
 
     maxExtraSpaceInStaffIntervals: number;
 
@@ -441,13 +494,13 @@ declare module "exsurge" {
       font: string,
       size?: number,
       baseStyle?: any,
-      fontDictionary?: { [key: string]: import('opentype.js').Font }
+      fontDictionary?: { [key: string]: MeasuringFont }
     ): void;
     setRubricColor(color: string): void;
     setMergeAnnotationWithTextLeft(merge: boolean): void;
     setScaleDefs(scaleDefs: boolean): void;
     createStyleCss(): string;
-    createStyleNode(): HTMLOrSVGElement;
+    createStyleNode(): SVGStyleElement;
     createStyleTree(): { name: "style"; props: {}; children: [string] };
     createStyle(): string;
     updateHyphenWidth(): void;
