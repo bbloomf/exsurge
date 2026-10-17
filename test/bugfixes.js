@@ -41,4 +41,11 @@ describe('Neume layout', function() {
     assert.equal(lines[1].bounds.x, 0);
   });
 
+  it('adds the line of a pes quassus only once', function() {
+    var neume = layoutNotations('(c4) a(goi)')[0];
+    assert(neume instanceof Neumes.PesQuassus);
+    neume.visualizers.forEach(function(visualizer, index) {
+      assert.equal(neume.visualizers.indexOf(visualizer), index);
+    });
+  });
 });
