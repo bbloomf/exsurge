@@ -51,6 +51,14 @@ describe('Neume layout', function() {
 });
 
 describe('Lyric parsing', function() {
+  it('strips trailing whitespace from a lyric after a |', function() {
+    var ctxt = new Drawing.ChantContext();
+    var mappings = Gabc.createMappingsFromSource(ctxt, '(c4) a|bus\t (g)');
+    var lyrics = mappings[1].notations[0].lyrics;
+    assert.deepEqual(lyrics.map(function(lyric) { return lyric.text; }), ['a', 'bus']);
+    assert.equal(lyrics[1].lyricType, Drawing.LyricType.EndingSyllable);
+  });
+
   it('only gives lyrics that allow a connector a connector span', function() {
     var ctxt = new Drawing.ChantContext();
     assert(new Drawing.Lyric(ctxt, 'a', Drawing.LyricType.BeginningSyllable).connectorSpan);

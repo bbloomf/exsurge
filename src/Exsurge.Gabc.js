@@ -724,7 +724,7 @@ export class Gabc {
 
       if (i > 0) {
         if (lyricText.match(/\s$/)) {
-          lyricText = lyricText.replace(/s+$/, "");
+          lyricText = lyricText.replace(/\s+$/, "");
           proposedLyricType = LyricType.EndingSyllable;
         } else {
           proposedLyricType = LyricType.MiddleSyllable;
