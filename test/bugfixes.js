@@ -67,3 +67,13 @@ describe('Lyric parsing', function() {
     assert.equal(new Drawing.Lyric(ctxt, 'a', Drawing.LyricType.EndingSyllable).connectorSpan, undefined);
   });
 });
+
+describe('Neume spacing', function() {
+  it('allows a line break between neumes separated by a space', function() {
+    var neumes = layoutNotations('(c4) a(f/g//h fg!h)');
+    assert.deepEqual(
+      neumes.map(function(neume) { return !!neume.allowLineBreakBeforeNext; }),
+      [true, true, true, false, false]
+    );
+  });
+});

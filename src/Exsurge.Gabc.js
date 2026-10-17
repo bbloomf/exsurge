@@ -1582,7 +1582,12 @@ export class Gabc {
         neumes[neumes.length - 1].trailingSpace = finalTrailingSpace;
         neumes[neumes.length - 1].keepWithNext = true;
 
-        if (finalTrailingSpace > 0)
+        // finalTrailingSpace is either 0 or a function of the context
+        if (
+          typeof finalTrailingSpace === "function"
+            ? finalTrailingSpace(ctxt) > 0
+            : finalTrailingSpace > 0
+        )
           neumes[neumes.length - 1].allowLineBreakBeforeNext = neumes[
             neumes.length - 1
           ].keepWithNext = true;
