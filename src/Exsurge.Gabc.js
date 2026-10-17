@@ -1804,7 +1804,7 @@ export class Gabc {
         
         case "V":
           note.shape = NoteShape.Virga;
-          note.shapeModifers |= NoteShapeModifiers.Reverse;
+          note.shapeModifiers |= NoteShapeModifiers.Reverse;
           break;
 
         case "w":

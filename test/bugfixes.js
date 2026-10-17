@@ -27,3 +27,18 @@ describe('Spanish syllabification', function() {
     ]);
   });
 });
+
+describe('Neume layout', function() {
+  it('draws a reverse virga with its line on the left', function() {
+    var virgas = layoutNotations('(c4) a(gv) b(gV)');
+    assert.equal(virgas.length, 2);
+    var lines = virgas.map(function(virga) {
+      assert(virga instanceof Neumes.Virga);
+      return virga.visualizers[virga.visualizers.length - 1];
+    });
+    assert.equal(virgas[1].notes[0].shapeModifiers & Chant.NoteShapeModifiers.Reverse, Chant.NoteShapeModifiers.Reverse);
+    assert(lines[0].bounds.x > 0);
+    assert.equal(lines[1].bounds.x, 0);
+  });
+
+});

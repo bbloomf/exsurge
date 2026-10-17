@@ -133,7 +133,7 @@ class NeumeBuilder {
     // add a line for the virga
     var line = new VirgaLineVisualizer(this.ctxt, note);
     this.x -= line.bounds.width;
-    if (note.shapeModifers & NoteShapeModifiers.Reverse) {
+    if (note.shapeModifiers & NoteShapeModifiers.Reverse) {
       line.bounds.x = 0;
     } else {
       line.bounds.x = this.x;
