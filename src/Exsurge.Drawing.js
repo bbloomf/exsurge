@@ -47,6 +47,25 @@ function getFontFilenameForProperties(properties = {}, url = "{}") {
 
 const canAccessDOM = typeof document !== "undefined";
 
+// TextSpans keep their merged properties until this changes, which it does
+// whenever any ChantContext's text styles change (see clearTextCache()).
+let __textStyleVersion = 0;
+
+// bumped whenever the browser finishes loading a web font, which changes what
+// text measured on a canvas in that font comes to.
+let __fontLoadGeneration = 0;
+let __listeningForFontLoads = false;
+function listenForFontLoads() {
+  if (__listeningForFontLoads) return;
+  const fonts = typeof document !== "undefined" && document.fonts;
+  if (!fonts || typeof fonts.addEventListener !== "function") return;
+  __listeningForFontLoads = true;
+  fonts.addEventListener("loadingdone", () => __fontLoadGeneration++);
+}
+
+// how many measurements a ChantContext remembers before starting over
+const __maxCachedTextMetrics = 20000;
+
 const __getNeumeFromSvgElem = (score, elem) => {
   let note =
     score.notes[
@@ -492,6 +511,8 @@ export class ChantContext {
      * @type {{ [key: string]: import('opentype.js').Font }}
      */
     this.fontDictionary = undefined;
+    this.clearTextCache();
+    listenForFontLoads();
     this.staffLineCount = 4;
     this.textMeasuringStrategy = textMeasuringStrategy;
     this.getFontFilenameForProperties = getFontFilenameForProperties;
@@ -715,12 +736,126 @@ export class ChantContext {
       this.textMeasuringStrategy = TextMeasuringStrategy.OpenTypeJS;
       this.fontDictionary = fontDictionary;
     }
+    this.clearTextCache();
   }
 
   setRubricColor(color) {
     this.rubricColor = color;
     this.specialCharProperties.fill = color;
     this.fontStyleDictionary.c.fill = color;
+    this.clearTextCache();
+  }
+
+  /**
+   * Forgets the text measurements and the merged text span styles that are
+   * kept to speed up layout.  setFont(), setRubricColor() and the like call
+   * this, as does the loading of a web font where document.fonts can say so;
+   * call it after changing fontStyleDictionary, specialCharProperties,
+   * asteriskProperties or plusProperties directly once text has been created,
+   * or after a font has loaded that document.fonts doesn't know about.
+   */
+  clearTextCache() {
+    // maps whatever measures the text (a canvas context or a font) to a map
+    // from what was measured to its metrics
+    this.textMetricsCache = new Map();
+    this.textMetricsCacheSize = 0;
+    this.fontLoadGeneration = __fontLoadGeneration;
+    __textStyleVersion++;
+  }
+
+  /**
+   * @param {object} measurer what measures the text: a canvas context or a font
+   * @returns {Map<string, any>} the measurements made with it so far
+   */
+  getTextMetricsCache(measurer) {
+    if (
+      this.fontLoadGeneration !== __fontLoadGeneration ||
+      this.textMetricsCacheSize >= __maxCachedTextMetrics
+    )
+      this.clearTextCache();
+    let cache = this.textMetricsCache.get(measurer);
+    if (!cache) {
+      cache = new Map();
+      this.textMetricsCache.set(measurer, cache);
+    }
+    return cache;
+  }
+
+  cacheTextMetrics(cache, key, metrics) {
+    cache.set(key, metrics);
+    this.textMetricsCacheSize++;
+    return metrics;
+  }
+
+  /**
+   * measures text on this.canvasCtxt in the given CSS font, setting the
+   * canvas's font only if the text hasn't been measured in that font yet
+   * @param {string} font
+   * @param {string} text
+   * @returns {TextMetrics}
+   */
+  measureCanvasText(font, text) {
+    const canvasCtxt = this.canvasCtxt;
+    const cache = this.getTextMetricsCache(canvasCtxt);
+    // the alignment moves the bounding box, and draw() leaves it set
+    const key = canvasCtxt.textAlign + "\0" + font + "\0" + text;
+    let metrics = cache.get(key);
+    if (!metrics) {
+      if (canvasCtxt.font !== font) canvasCtxt.font = font;
+      metrics = this.cacheTextMetrics(cache, key, canvasCtxt.measureText(text));
+    }
+    return metrics;
+  }
+
+  /**
+   * lays out text with a fontkit font, in font units
+   * @param {import('fontkit').Font} font
+   * @param {string} text
+   * @param {boolean} smallCaps
+   * @returns {{ advanceWidth: number, bbox: { minX: number, maxY: number, height: number } }}
+   */
+  layoutFontkitText(font, text, smallCaps) {
+    const cache = this.getTextMetricsCache(font);
+    const key = (smallCaps ? "c" : "-") + text;
+    let metrics = cache.get(key);
+    if (!metrics) {
+      const features = { liga: true };
+      if (smallCaps) features.smcp = true;
+      const run = font.layout(text, features);
+      // keep just the numbers rather than the whole glyph run
+      metrics = this.cacheTextMetrics(cache, key, {
+        advanceWidth: run.advanceWidth,
+        bbox: run.bbox
+      });
+    }
+    return metrics;
+  }
+
+  /**
+   * measures text drawn with an opentype.js font at (x, y)
+   * @param {import('opentype.js').Font} font
+   * @param {string} text
+   * @param {number} x
+   * @param {number} y
+   * @param {number} fontSize
+   * @param {boolean} smallCaps
+   * @returns {{ advanceWidth: number, bbox: import('opentype.js').BoundingBox }}
+   */
+  measureOpenTypeText(font, text, x, y, fontSize, smallCaps) {
+    const cache = this.getTextMetricsCache(font);
+    // the bounding box comes out slightly differently depending on where
+    // the path is, so where it is is part of the key
+    const key = `${x},${y},${fontSize},${smallCaps ? "c" : "-"},${text}`;
+    let metrics = cache.get(key);
+    if (!metrics) {
+      const options = { features: { liga: true } };
+      if (smallCaps) options.features.smcp = true;
+      metrics = this.cacheTextMetrics(cache, key, {
+        bbox: font.getPath(text, x, y, fontSize, options).getBoundingBox(),
+        advanceWidth: font.getAdvanceWidth(text, fontSize, options)
+      });
+    }
+    return metrics;
   }
 
   setMergeAnnotationWithTextLeft(merge) {
@@ -800,6 +935,8 @@ export class ChantContext {
     this.episemaLineWeight = this.neumeLineWeight * 1.25; // of horizontal episemata
 
     this.intraNeumeSpacing = this.staffInterval / 2.0;
+
+    this.clearTextCache();
 
     // some text (e.g., choral signs) is sized by the staff rather than by the
     // font size given to setFont(), so keep its style in step with the staff.
@@ -1757,11 +1894,38 @@ export class TextSpan {
     }
   }
 
+  /**
+   * the styles in propertyArray merged together, which must not be modified.
+   * They're kept until the text styles change (see ChantContext.clearTextCache()),
+   * since the objects in propertyArray belong to the ChantContext.
+   */
+  get mergedProperties() {
+    if (this.propertiesVersion !== __textStyleVersion) {
+      this.propertiesVersion = __textStyleVersion;
+      this.cachedProperties = Object.assign.apply(null, [{}].concat(this.propertyArray));
+      this.cachedCss = undefined;
+    }
+    return this.cachedProperties;
+  }
+
   get properties() {
-    const result = Object.assign.apply(null, [{}].concat(this.propertyArray).concat());
+    const result = Object.assign({}, this.mergedProperties);
     if ('xOffset' in this) result.xOffset = this.xOffset;
     if ('newLine' in this) result.newLine = this.newLine;
     return result;
+  }
+
+  /**
+   * @returns {string} the same as getCssForProperties(this.properties)
+   */
+  getCss() {
+    const properties = this.mergedProperties;
+    if (this.cachedCss === undefined)
+      this.cachedCss = getCssForProperties(properties);
+    let css = this.cachedCss;
+    if (this.xOffset) css += `xOffset: ${this.xOffset};`;
+    if (this.newLine) css += `newLine: ${this.newLine};`;
+    return css;
   }
 
   clone() {
@@ -2098,7 +2262,7 @@ export class TextElement extends ChantLayoutElement {
       var lines = -length;
       length = Infinity;
     }
-    var canvasCtxt = ctxt.canvasCtxt;
+    var strategy = ctxt.textMeasuringStrategy;
     var width = 0;
     var widths = [];
     var newLineSpans = [this.spans[0]];
@@ -2119,15 +2283,10 @@ export class TextElement extends ChantLayoutElement {
         widths.push(width);
         width = 0;
       }
-      if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Canvas) {
-        canvasCtxt.font = this.getCanvasFontForProperties(
-          ctxt,
-          span.properties
-        );
-        let metrics = canvasCtxt.measureText(
-          myText,
-          width,
-          fontSize * (numLines - 1)
+      if (strategy === TextMeasuringStrategy.Canvas) {
+        let metrics = ctxt.measureCanvasText(
+          this.getCanvasFontForProperties(ctxt, span.mergedProperties),
+          myText
         );
         if ("actualBoundingBoxAscent" in metrics) {
           let left = metrics.actualBoundingBoxLeft;
@@ -2149,38 +2308,33 @@ export class TextElement extends ChantLayoutElement {
         }
         width += metrics.width;
       } else if (
-        ctxt.textMeasuringStrategy === TextMeasuringStrategy.OpenTypeJS &&
+        strategy === TextMeasuringStrategy.OpenTypeJS &&
         ctxt.fontDictionary
       ) {
         // get the bounding box for the substring, placing it at x = width, y = fontSize * (numLines - 1)
+        const properties = span.mergedProperties;
         let font = ctxt.getFontForProperties(
-          span.properties,
-          span.properties["font-family"] || this.fontFamily(ctxt)
+          properties,
+          properties["font-family"] || this.fontFamily(ctxt)
         );
-        /**
-         * @type {{ features: { liga: boolean; smcp?: boolean; } }}
-         */
-        let options = { features: { liga: true } };
-        if (span.properties["font-variant"] === "small-caps") {
-          options.features.smcp = true;
-        }
-        let spanFontSize = parseFloat(span.properties["font-size"]) || fontSize;
-        if (/%$/.test(span.properties["font-size"])) {
+        const smallCaps = properties["font-variant"] === "small-caps";
+        let spanFontSize = parseFloat(properties["font-size"]) || fontSize;
+        if (/%$/.test(properties["font-size"])) {
           spanFontSize *= fontSize / 100;
         }
         const y = fontSize * (numLines - 1);
         if ('getPath' in font) {
           // opentype.js
-          let subBbox = font
-            .getPath(
-              myText,
-              width,
-              y,
-              spanFontSize,
-              options
-            )
-            .getBoundingBox();
-          let subWidth = font.getAdvanceWidth(myText, spanFontSize, options);
+          const measured = ctxt.measureOpenTypeText(
+            font,
+            myText,
+            width,
+            y,
+            spanFontSize,
+            smallCaps
+          );
+          let subBbox = measured.bbox;
+          let subWidth = measured.advanceWidth;
           bbox.union(
             new Rect(
               width + subBbox.x1,
@@ -2195,7 +2349,7 @@ export class TextElement extends ChantLayoutElement {
           }
         } else {
           // fontkit
-          const run = font.layout(myText, options.features);
+          const run = ctxt.layoutFontkitText(font, myText, smallCaps);
           const { unitsPerEm }= font;
           const multiplier = spanFontSize / unitsPerEm;
           let subBbox = run.bbox;
@@ -2299,41 +2453,73 @@ export class TextElement extends ChantLayoutElement {
       } else {
         if (firstLineMaxWidth < 0) firstLineMaxWidth = maxWidth;
         this.firstLineMaxWidth = firstLineMaxWidth;
-        var lastWidth = 0,
-          lastMatch = null,
+        // the places where a line could break: each run of whitespace, and the end
+        var matches = [],
           regex = /\s+|$/g,
-          max = firstLineMaxWidth,
           match;
         while (
           (match = regex.exec(this.text)) &&
-          (!lastMatch || match.index > lastMatch.index)
-        ) {
-          var width = this.measureSubstring(ctxt, match.index);
-          if (width > max && lastMatch) {
-            var spanIndex = 0,
-              length = 0;
-            while (length < lastMatch.index && spanIndex < this.spans.length) {
-              let span = this.spans[spanIndex++];
-              length += span.text.length + (span.newLine ? 1 : 0);
-            }
-            if (length > lastMatch.index || spanIndex >= this.spans.length) {
-              let span = this.spans[--spanIndex];
-              length -= span.text.length;
-            }
-            var splitSpan = this.spans[spanIndex],
-              textLeft = splitSpan.text.slice(0, lastMatch.index - length),
-              textRight = splitSpan.text.slice(
-                lastMatch.index + lastMatch[0].length - length
-              ),
-              newSpans = [];
-            this.rightAligned =
-              max === firstLineMaxWidth && firstLineMaxWidth !== maxWidth;
+          (!matches.length || match.index > matches[matches.length - 1].index)
+        )
+          matches.push(match);
+        var max = firstLineMaxWidth,
+          // the first match on the current line, which is the first it can be
+          // broken at
+          lineStart = 0,
+          // how many characters of this.text the line breaks so far have taken
+          // out of the spans, so that an index into this.text is that many
+          // characters further on in the spans
+          removed = 0;
+        while (lineStart < matches.length) {
+          // the first match after lineStart at which the line is too wide.  The
+          // line is broken at the match before it.
+          var index = this.findFirstMatchWiderThan(
+            ctxt,
+            matches,
+            lineStart + 1,
+            max,
+            removed
+          );
+          if (index >= matches.length) break;
+          var lastMatch = matches[index - 1];
+          match = matches[index];
+          // find the span the whitespace to break at starts in
+          var breakStart = lastMatch.index - removed,
+            spanIndex = 0,
+            length = 0;
+          while (
+            spanIndex < this.spans.length - 1 &&
+            length + this.spans[spanIndex].text.length <= breakStart
+          ) {
+            length += this.spans[spanIndex++].text.length;
+          }
+          var splitSpan = this.spans[spanIndex],
+            nextSpan = this.spans[spanIndex + 1],
+            textLeft = splitSpan.text.slice(0, breakStart - length),
+            textRight = splitSpan.text.slice(
+              breakStart + lastMatch[0].length - length
+            ),
+            // whether a <br> already breaks the line next to the whitespace
+            alreadyBroken = textLeft
+              ? !textRight && nextSpan && nextSpan.newLine
+              : splitSpan.newLine;
+          this.rightAligned =
+            max === firstLineMaxWidth && firstLineMaxWidth !== maxWidth;
+          if (!alreadyBroken) {
+            let newSpans = [];
+            removed +=
+              splitSpan.text.length - textLeft.length - textRight.length;
             if (textLeft)
               newSpans.push(
                 new TextSpan(
                   textLeft,
                   splitSpan.propertyArray,
-                  splitSpan.activeTags
+                  splitSpan.activeTags,
+                  undefined,
+                  // keep the line break of a span that starts a line
+                  "newLine" in splitSpan
+                    ? { newLine: splitSpan.newLine }
+                    : undefined
                 )
               );
             if (textRight) {
@@ -2346,26 +2532,58 @@ export class TextElement extends ChantLayoutElement {
                   { newLine: true }
                 )
               );
-            } else if (this.spans[spanIndex + 1]) {
-              this.spans[spanIndex + 1].newLine = true;
+            } else if (nextSpan) {
+              nextSpan.newLine = true;
             }
             this.spans.splice(spanIndex, 1, ...newSpans);
             this.needsLayout = true;
-            max = maxWidth;
-            if (
-              match.index === this.text.length ||
-              this.measureSubstring(ctxt) <= maxWidth
-            )
-              break;
-            width = 0;
-            match = lastMatch = null;
           }
-          lastWidth = width;
-          lastMatch = match;
+          max = maxWidth;
+          if (
+            match.index === this.text.length ||
+            this.measureSubstring(ctxt) <= maxWidth
+          )
+            break;
+          lineStart = index;
         }
       }
       this.recalculateMetrics(ctxt, false);
     }
+  }
+
+  /**
+   * Finds the first of matches[start...] such that the text up to it is wider
+   * than max, measuring as few of them as it can.  The width of the text up to
+   * a match only grows from one match to the next, so this gallops forward and
+   * then searches back, rather than measuring the text up to each match.
+   * @param {ChantContext} ctxt
+   * @param {RegExpExecArray[]} matches
+   * @param {number} start
+   * @param {number} max
+   * @param {number} removed how many characters before the matches have been
+   * taken out of the spans
+   * @returns {number} the index of that match, or matches.length if there isn't one
+   */
+  findFirstMatchWiderThan(ctxt, matches, start, max, removed = 0) {
+    var isWider = (i) =>
+      this.measureSubstring(ctxt, matches[i].index - removed) > max;
+    // first gallop forward to bracket the match...
+    var low = start,
+      high = start,
+      step = 1;
+    while (high < matches.length && !isWider(high)) {
+      low = high + 1;
+      high += step;
+      step *= 2;
+    }
+    high = Math.min(high, matches.length);
+    // ...then search between the last one that fit and the first that didn't
+    while (low < high) {
+      var mid = (low + high) >> 1;
+      if (isWider(mid)) high = mid;
+      else low = mid + 1;
+    }
+    return low;
   }
 
   getCssClasses() {
@@ -2389,7 +2607,9 @@ export class TextElement extends ChantLayoutElement {
     else canvasCtxt.textAlign = "start";
 
     var translateWidth = 0,
-      translateHeight = 0;
+      translateHeight = 0,
+      extraStyleProperties = this.getExtraStyleProperties(ctxt),
+      font = null;
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
@@ -2407,10 +2627,11 @@ export class TextElement extends ChantLayoutElement {
       }
       var properties = Object.assign(
         {},
-        this.getExtraStyleProperties(ctxt),
-        span.properties
+        extraStyleProperties,
+        span.mergedProperties
       );
-      canvasCtxt.font = this.getCanvasFontForProperties(ctxt, properties);
+      var spanFont = this.getCanvasFontForProperties(ctxt, properties);
+      if (spanFont !== font) canvasCtxt.font = font = spanFont;
       canvasCtxt.fillStyle = properties.fill || "#000";
       canvasCtxt.fillText(
         span.text,
@@ -2418,11 +2639,7 @@ export class TextElement extends ChantLayoutElement {
         this.bounds.y,
         span.textLength || undefined
       );
-      var metrics = canvasCtxt.measureText(
-        span.text,
-        this.bounds.x,
-        this.bounds.y
-      );
+      var metrics = ctxt.measureCanvasText(font, span.text);
       translateWidth -= metrics.width;
       canvasCtxt.translate(metrics.width, 0);
     }
@@ -2441,12 +2658,11 @@ export class TextElement extends ChantLayoutElement {
   }
 
   getSpanOptions(span, ctxt, useStyleObject = false) {
+    var properties = span.mergedProperties;
     var options = {
       "source-index": span.index,
-      class: span.properties.class,
-      style: useStyleObject
-        ? Object.assign({}, span.properties)
-        : getCssForProperties(span.properties)
+      class: properties.class,
+      style: useStyleObject ? span.properties : span.getCss()
     };
 
     if (span.newLine) {
@@ -2463,7 +2679,7 @@ export class TextElement extends ChantLayoutElement {
     }
     if (this.resize) {
       options["font-size"] =
-        span.properties["font-size"] || this.fontSize(ctxt) * this.resize;
+        properties["font-size"] || this.fontSize(ctxt) * this.resize;
     }
     // if (ctxt.setFontFamilyAttributes) {
     //   options["font-family"] =
@@ -2867,7 +3083,7 @@ export class Lyric extends TextElement {
   generateDropCap(ctxt) {
     if (this.dropCap) return this.dropCap;
     // disallow special characters:
-    if (this.spans[0].properties['font-family'] === ctxt.specialCharProperties['font-family']) {
+    if (this.spans[0].mergedProperties['font-family'] === ctxt.specialCharProperties['font-family']) {
       return null;
     }
     let dropCapSpan = this.spans[0].clone();

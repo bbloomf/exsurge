@@ -771,6 +771,8 @@ export class ChantScore {
         if (done) return;
         done = true;
         clearTimeout(timeout);
+        // text measured while the font was loading was measured in another font
+        ctxt.clearTextCache();
         ctxt.updateHyphenWidth();
         ready();
       };
@@ -794,6 +796,8 @@ export class ChantScore {
     }
     const deadline = Date.now() + ctxt.fontLoadTimeout;
     const retry = () => {
+      // the font may have loaded since the hyphen was last measured
+      ctxt.clearTextCache();
       if (hasSaneHyphenWidth()) {
         ready();
       } else if (Date.now() >= deadline) {

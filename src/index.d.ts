@@ -497,6 +497,14 @@ declare module "exsurge" {
       fontDictionary?: { [key: string]: MeasuringFont }
     ): void;
     setRubricColor(color: string): void;
+    /**
+     * Forgets the text measurements and merged text span styles kept to speed
+     * up layout.  Call it after changing fontStyleDictionary,
+     * specialCharProperties, asteriskProperties or plusProperties directly once
+     * text has been created, or after a font has loaded that document.fonts
+     * doesn't know about.
+     */
+    clearTextCache(): void;
     setMergeAnnotationWithTextLeft(merge: boolean): void;
     setScaleDefs(scaleDefs: boolean): void;
     createStyleCss(): string;
