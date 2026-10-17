@@ -2463,8 +2463,13 @@ export class TextElement extends ChantLayoutElement {
         )
           matches.push(match);
         var max = firstLineMaxWidth,
-          // the first match on the current line, which can't be broken at
-          lineStart = 0;
+          // the first match on the current line, which is the first it can be
+          // broken at
+          lineStart = 0,
+          // how many characters of this.text the line breaks so far have taken
+          // out of the spans, so that an index into this.text is that many
+          // characters further on in the spans
+          removed = 0;
         while (lineStart < matches.length) {
           // the first match after lineStart at which the line is too wide.  The
           // line is broken at the match before it.
@@ -2472,59 +2477,74 @@ export class TextElement extends ChantLayoutElement {
             ctxt,
             matches,
             lineStart + 1,
-            max
+            max,
+            removed
           );
           if (index >= matches.length) break;
           var lastMatch = matches[index - 1];
           match = matches[index];
-          var spanIndex = 0,
+          // find the span the whitespace to break at starts in
+          var breakStart = lastMatch.index - removed,
+            spanIndex = 0,
             length = 0;
-          while (length < lastMatch.index && spanIndex < this.spans.length) {
-            let span = this.spans[spanIndex++];
-            length += span.text.length + (span.newLine ? 1 : 0);
-          }
-          if (length > lastMatch.index || spanIndex >= this.spans.length) {
-            let span = this.spans[--spanIndex];
-            length -= span.text.length;
+          while (
+            spanIndex < this.spans.length - 1 &&
+            length + this.spans[spanIndex].text.length <= breakStart
+          ) {
+            length += this.spans[spanIndex++].text.length;
           }
           var splitSpan = this.spans[spanIndex],
-            textLeft = splitSpan.text.slice(0, lastMatch.index - length),
+            nextSpan = this.spans[spanIndex + 1],
+            textLeft = splitSpan.text.slice(0, breakStart - length),
             textRight = splitSpan.text.slice(
-              lastMatch.index + lastMatch[0].length - length
+              breakStart + lastMatch[0].length - length
             ),
-            newSpans = [];
+            // whether a <br> already breaks the line next to the whitespace
+            alreadyBroken = textLeft
+              ? !textRight && nextSpan && nextSpan.newLine
+              : splitSpan.newLine;
           this.rightAligned =
             max === firstLineMaxWidth && firstLineMaxWidth !== maxWidth;
-          if (textLeft)
-            newSpans.push(
-              new TextSpan(
-                textLeft,
-                splitSpan.propertyArray,
-                splitSpan.activeTags
-              )
-            );
-          if (textRight) {
-            newSpans.push(
-              new TextSpan(
-                textRight,
-                splitSpan.propertyArray,
-                splitSpan.activeTags,
-                undefined,
-                { newLine: true }
-              )
-            );
-          } else if (this.spans[spanIndex + 1]) {
-            this.spans[spanIndex + 1].newLine = true;
+          if (!alreadyBroken) {
+            let newSpans = [];
+            removed +=
+              splitSpan.text.length - textLeft.length - textRight.length;
+            if (textLeft)
+              newSpans.push(
+                new TextSpan(
+                  textLeft,
+                  splitSpan.propertyArray,
+                  splitSpan.activeTags,
+                  undefined,
+                  // keep the line break of a span that starts a line
+                  "newLine" in splitSpan
+                    ? { newLine: splitSpan.newLine }
+                    : undefined
+                )
+              );
+            if (textRight) {
+              newSpans.push(
+                new TextSpan(
+                  textRight,
+                  splitSpan.propertyArray,
+                  splitSpan.activeTags,
+                  undefined,
+                  { newLine: true }
+                )
+              );
+            } else if (nextSpan) {
+              nextSpan.newLine = true;
+            }
+            this.spans.splice(spanIndex, 1, ...newSpans);
+            this.needsLayout = true;
           }
-          this.spans.splice(spanIndex, 1, ...newSpans);
-          this.needsLayout = true;
           max = maxWidth;
           if (
             match.index === this.text.length ||
             this.measureSubstring(ctxt) <= maxWidth
           )
             break;
-          lineStart = index + 1;
+          lineStart = index;
         }
       }
       this.recalculateMetrics(ctxt, false);
@@ -2540,10 +2560,13 @@ export class TextElement extends ChantLayoutElement {
    * @param {RegExpExecArray[]} matches
    * @param {number} start
    * @param {number} max
+   * @param {number} removed how many characters before the matches have been
+   * taken out of the spans
    * @returns {number} the index of that match, or matches.length if there isn't one
    */
-  findFirstMatchWiderThan(ctxt, matches, start, max) {
-    var isWider = (i) => this.measureSubstring(ctxt, matches[i].index) > max;
+  findFirstMatchWiderThan(ctxt, matches, start, max, removed = 0) {
+    var isWider = (i) =>
+      this.measureSubstring(ctxt, matches[i].index - removed) > max;
     // first gallop forward to bracket the match...
     var low = start,
       high = start,

@@ -157,25 +157,69 @@ describe('Text measurement', function() {
     var words = 'Ad te levávi ánimam meam Deus meus in te confído non erubéscam neque irrídeant me inimíci mei'.split(' ');
     var title = new Drawing.Title(ctxt, words.join(' '));
     var charWidth = ctxt.textStyles.title.size / 2;
-    // (breaking into more than two lines loses line breaks, which is a bug of its own)
-    var maxWidth = 60 * charWidth;
-    title.setMaxWidth(ctxt, maxWidth);
 
+    function lines() {
+      var result = [''];
+      title.spans.forEach(function(span) {
+        if (span.newLine) result.push('');
+        result[result.length - 1] += span.text;
+      });
+      return result;
+    }
+
+    function wrap(chars) {
+      var maxWidth = chars * charWidth;
+      title.setMaxWidth(ctxt, maxWidth);
+      var result = lines();
+      assert.deepEqual(result.join(' ').split(' '), words);
+      result.forEach(function(line, i) {
+        assert(line.length * charWidth <= maxWidth, JSON.stringify(line) + ' is too wide');
+        // the next line's first word wouldn't have fit on this line
+        if (i + 1 < result.length) {
+          var next = line + ' ' + result[i + 1].split(' ')[0];
+          assert(next.length * charWidth > maxWidth, JSON.stringify(next) + ' would have fit');
+        }
+      });
+      assert.strictEqual(title.numLines, result.length);
+      return result;
+    }
+
+    assert.strictEqual(wrap(60).length, 2);
+    assert.deepEqual(wrap(20), [
+      'Ad te levávi ánimam',
+      'meam Deus meus in te',
+      'confído non',
+      'erubéscam neque',
+      'irrídeant me inimíci',
+      'mei'
+    ]);
+    // a line can hold a single word, when the next one wouldn't fit with it
+    assert.deepEqual(wrap(14), [
+      'Ad te levávi',
+      'ánimam meam',
+      'Deus meus in',
+      'te confído non',
+      'erubéscam',
+      'neque',
+      'irrídeant me',
+      'inimíci mei'
+    ]);
+    // and wrapping again starts over
+    assert.strictEqual(wrap(1000).length, 1);
+    assert.strictEqual(wrap(20).length, 6);
+  });
+
+  it('wraps text with line breaks and markup in it', function() {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Fake', 16, {}, { Regular: countingFont() });
+    var title = new Drawing.Title(ctxt, 'Ad te <i>levávi</i> ánimam<br>meam Deus meus <i>in te confído</i> non erubéscam');
+    title.setMaxWidth(ctxt, 12 * ctxt.textStyles.title.size / 2);
     var lines = [''];
     title.spans.forEach(function(span) {
       if (span.newLine) lines.push('');
       lines[lines.length - 1] += span.text;
     });
-    assert.deepEqual(lines.join(' ').split(' '), words);
-    lines.forEach(function(line, i) {
-      assert(line.length * charWidth <= maxWidth, JSON.stringify(line) + ' is too wide');
-      // the next line's first word wouldn't have fit on this line
-      if (i + 1 < lines.length) {
-        var next = line + ' ' + lines[i + 1].split(' ')[0];
-        assert(next.length * charWidth > maxWidth, JSON.stringify(next) + ' would have fit');
-      }
-    });
-    assert.strictEqual(lines.length, 2);
-    assert.strictEqual(title.numLines, 2);
+    assert.deepEqual(lines, ['Ad te levávi', 'ánimam', 'meam Deus', 'meus in te', 'confído non', 'erubéscam']);
+    assert.strictEqual(title.numLines, 6);
   });
 });
