@@ -960,10 +960,13 @@ export class ChantLine extends ChantLayoutElement {
             !ctxt.startExtraTextOnlyFromFirst
           ) {
             textOnlyStartIndex = i;
-            let lastNotationWithLyrics = notations
-              .slice(this.notationsStartIndex, i)
-              .reverse()
-              .find(notation => notation.hasLyrics());
+            let lastNotationWithLyrics;
+            for (let k = i - 1; k >= this.notationsStartIndex; k--) {
+              if (notations[k].hasLyrics()) {
+                lastNotationWithLyrics = notations[k];
+                break;
+              }
+            }
             lastLyricsBeforeTextOnly =
               (lastNotationWithLyrics &&
                 lastNotationWithLyrics.lyrics.slice()) ||
@@ -1003,9 +1006,12 @@ export class ChantLine extends ChantLayoutElement {
         const isTextOnlyBeforeDivider = (i) => {
           const curr = notations[i];
           if (curr.constructor !== TextOnly) return false;
-          const firstDivider = notations.slice(i + 1).findIndex(notation => notation.isDivider);
-          if (firstDivider < 0) return false;
-          return notations.slice(i + 1, i + 1 + firstDivider).every(notation => notation.constructor === TextOnly);
+          // only TextOnly elements may come between it and the next divider
+          for (let k = i + 1; k < notations.length; k++) {
+            if (notations[k].isDivider) return true;
+            if (notations[k].constructor !== TextOnly) return false;
+          }
+          return false;
         }
         // first check for elements that cannot begin a system: dividers and custodes
         while (
@@ -1024,13 +1030,26 @@ export class ChantLine extends ChantLayoutElement {
           // TODO?: need to go back to before the last translation text start:
         }
 
-        // count syllables and notes
-        const notationsAfterBreak = notations.slice(i + 1);
+        // count syllables and notes; the counts only ever grow, and only matter while both are below
+        // their minimums, so we can stop counting once either one reaches its minimum
         let countSyllables = 0;
         let countNotes = 0;
         if (ctxt.minSyllablesLastLine && ctxt.minNotesLastLine) {
-          countSyllables = notationsAfterBreak.filter(notation => notation.hasLyrics()).length;
-          countNotes = notationsAfterBreak.flatMap(notation => notation.notes).filter(note => !!note).length;
+          for (
+            let k = i + 1;
+            k < notations.length &&
+            countSyllables < ctxt.minSyllablesLastLine &&
+            countNotes < ctxt.minNotesLastLine;
+            k++
+          ) {
+            const notation = notations[k];
+            if (notation.hasLyrics()) countSyllables++;
+            if (notation.notes) {
+              for (let l = 0; l < notation.notes.length; l++) {
+                if (notation.notes[l]) countNotes++;
+              }
+            }
+          }
         }
 
         // check if the prev elements want to be kept with this one
@@ -1357,7 +1376,13 @@ export class ChantLine extends ChantLayoutElement {
                 ? next.lyrics[0].getLeft()
                 : next.bounds.x;
           if (prev instanceof TextOnly) {
-            let prev = this.score.notations.slice(this.notationsStartIndex, i).reverse().find(notation => !(notation instanceof TextOnly));
+            let prev;
+            for (let k = i - 1; k >= this.notationsStartIndex; k--) {
+              if (!(this.score.notations[k] instanceof TextOnly)) {
+                prev = this.score.notations[k];
+                break;
+              }
+            }
             leftPoint = prev ? prev.bounds.right() : 0;
           }
           if (leftPoint) {
@@ -2297,13 +2322,22 @@ export class ChantLine extends ChantLayoutElement {
     let minIndex = -1,
       maxIndex = Math.min(this.numNotationsOnLine, Infinity),
       curIndex = minIndex + ((maxIndex - minIndex) >> 1),
-      notations = this.score.notations.slice(
-        this.notationsStartIndex,
-        this.notationsStartIndex + this.numNotationsOnLine
-      );
+      startIndex = this.notationsStartIndex,
+      length = Math.max(
+        0,
+        Math.min(
+          this.numNotationsOnLine,
+          this.score.notations.length - startIndex
+        )
+      ),
+      // the notations on this line, indexed from the start of the line
+      notationAt = index =>
+        index >= 0 && index < length
+          ? this.score.notations[startIndex + index]
+          : undefined;
 
     while (minIndex < curIndex) {
-      let notation = notations[curIndex];
+      let notation = notationAt(curIndex);
       let notationX = notation.bounds.x;
       if (notationX > x) {
         maxIndex = curIndex;
@@ -2312,19 +2346,19 @@ export class ChantLine extends ChantLayoutElement {
       }
       curIndex = minIndex + ((maxIndex - minIndex) >> 1);
     }
-    let notation = notations[curIndex];
+    let notation = notationAt(curIndex);
     if (
       useMidpoint &&
       notation &&
       notation.bounds.width === 0 &&
-      curIndex + 1 < notations.length
+      curIndex + 1 < length
     ) {
-      let nextNotation = notations[curIndex + 1],
+      let nextNotation = notationAt(curIndex + 1),
         closenessToLeft = x - notation.bounds.x,
         closenessToRight = nextNotation.bounds.x - x;
       if (nextNotation.bounds.width === 0 && closenessToRight < closenessToLeft)
         ++curIndex;
     }
-    return notations[curIndex];
+    return notationAt(curIndex);
   }
 }

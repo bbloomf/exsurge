@@ -17,7 +17,8 @@ if (env === 'build') {
 
 var config = {
   entry: path.join(__dirname, '/src/index.js'),
-  devtool: 'source-map',
+  // the minified build is what gets published, so skip its (large) source map
+  devtool: env === 'build' ? false : 'source-map',
   output: {
     path: path.join(__dirname, '/dist'),
     filename: outputFile,
