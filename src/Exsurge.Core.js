@@ -36,11 +36,11 @@ export var Units = {
 
   ToDeviceIndependent: function (n, inputUnits) {
     switch (inputUnits) {
-      case Centimeters:
+      case Units.Centimeters:
         return n * Units.DIU_PER_CENTIMETER;
-      case Millimeters:
+      case Units.Millimeters:
         return n * Units.DIU_PER_CENTIMETER / 10;
-      case Inches:
+      case Units.Inches:
         return n * Units.DIU_PER_INCH;
       default:
         return n;
@@ -49,11 +49,11 @@ export var Units = {
 
   FromDeviceIndependent: function (n, outputUnits) {
     switch (outputUnits) {
-      case Centimeters:
+      case Units.Centimeters:
         return n / Units.DIU_PER_CENTIMETER;
-      case Millimeters:
+      case Units.Millimeters:
         return n / Units.DIU_PER_CENTIMETER * 10;
-      case Inches:
+      case Units.Inches:
         return n / Units.DIU_PER_INCH;
       default:
         return n;
@@ -62,7 +62,7 @@ export var Units = {
 
 
   StringToUnitsType: function(s) {
-    switch (s.ToLower()) {
+    switch (s.toLowerCase()) {
       case "in":
       case "inches":
         return Units.Inches;

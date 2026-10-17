@@ -77,3 +77,28 @@ describe('Neume spacing', function() {
     );
   });
 });
+
+describe('Units', function() {
+  var Units = Core.Units;
+
+  function assertClose(actual, expected) {
+    assert(Math.abs(actual - expected) < 1e-9, actual + ' is not close to ' + expected);
+  }
+
+  it('converts to and from device independent units', function() {
+    assertClose(Units.ToDeviceIndependent(1, Units.Inches), 96);
+    assertClose(Units.ToDeviceIndependent(2.54, Units.Centimeters), 96);
+    assertClose(Units.ToDeviceIndependent(25.4, Units.Millimeters), 96);
+    assertClose(Units.ToDeviceIndependent(7, Units.DeviceIndepenedent), 7);
+    assertClose(Units.FromDeviceIndependent(96, Units.Inches), 1);
+    assertClose(Units.FromDeviceIndependent(96, Units.Centimeters), 2.54);
+    assertClose(Units.FromDeviceIndependent(96, Units.Millimeters), 25.4);
+  });
+
+  it('parses unit names', function() {
+    assert.equal(Units.StringToUnitsType('IN'), Units.Inches);
+    assert.equal(Units.StringToUnitsType('cm'), Units.Centimeters);
+    assert.equal(Units.StringToUnitsType('Millimeters'), Units.Millimeters);
+    assert.equal(Units.StringToUnitsType('di'), Units.DeviceIndepenedent);
+  });
+});
