@@ -49,3 +49,13 @@ describe('Neume layout', function() {
     });
   });
 });
+
+describe('Lyric parsing', function() {
+  it('only gives lyrics that allow a connector a connector span', function() {
+    var ctxt = new Drawing.ChantContext();
+    assert(new Drawing.Lyric(ctxt, 'a', Drawing.LyricType.BeginningSyllable).connectorSpan);
+    assert(new Drawing.Lyric(ctxt, 'a', Drawing.LyricType.MiddleSyllable).connectorSpan);
+    assert.equal(new Drawing.Lyric(ctxt, 'a', Drawing.LyricType.SingleSyllable).connectorSpan, undefined);
+    assert.equal(new Drawing.Lyric(ctxt, 'a', Drawing.LyricType.EndingSyllable).connectorSpan, undefined);
+  });
+});
