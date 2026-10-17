@@ -2668,7 +2668,7 @@ export class Lyric extends TextElement {
     // of the text with the notation element
     this.language = null;
 
-    if (this.allowsConnector)
+    if (this.allowsConnector())
       this.connectorSpan = new TextSpan(ctxt.syllableConnector);
   }
 

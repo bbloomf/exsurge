@@ -633,7 +633,7 @@ export class Spanish extends Language {
 
           for (
             let j = 0, endj = this.uDiphthongExceptions.length;
-            i < endj;
+            j < endj;
             j++
           ) {
             if (tripthong === this.uDiphthongExceptions[j]) {

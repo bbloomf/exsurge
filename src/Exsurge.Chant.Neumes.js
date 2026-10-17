@@ -89,8 +89,8 @@ class NeumeBuilder {
         note,
         this.lineIsHanging
       );
-      this.neume.addVisualizer(line);
       line.bounds.x = Math.max(this.minX, this.x - line.bounds.width);
+      this.neume.addVisualizer(line);
 
       if (!noteAlignsRight) this.x = line.bounds.x;
     }
@@ -133,7 +133,7 @@ class NeumeBuilder {
     // add a line for the virga
     var line = new VirgaLineVisualizer(this.ctxt, note);
     this.x -= line.bounds.width;
-    if (note.shapeModifers & NoteShapeModifiers.Reverse) {
+    if (note.shapeModifiers & NoteShapeModifiers.Reverse) {
       line.bounds.x = 0;
     } else {
       line.bounds.x = this.x;
@@ -160,7 +160,6 @@ class NeumeBuilder {
     if (this.lastNote === null) return;
 
     var line = new NeumeLineVisualizer(this.ctxt, this.lastNote, note, true);
-    this.neume.addVisualizer(line);
     this.x -= line.bounds.width;
     line.bounds.x = this.x;
 
@@ -315,8 +314,8 @@ class NeumeBuilder {
           note,
           getStaffPositionForX(note.bounds.x)
         );
-        this.neume.addVisualizer(stem);
         stem.bounds.x = note.bounds.x + (note.bounds.width / 2) - (stem.bounds.width / 2);
+        this.neume.addVisualizer(stem);
       }
       while (beamCount > 0) {
         let beams = new NeumeBeamVisualizer(this.ctxt, startCoord.x + (firstNote.bounds.width / 2), endCoord.x + (lastNote.bounds.width / 2), startCoord.staffPosition, endCoord.staffPosition, --beamCount);
