@@ -519,6 +519,7 @@ export class ChantScore {
       indices: []
     };
     const selectedIndices = elementSelection.indices;
+    const selectedIndexSet = new Set(selectedIndices);
     let insertion = elementSelection.insertion;
     if (
       !insertion &&
@@ -531,11 +532,11 @@ export class ChantScore {
     // update the selected elements so that they can be given a .selected class when rendered
     for (let i = 0; i < this.notes.length; ++i) {
       let element = this.notes[i];
-      element.selected = selectedIndices.includes(i);
+      element.selected = selectedIndexSet.has(i);
     }
     (
       this.startingClef.model || this.startingClef
-    ).selected = selectedIndices.includes(-1);
+    ).selected = selectedIndexSet.has(-1);
     for (let i = 0; i < this.lines.length; ++i) {
       this.lines[i].insertionCursor = null;
     }
@@ -575,7 +576,7 @@ export class ChantScore {
     const elementSelection = (this.selection && this.selection.element) || {
       indices: []
     };
-    const selectedIndices = elementSelection.indices;
+    const selectedIndexSet = new Set(elementSelection.indices);
     let nonNoteElementCount = 0;
 
     // find the starting clef...
@@ -616,7 +617,7 @@ export class ChantScore {
             ++nonNoteElementCount;
           }
           
-          element.selected = selectedIndices.includes(elementIndex);
+          element.selected = selectedIndexSet.has(elementIndex);
         }
       }
     }

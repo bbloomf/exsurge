@@ -1269,6 +1269,8 @@ export class GlyphVisualizer extends ChantLayoutElement {
       else this.glyphCode = glyphCode;
 
       let glyph = this.glyph = Glyphs[glyphCode];
+      const porrectusResult = /^Porrectus([1-9])$/.exec(glyphCode);
+      this.porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
 
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing
       if (!ctxt.defs.hasOwnProperty(glyphCode)) {
@@ -1340,9 +1342,8 @@ export class GlyphVisualizer extends ChantLayoutElement {
   draw(ctxt) {
     var canvasCtxt = ctxt.canvasCtxt;
 
-    const porrectusResult = /^Porrectus([1-9])$/.exec(this.glyphCode);
-    const porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
-    
+    const porrectusNoteDiff = this.porrectusNoteDiff;
+
     var x = this.bounds.x + this.origin.x;
     var y = this.bounds.y + this.origin.y;
     var scaleX = ctxt.glyphScaling;
@@ -1356,11 +1357,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
 
     for (var i = 0; i < this.glyph.paths.length; i++) {
       var path = this.glyph.paths[i];
+      if (!path.data) continue;
       canvasCtxt.fillStyle =
         path.type === "negative"
           ? ctxt.negativeFillColor
           : ctxt.neumeLineColor;
-      canvasCtxt.fill(new Path2D(path.data));
+      // glyph paths are shared module-level objects, so the parsed Path2D is cached on them
+      canvasCtxt.fill(path.path2d || (path.path2d = new Path2D(path.data)));
     }
 
     canvasCtxt.scale(1 / scaleX, 1 / scaleY);
@@ -1369,8 +1372,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
 
   getSvgAttributes(ctxt, source) {
     let className = "";
-    const porrectusResult = /^Porrectus([1-9])$/.exec(this.glyphCode);
-    const porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
+    const porrectusNoteDiff = this.porrectusNoteDiff;
     if (porrectusNoteDiff) {
       let notes = source.neume.notes,
         noteIndex = notes.indexOf(source),

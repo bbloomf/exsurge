@@ -352,13 +352,14 @@ export class Mora extends GlyphVisualizer {
         // this note is the last in its neume:
         if (this.note.neume.trailingSpace === 0) {
           // if this was the last note in its neume, we only care about the next note if there is no trailing space at the end of this neume.
-          var notationIndex = this.note.neume.score.notations.indexOf(
-            this.note.neume
-          );
+          var notations = this.note.neume.score.notations;
+          // the neume is usually the notation being laid out, so avoid searching for it
+          var notationIndex =
+            notations[ctxt.currNotationIndex] === this.note.neume
+              ? ctxt.currNotationIndex
+              : notations.indexOf(this.note.neume);
           if (notationIndex >= 0) {
-            var nextNotation = this.note.neume.score.notations[
-              notationIndex + 1
-            ];
+            var nextNotation = notations[notationIndex + 1];
             if (nextNotation && nextNotation.notes) {
               nextNote = nextNotation.notes[0];
             }

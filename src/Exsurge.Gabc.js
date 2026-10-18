@@ -220,10 +220,9 @@ export class Gabc {
   // note before is an array of mappings, and after is an array of strings
   // (gabc words).
   //
-  // This is definitely not the most effecient diff algorithm, but for our
-  // limited needs and source size it seems to work just fine...
-  //
-  // code is adapted from: https://github.com/paulgb/simplediff
+  // Edits usually touch only a few words, so any common prefix and suffix
+  // are split off as unchanged first, and only the words in between are
+  // diffed with the (much slower) longest common substring algorithm below.
   //
   // Returns:
   //   A list of pairs, with the first part of the pair being one of three
@@ -232,15 +231,64 @@ export class Gabc {
   //   corresponds to whether the list of values is a deletion, insertion, or
   //   unchanged, respectively.
   static diffDescriptorsAndNewWords(before, after) {
+    var beforeLength = before.length,
+      afterLength = after.length,
+      prefixLength = 0,
+      suffixLength = 0;
+
+    while (
+      prefixLength < beforeLength &&
+      prefixLength < afterLength &&
+      before[prefixLength].source === after[prefixLength]
+    )
+      prefixLength++;
+
+    while (
+      suffixLength < beforeLength - prefixLength &&
+      suffixLength < afterLength - prefixLength &&
+      before[beforeLength - 1 - suffixLength].source ===
+        after[afterLength - 1 - suffixLength]
+    )
+      suffixLength++;
+
+    var result = [];
+    if (prefixLength) result.push(["=", after.slice(0, prefixLength)]);
+    result = result.concat(
+      this.diffDescriptorsAndNewWordsBySubstring(
+        before.slice(prefixLength, beforeLength - suffixLength),
+        after.slice(prefixLength, afterLength - suffixLength)
+      )
+    );
+    if (suffixLength)
+      result.push(["=", after.slice(afterLength - suffixLength)]);
+    return result;
+  }
+
+  // The general case of diffDescriptorsAndNewWords: finds the longest common
+  // substring and recursively diffs the words before and after it.
+  //
+  // This is definitely not the most effecient diff algorithm, but for our
+  // limited needs and source size it seems to work just fine...
+  //
+  // code is adapted from: https://github.com/paulgb/simplediff
+  static diffDescriptorsAndNewWordsBySubstring(before, after) {
     // Create a map from before values to their indices
-    var oldIndexMap = {},
+    var oldIndexMap = new Map(),
+      indices,
       i;
     for (i = 0; i < before.length; i++) {
-      oldIndexMap[before[i].source] = oldIndexMap[before[i].source] || [];
-      oldIndexMap[before[i].source].push(i);
+      indices = oldIndexMap.get(before[i].source);
+      if (indices) indices.push(i);
+      else oldIndexMap.set(before[i].source, [i]);
     }
 
-    var overlap = [],
+    // overlap[iold] is the length of the common substring ending at
+    // before[iold] and the previous new word; only the entries at
+    // overlapIndices are non-zero.
+    var overlap = new Int32Array(before.length),
+      _overlap = new Int32Array(before.length),
+      overlapIndices = null,
+      swap,
       startOld,
       startNew,
       subLength,
@@ -249,21 +297,28 @@ export class Gabc {
     startOld = startNew = subLength = 0;
 
     for (inew = 0; inew < after.length; inew++) {
-      var _overlap = [];
-      oldIndexMap[after[inew]] = oldIndexMap[after[inew]] || [];
-      for (i = 0; i < oldIndexMap[after[inew]].length; i++) {
-        var iold = oldIndexMap[after[inew]][i];
-        // now we are considering all values of val such that
-        // `before[iold] == after[inew]`
-        _overlap[iold] = ((iold && overlap[iold - 1]) || 0) + 1;
-        if (_overlap[iold] > subLength) {
-          // this is the largest substring seen so far, so store its indices
-          subLength = _overlap[iold];
-          startOld = iold - subLength + 1;
-          startNew = inew - subLength + 1;
+      indices = oldIndexMap.get(after[inew]);
+      if (indices) {
+        for (i = 0; i < indices.length; i++) {
+          var iold = indices[i];
+          // now we are considering all values of val such that
+          // `before[iold] == after[inew]`
+          _overlap[iold] = (iold > 0 ? overlap[iold - 1] : 0) + 1;
+          if (_overlap[iold] > subLength) {
+            // this is the largest substring seen so far, so store its indices
+            subLength = _overlap[iold];
+            startOld = iold - subLength + 1;
+            startNew = inew - subLength + 1;
+          }
         }
       }
+      if (overlapIndices)
+        for (i = 0; i < overlapIndices.length; i++)
+          overlap[overlapIndices[i]] = 0;
+      swap = overlap;
       overlap = _overlap;
+      _overlap = swap;
+      overlapIndices = indices;
     }
 
     if (subLength === 0) {
@@ -280,12 +335,12 @@ export class Gabc {
     // ...otherwise, the common substring is unchanged and we recursively
     // diff the text before and after that substring
     return [].concat(
-      this.diffDescriptorsAndNewWords(
+      this.diffDescriptorsAndNewWordsBySubstring(
         before.slice(0, startOld),
         after.slice(0, startNew)
       ),
       [["=", after.slice(startNew, startNew + subLength)]],
-      this.diffDescriptorsAndNewWords(
+      this.diffDescriptorsAndNewWordsBySubstring(
         before.slice(startOld + subLength),
         after.slice(startNew + subLength)
       )
@@ -317,7 +372,18 @@ export class Gabc {
 
     var newWords = this.splitWords(newGabcSource);
 
-    var results = this.diffDescriptorsAndNewWords(mappings, newWords);
+    // the last word is always parsed anew, since its old mapping was removed above. Leaving
+    // it out of the diff lets the diff skip over the unchanged words at the end.
+    var results = this.diffDescriptorsAndNewWords(
+      mappings,
+      newWords.slice(0, -1)
+    );
+    if (newWords.length) {
+      var lastResult = results[results.length - 1];
+      if (lastResult && lastResult[0] === "+")
+        lastResult[1] = lastResult[1].concat(newWords.slice(-1));
+      else results.push(["+", newWords.slice(-1)]);
+    }
 
     var index = 0,
       j,
