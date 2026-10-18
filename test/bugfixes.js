@@ -63,6 +63,19 @@ describe('Neume layout', function() {
   });
 });
 
+describe('Note', function() {
+  it('matches its shape modifiers', function() {
+    var note = new Chant.Note();
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.None), true);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Reverse), false);
+    note.shapeModifiers = Chant.NoteShapeModifiers.Reverse | Chant.NoteShapeModifiers.Stemmed;
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.None), false);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Reverse), true);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Stemmed), true);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Cavum), false);
+  });
+});
+
 describe('Lyric parsing', function() {
   it('strips trailing whitespace from a lyric after a |', function() {
     var ctxt = new Drawing.ChantContext();
