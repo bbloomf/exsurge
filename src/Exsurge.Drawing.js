@@ -51,8 +51,9 @@ const canAccessDOM = typeof document !== "undefined";
 // whenever any ChantContext's text styles change (see clearTextCache()).
 let __textStyleVersion = 0;
 
-// bumped whenever the browser finishes loading a web font, which changes what
-// text measured on a canvas in that font comes to.
+// bumped whenever the browser finishes loading a web font, or a font is added
+// to or removed from document.fonts, which changes what text measured on a
+// canvas in that font comes to.
 let __fontLoadGeneration = 0;
 let __listeningForFontLoads = false;
 function listenForFontLoads() {
@@ -61,6 +62,19 @@ function listenForFontLoads() {
   if (!fonts || typeof fonts.addEventListener !== "function") return;
   __listeningForFontLoads = true;
   fonts.addEventListener("loadingdone", () => __fontLoadGeneration++);
+}
+
+// a FontFace that has already loaded when it's added to document.fonts (as in
+// `document.fonts.add(await new FontFace(...).load())`) fires no event, so the
+// size of document.fonts is compared before each layout as well.
+let __fontSetSize;
+function noticeFontSetChanges() {
+  const fonts = typeof document !== "undefined" && document.fonts;
+  const size = fonts ? fonts.size : undefined;
+  if (size !== __fontSetSize) {
+    __fontSetSize = size;
+    __fontLoadGeneration++;
+  }
 }
 
 // how many measurements a ChantContext remembers before starting over
@@ -511,6 +525,7 @@ export class ChantContext {
      * @type {{ [key: string]: import('opentype.js').Font }}
      */
     this.fontDictionary = undefined;
+    noticeFontSetChanges();
     this.clearTextCache();
     listenForFontLoads();
     this.staffLineCount = 4;
@@ -749,10 +764,14 @@ export class ChantContext {
   /**
    * Forgets the text measurements and the merged text span styles that are
    * kept to speed up layout.  setFont(), setRubricColor() and the like call
-   * this, as does the loading of a web font where document.fonts can say so;
-   * call it after changing fontStyleDictionary, specialCharProperties,
+   * this.  Text measured on a canvas is also measured again after
+   * document.fonts fires loadingdone, and at the start of a ChantScore layout
+   * once a font has been added to or removed from document.fonts; call this
+   * after changing fontStyleDictionary, specialCharProperties,
    * asteriskProperties or plusProperties directly once text has been created,
-   * or after a font has loaded that document.fonts doesn't know about.
+   * or after any other change to the fonts that text is measured in (such as
+   * replacing a face in document.fonts with another, which leaves its size
+   * the same).
    */
   clearTextCache() {
     // maps whatever measures the text (a canvas context or a font) to a map
@@ -761,6 +780,17 @@ export class ChantContext {
     this.textMetricsCacheSize = 0;
     this.fontLoadGeneration = __fontLoadGeneration;
     __textStyleVersion++;
+  }
+
+  /**
+   * Starts measuring text again if fonts have been added to or removed from
+   * document.fonts since text was last measured.  ChantScore calls this at the
+   * start of each layout, rather than with every measurement, since asking
+   * document.fonts its size can make the browser bring its styles up to date;
+   * call it before measuring text outside of a layout.
+   */
+  noticeFontChanges() {
+    noticeFontSetChanges();
   }
 
   /**

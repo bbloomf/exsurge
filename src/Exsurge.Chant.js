@@ -681,6 +681,7 @@ export class ChantScore {
   performLayout(ctxt, force) {
     if (!force && this.needsLayout === false) return; // nothing to do here!
 
+    ctxt.noticeFontChanges();
     ctxt.updateHyphenWidth();
 
     this.initializeLayout(ctxt);
@@ -706,6 +707,9 @@ export class ChantScore {
       return; // nothing to do here!
     }
 
+    // before the hyphen is measured, so that one measured in a fallback font
+    // before the lyric font was added to document.fonts isn't used.
+    ctxt.noticeFontChanges();
     this.waitForLyricFont(ctxt, () => {
       this.initializeLayout(ctxt);
 
@@ -840,6 +844,7 @@ export class ChantScore {
 
   layoutChantLines(ctxt, width, finishedCallback) {
     this.lines = [];
+    ctxt.noticeFontChanges();
 
     if (ctxt.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
       let annotation = this.annotation,
