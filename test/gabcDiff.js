@@ -62,8 +62,9 @@ function serializeMappings(mappings) {
         notation.constructor.name,
         notation.sourceIndex,
         notation.trailingSpace,
+        notation.isAccidental ? notation.pitch.toInt() : null,
         (notation.notes || []).map(function(note) {
-          return [note.pitch && note.pitch.toString(), note.sourceIndex, note.shape];
+          return [note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape];
         }),
         (notation.lyrics || []).map(function(lyric) {
           return [lyric.text, lyric.sourceIndex, lyric.lyricType];
@@ -135,8 +136,7 @@ describe('Gabc diff', function() {
       var results = Gabc.diffDescriptorsAndNewWords(before, after);
       assertValidDiff(before, after, results);
       assert.deepStrictEqual(serializeDiff(results), serializeDiff(referenceDiff(before, after)));
-      // emptying the source has always left a single empty mapping behind, unlike parsing an empty source
-      var expectedMappings = edit[2] ? parsedMappings(edit[2]) : [['', 0, []]];
+      var expectedMappings = parsedMappings(edit[2]);
       assert.deepStrictEqual(updatedMappings(edit[1], edit[2], Gabc.diffDescriptorsAndNewWords), expectedMappings);
       assert.deepStrictEqual(updatedMappings(edit[1], edit[2], referenceDiff), expectedMappings);
     });
@@ -153,13 +153,40 @@ describe('Gabc diff', function() {
     assert.deepStrictEqual(updatedMappings(beforeSource, afterSource, referenceDiff), parsedMappings(afterSource));
   });
 
+  it('recomputes the pitch of a kept accidental after a clef change', function() {
+    var beforeSource = '(c4) x(f) a(ix) b(g)', afterSource = '(c4) a(ix) (f3) a(ix) b(g)';
+    assert.deepStrictEqual(updatedMappings(beforeSource, afterSource, Gabc.diffDescriptorsAndNewWords), parsedMappings(afterSource));
+  });
+
+  it('resets the accidentals at a new word before a kept accidental', function() {
+    var beforeSource = '(f3) b(ixi) d(ix) e(h)', afterSource = '(c4) b(ixi) d(ix) e(h)';
+    assert.deepStrictEqual(updatedMappings(beforeSource, afterSource, Gabc.diffDescriptorsAndNewWords), parsedMappings(afterSource));
+  });
+
+  it('leaves no empty mapping behind for trailing whitespace', function() {
+    assert.deepStrictEqual(updatedMappings('(c4) a(f)', '(c4) a(f) b(g) ', Gabc.diffDescriptorsAndNewWords), parsedMappings('(c4) a(f) b(g) '));
+  });
+
+  it("doesn't carry an accidental or an open brace over from the last chant parsed", function() {
+    var pitch = parsedMappings('(i)')[0][2][0][4][0][0];
+    parsedMappings('b(ixi)');
+    assert.strictEqual(parsedMappings('(i)')[0][2][0][4][0][0], pitch);
+    var mappings = parsedMappings('a(f)');
+    parsedMappings('y(g[ub:0;4mm])');
+    assert.deepStrictEqual(parsedMappings('a(f)'), mappings);
+    assert.strictEqual(Gabc.createMappingsFromSource(new Drawing.ChantContext(), 'a(f)')[0].notations[0].notes[0].braceEnd, undefined);
+  });
+
   it('updates mappings to match a fresh parse for random edits with repeated words', function() {
-    var vocabulary = ['(,)', '*(:)', '(;)', '(::)', 'Ky(f)', 'ri(gh)', 'e(h.)', 'a(fg)', 'b(gx)', 'c(h)', '(c3)', 'e(i;)', '<i>Ps.</i>(::)'];
-    // a small linear congruential generator, so that failures are reproducible
+    var vocabulary = ['(,)', '*(:)', '(;)', '(::)', 'Ky(f)', 'ri(gh)', 'e(h.)', 'a(fg)', 'b(gx)', 'c(h)', '(c3)', 'e(i;)', '<i>Ps.</i>(::)',
+      '(f3)', '(cb3)', 'a(ix)', 'd(ixi)', '(ixhi)', 'e(hy)', 'o(i#i)', 'f(e0f9)', 'q(f[ub:0;4mm])', 'r(gh[ob:1;6mm])'];
+    // a small seeded generator (mulberry32), so that failures are reproducible
     var seed = 12345;
     function random(n) {
-      seed = (seed * 1103515245 + 12345) % 2147483648;
-      return seed % n;
+      var t = (seed = (seed + 0x6d2b79f5) | 0);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) % n;
     }
     function randomWords(count) {
       var result = [];
