@@ -1,3 +1,15 @@
+## [1.30.1](https://github.com/frmatthew/exsurge/compare/v1.30.0...v1.30.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* Find the first Spanish vowel segment, skipping a silent u before an accented vowel ([2e787d6](https://github.com/frmatthew/exsurge/commit/2e787d6fcfcf6a4c85e7a2557f001ea3f6f6e67a))
+* Let a line break after a / or space that ends a syllable, and give !/ its width ([356b26f](https://github.com/frmatthew/exsurge/commit/356b26f5a2e9cd2a7ef404b21441ff3fc99b6ebe))
+* Make Note.shapeModifierMatches read shapeModifiers ([852b37c](https://github.com/frmatthew/exsurge/commit/852b37c88d2efb977362901546e040b175d3ee53))
+* Make re-parsing edited gabc match a fresh parse ([8e52945](https://github.com/frmatthew/exsurge/commit/8e52945fb67f366c3439aab8d3c954b1097f81f0))
+* Measure text again once a font is added to document.fonts ([3b97983](https://github.com/frmatthew/exsurge/commit/3b979830d94d32df9a7d46147b3977b0622fa16d))
+* Wrap each line by its own width, and stop lines at <br> ([8f8f2ab](https://github.com/frmatthew/exsurge/commit/8f8f2aba86c514678d9466ddb2ed3157150abbce))
+
 # [1.30.0](https://github.com/frmatthew/exsurge/compare/v1.29.0...v1.30.0) (2026-10-18)
 
 
@@ -18,11 +30,6 @@
 
 * Cache text measurements and merged span styles ([783eef3](https://github.com/frmatthew/exsurge/commit/783eef3acff70320e00995a1c1557413bec899a9))
 * Speed up gabc re-diffing, glyph drawing, and line breaking ([140410b](https://github.com/frmatthew/exsurge/commit/140410b7b4e44e61fd2ad72647a20efa78b1098f))
-
-
-### Notes
-
-* Text spans now keep their merged styles, and a ChantContext keeps its text measurements, until the text styles change. Changing `ctxt.fontStyleDictionary`, `ctxt.specialCharProperties`, `ctxt.asteriskProperties` or `ctxt.plusProperties` in place no longer affects text that already exists until `ctxt.clearTextCache()` is called; `setFont()`, `setRubricColor()` and `setGlyphScaling()` call it for you.
 
 # [1.29.0](https://github.com/frmatthew/exsurge/compare/v1.28.0...v1.29.0) (2026-10-15)
 
