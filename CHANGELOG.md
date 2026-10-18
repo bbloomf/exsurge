@@ -1,3 +1,24 @@
+# [1.30.0](https://github.com/frmatthew/exsurge/compare/v1.29.0...v1.30.0) (2026-10-18)
+
+
+### Bug Fixes
+
+* Add each neume line visualizer once, after it's positioned ([a6d6046](https://github.com/frmatthew/exsurge/commit/a6d6046c18189088e542c327c594708e83dddf80))
+* Address review findings on the typings, and type-check them in npm test ([f733e45](https://github.com/frmatthew/exsurge/commit/f733e45aa310b25171c426adb9abcc69687e9c8b))
+* Allow a line break between neumes separated by / or a space ([5f54a35](https://github.com/frmatthew/exsurge/commit/5f54a35890702fadad95617dfd86a167f9d90b24))
+* Keep line breaks when text wraps to three or more lines ([d5c4f3b](https://github.com/frmatthew/exsurge/commit/d5c4f3b56c7aac696a6dcba1eb7b99f8413ed112))
+* Only create a connector span for lyrics that allow a connector ([e58aae3](https://github.com/frmatthew/exsurge/commit/e58aae39c4fd00d78f0d55323dd3bf1f5ad43834))
+* Spell shapeModifiers consistently for the reverse virga ([2a67202](https://github.com/frmatthew/exsurge/commit/2a6720242f31ca8c97c38d1122946a997c390593))
+* Stop Spanish findVowelSegment from looping forever on a u diphthong ([2c7d0f7](https://github.com/frmatthew/exsurge/commit/2c7d0f74391997fba77a2d3dd722ba85735a67e3))
+* Strip trailing whitespace from lyrics after a | ([540b942](https://github.com/frmatthew/exsurge/commit/540b9426bd2c9b05a6a9818d63e73bf0a5d738e5))
+* Use the right unit identifiers in the Units helpers ([cf59945](https://github.com/frmatthew/exsurge/commit/cf59945ae86d592543eb4a71b72deccc46ccadae))
+
+
+### Performance Improvements
+
+* Cache text measurements and merged span styles ([783eef3](https://github.com/frmatthew/exsurge/commit/783eef3acff70320e00995a1c1557413bec899a9))
+* Speed up gabc re-diffing, glyph drawing, and line breaking ([140410b](https://github.com/frmatthew/exsurge/commit/140410b7b4e44e61fd2ad72647a20efa78b1098f))
+
 # [1.29.0](https://github.com/frmatthew/exsurge/compare/v1.28.0...v1.29.0) (2026-10-15)
 
 
