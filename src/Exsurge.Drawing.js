@@ -1939,6 +1939,7 @@ export class TextSpan {
     );
     if ('xOffset' in this) result.xOffset = this.xOffset;
     if ('newLine' in this) result.newLine = this.newLine;
+    if ('wrappedSpace' in this) result.wrappedSpace = this.wrappedSpace;
     return result;
   }
 }
@@ -2255,9 +2256,11 @@ export class TextElement extends ChantLayoutElement {
    * @param {ChantContext} ctxt 
    * @param {number} length 
    * @param {boolean} returnBBox 
+   * @param {boolean} lastLineOnly whether to measure only the substring's last
+   * line, rather than its widest
    * @returns measured substring, as a simple width unless returnBBox == true
    */
-  measureSubstring(ctxt, length, returnBBox = false) {
+  measureSubstring(ctxt, length, returnBBox = false, lastLineOnly = false) {
     if (length === 0) return 0;
     if (!length) length = Infinity;
     if (length < 0) {
@@ -2383,7 +2386,7 @@ export class TextElement extends ChantLayoutElement {
       newLineSpans[newLineSpans.length - 1].xOffset =
         this.firstLineMaxWidth - width;
     }
-    width = Math.max(width, ...widths);
+    if (!lastLineOnly) width = Math.max(width, ...widths);
     if (returnBBox === true) {
       let height = bbox.height;
       let y = bbox.y,
@@ -2401,12 +2404,13 @@ export class TextElement extends ChantLayoutElement {
       delete this.rightAligned;
       delete this.resize;
       delete this.numLines;
-      // replace newlines with spaces
+      // put back the whitespace that was taken out where the text was wrapped
       this.spans.forEach((span) => {
         delete span.xOffset;
         if (span.newLine === true) {
           delete span.newLine;
-          span.text = " " + span.text;
+          span.text = (span.wrappedSpace || " ") + span.text;
+          delete span.wrappedSpace;
         }
       });
     }
@@ -2464,15 +2468,43 @@ export class TextElement extends ChantLayoutElement {
           (!matches.length || match.index > matches[matches.length - 1].index)
         )
           matches.push(match);
+        // whitespace at the very start doesn't end a word, so breaking there
+        // would only leave the first line empty, and whitespace at the very
+        // end is where the text ends
+        if (matches.length > 1 && matches[0].index === 0) matches.shift();
+        if (
+          matches.length > 1 &&
+          matches[matches.length - 2].index +
+            matches[matches.length - 2][0].length ===
+            this.text.length
+        )
+          matches.pop();
+        // a line can't go on past a <br>, so mark where each one is as forced,
+        // along with any whitespace next to it, which then isn't measured as
+        // part of the line before it
+        var position = 0;
+        this.spans.forEach((span, i) => {
+          if (i && span.newLine) {
+            let j = 0;
+            while (matches[j].index + matches[j][0].length < position) j++;
+            if (matches[j].index <= position) matches[j].forced = true;
+            else matches.splice(j, 0, { index: position, 0: "", forced: true });
+          }
+          position += span.text.length;
+        });
         var max = firstLineMaxWidth,
-          // the first match on the current line, which is the first it can be
-          // broken at
+          // the match that ends the first word on the current line, which is
+          // the first it can be broken after
           lineStart = 0,
           // how many characters of this.text the line breaks so far have taken
           // out of the spans, so that an index into this.text is that many
           // characters further on in the spans
           removed = 0;
         while (lineStart < matches.length) {
+          // the line goes on to the next <br> at the most
+          var lineEnd = lineStart;
+          while (lineEnd < matches.length - 1 && !matches[lineEnd].forced)
+            lineEnd++;
           // the first match after lineStart at which the line is too wide.  The
           // line is broken at the match before it.
           var index = this.findFirstMatchWiderThan(
@@ -2480,13 +2512,20 @@ export class TextElement extends ChantLayoutElement {
             matches,
             lineStart + 1,
             max,
-            removed
+            removed,
+            lineEnd + 1
           );
-          if (index >= matches.length) break;
+          if (index > lineEnd) {
+            // the rest of the line fits
+            max = maxWidth;
+            lineStart = lineEnd + 1;
+            continue;
+          }
           var lastMatch = matches[index - 1];
           match = matches[index];
-          // find the span the whitespace to break at starts in
+          // find the spans the whitespace to break at starts and ends in
           var breakStart = lastMatch.index - removed,
+            breakEnd = breakStart + lastMatch[0].length,
             spanIndex = 0,
             length = 0;
           while (
@@ -2496,50 +2535,54 @@ export class TextElement extends ChantLayoutElement {
             length += this.spans[spanIndex++].text.length;
           }
           var splitSpan = this.spans[spanIndex],
-            nextSpan = this.spans[spanIndex + 1],
             textLeft = splitSpan.text.slice(0, breakStart - length),
-            textRight = splitSpan.text.slice(
-              breakStart + lastMatch[0].length - length
-            ),
-            // whether a <br> already breaks the line next to the whitespace
-            alreadyBroken = textLeft
-              ? !textRight && nextSpan && nextSpan.newLine
-              : splitSpan.newLine;
+            endIndex = spanIndex;
+          while (
+            endIndex < this.spans.length - 1 &&
+            length + this.spans[endIndex].text.length < breakEnd
+          ) {
+            length += this.spans[endIndex++].text.length;
+          }
+          var endSpan = this.spans[endIndex],
+            nextSpan = this.spans[endIndex + 1],
+            textRight = endSpan.text.slice(breakEnd - length),
+            newSpans = [];
           this.rightAligned =
             max === firstLineMaxWidth && firstLineMaxWidth !== maxWidth;
-          if (!alreadyBroken) {
-            let newSpans = [];
-            removed +=
-              splitSpan.text.length - textLeft.length - textRight.length;
-            if (textLeft)
-              newSpans.push(
-                new TextSpan(
-                  textLeft,
-                  splitSpan.propertyArray,
-                  splitSpan.activeTags,
-                  undefined,
-                  // keep the line break of a span that starts a line
-                  "newLine" in splitSpan
-                    ? { newLine: splitSpan.newLine }
-                    : undefined
-                )
-              );
-            if (textRight) {
-              newSpans.push(
-                new TextSpan(
-                  textRight,
-                  splitSpan.propertyArray,
-                  splitSpan.activeTags,
-                  undefined,
-                  { newLine: true }
-                )
-              );
-            } else if (nextSpan) {
-              nextSpan.newLine = true;
-            }
-            this.spans.splice(spanIndex, 1, ...newSpans);
-            this.needsLayout = true;
+          removed += lastMatch[0].length;
+          if (textLeft) {
+            let left = new TextSpan(
+              textLeft,
+              splitSpan.propertyArray,
+              splitSpan.activeTags,
+              undefined,
+              // keep the line break of a span that starts a line
+              "newLine" in splitSpan
+                ? { newLine: splitSpan.newLine }
+                : undefined
+            );
+            if ("wrappedSpace" in splitSpan)
+              left.wrappedSpace = splitSpan.wrappedSpace;
+            newSpans.push(left);
           }
+          // the span that starts the new line keeps the whitespace taken out,
+          // to put back if the text is wrapped again (see recalculateMetrics())
+          if (textRight) {
+            let right = new TextSpan(
+              textRight,
+              endSpan.propertyArray,
+              endSpan.activeTags,
+              undefined,
+              { newLine: true }
+            );
+            right.wrappedSpace = lastMatch[0];
+            newSpans.push(right);
+          } else if (nextSpan) {
+            nextSpan.newLine = true;
+            nextSpan.wrappedSpace = lastMatch[0];
+          }
+          this.spans.splice(spanIndex, endIndex - spanIndex + 1, ...newSpans);
+          this.needsLayout = true;
           max = maxWidth;
           if (
             match.index === this.text.length ||
@@ -2554,31 +2597,43 @@ export class TextElement extends ChantLayoutElement {
   }
 
   /**
-   * Finds the first of matches[start...] such that the text up to it is wider
-   * than max, measuring as few of them as it can.  The width of the text up to
-   * a match only grows from one match to the next, so this gallops forward and
-   * then searches back, rather than measuring the text up to each match.
+   * Finds the first of matches[start...end) such that the line up to it is
+   * wider than max, measuring as few of them as it can.  The width of the line
+   * up to a match only grows from one match to the next, so this gallops
+   * forward and then searches back, rather than measuring the line up to each
+   * match.
    * @param {ChantContext} ctxt
    * @param {RegExpExecArray[]} matches
    * @param {number} start
    * @param {number} max
    * @param {number} removed how many characters before the matches have been
    * taken out of the spans
-   * @returns {number} the index of that match, or matches.length if there isn't one
+   * @param {number} end
+   * @returns {number} the index of that match, or end if there isn't one
    */
-  findFirstMatchWiderThan(ctxt, matches, start, max, removed = 0) {
+  findFirstMatchWiderThan(
+    ctxt,
+    matches,
+    start,
+    max,
+    removed = 0,
+    end = matches.length
+  ) {
+    // only the last line matters, since the lines before it were already
+    // broken where they fit
     var isWider = (i) =>
-      this.measureSubstring(ctxt, matches[i].index - removed) > max;
+      this.measureSubstring(ctxt, matches[i].index - removed, false, true) >
+      max;
     // first gallop forward to bracket the match...
     var low = start,
       high = start,
       step = 1;
-    while (high < matches.length && !isWider(high)) {
+    while (high < end && !isWider(high)) {
       low = high + 1;
       high += step;
       step *= 2;
     }
-    high = Math.min(high, matches.length);
+    high = Math.min(high, end);
     // ...then search between the last one that fit and the first that didn't
     while (low < high) {
       var mid = (low + high) >> 1;
