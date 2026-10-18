@@ -19,6 +19,11 @@
 * Cache text measurements and merged span styles ([783eef3](https://github.com/frmatthew/exsurge/commit/783eef3acff70320e00995a1c1557413bec899a9))
 * Speed up gabc re-diffing, glyph drawing, and line breaking ([140410b](https://github.com/frmatthew/exsurge/commit/140410b7b4e44e61fd2ad72647a20efa78b1098f))
 
+
+### Notes
+
+* Text spans now keep their merged styles, and a ChantContext keeps its text measurements, until the text styles change. Changing `ctxt.fontStyleDictionary`, `ctxt.specialCharProperties`, `ctxt.asteriskProperties` or `ctxt.plusProperties` in place no longer affects text that already exists until `ctxt.clearTextCache()` is called; `setFont()`, `setRubricColor()` and `setGlyphScaling()` call it for you.
+
 # [1.29.0](https://github.com/frmatthew/exsurge/compare/v1.28.0...v1.29.0) (2026-10-15)
 
 

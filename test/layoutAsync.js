@@ -207,6 +207,59 @@ describe('Asynchronous layout', function() {
       });
     });
 
+    it('measures in a font added to document.fonts after it loaded', function() {
+      // what the canvas falls back to, and the web font, whose characters are wider
+      var fallback = palatino;
+      var webfont = {
+        unitsPerEm: 1000,
+        layout: function(text) {
+          var width = 0;
+          for (var i = 0; i < text.length; i++) width += text[i] === '-' ? 250 : 600;
+          return { advanceWidth: width };
+        }
+      };
+      var faces = [];
+      // a FontFace loaded with new FontFace(...).load() and then added fires no events
+      global.document = {
+        fonts: {
+          get size() { return faces.length; },
+          add: function(face) { faces.push(face); },
+          addEventListener: function() {},
+          check: function() { return true; },
+          load: function() {
+            throw new Error('load() called for a font that check() says has loaded');
+          }
+        }
+      };
+      var ctxt = new Drawing.ChantContext();
+      ctxt.setFont("'Webfont', serif", 16);
+      useFakeCanvas(ctxt, function() { return faces.length ? webfont : fallback; });
+      var lyricSize = ctxt.textStyles.lyric.size;
+      function kyWidth(score) {
+        return score.notations.filter(function(notation) {
+          return notation.hasLyrics() && notation.lyrics[0].text === 'Ky';
+        })[0].lyrics[0].bounds.width;
+      }
+
+      var before = createScore(ctxt);
+      return performLayoutAsync(ctxt, before).then(function() {
+        assert(Math.abs(kyWidth(before) - lyricSize) < 1e-9);
+        assert(Math.abs(ctxt.hyphenWidth / lyricSize - 0.33) < 1e-9);
+
+        global.document.fonts.add({ family: 'Webfont', status: 'loaded' });
+        var after = createScore(ctxt);
+        return performLayoutAsync(ctxt, after).then(function() {
+          assertLaidOut(after);
+          assert(Math.abs(kyWidth(after) - 1.2 * lyricSize) < 1e-9, 'Ky is ' + kyWidth(after) + ' wide');
+          assert(Math.abs(ctxt.hyphenWidth / lyricSize - 0.25) < 1e-9);
+
+          // and laying out the first score again measures it in the web font too
+          before.performLayout(ctxt, true);
+          assert(Math.abs(kyWidth(before) - 1.2 * lyricSize) < 1e-9, 'Ky is ' + kyWidth(before) + ' wide');
+        });
+      });
+    });
+
     it('stops waiting for a font that never finishes loading', function() {
       var ctxt = new Drawing.ChantContext();
       ctxt.setFont("'Webfont', serif", 16);

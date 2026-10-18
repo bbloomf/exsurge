@@ -499,12 +499,21 @@ declare module "exsurge" {
     setRubricColor(color: string): void;
     /**
      * Forgets the text measurements and merged text span styles kept to speed
-     * up layout.  Call it after changing fontStyleDictionary,
-     * specialCharProperties, asteriskProperties or plusProperties directly once
-     * text has been created, or after a font has loaded that document.fonts
-     * doesn't know about.
+     * up layout.  Text measured on a canvas is measured again by itself after
+     * document.fonts fires loadingdone, and at the start of a ChantScore
+     * layout once a font has been added to or removed from document.fonts.
+     * Call this after changing fontStyleDictionary, specialCharProperties,
+     * asteriskProperties or plusProperties directly once text has been
+     * created, or after any other change to the fonts that text is measured
+     * in (such as replacing a face in document.fonts with another).
      */
     clearTextCache(): void;
+    /**
+     * Starts measuring text again if fonts have been added to or removed from
+     * document.fonts since text was last measured.  ChantScore layouts call
+     * this; call it before measuring text outside of one.
+     */
+    noticeFontChanges(): void;
     setMergeAnnotationWithTextLeft(merge: boolean): void;
     setScaleDefs(scaleDefs: boolean): void;
     createStyleCss(): string;
