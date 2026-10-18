@@ -404,7 +404,21 @@ export class Spanish extends Language {
       "üi"
     ];
 
-    this.uDiphthongExceptions = ["gue", "gui", "qua", "que", "qui", "quo"];
+    // a u between a g or q and these vowels is silent
+    this.uDiphthongExceptions = [
+      "gue",
+      "gui",
+      "qua",
+      "que",
+      "qui",
+      "quo",
+      "gué",
+      "guí",
+      "quá",
+      "qué",
+      "quí",
+      "quó"
+    ];
   }
 
   // c must be lowercase!
@@ -618,40 +632,25 @@ export class Spanish extends Language {
    * @retuns a custom class with three properties: {found: (true/false) startIndex: (start index in s of vowel segment) length ()}
    */
   findVowelSegment(s, startIndex) {
-    var i, end, index;
     var workingString = s.toLowerCase();
 
-    // do we have a diphthongs?
-    for (i = 0, end = this.diphthongs.length; i < end; i++) {
-      var d = this.diphthongs[i];
-      index = workingString.indexOf(d, startIndex);
+    // the first vowel segment after startIndex, whether a diphthong or a single vowel
+    for (var index = startIndex; index < workingString.length; index++) {
+      // skip a silent u, as in que or guí
+      if (
+        workingString[index] === "u" &&
+        index > 0 &&
+        this.uDiphthongExceptions.indexOf(
+          workingString.substr(index - 1, 3)
+        ) >= 0
+      )
+        continue;
 
-      if (index >= 0) {
-        // check the exceptions...
-        if (d[0] === "u" && index > 0) {
-          var tripthong = s.substr(index - 1, 3).toLowerCase();
+      if (this.diphthongs.indexOf(workingString.substr(index, 2)) >= 0)
+        return { found: true, startIndex: index, length: 2 };
 
-          for (
-            let j = 0, endj = this.uDiphthongExceptions.length;
-            j < endj;
-            j++
-          ) {
-            if (tripthong === this.uDiphthongExceptions[j]) {
-              // search from after the u...
-              return this.findVowelSegment(s, index + 1);
-            }
-          }
-        }
-
-        return { found: true, startIndex: index, length: d.length };
-      }
-    }
-
-    // no diphthongs. Let's look for single vowels then...
-    for (i = 0, end = this.vowels.length; i < end; i++) {
-      index = workingString.indexOf(this.vowels[i], startIndex);
-
-      if (index >= 0) return { found: true, startIndex: index, length: 1 };
+      if (this.isVowel(workingString[index]))
+        return { found: true, startIndex: index, length: 1 };
     }
 
     // no vowels sets found after startIndex!

@@ -20,6 +20,19 @@ describe('Spanish syllabification', function() {
     assert.deepEqual(segment, { found: true, startIndex: 1, length: 2 });
   });
 
+  it('skips a silent u before an accented vowel', function() {
+    var spanish = new Spanish();
+    ['qué', 'quí', 'gué', 'guí'].forEach(function(syllable) {
+      assert.deepEqual(spanish.findVowelSegment(syllable, 0), { found: true, startIndex: 2, length: 1 }, syllable);
+    });
+  });
+
+  it('finds the first vowel segment rather than the first vowel in its list', function() {
+    var spanish = new Spanish();
+    assert.deepEqual(spanish.findVowelSegment('guerra', 0), { found: true, startIndex: 2, length: 1 });
+    assert.deepEqual(spanish.findVowelSegment('cantai', 0), { found: true, startIndex: 1, length: 1 });
+  });
+
   it("syllabifies 'cuidado guitarra'", function() {
     assert.deepEqual(new Spanish().syllabify('cuidado guitarra'), [
       ['cui', 'da', 'do'],
