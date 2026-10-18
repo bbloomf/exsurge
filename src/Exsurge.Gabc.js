@@ -986,6 +986,8 @@ export class Gabc {
     var notations = [];
     var notes = [];
     var trailingSpace = DefaultTrailingSpace;
+    // whether the data so far ends with a / or a space after a neume
+    var endsWithSpace = false;
 
     var addToLastSourceGabc = gabc => {
       if (notes.length > 0) {
@@ -1047,6 +1049,10 @@ export class Gabc {
       if (barWithCarryover) {
         atom = atom.slice(0, -1);
       }
+
+      if (atom === " " || atom[0] === "/")
+        endsWithSpace = endsWithSpace || notes.length > 0;
+      else endsWithSpace = false;
 
       // handle the clefs and dividers here
       switch (atom) {
@@ -1167,6 +1173,17 @@ export class Gabc {
         default:
           // might be a number of slashes, a custos, might be an accidental, or might be a note
           if (atom[0] === "/") {
+            let prevNotation = notations[notations.length - 1];
+            if (
+              !notes.length &&
+              data[match.index - 1] === "!" &&
+              prevNotation &&
+              prevNotation.isNeume
+            ) {
+              // !/ is a space that can't be broken: the neume before it
+              // already keeps with the next one, so it only needs the width
+              prevNotation.trailingSpace = TrailingSpaceMultiple(atom.length);
+            }
             trailingSpace = TrailingSpaceMultiple(atom.length);
             addToLastSourceGabc(atom);
             addNotation(null);
@@ -1250,6 +1267,14 @@ export class Gabc {
 
     // finish up any remaining notes we have left
     addNotation(null);
+
+    // a / or a space at the very end spaces the last neume from the next
+    // syllable's, but the line can still break between them as usual
+    if (endsWithSpace) {
+      let lastNotation = notations[notations.length - 1];
+      lastNotation.keepWithNext = false;
+      lastNotation.allowLineBreakBeforeNext = false;
+    }
 
     return notations;
   }

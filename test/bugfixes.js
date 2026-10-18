@@ -89,6 +89,28 @@ describe('Neume spacing', function() {
       [true, true, true, false, false]
     );
   });
+
+  it("doesn't keep a syllable with the next because of a / or space at its end", function() {
+    var neumes = layoutNotations('(c4) A(f/)ve(g//) Ma(h )ri(g/ )a(f)');
+    assert.deepEqual(
+      neumes.map(function(neume) { return !!neume.keepWithNext; }),
+      [false, false, false, false, false]
+    );
+    // the space after them is kept, though
+    var ctxt = new Drawing.ChantContext();
+    assert(neumes[0].trailingSpace(ctxt) > 0);
+  });
+
+  it('gives !/ the width of its slash but keeps the neumes together', function() {
+    var ctxt = new Drawing.ChantContext();
+    var neumes = layoutNotations('(c4) a(f!/g!//h!i)');
+    assert.deepEqual(
+      neumes.map(function(neume) { return !!neume.keepWithNext && !neume.allowLineBreakBeforeNext; }),
+      [true, true, true, false]
+    );
+    assert.equal(neumes[1].trailingSpace(ctxt), 2 * neumes[0].trailingSpace(ctxt));
+    assert.equal(neumes[2].trailingSpace, 0);
+  });
 });
 
 describe('Units', function() {
