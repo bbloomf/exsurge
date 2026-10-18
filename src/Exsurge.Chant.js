@@ -135,8 +135,8 @@ export class Note extends ChantLayoutElement {
   // a utility function for modifiers
   shapeModifierMatches(shapeModifier) {
     if (shapeModifier === NoteShapeModifiers.None)
-      return this.shapeModifier === NoteShapeModifiers.None;
-    else return this.shapeModifier & (shapeModifier !== 0);
+      return this.shapeModifiers === NoteShapeModifiers.None;
+    else return (this.shapeModifiers & shapeModifier) !== 0;
   }
 
   draw(ctxt) {

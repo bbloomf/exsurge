@@ -196,6 +196,11 @@ export class Gabc {
 
     // set the default clef
     ctxt.activeClef = Clef.default();
+    // the default clef is shared, so forget any accidental the last chant left on it
+    ctxt.activeClef.resetAccidentals();
+    // an automatic brace left open at the end of the last chant parsed doesn't
+    // carry over into this one
+    delete this.needToEndBrace;
 
     var mappings = this.createMappingsFromWords(
       ctxt,
@@ -395,6 +400,9 @@ export class Gabc {
       elementIndex = 0;
 
     ctxt.activeClef = Clef.default();
+    // the default clef is shared, so forget any accidental the last chant left on it
+    ctxt.activeClef.resetAccidentals();
+    delete this.needToEndBrace;
 
     // apply the results to the mappings, marking notations that need to be processed
     var lastTranslationNeumes = [];
@@ -453,23 +461,26 @@ export class Gabc {
           mapping.sourceIndex += sourceIndexDiff;
           for (k = 0; k < mapping.notations.length; k++) {
             var curNotation = mapping.notations[k];
-            var prevIsAccidental =
-              mapping.notations[k - 1] && mapping.notations[k - 1].isAccidental;
             // notify the notation that its dependencies are no longer valid
             curNotation.resetDependencies();
 
+            // new words reset the accidentals where createMappingFromWord did
+            if (curNotation.resetsAccidentalsBefore)
+              ctxt.activeClef.resetAccidentals();
+
             if (curNotation.isClef) {
               ctxt.activeClef = mappings[index].notations[k];
+              // a fresh clef starts out with its default accidental, rather
+              // than with whatever accidental was active when it was last used
+              ctxt.activeClef.resetAccidentals();
             }
 
             if (curNotation.isAccidental) {
+              curNotation.pitch = ctxt.activeClef.staffPositionToPitch(
+                curNotation.staffPosition
+              );
               ctxt.activeClef.activeAccidental = curNotation;
-            } else if (
-              curNotation.resetsAccidentals ||
-              (!prevIsAccidental &&
-                curNotation.hasLyrics() &&
-                curNotation.lyrics[0].lyricType <= LyricType.BeginningSyllable)
-            ) {
+            } else if (curNotation.resetsAccidentals) {
               ctxt.activeClef.resetAccidentals();
             }
 
@@ -479,7 +490,7 @@ export class Gabc {
                 let note = curNotation.notes[l];
                 note.sourceIndex += sourceIndexDiff;
                 note.pitch = ctxt.activeClef.staffPositionToPitch(
-                  note.staffPosition
+                  note.staffPosition - (note.staffPositionOffset || 0)
                 );
                 if (note.braceEnd && note.braceEnd.automatic)
                   delete note.braceEnd;
@@ -540,6 +551,12 @@ export class Gabc {
         // insert new ones
         for (j = 0; j < resultValues.length; j++) {
           wordLength = resultValues[j].length + 1;
+          // like createMappingsFromWords, skip the empty word that trailing
+          // whitespace leaves at the end of the source
+          if (resultValues[j].trim() === "") {
+            sourceIndex += wordLength;
+            continue;
+          }
           mapping = this.createMappingFromWord(
             ctxt,
             resultValues[j],
@@ -635,6 +652,8 @@ export class Gabc {
     var matches = [];
     var notations = [];
     var currSyllable = 0;
+    // whether the accidentals were reset since the last notation parsed
+    var resetAccidentals = false;
 
     while ((match = __syllablesRegex.exec(word))) matches.push(match);
 
@@ -655,8 +674,10 @@ export class Gabc {
         currSyllable === 0 &&
         /[a-z]/i.test(lyricText) &&
         /[a-n]/i.test(notationData)
-      )
+      ) {
         ctxt.activeClef.resetAccidentals();
+        resetAccidentals = true;
+      }
 
       var items = this.parseNotations(
         ctxt,
@@ -666,6 +687,11 @@ export class Gabc {
       );
 
       if (items.length === 0) continue;
+      // so that updateMappingsFromSource can reset them at the same point
+      if (resetAccidentals) {
+        items[0].resetsAccidentalsBefore = true;
+        resetAccidentals = false;
+      }
 
       if (insertionIndex >= 0)
         insertionIndex -= elementCountForNotations(items);
@@ -960,6 +986,8 @@ export class Gabc {
     var notations = [];
     var notes = [];
     var trailingSpace = DefaultTrailingSpace;
+    // whether the data so far ends with a / or a space after a neume
+    var endsWithSpace = false;
 
     var addToLastSourceGabc = gabc => {
       if (notes.length > 0) {
@@ -1021,6 +1049,10 @@ export class Gabc {
       if (barWithCarryover) {
         atom = atom.slice(0, -1);
       }
+
+      if (atom === " " || atom[0] === "/")
+        endsWithSpace = endsWithSpace || notes.length > 0;
+      else endsWithSpace = false;
 
       // handle the clefs and dividers here
       switch (atom) {
@@ -1141,6 +1173,17 @@ export class Gabc {
         default:
           // might be a number of slashes, a custos, might be an accidental, or might be a note
           if (atom[0] === "/") {
+            let prevNotation = notations[notations.length - 1];
+            if (
+              !notes.length &&
+              data[match.index - 1] === "!" &&
+              prevNotation &&
+              prevNotation.isNeume
+            ) {
+              // !/ is a space that can't be broken: the neume before it
+              // already keeps with the next one, so it only needs the width
+              prevNotation.trailingSpace = TrailingSpaceMultiple(atom.length);
+            }
             trailingSpace = TrailingSpaceMultiple(atom.length);
             addToLastSourceGabc(atom);
             addNotation(null);
@@ -1224,6 +1267,14 @@ export class Gabc {
 
     // finish up any remaining notes we have left
     addNotation(null);
+
+    // a / or a space at the very end spaces the last neume from the next
+    // syllable's, but the line can still break between them as usual
+    if (endsWithSpace) {
+      let lastNotation = notations[notations.length - 1];
+      lastNotation.keepWithNext = false;
+      lastNotation.allowLineBreakBeforeNext = false;
+    }
 
     return notations;
   }

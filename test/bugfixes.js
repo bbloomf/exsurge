@@ -20,6 +20,19 @@ describe('Spanish syllabification', function() {
     assert.deepEqual(segment, { found: true, startIndex: 1, length: 2 });
   });
 
+  it('skips a silent u before an accented vowel', function() {
+    var spanish = new Spanish();
+    ['qué', 'quí', 'gué', 'guí'].forEach(function(syllable) {
+      assert.deepEqual(spanish.findVowelSegment(syllable, 0), { found: true, startIndex: 2, length: 1 }, syllable);
+    });
+  });
+
+  it('finds the first vowel segment rather than the first vowel in its list', function() {
+    var spanish = new Spanish();
+    assert.deepEqual(spanish.findVowelSegment('guerra', 0), { found: true, startIndex: 2, length: 1 });
+    assert.deepEqual(spanish.findVowelSegment('cantai', 0), { found: true, startIndex: 1, length: 1 });
+  });
+
   it("syllabifies 'cuidado guitarra'", function() {
     assert.deepEqual(new Spanish().syllabify('cuidado guitarra'), [
       ['cui', 'da', 'do'],
@@ -50,6 +63,19 @@ describe('Neume layout', function() {
   });
 });
 
+describe('Note', function() {
+  it('matches its shape modifiers', function() {
+    var note = new Chant.Note();
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.None), true);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Reverse), false);
+    note.shapeModifiers = Chant.NoteShapeModifiers.Reverse | Chant.NoteShapeModifiers.Stemmed;
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.None), false);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Reverse), true);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Stemmed), true);
+    assert.strictEqual(note.shapeModifierMatches(Chant.NoteShapeModifiers.Cavum), false);
+  });
+});
+
 describe('Lyric parsing', function() {
   it('strips trailing whitespace from a lyric after a |', function() {
     var ctxt = new Drawing.ChantContext();
@@ -75,6 +101,28 @@ describe('Neume spacing', function() {
       neumes.map(function(neume) { return !!neume.allowLineBreakBeforeNext; }),
       [true, true, true, false, false]
     );
+  });
+
+  it("doesn't keep a syllable with the next because of a / or space at its end", function() {
+    var neumes = layoutNotations('(c4) A(f/)ve(g//) Ma(h )ri(g/ )a(f)');
+    assert.deepEqual(
+      neumes.map(function(neume) { return !!neume.keepWithNext; }),
+      [false, false, false, false, false]
+    );
+    // the space after them is kept, though
+    var ctxt = new Drawing.ChantContext();
+    assert(neumes[0].trailingSpace(ctxt) > 0);
+  });
+
+  it('gives !/ the width of its slash but keeps the neumes together', function() {
+    var ctxt = new Drawing.ChantContext();
+    var neumes = layoutNotations('(c4) a(f!/g!//h!i)');
+    assert.deepEqual(
+      neumes.map(function(neume) { return !!neume.keepWithNext && !neume.allowLineBreakBeforeNext; }),
+      [true, true, true, false]
+    );
+    assert.equal(neumes[1].trailingSpace(ctxt), 2 * neumes[0].trailingSpace(ctxt));
+    assert.equal(neumes[2].trailingSpace, 0);
   });
 });
 
