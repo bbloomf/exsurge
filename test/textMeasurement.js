@@ -222,4 +222,108 @@ describe('Text measurement', function() {
     assert.deepEqual(lines, ['Ad te levávi', 'ánimam', 'meam Deus', 'meus in te', 'confído non', 'erubéscam']);
     assert.strictEqual(title.numLines, 6);
   });
+  describe('wrapping around line breaks', function() {
+    var ctxt;
+    beforeEach(function() {
+      ctxt = new Drawing.ChantContext();
+      ctxt.setFont('Fake', 16, {}, { Regular: countingFont() });
+    });
+
+    // the lines of title, with the whitespace left before a <br> taken off
+    function lines(title) {
+      var result = [''];
+      title.spans.forEach(function(span) {
+        if (span.newLine) result.push('');
+        result[result.length - 1] += span.text;
+      });
+      return result.map(function(line) { return line.replace(/\s+$/, ''); });
+    }
+
+    // the text of title, with a newline where each line starts
+    function joined(title) {
+      return title.spans.map(function(span) {
+        return (span.newLine ? '\n' : '') + span.text;
+      }).join('');
+    }
+
+    // wraps title to chars characters, checking that each line is filled
+    // greedily, and returns its lines
+    function wrap(title, chars) {
+      var charWidth = ctxt.textStyles.title.size / 2;
+      var maxWidth = chars * charWidth;
+      title.setMaxWidth(ctxt, maxWidth);
+      var result = lines(title);
+      var words = title.sourceGabc.replace(/<br>/g, ' ').replace(/<[^>]*>/g, '');
+      assert.strictEqual(result.join(' ').split(/\s+/).filter(Boolean).join(' '),
+        words.split(/\s+/).filter(Boolean).join(' '));
+      // the spans that start each line
+      var starts = [title.spans[0]].concat(title.spans.filter(function(span) {
+        return span.newLine;
+      }));
+      result.forEach(function(line, i) {
+        if (/\s/.test(line.trim()))
+          assert(line.length * charWidth <= maxWidth, JSON.stringify(line) + ' is too wide');
+        // unless the next line starts at a <br>
+        if (i + 1 < result.length && starts[i + 1].newLine === true) {
+          var next = line + starts[i + 1].wrappedSpace + result[i + 1].split(' ')[0];
+          assert(next.length * charWidth > maxWidth, JSON.stringify(next) + ' would have fit');
+        }
+      });
+      // with a blank line for each <br> after the first in a row
+      var blank = starts.reduce(function(sum, span) {
+        return sum + Math.max(0, (parseInt(span.newLine) || 1) - 1);
+      }, 0);
+      assert.strictEqual(title.numLines, result.length + blank);
+      return result;
+    }
+
+    it('wraps the lines after a line break where they fill up', function() {
+      var title = new Drawing.Title(ctxt, 'aa bb cc dd <br>ee ff gg hh');
+      assert.deepEqual(wrap(title, 11), ['aa bb cc dd', 'ee ff gg hh']);
+      // and the <br> is still there when wrapping again
+      assert.deepEqual(wrap(title, 100), ['aa bb cc dd', 'ee ff gg hh']);
+
+      title = new Drawing.Title(ctxt, 'Ad te levávi <br>ánimam meam Deus meus in te confído');
+      assert.deepEqual(wrap(title, 12), ['Ad te levávi', 'ánimam meam', 'Deus meus in', 'te confído']);
+    });
+
+    it('wraps the lines after a word too wide to fit', function() {
+      var title = new Drawing.Title(ctxt, 'Supercalifragilistic a b c d e f g h');
+      assert.deepEqual(wrap(title, 6), ['Supercalifragilistic', 'a b c', 'd e f', 'g h']);
+
+      title = new Drawing.Title(ctxt, 'a b<br>Supercalifragilistic c d');
+      assert.deepEqual(wrap(title, 6), ['a b', 'Supercalifragilistic', 'c d']);
+    });
+
+    it('takes out all of the whitespace where it wraps', function() {
+      var title = new Drawing.Title(ctxt, '<i>aa </i> bb cc');
+      assert.deepEqual(wrap(title, 3), ['aa', 'bb', 'cc']);
+      title = new Drawing.Title(ctxt, ' aaaa bb');
+      assert.deepEqual(wrap(title, 3), [' aaaa', 'bb']);
+    });
+
+    it('wraps again the same as it wraps the first time', function() {
+      [
+        'aa bb cc dd <br>ee ff gg hh',
+        'Ad te levávi <br>ánimam meam Deus meus in te confído',
+        'Supercalifragilistic a b c d e f g h',
+        'a b<br>Supercalifragilistic c d',
+        '<i>aa </i> bb cc',
+        ' aaaa bb',
+        'aa bb cc <br>',
+        'Ad te <i>levávi</i> ánimam<br>meam Deus meus <i>in te confído</i> non erubéscam',
+        'a<br><br> b c d<br> e f g h i'
+      ].forEach(function(text) {
+        var title = new Drawing.Title(ctxt, text);
+        [3, 6, 11, 4, 100, 8, 5, 2].forEach(function(chars) {
+          var fresh = new Drawing.Title(ctxt, text);
+          var expected = wrap(fresh, chars);
+          assert.deepEqual(wrap(title, chars), expected, JSON.stringify(text) + ' at ' + chars);
+          // the whitespace is all taken out at the same places
+          assert.strictEqual(joined(title), joined(fresh));
+          assert.strictEqual(title.bounds.width, fresh.bounds.width);
+        });
+      });
+    });
+  });
 });
