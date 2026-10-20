@@ -145,7 +145,18 @@ function measureCanvasFont(font: string, text: string, withBoundingBox: boolean)
 
 interface StyleRule {
   selector: string;
+  specificity: number;
   declarations: Map<string, string>;
+}
+
+// the specificity of a selector without a comma or :is() and the like, as
+// one number: ids, then classes, attributes and pseudo-classes, then types
+function selectorSpecificity(selector: string) {
+  const count = (regex: RegExp) => (selector.match(regex) || []).length;
+  const ids = count(/#[\w-]+/g);
+  const classes = count(/\.[\w-]+|\[[^\]]*\]|(^|[^:]):[\w-]+/g);
+  const types = count(/(^|[\s>+~])[a-z][\w-]*|::[\w-]+/gi);
+  return ids * 1e6 + classes * 1e3 + types;
 }
 
 // parses css declarations, "name: value; name: value"
@@ -166,10 +177,13 @@ function styleRules(document: Document) {
     const css = style.textContent || "";
     let rules = parsedStyles.get(css);
     if (!rules) {
-      rules = Array.from(css.matchAll(/([^{}]+)\{([^{}]*)\}/g), ([, selector, declarations]) => ({
-        selector: selector.trim(),
-        declarations: parseDeclarations(declarations)
-      }));
+      rules = Array.from(css.matchAll(/([^{}]+)\{([^{}]*)\}/g)).flatMap(([, selectors, declarations]) =>
+        selectors.split(",").map((selector) => ({
+          selector: selector.trim(),
+          specificity: selectorSpecificity(selector.trim()),
+          declarations: parseDeclarations(declarations)
+        }))
+      );
       parsedStyles.set(css, rules);
     }
     return rules;
@@ -177,13 +191,18 @@ function styleRules(document: Document) {
 }
 
 // the value that element gives property itself: its style attribute, else
-// the last style rule that matches it, else its presentation attribute
+// that of the most specific style rule that matches it (the last of them, of
+// those as specific), else its presentation attribute
 function specifiedValue(element: Element, property: string, rules: StyleRule[]) {
   const inline = parseDeclarations(element.getAttribute("style") || "").get(property);
   if (inline) return inline;
-  let value: string | undefined;
+  let value: string | undefined,
+    specificity = -1;
   for (const rule of rules) {
-    if (rule.declarations.has(property) && element.matches(rule.selector)) value = rule.declarations.get(property);
+    if (rule.specificity >= specificity && rule.declarations.has(property) && element.matches(rule.selector)) {
+      value = rule.declarations.get(property);
+      specificity = rule.specificity;
+    }
   }
   return value ?? element.getAttribute(property) ?? undefined;
 }

@@ -3730,6 +3730,10 @@ export class Lyric extends TextElement {
 
     if (this.allowsConnector())
       this.connectorSpan = new TextSpan(ctxt.syllableConnector);
+
+    // TextElement measured the lyric before it knew it was a directive, which
+    // has a css class of its own and is centered differently
+    if (this.lyricType === LyricType.Directive) this.recalculateMetrics(ctxt);
   }
 
   allowsConnector() {
@@ -4224,6 +4228,9 @@ export class TextLeftRight extends TitleTextElement {
     this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.leftRight.padding) || 1) * ctxt.textStyles.leftRight.size / 5
     );
+
+    // measured again, since TextElement measured it before it had extraClass
+    this.recalculateMetrics(ctxt);
   }
 
   getCssClasses() {
