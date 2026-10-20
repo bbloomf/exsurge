@@ -141,6 +141,225 @@ function measureCanvasFont(font: string, text: string, withBoundingBox: boolean)
 }
 
 // -----------------------------------------------------------------------------
+// measuring svg text
+
+interface StyleRule {
+  selector: string;
+  specificity: number;
+  declarations: Map<string, string>;
+}
+
+// the specificity of a selector without a comma or :is() and the like, as
+// one number: ids, then classes, attributes and pseudo-classes, then types
+function selectorSpecificity(selector: string) {
+  const count = (regex: RegExp) => (selector.match(regex) || []).length;
+  const ids = count(/#[\w-]+/g);
+  const classes = count(/\.[\w-]+|\[[^\]]*\]|(^|[^:]):[\w-]+/g);
+  const types = count(/(^|[\s>+~])[a-z][\w-]*|::[\w-]+/gi);
+  return ids * 1e6 + classes * 1e3 + types;
+}
+
+// parses css declarations, "name: value; name: value"
+function parseDeclarations(css: string) {
+  const declarations = new Map<string, string>();
+  for (const declaration of css.split(";")) {
+    const colon = declaration.indexOf(":");
+    if (colon > 0) declarations.set(declaration.slice(0, colon).trim(), declaration.slice(colon + 1).trim());
+  }
+  return declarations;
+}
+
+const parsedStyles = new Map<string, StyleRule[]>();
+
+// the rules of the style elements in the document, which exsurge writes as selector{declarations}
+function styleRules(document: Document) {
+  return Array.from(document.querySelectorAll("style")).flatMap((style) => {
+    const css = style.textContent || "";
+    let rules = parsedStyles.get(css);
+    if (!rules) {
+      rules = Array.from(css.matchAll(/([^{}]+)\{([^{}]*)\}/g)).flatMap(([, selectors, declarations]) =>
+        selectors.split(",").map((selector) => ({
+          selector: selector.trim(),
+          specificity: selectorSpecificity(selector.trim()),
+          declarations: parseDeclarations(declarations)
+        }))
+      );
+      parsedStyles.set(css, rules);
+    }
+    return rules;
+  });
+}
+
+// the value that element gives property itself: its style attribute, else
+// that of the most specific style rule that matches it (the last of them, of
+// those as specific), else its presentation attribute
+function specifiedValue(element: Element, property: string, rules: StyleRule[]) {
+  const inline = parseDeclarations(element.getAttribute("style") || "").get(property);
+  if (inline) return inline;
+  let value: string | undefined,
+    specificity = -1;
+  for (const rule of rules) {
+    if (rule.specificity >= specificity && rule.declarations.has(property) && element.matches(rule.selector)) {
+      value = rule.declarations.get(property);
+      specificity = rule.specificity;
+    }
+  }
+  return value ?? element.getAttribute(property) ?? undefined;
+}
+
+// the value of an inherited property for element
+function inheritedValue(element: Element, property: string, rules: StyleRule[], initial: string) {
+  for (let e: Element | null = element; e; e = e.parentElement) {
+    const value = specifiedValue(e, property, rules);
+    if (value !== undefined) return value;
+  }
+  return initial;
+}
+
+function computedFontSize(element: Element | null, rules: StyleRule[]): number {
+  if (!element) return 16; // the browser's default
+  const value = specifiedValue(element, "font-size", rules);
+  if (value === undefined) return computedFontSize(element.parentElement, rules);
+  if (/%$/.test(value)) return (parseFloat(value) * computedFontSize(element.parentElement, rules)) / 100;
+  if (/em$/.test(value)) return parseFloat(value) * computedFontSize(element.parentElement, rules);
+  return parseFloat(value);
+}
+
+/** a run of text in an svg text element, measured in the fake canvas fonts */
+class SvgTextRun {
+  size: number;
+  seed: number;
+  smallCaps: boolean;
+  /** what textLength stretches the run's advance by */
+  stretch = 1;
+  constructor(
+    public text: string,
+    /** the element the run takes its font and position from */
+    public element: Element,
+    rules: StyleRule[]
+  ) {
+    this.size = computedFontSize(element, rules);
+    const weight = inheritedValue(element, "font-weight", rules, "normal");
+    const bold = weight === "bold" || weight === "bolder" || parseInt(weight) >= 600;
+    const italic = /italic|oblique/.test(inheritedValue(element, "font-style", rules, "normal"));
+    this.seed = bold ? (italic ? 4 : 2) : italic ? 3 : 1;
+    this.smallCaps = inheritedValue(element, "font-variant", rules, "normal") === "small-caps";
+    const textLength = element.getAttribute("textLength");
+    if (textLength !== null && text) this.stretch = parseFloat(textLength) / this.advance(text, 1);
+  }
+
+  advance(text: string, stretch = this.stretch) {
+    return ((textAdvance(text, this.seed, this.smallCaps) * this.size) / 1000) * stretch;
+  }
+}
+
+// the runs of text in a text element: its text nodes and tspans
+function svgTextRuns(text: Element) {
+  const rules = styleRules(text.ownerDocument);
+  return Array.from(text.childNodes).flatMap((node) => {
+    if (node.nodeType === 3) return [new SvgTextRun(node.textContent || "", text, rules)];
+    if ((node as Element).localName === "tspan") return [new SvgTextRun(node.textContent || "", node as Element, rules)];
+    return [];
+  });
+}
+
+// the box a browser gives each glyph, from the ascent to the descent of the font
+const cellAscent = 0.73;
+const cellDescent = 0.24;
+
+// the bounding box of a text element, as a browser lays it out: each tspan
+// with an x or y starts a new chunk of text, which text-anchor aligns
+function measureSvgText(text: Element) {
+  if (text.localName !== "text") throw new Error(`getBBox() isn't stubbed for <${text.localName}>`);
+  const anchor = inheritedValue(text, "text-anchor", styleRules(text.ownerDocument), "start");
+  const length = (value: string | null, size: number) =>
+    value === null ? 0 : parseFloat(value) * (/em$/.test(value) ? size : 1);
+  let x = length(text.getAttribute("x"), 0);
+  let y = length(text.getAttribute("y"), 0);
+  let left = Infinity,
+    top = Infinity,
+    right = -Infinity,
+    bottom = -Infinity;
+  let chunk: { x: number; width: number; top: number; bottom: number }[] = [];
+  let chunkWidth = 0;
+  const endChunk = () => {
+    const shift = anchor === "middle" ? -chunkWidth / 2 : anchor === "end" ? -chunkWidth : 0;
+    for (const run of chunk) {
+      left = Math.min(left, run.x + shift);
+      right = Math.max(right, run.x + shift + run.width);
+      top = Math.min(top, run.top);
+      bottom = Math.max(bottom, run.bottom);
+    }
+    chunk = [];
+    chunkWidth = 0;
+  };
+  for (const run of svgTextRuns(text)) {
+    const { element, size } = run;
+    if (element !== text) {
+      if (element.hasAttribute("x") || element.hasAttribute("y")) endChunk();
+      if (element.hasAttribute("x")) x = length(element.getAttribute("x"), size);
+      if (element.hasAttribute("y")) y = length(element.getAttribute("y"), size);
+      x += length(element.getAttribute("dx"), size);
+      y += length(element.getAttribute("dy"), size);
+    }
+    if (!run.text) continue;
+    const width = run.advance(run.text);
+    chunk.push({ x, width, top: y - cellAscent * size, bottom: y + cellDescent * size });
+    chunkWidth += width;
+    x += width;
+  }
+  endChunk();
+  if (left === Infinity) return { x: 0, y: 0, width: 0, height: 0 };
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+// the advance of all of a text element's text
+function measureSvgTextLength(text: Element) {
+  return svgTextRuns(text).reduce((width, run) => width + run.advance(run.text), 0);
+}
+
+// the advance of nchars characters of a text element, from charnum
+function measureSvgSubString(text: Element, charnum: number, nchars: number) {
+  const runs = svgTextRuns(text);
+  const count = runs.reduce((sum, run) => sum + run.text.length, 0);
+  if (charnum >= count) throw new DOMException(`charnum ${charnum} is past the end of the text`, "IndexSizeError");
+  let start = 0,
+    width = 0;
+  for (const run of runs) {
+    const from = Math.max(charnum, start),
+      to = Math.min(charnum + nchars, start + run.text.length);
+    if (to > from) width += run.advance(run.text.slice(from - start, to - start));
+    start += run.text.length;
+  }
+  return width;
+}
+
+/**
+ * Gives svg elements the getBBox(), getComputedTextLength() and
+ * getSubStringLength() that jsdom doesn't have, for
+ * TextMeasuringStrategy.Svg, measuring text in the fake canvas fonts at the
+ * font that its styles give it.  Returns a function that takes them away
+ * again.
+ */
+export function stubSvgTextMeasurement() {
+  const prototype = (globalThis as any).SVGElement.prototype;
+  prototype.getBBox = function (this: Element) {
+    return measureSvgText(this);
+  };
+  prototype.getComputedTextLength = function (this: Element) {
+    return measureSvgTextLength(this);
+  };
+  prototype.getSubStringLength = function (this: Element, charnum: number, nchars: number) {
+    return measureSvgSubString(this, charnum, nchars);
+  };
+  return () => {
+    delete prototype.getBBox;
+    delete prototype.getComputedTextLength;
+    delete prototype.getSubStringLength;
+  };
+}
+
+// -----------------------------------------------------------------------------
 // recording canvas
 
 function formatNumber(n: number) {
@@ -401,6 +620,8 @@ export async function render(
     }
   } finally {
     if (!hadPath2D) delete g.Path2D;
+    // so that the next case doesn't measure text with this one's styles
+    if (ctxt.svgTextMeasurer) ctxt.svgTextMeasurer.remove();
   }
   return { outputs, ctxt, score };
 }

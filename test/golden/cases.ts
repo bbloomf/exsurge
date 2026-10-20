@@ -614,3 +614,33 @@ export const settingCases: GoldenCase[] = [
   { name: "tree-zoom", outputs: ["tree"], gabc: kyrie, zoom: 1.5 },
   { name: "tree-fill-container", outputs: ["tree"], gabc: kyrie, zoom: true }
 ];
+
+// -----------------------------------------------------------------------------
+// text measured from svg elements
+
+/**
+ * Cases that measure text with TextMeasuringStrategy.Svg, which needs a DOM
+ * that can measure text, so these are rendered only by the tests that stub
+ * that (see stubSvgTextMeasurement() in harness.ts).
+ */
+export const svgMeasuredCases: GoldenCase[] = [
+  { name: "svg-measured", outputs: allOutputs, gabc: adTeLevavi, useDropCap: true, strategy: "svg" },
+  {
+    ...featureCases.find((c) => c.name === "lyric-markup")!,
+    name: "svg-measured-markup",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "lyric-centering")!,
+    name: "svg-measured-centering",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...settingCases.find((c) => c.name === "titles-aligned-and-wrapped")!,
+    name: "svg-measured-titles",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  }
+];

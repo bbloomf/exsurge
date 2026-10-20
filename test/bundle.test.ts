@@ -9,10 +9,11 @@ import { mkdirSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { rollup, type OutputOptions, type RollupOptions } from "rollup";
-import { beforeAll, describe, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, it, vi } from "vitest";
 import rollupConfig from "../rollup.config.mjs";
+import { svgMeasuredCases } from "./golden/cases";
 import { describeGoldenCases, describeGoldenTables } from "./golden/golden";
-import type { OutputName } from "./golden/harness";
+import { stubSvgTextMeasurement, type OutputName } from "./golden/harness";
 
 const root = resolve(__dirname, "..");
 const tsc = join(root, "node_modules/typescript/bin/tsc");
@@ -60,4 +61,17 @@ describe("the published builds", () => {
   describeGoldenCases("minified bundle svg nodes", loadMinifiedBundle, nodeOutputs);
   describeGoldenCases("ES modules", loadEsmBuild, stringOutputs);
   describeGoldenCases("ES modules svg nodes", loadEsmBuild, nodeOutputs);
+
+  describe("with text measured from svg elements", () => {
+    let unstub: () => void;
+    beforeAll(() => {
+      unstub = stubSvgTextMeasurement();
+    });
+    afterAll(() => unstub());
+
+    describeGoldenCases("minified bundle", loadMinifiedBundle, stringOutputs, svgMeasuredCases);
+    describeGoldenCases("minified bundle svg nodes", loadMinifiedBundle, nodeOutputs, svgMeasuredCases);
+    describeGoldenCases("ES modules", loadEsmBuild, stringOutputs, svgMeasuredCases);
+    describeGoldenCases("ES modules svg nodes", loadEsmBuild, nodeOutputs, svgMeasuredCases);
+  });
 });

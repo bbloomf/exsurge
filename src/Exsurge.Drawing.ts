@@ -474,7 +474,7 @@ export type QuickSvgRoot = SVGSVGElement & {
 export const QuickSvg = {
   // namespaces
   ns: "http://www.w3.org/2000/svg" as const,
-  xmlns: "https://www.w3.org/2000/xmlns/",
+  xmlns: "http://www.w3.org/2000/xmlns/",
   xlink: "http://www.w3.org/1999/xlink",
 
   hasDOMAccess: function () {
@@ -605,7 +605,7 @@ export const QuickSvg = {
         if (match) {
           node.setAttributeNS(
             (this as unknown as { [prefix: string]: string })[match[1]],
-            match[2],
+            attr,
             val
           );
         } else {
@@ -1052,6 +1052,9 @@ export class ChantContext {
     if (textMeasuringStrategy === TextMeasuringStrategy.Svg) {
       this.svgTextMeasurer = QuickSvg.svg(0, 0);
       this.svgTextMeasurer.setAttribute("id", "TextMeasurer");
+      // the classes of the svg that the score is drawn in, which the text
+      // styles (see createStyleCss()) are for
+      this.svgTextMeasurer.setAttribute("class", "Exsurge ChantScore");
       this.svgTextMeasurer.setAttribute("style", "position:absolute");
       document.body.insertBefore(
         this.svgTextMeasurer,
@@ -1271,6 +1274,22 @@ export class ChantContext {
       metrics = this.cacheTextMetrics(cache, key, canvasCtxt.measureText(text));
     }
     return metrics;
+  }
+
+  /**
+   * measures a text element in the DOM, with TextMeasuringStrategy.Svg
+   * @returns the text's advance width, and its bounding box, with the baseline
+   * at y = 0
+   */
+  measureSvgText(node: SVGTextElement): { advanceWidth: number; bbox: TextBBox } {
+    const measurer = this.svgTextMeasurer!;
+    // (after the text that recalculateMetrics() leaves in the measurer, which
+    // Lyric.recalculateMetrics() goes on to measure)
+    measurer.appendChild(node);
+    const { x, y, width, height } = node.getBBox();
+    const advanceWidth = node.getComputedTextLength();
+    measurer.removeChild(node);
+    return { advanceWidth, bbox: { x, y, width, height } };
   }
 
   /**
@@ -2641,7 +2660,9 @@ export class TextElement extends ChantLayoutElement {
     fontSize: (ctxt: ChantContext) => number,
     textAnchor: string,
     sourceIndex?: number,
-    sourceGabc?: string
+    sourceGabc?: string,
+    /** set before the text is measured, since its css class can style it */
+    textType?: TextTypes[keyof TextTypes]
   ) {
     super();
 
@@ -2659,6 +2680,7 @@ export class TextElement extends ChantLayoutElement {
     this.sourceIndex = sourceIndex;
     this.sourceGabc = sourceGabc;
     this.dominantBaseline = "baseline"; // default placement
+    if (textType) this.textType = textType;
 
     this.generateSpansFromText(ctxt, text);
 
@@ -3055,6 +3077,21 @@ export class TextElement extends ChantLayoutElement {
             width -= subBbox.minX * multiplier;
           }
         }        
+      } else if (strategy === TextMeasuringStrategy.Svg) {
+        const measured = ctxt.measureSvgText(this.createSvgNodeToMeasure(ctxt, span, myText));
+        const subBbox = measured.bbox;
+        bbox.union(
+          new Rect(
+            width + subBbox.x,
+            fontSize * (numLines - 1) + subBbox.y,
+            subBbox.width,
+            subBbox.height
+          )
+        );
+        width += measured.advanceWidth;
+        if (this instanceof DropCap) {
+          width -= Math.min(0, subBbox.x);
+        }
       }
       subStringLength += myText.length;
       if (subStringLength === length) break;
@@ -3437,6 +3474,33 @@ export class TextElement extends ChantLayoutElement {
     return options;
   }
 
+  /**
+   * a text element of text in span's style, styled as createSvgNode() styles
+   * this one, but starting at the origin, for TextMeasuringStrategy.Svg
+   */
+  createSvgNodeToMeasure(ctxt: ChantContext, span: TextSpan, text: string) {
+    const properties = span.mergedProperties;
+    const extraStyleProperties = this.getExtraStyleProperties(ctxt);
+    let textClass = this.getCssClasses().trim();
+    if (extraStyleProperties.class) textClass = extraStyleProperties.class + " " + textClass;
+    const spanNode = QuickSvg.createNode(
+      "tspan",
+      {
+        class: properties.class,
+        style: getCssForProperties(properties),
+        "font-size": this.resize
+          ? properties["font-size"] || this.fontSize(ctxt) * this.resize
+          : undefined
+      },
+      text
+    );
+    return QuickSvg.createNode(
+      "text",
+      { class: textClass, style: getCssForProperties(extraStyleProperties) },
+      spanNode
+    ) as unknown as SVGTextElement;
+  }
+
   createSvgNode(ctxt: ChantContext) {
     var spans = [];
 
@@ -3630,9 +3694,9 @@ export class Lyric extends TextElement {
       (ctxt) => ctxt.textStyles.lyric.size,
       "start",
       sourceIndex,
-      text
+      text,
+      TextTypes.lyric
     );
-    this.textType = TextTypes.lyric;
 
     // save the original text in case we need to later use the lyric
     // in a dropcap...
@@ -3666,6 +3730,10 @@ export class Lyric extends TextElement {
 
     if (this.allowsConnector())
       this.connectorSpan = new TextSpan(ctxt.syllableConnector);
+
+    // TextElement measured the lyric before it knew it was a directive, which
+    // has a css class of its own and is centered differently
+    if (this.lyricType === LyricType.Directive) this.recalculateMetrics(ctxt);
   }
 
   allowsConnector() {
@@ -3920,11 +3988,11 @@ export class ChoralSign extends TextElement {
       TextTypes.choralSign.size,
       "start",
       sourceIndex,
-      text
+      text,
+      TextTypes.choralSign
     );
     this.positionHint = MarkingPositionHint.Default;
     this.note = note;
-    this.textType = TextTypes.choralSign;
   }
 
   recalculateMetrics(ctxt: ChantContext) {
@@ -3979,11 +4047,11 @@ export class AboveLinesText extends TextElement {
       (ctxt) => ctxt.textStyles.al.size,
       "start",
       sourceIndex,
-      text
+      text,
+      TextTypes.al
     );
     // (text above a note gets moved to its neume, see Gabc.createNeumesFromNotes)
     this.notation = notation as ChantNotationElement;
-    this.textType = TextTypes.al;
 
     this.padding = ctxt.staffInterval / 2;
   }
@@ -4023,10 +4091,10 @@ export class TranslationText extends TextElement {
       (ctxt) => ctxt.textStyles.translation.size,
       anchor,
       sourceIndex,
-      gabcSource
+      gabcSource,
+      TextTypes.translation
     );
     this.notation = notation!;
-    this.textType = TextTypes.translation;
 
     this.padding = ctxt.staffInterval / 2;
   }
@@ -4047,9 +4115,9 @@ export class DropCap extends TextElement {
       (ctxt) => ctxt.textStyles.dropCap.size,
       "middle",
       sourceIndex,
-      text
+      text,
+      TextTypes.dropCap
     );
-    this.textType = TextTypes.dropCap;
 
     this.padding = ctxt.staffInterval * ctxt.textStyles.dropCap.padding;
   }
@@ -4066,7 +4134,8 @@ export class TitleTextElement extends TextElement {
     fontSize: (ctxt: ChantContext) => number,
     textAnchor: string,
     sourceIndex?: number,
-    sourceGabc?: string
+    sourceGabc?: string,
+    textType?: TextTypes[keyof TextTypes]
   ) {
     super(
       ctxt,
@@ -4075,7 +4144,8 @@ export class TitleTextElement extends TextElement {
       fontSize,
       textAnchor,
       sourceIndex,
-      sourceGabc
+      sourceGabc,
+      textType
     );
   }
 }
@@ -4089,9 +4159,9 @@ export class Supertitle extends TitleTextElement {
       (ctxt) => ctxt.textStyles.supertitle.size,
       "middle",
       sourceIndex,
-      text
+      text,
+      TextTypes.supertitle
     );
-    this.textType = TextTypes.supertitle;
 
     this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.supertitle.padding) || 1) * ctxt.textStyles.supertitle.size / 3
@@ -4108,9 +4178,9 @@ export class Title extends TitleTextElement {
       (ctxt) => ctxt.textStyles.title.size,
       "middle",
       sourceIndex,
-      text
+      text,
+      TextTypes.title
     );
-    this.textType = TextTypes.title;
 
     this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.title.padding) || 1) * ctxt.textStyles.title.size / 3
@@ -4127,9 +4197,9 @@ export class Subtitle extends TitleTextElement {
       (ctxt) => ctxt.textStyles.subtitle.size,
       "middle",
       sourceIndex,
-      text
+      text,
+      TextTypes.subtitle
     );
-    this.textType = TextTypes.subtitle;
 
     this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.subtitle.padding) || 1) * ctxt.textStyles.subtitle.size / 3
@@ -4150,14 +4220,17 @@ export class TextLeftRight extends TitleTextElement {
       (ctxt) => ctxt.textStyles.leftRight.size,
       type === "textLeft" ? "start" : "end",
       sourceIndex,
-      text
+      text,
+      TextTypes.leftRight
     );
-    this.textType = TextTypes.leftRight;
     this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
     this.headerKey = type === "textLeft" ? "text-left" : "text-right";
     this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.leftRight.padding) || 1) * ctxt.textStyles.leftRight.size / 5
     );
+
+    // measured again, since TextElement measured it before it had extraClass
+    this.recalculateMetrics(ctxt);
   }
 
   getCssClasses() {
@@ -4178,11 +4251,12 @@ export class Annotation extends TextElement {
       (ctxt.textStyles.annotation.prefix || "") + text,
       (ctxt) => ctxt.textStyles.annotation.font,
       (ctxt) => ctxt.textStyles.annotation.size,
-      "middle"
+      "middle",
+      undefined,
+      text,
+      TextTypes.annotation
     );
-    this.sourceGabc = text;
     if (typeof elementIndex === 'number') this.elementIndex = elementIndex;
-    this.textType = TextTypes.annotation;
     this.padding = ctxt.staffInterval * ctxt.textStyles.annotation.padding;
     this.dominantBaseline = "hanging"; // so that annotations can be aligned at the top.
   }
