@@ -19,9 +19,9 @@ const tsc = join(root, "node_modules/typescript/bin/tsc");
 // in the project (rather than node_modules) so that its ES modules are loaded as such
 const buildDir = join(root, "test/.build");
 const minifiedBundle = join(buildDir, "exsurge.min.js");
-// rendered separately, as test/golden renders them, since rendering one
-// output can change another (createSvgTree() camelCases the keys of
-// ctxt.baseTextStyle in place)
+// rendered separately, as test/golden renders them.  (createSvgTree() used
+// to camelCase the keys of ctxt.baseTextStyle in place, changing the outputs
+// rendered after it; test/svgTree.test.ts checks that it doesn't now.)
 const stringOutputs: OutputName[] = ["svg", "lines", "tree", "canvas"];
 const nodeOutputs: OutputName[] = ["node", "nodeLines"];
 
