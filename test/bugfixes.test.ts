@@ -5,6 +5,7 @@ import * as Core from "../src/Exsurge.Core.js";
 import * as Drawing from "../src/Exsurge.Drawing.js";
 import { Gabc } from "../src/Exsurge.Gabc.js";
 import * as Neumes from "../src/Exsurge.Chant.Neumes.js";
+import * as Signs from "../src/Exsurge.Chant.Signs.js";
 import { Spanish } from "../src/Exsurge.Text.js";
 
 function layoutNotations(gabc: string) {
@@ -152,5 +153,21 @@ describe('Units', function() {
     assert.equal(Units.StringToUnitsType('cm'), Units.Centimeters);
     assert.equal(Units.StringToUnitsType('Millimeters'), Units.Millimeters);
     assert.equal(Units.StringToUnitsType('di'), Units.DeviceIndepenedent);
+  });
+});
+
+describe('Braces', function() {
+  it('ends a brace that is still open at an explicit custos at the end of the score', function() {
+    // this used to throw, looking for a notation after the custos
+    var ctxt = new Drawing.ChantContext();
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) a(g[ob:1{]h+)'), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 400);
+    assert.equal(score.lines.length, 1);
+    var line = score.lines[0];
+    assert(line.custos instanceof Signs.Custos);
+    assert.equal(line.custos, score.notations[score.notations.length - 1]);
+    assert.equal(line.braces.length, 1);
+    assert.equal(line.braces[0].bounds.right(), line.custos.bounds.right());
   });
 });
