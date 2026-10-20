@@ -27,13 +27,89 @@ import {
   getCssForProperties, Point,
   Rect
 } from "./Exsurge.Core.js";
-import { Glyphs } from "./Exsurge.Glyphs.js";
-import { language } from "./Exsurge.Text.js";
+import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
+import { language, type IgnoredRange, type Language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
 import { makeLigature } from "./makeLigature.js";
+import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
+import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
+import type { BracePoint } from "./Exsurge.Chant.Markings.js";
+import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import type { Titles } from "./Exsurge.Titles.js";
 
-function getFontFilenameForProperties(properties = {}, url = "{}") {
+/** the css properties of text that choose which face of a font it is in */
+export interface FontStyleProperties {
+  "font-style"?: string;
+  "font-weight"?: string;
+}
+
+/** css properties of text, by name */
+export interface CssProperties {
+  [property: string]: string;
+}
+
+/** a fontkit font, as far as exsurge uses one (fontkit's Font fits this) */
+export interface FontkitFont {
+  unitsPerEm: number;
+  layout(
+    text: string,
+    features?: { [feature: string]: boolean }
+  ): {
+    advanceWidth: number;
+    bbox: { minX: number; maxY: number; height: number };
+  };
+}
+
+/** options for laying out text with an opentype.js font */
+export interface OpenTypeRenderOptions {
+  features?: { [feature: string]: boolean };
+}
+
+/** an opentype.js font, as far as exsurge uses one (opentype.js's Font fits this) */
+export interface OpenTypeFont {
+  getPath(
+    text: string,
+    x: number,
+    y: number,
+    fontSize: number,
+    options?: OpenTypeRenderOptions
+  ): { getBoundingBox(): OpenTypeBoundingBox };
+  getAdvanceWidth(text: string, fontSize?: number, options?: OpenTypeRenderOptions): number;
+}
+
+export interface OpenTypeBoundingBox {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+/** a font that exsurge can measure text with */
+export type MeasuringFont = OpenTypeFont | FontkitFont;
+
+/**
+ * Fonts to measure text in.  Each font is found by its family, with "{}" in
+ * the family replaced by Regular, Bold, Italic or BoldItalic, falling back to
+ * the font under Regular.
+ */
+export interface FontDictionary {
+  [key: string]: MeasuringFont;
+}
+
+/** the metrics of text laid out in a fontkit font, in font units */
+interface FontkitMetrics {
+  advanceWidth: number;
+  bbox: { minX: number; maxY: number; height: number };
+}
+
+/** the metrics of text drawn in an opentype.js font */
+interface OpenTypeMetrics {
+  advanceWidth: number;
+  bbox: OpenTypeBoundingBox;
+}
+
+function getFontFilenameForProperties(properties: FontStyleProperties = {}, url = "{}") {
   var italic = properties["font-style"] === "italic" ? "Italic" : "",
     bold = properties["font-weight"] === "bold" ? "Bold" : "";
   return url.replace(
@@ -67,7 +143,7 @@ function listenForFontLoads() {
 // a FontFace that has already loaded when it's added to document.fonts (as in
 // `document.fonts.add(await new FontFace(...).load())`) fires no event, so the
 // size of document.fonts is compared before each layout as well.
-let __fontSetSize;
+let __fontSetSize: number | undefined;
 function noticeFontSetChanges() {
   const fonts = typeof document !== "undefined" && document.fonts;
   const size = fonts ? fonts.size : undefined;
@@ -80,28 +156,103 @@ function noticeFontSetChanges() {
 // how many measurements a ChantContext remembers before starting over
 const __maxCachedTextMetrics = 20000;
 
-const __getNeumeFromSvgElem = (score, elem) => {
+// an attribute used as an index into an array, which the attribute's string
+// works as just as well as a number
+const __attributeAsIndex = (attribute: string | number | null) =>
+  attribute as unknown as number;
+
+const __getNeumeFromSvgElem = (score: ChantScore, elem: Element) => {
   let note =
     score.notes[
-      elem.parentElement
-        .querySelector("[element-index]")
-        .getAttribute("element-index")
+      __attributeAsIndex(
+        elem.parentElement!
+          .querySelector("[element-index]")!
+          .getAttribute("element-index")
+      )
     ];
-  return note.neume || note;
+  return ((note as Note).neume || note) as ChantNotationElement;
 };
 
 // for positioning markings on notes
-export var MarkingPositionHint = {
+export const MarkingPositionHint = {
   Default: 0,
   Above: 1,
   Below: 2
+} as const;
+export type MarkingPositionHint =
+  (typeof MarkingPositionHint)[keyof typeof MarkingPositionHint];
+
+/**
+ * A score with titles.  A score made without a ChantContext, or a later page
+ * from paginate(), has none.
+ */
+export type ScoreWithTitles = ChantScore & { titles: Titles };
+
+/** a kind of text in a score, and its defaults */
+export interface TextType<Score = ChantScore> {
+  display: string;
+  /** this type's key in TextTypes (set when exsurge loads) */
+  key: keyof TextTypes;
+  /** the class of this type's svg text elements; defaults to the key */
+  cssClass: string;
+
+  defaultSize(size: number): number;
+  containedInScore(score: Score): boolean;
+  /**
+   * Returns the element in score that matches elem, a text element of this
+   * type (e.g. from before the score was updated), or null or undefined if
+   * there isn't one.
+   */
+  getFromScore(score: Score, elem: TextElement): TextElement | null | undefined;
+}
+
+/** a text type that a score has at most one of, so elem isn't needed */
+export interface SingleTextType<Score = ChantScore> extends TextType<Score> {
+  getFromScore(score: Score, elem?: TextElement): TextElement | null;
+}
+
+export interface TextTypeWithSvgElem<Score = ChantScore> {
+  /** Returns the element in score that elem, an svg text element, shows. */
+  getFromSvgElem(score: Score, elem: Element): TextElement | null | undefined;
+}
+
+export interface TextTypes {
+  supertitle: SingleTextType<ScoreWithTitles>;
+  title: SingleTextType<ScoreWithTitles>;
+  subtitle: SingleTextType<ScoreWithTitles>;
+  leftRight: TextType<ScoreWithTitles> & TextTypeWithSvgElem<ScoreWithTitles>;
+  annotation: TextType & TextTypeWithSvgElem;
+  dropCap: SingleTextType;
+  al: TextType & TextTypeWithSvgElem;
+  choralSign: Omit<TextType, "defaultSize"> & {
+    /** choral signs are sized relative to the staff, not the lyrics */
+    size(ctxt: ChantContext): number;
+  };
+  lyric: TextType & TextTypeWithSvgElem;
+  translation: TextType & TextTypeWithSvgElem;
+}
+
+/** any of TextTypes, as code that goes through all of them sees it */
+interface AnyTextType {
+  display: string;
+  key: keyof TextTypes;
+  cssClass: string;
+  defaultSize?(size: number, ctxt?: ChantContext): number;
+  size?(ctxt: ChantContext): number;
+}
+
+// TextTypes as they are written below, before their keys and classes are set
+type TextTypeDefinitions = {
+  [K in keyof TextTypes]: Omit<TextTypes[K], "key" | "cssClass"> & {
+    cssClass?: string;
+  };
 };
 
 /**
  * List of types of text and their defaults relative to lyrics
  * @type Array
  */
-export const TextTypes = {
+const textTypeDefinitions: TextTypeDefinitions = {
   supertitle: {
     display: "Supertitle",
     defaultSize: (size) => (size * 7) / 6, // 14pt
@@ -126,7 +277,8 @@ export const TextTypes = {
     defaultSize: (size) => size * 0.9,
     containedInScore: (score) =>
       score.titles.hasTextLeft() || score.titles.hasTextRight(),
-    getFromScore: (score, elem) => score.titles[elem.extraClass],
+    getFromScore: (score, elem) =>
+      score.titles[(elem as TextLeftRight).extraClass],
     getFromSvgElem: (score, elem) =>
       score.titles[
         elem.classList.contains("textRight") ? "textRight" : "textLeft"
@@ -139,14 +291,14 @@ export const TextTypes = {
       !!score.annotation,
     getFromScore: (score, { elementIndex = 0 }) =>
       score.annotation &&
-      (score.annotation.annotations
-        ? score.annotation.annotations[elementIndex]
-        : score.annotation),
+      ((score.annotation as Annotations).annotations
+        ? (score.annotation as Annotations).annotations[elementIndex]
+        : (score.annotation as Annotation)),
     getFromSvgElem: (score, elem) =>
       score.annotation &&
-      (score.annotation.annotations
-        ? score.annotation.annotations[Array.from(elem.parentElement.querySelectorAll("text.annotation")).indexOf(elem)]
-        : score.annotation)
+      ((score.annotation as Annotations).annotations
+        ? (score.annotation as Annotations).annotations[Array.from(elem.parentElement!.querySelectorAll("text.annotation")).indexOf(elem)]
+        : (score.annotation as Annotation))
   },
   dropCap: {
     display: "Drop Cap",
@@ -160,28 +312,32 @@ export const TextTypes = {
     defaultSize: (size) => size,
     containedInScore: (score) => score.hasAboveLinesText,
     getFromScore: (score, elem) =>
-      score.notations[elem.notation.notationIndex].alText[elem.alIndex],
+      score.notations[(elem as AboveLinesText).notation.notationIndex!].alText![
+        (elem as AboveLinesText).alIndex!
+      ],
     getFromSvgElem: (score, elem) =>
-      __getNeumeFromSvgElem(score, elem).alText[
-        elem.getAttribute("al-index") || 0
+      __getNeumeFromSvgElem(score, elem).alText![
+        __attributeAsIndex(elem.getAttribute("al-index") || 0)
       ]
   },
   choralSign: {
     display: "Choral Sign",
-    size: (ctxt) => ctxt.staffInterval * 1.5,
+    size: (ctxt: ChantContext) => ctxt.staffInterval * 1.5,
     containedInScore: (score) => false,
     getFromScore: (score, elem) =>
-      score.notes[elem.note.elementIndex].choralSign
+      (score.notes[(elem as ChoralSign).note.elementIndex!] as Note).choralSign
   },
   lyric: {
     display: "Lyric",
     defaultSize: (size) => size * 0.9,
     containedInScore: (score) => score.hasLyrics,
     getFromScore: (score, elem) =>
-      score.notations[elem.notation.notationIndex].lyrics[elem.lyricIndex],
+      score.notations[(elem as Lyric).notation.notationIndex!].lyrics[
+        (elem as Lyric).lyricIndex!
+      ],
     getFromSvgElem: (score, elem) =>
       __getNeumeFromSvgElem(score, elem).lyrics[
-        elem.getAttribute("lyric-index") || 0
+        __attributeAsIndex(elem.getAttribute("lyric-index") || 0)
       ]
   },
   translation: {
@@ -189,27 +345,41 @@ export const TextTypes = {
     defaultSize: (size) => size * 0.75,
     containedInScore: (score) => score.hasTranslations,
     getFromScore: (score, elem) =>
-      score.notations[elem.notation.notationIndex].translationText[
-        elem.translationIndex
-      ],
+      score.notations[(elem as TranslationText).notation.notationIndex!]
+        .translationText![(elem as TranslationText).translationIndex!],
     getFromSvgElem: (score, elem) =>
-      __getNeumeFromSvgElem(score, elem).translationText[
-        elem.getAttribute("translation-index") || 0
+      __getNeumeFromSvgElem(score, elem).translationText![
+        __attributeAsIndex(elem.getAttribute("translation-index") || 0)
       ]
   }
 };
-export const TextTypesByClass = {};
-Object.entries(TextTypes).forEach(([key, entry]) => {
+// the key and class of each are set just below
+export const TextTypes = textTypeDefinitions as TextTypes;
+export const TextTypesByClass: { [cssClass: string]: TextTypes[keyof TextTypes] } = {};
+(Object.entries(TextTypes) as [keyof TextTypes, AnyTextType][]).forEach(([key, entry]) => {
   let cssClass = (entry.cssClass = entry.cssClass || key);
   entry.key = key;
-  TextTypesByClass[cssClass] = entry;
+  TextTypesByClass[cssClass] = entry as TextTypes[keyof TextTypes];
 });
 
-export const DefaultTrailingSpace = (ctxt) =>
+/** the TextTypes, as code that goes through each of them sees them */
+const __textTypeEntries = () =>
+  Object.entries(TextTypes) as [keyof TextTypes, AnyTextType][];
+
+/**
+ * how much space to leave after a notation: a width, or a function of the
+ * context.  A function's isDefault is set if it is DefaultTrailingSpace.
+ */
+export type TrailingSpace = number | TrailingSpaceFunction;
+export type TrailingSpaceFunction = ((ctxt: ChantContext) => number) & {
+  isDefault?: boolean;
+};
+
+export const DefaultTrailingSpace: TrailingSpaceFunction = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier;
 DefaultTrailingSpace.isDefault = true;
 
-export let GlyphCode = {
+export const GlyphCode = {
   None: "None",
 
   AcuteAccent: "AcuteAccent",
@@ -271,11 +441,39 @@ export let GlyphCode = {
   Virgula: "Virgula",
 
   UpperBrace: "UpperBrace"
-}; // GlyphCode
+} as const; // GlyphCode
+export type GlyphCode = (typeof GlyphCode)[keyof typeof GlyphCode];
 
-export var QuickSvg = {
+/** attributes of an svg element, by name; undefined ones are left out */
+export interface SvgAttributes {
+  [name: string]: any;
+}
+
+/** an svg element, with what in the score it shows (if anything) */
+export type SvgElementWithSource = SVGElement & { source?: unknown };
+
+/**
+ * an svg element made by createSvgTree(), e.g. for React.  Its props are
+ * camelCased, with class as className.
+ */
+export interface SvgTreeNode {
+  name?: string;
+  props?: {
+    [key: string]: any;
+  };
+  /** strings are text content, e.g. of a tspan */
+  children: Array<SvgTreeNode | string>;
+}
+
+/** the svg element made by QuickSvg.svg() */
+export type QuickSvgRoot = SVGSVGElement & {
+  defs: SVGDefsElement;
+  clearNotations(): void;
+};
+
+export const QuickSvg = {
   // namespaces
-  ns: "http://www.w3.org/2000/svg",
+  ns: "http://www.w3.org/2000/svg" as const,
   xmlns: "https://www.w3.org/2000/xmlns/",
   xlink: "http://www.w3.org/1999/xlink",
 
@@ -284,15 +482,15 @@ export var QuickSvg = {
   },
 
   // create the root level svg object
-  svg: function (width, height) {
-    var node = document.createElementNS(this.ns, "svg");
+  svg: function (width: number, height: number): QuickSvgRoot {
+    var node = document.createElementNS(this.ns, "svg") as QuickSvgRoot;
 
     node.setAttribute("xmlns", this.ns);
     node.setAttribute("version", "1.1");
     node.setAttributeNS(this.xmlns, "xmlns:xlink", this.xlink);
 
-    node.setAttribute("width", width);
-    node.setAttribute("height", height);
+    node.setAttribute("width", String(width));
+    node.setAttribute("height", String(height));
 
     // create the defs element
     var defs = document.createElementNS(this.ns, "defs");
@@ -304,7 +502,7 @@ export var QuickSvg = {
       // clear out all children except defs
       node.removeChild(defs);
 
-      while (node.hasChildNodes()) node.removeChild(node.lastChild);
+      while (node.hasChildNodes()) node.removeChild(node.lastChild!);
 
       node.appendChild(defs);
     };
@@ -312,22 +510,22 @@ export var QuickSvg = {
     return node;
   },
 
-  rect: function (width, height) {
+  rect: function (width: number, height: number) {
     var node = document.createElementNS(this.ns, "rect");
 
-    node.setAttribute("width", width);
-    node.setAttribute("height", height);
+    node.setAttribute("width", String(width));
+    node.setAttribute("height", String(height));
 
     return node;
   },
 
-  line: function (x1, y1, x2, y2) {
+  line: function (x1: number, y1: number, x2: number, y2: number) {
     var node = document.createElementNS(this.ns, "line");
 
-    node.setAttribute("x1", x1);
-    node.setAttribute("y1", y1);
-    node.setAttribute("x2", x2);
-    node.setAttribute("y2", y2);
+    node.setAttribute("x1", String(x1));
+    node.setAttribute("y1", String(y1));
+    node.setAttribute("x2", String(x2));
+    node.setAttribute("y2", String(y2));
 
     return node;
   },
@@ -344,7 +542,7 @@ export var QuickSvg = {
     return node;
   },
 
-  tspan: function (str) {
+  tspan: function (str: string) {
     var node = document.createElementNS(this.ns, "tspan");
     node.textContent = str;
 
@@ -352,14 +550,14 @@ export var QuickSvg = {
   },
 
   // nodeRef should be the id of the object in defs (without the #)
-  use: function (nodeRef) {
+  use: function (nodeRef: string) {
     var node = document.createElementNS(this.ns, "use");
     node.setAttributeNS(this.xlink, "xlink:href", "#" + nodeRef);
 
     return node;
   },
 
-  svgFragmentForGlyph: function (glyph, negativeFillColor = "#fff") {
+  svgFragmentForGlyph: function (glyph: Glyph, negativeFillColor = "#fff") {
     var svgSrc = "";
     for (var i = 0; i < glyph.paths.length; ++i) {
       var path = glyph.paths[i];
@@ -371,24 +569,28 @@ export var QuickSvg = {
     return svgSrc;
   },
 
-  nodesForGlyph: function (
-    glyph,
-    functionName = "createNode",
+  nodesForGlyph: function <F extends "createNode" | "createSvgTree" = "createNode">(
+    glyph: Glyph,
+    functionName: F = "createNode" as F,
     negativeFillColor = "#fff"
-  ) {
+  ): Array<F extends "createSvgTree" ? SvgTreeNode : SvgElementWithSource> {
     var nodes = [];
     for (var i = 0; i < glyph.paths.length; ++i) {
       var path = glyph.paths[i];
-      let props = {};
+      let props: SvgAttributes = {};
       if (path.data) props.d = path.data;
       if (path.type === "negative") props.fill = negativeFillColor;
       nodes.push(QuickSvg[functionName](path.data ? "path" : "g", props));
     }
-    return nodes;
+    return nodes as Array<F extends "createSvgTree" ? SvgTreeNode : SvgElementWithSource>;
   },
 
-  createNode: function (name, attributes, children) {
-    var node = document.createElementNS(this.ns, name);
+  createNode: function (
+    name: string,
+    attributes?: SvgAttributes | null,
+    children?: string | Node | Node[]
+  ): SvgElementWithSource {
+    var node: SvgElementWithSource = document.createElementNS(this.ns, name);
     if (attributes && attributes.source) {
       node.source = attributes.source;
       delete attributes.source;
@@ -401,7 +603,11 @@ export var QuickSvg = {
         var val = attributes[attr];
         var match = attr.match(/^([^:]+):([^:]+)$/);
         if (match) {
-          node.setAttributeNS(this[match[1]], match[2], val);
+          node.setAttributeNS(
+            (this as unknown as { [prefix: string]: string })[match[1]],
+            match[2],
+            val
+          );
         } else {
           node.setAttribute(attr, val);
         }
@@ -411,17 +617,21 @@ export var QuickSvg = {
       if (typeof children === "string") {
         node.textContent = children;
       } else if (children.constructor === [].constructor) {
-        for (var i = 0; i < children.length; ++i) {
-          node.appendChild(children[i]);
+        for (var i = 0; i < (children as Node[]).length; ++i) {
+          node.appendChild((children as Node[])[i]);
         }
       } else {
-        node.appendChild(children);
+        node.appendChild(children as Node);
       }
     }
     return node;
   },
 
-  createSvgTree(name, props, ...children) {
+  createSvgTree(
+    name: string,
+    props: SvgAttributes,
+    ...children: Array<SvgTreeNode | string | Array<SvgTreeNode | string>>
+  ): SvgTreeNode {
     if ("class" in props) {
       props.className = props.class;
       delete props.class;
@@ -429,7 +639,7 @@ export var QuickSvg = {
     if (children.length === 1 && children[0] instanceof Array) {
       children = children[0];
     }
-    const convertKeysToCamelCase = (obj) => {
+    const convertKeysToCamelCase = (obj: SvgAttributes) => {
       for (let key of Object.keys(obj)) {
         if (/[-:][a-z]/.test(key)) {
           if (/^\w+-index$/.test(key)) continue;
@@ -447,20 +657,24 @@ export var QuickSvg = {
     if (source && source.sourceGabc) {
       props["source-gabc"] = source.sourceGabc;
     }
-    return { name, props, children };
+    return { name, props, children: children as Array<SvgTreeNode | string> };
   },
 
-  createFragment: function (name, attributes, child) {
+  createFragment: function (
+    name: string,
+    attributes?: SvgAttributes | null,
+    child?: string | null
+  ) {
     if (child === undefined || child === null) child = "";
 
     var fragment = "<" + name + " ";
 
     for (var attr in attributes) {
       if (
-        attributes.hasOwnProperty(attr) &&
-        typeof attributes[attr] !== "undefined"
+        attributes!.hasOwnProperty(attr) &&
+        typeof attributes![attr] !== "undefined"
       )
-        fragment += attr + '="' + attributes[attr] + '" ';
+        fragment += attr + '="' + attributes![attr] + '" ';
     }
 
     fragment += ">" + child + "</" + name + ">";
@@ -468,7 +682,7 @@ export var QuickSvg = {
     return fragment;
   },
 
-  parseFragment: function (fragment) {
+  parseFragment: function (fragment: string) {
     // create temporary holder
     var well = document.createElement("svg");
 
@@ -486,37 +700,245 @@ export var QuickSvg = {
         "</svg>";
 
       // transplant nodes
-      for (var i = 0, il = well.firstChild.childNodes.length; i < il; i++)
-        container.appendChild(well.firstChild.firstChild);
+      for (var i = 0, il = well.firstChild!.childNodes.length; i < il; i++)
+        container.appendChild(well.firstChild!.firstChild!);
 
       return container;
     }
   },
 
-  translate: function (node, x, y) {
+  translate: function (node: Element, x: number, y: number) {
     node.setAttribute("transform", "translate(" + x + "," + y + ")");
     return node;
   },
 
-  scale: function (node, sx, sy) {
+  scale: function (node: Element, sx: number, sy: number) {
     node.setAttribute("transform", "scale(" + sx + "," + sy + ")");
     return node;
   }
 };
 
-export var TextMeasuringStrategy = {
+export const TextMeasuringStrategy = {
   // shapes
   Svg: 0,
   Canvas: 1,
+  /** also used for fontkit */
   OpenTypeJS: 2
+} as const;
+export type TextMeasuringStrategy =
+  (typeof TextMeasuringStrategy)[keyof typeof TextMeasuringStrategy];
+
+export interface TextStyle {
+  size: number;
+  font: string;
+  color?: string;
+  /**
+   * Currently only used on lyrics, translations, and above lines text
+   * Defaults to 1.1
+   */
+  lineHeight?: number;
+  /**
+   * Markup put before every text of this type, e.g. "<i>" (the default for
+   * above lines text and translations).
+   */
+  prefix?: string;
+}
+
+export interface TextStyleWithAlignment {
+  alignment?: string;
+}
+export interface TextStyleWithPadding {
+  /** A multiplier of the default padding.  Unset or 0 means 1. */
+  padding?: number;
+}
+export interface TextStyleWithStaffPadding {
+  /**
+   * The minimum padding on either side, in staff intervals.  ChantContext's
+   * constructor sets it to 1, and nothing falls back to 1 if it's unset.
+   */
+  padding: number;
+}
+
+export type TextTypeStyles = {
+  [K in keyof TextTypes]: TextStyle;
+} & {
+  supertitle: TextStyleWithAlignment & TextStyleWithPadding;
+  title: TextStyleWithAlignment & TextStyleWithPadding;
+  subtitle: TextStyleWithAlignment & TextStyleWithPadding;
+  leftRight: TextStyleWithPadding;
+  annotation: TextStyleWithStaffPadding;
+  dropCap: TextStyleWithStaffPadding;
+  choralSign: {
+    /**
+     * Has no effect: choral signs are sized by the staff (see
+     * TextTypes.choralSign.size()), and setGlyphScaling() resets this.
+     */
+    size: number;
+  };
+};
+
+export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
+
+/** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
+export type MakeDef = (() => void) & {
+  /** the def as an svg tree */
+  makeSvgTree(): SvgTreeNode;
+  glyphCode: GlyphCode;
 };
 
 /*
  * ChantContext
  */
 export class ChantContext {
+  /** the fonts to measure text in, with TextMeasuringStrategy.OpenTypeJS */
+  fontDictionary?: FontDictionary;
+  staffLineCount: number;
+  textMeasuringStrategy: TextMeasuringStrategy;
+  getFontFilenameForProperties: (
+    properties?: FontStyleProperties,
+    /** "{}" is replaced by Regular, Bold, Italic or BoldItalic; defaults to "{}" */
+    url?: string
+  ) => string;
+  /** the svg source of the def of each glyph used so far, by glyph code */
+  defs: { [glyphCode: string]: string };
+  /** remakes each def in defs (and defsNode), e.g. when the scale changes */
+  makeDefs: MakeDef[];
+  /** the defs as svg DOM nodes, when there's a DOM */
+  defsNode?: SvgElementWithSource;
+
+  /**
+   * Each text type's size, font, color, etc.  setFont() resets the size,
+   * font and color of every type.
+   */
+  textStyles: TextTypeStyles;
+  /** The color setFont() gives every text type; defaults to "#000" */
+  textColor: string;
+  baseTextStyle!: CssProperties;
+
+  rubricColor: string;
+  specialCharProperties: CssProperties;
+  specialCharText: (char: string) => string;
+  textBeforeSpecialChar: string;
+  textAfterSpecialChar: string;
+  /** what each of "℣", "℟", "*" and "+" is shown as */
+  specialCharMap: { [char: string]: string };
+  asteriskProperties: CssProperties;
+  plusProperties: CssProperties;
+  fontStyleDictionary: {
+    [tag: string]: CssProperties;
+  };
+  /** maps a markup symbol (e.g. "*") to a fontStyleDictionary tag (e.g. "b") */
+  markupSymbolDictionary: { [symbol: string]: string };
+  editable?: boolean;
+  useExtraTextOnly: boolean;
+  /** prefix for the id of each note's svg element; defaults to "note-" */
+  noteIdPrefix: string;
+
+  minLedgerSeparation: number;
+  minSpaceAboveStaff: number;
+  minSpaceBelowStaff: number;
+  spaceBetweenSystems: number;
+
+  minNotesLastLine: number;
+  minSyllablesLastLine: number;
+
+  glyphPunctumWidth: number;
+  glyphPunctumHeight: number;
+
+  // set by setGlyphScaling() (and so by setStaffHeight()):
+  glyphMultiplier!: number;
+  glyphScaling!: number;
+  staffInterval!: number;
+  staffLineWeight!: number;
+  neumeLineWeight!: number;
+  dividerLineWeight!: number;
+  episemaLineWeight!: number;
+  intraNeumeSpacing!: number;
+
+  // set by updateHyphenWidth():
+  hyphenWidth!: number;
+  minLyricWordSpacing!: number;
+  /**
+   * minLyricWordSpacing / hyphenWidth, as of the last hyphen that had a
+   * width; updateHyphenWidth() keeps minLyricWordSpacing at this ratio.  It
+   * recomputes this from minLyricWordSpacing, so set that instead.
+   */
+  declare readonly minLyricWordSpacingRatio?: number;
+
+  maxExtraSpaceInStaffIntervals: number;
+
+  /** the clef in effect while gabc is parsed or a score is laid out */
+  activeClef: Clef;
+  /** the notations of the score being laid out */
+  notations?: ChantNotationElement[];
+  activeNotations: ChantNotationElement[] | null;
+  /** a brace that has started, but not yet ended, in the score being laid out */
+  lastStartBrace?: BracePoint;
+
+  neumeLineColor: string;
+  staffLineColor: string;
+  dividerLineColor: string;
+  negativeFillColor: string;
+
+  defaultLanguage: Language;
+
+  pixelRatio: number;
+
+  svgTextMeasurer?: QuickSvgRoot;
+  // set by makeCanvasIfNeeded():
+  canvas?: HTMLCanvasElement;
+  canvasCtxt?: CanvasRenderingContext2D;
+
+  syllableConnector: string;
+
+  /**
+   * How long ChantScore.performLayoutAsync() waits, in milliseconds, for a
+   * lyric font that seems not to have loaded yet before laying out anyway.
+   * Defaults to 3000.
+   */
+  fontLoadTimeout: number;
+
+  scaleDefs: boolean;
+
+  interSyllabicMultiplier: number;
+
+  accidentalSpaceMultiplier: number;
+
+  interVerbalMultiplier: number;
+
+  drawGuides: boolean;
+  drawDebuggingBounds: boolean;
+
+  currNotationIndex: number;
+
+  condensingTolerance: number;
+
+  autoColor: boolean;
+
+  /** gives each svg text element a font-size attribute in createSvg() */
+  setFontFamilyAttributes?: boolean;
+  /**
+   * starts the lines of text-only syllables after the last lyric on the
+   * line, rather than at the start of the line
+   */
+  startExtraTextOnlyFromFirst?: boolean;
+
+  mapAnnotationSpansToTextLeft?: AnnotationSpansToTextLeftMapper;
+  /**
+   * Joins the annotation's spans (one array per annotation) and the spans of
+   * the left text.  Set by setMergeAnnotationWithTextLeft().
+   */
+  mergeAnnotationWithTextLeft?: (
+    ...spans: Array<TextSpan[] | null | undefined>
+  ) => TextSpan[];
+
+  // the text measured so far (see clearTextCache())
+  private textMetricsCache!: Map<object, Map<string, any>>;
+  private textMetricsCacheSize!: number;
+  private fontLoadGeneration!: number;
+
   constructor(
-    textMeasuringStrategy = QuickSvg.hasDOMAccess()
+    textMeasuringStrategy: TextMeasuringStrategy = QuickSvg.hasDOMAccess()
       ? TextMeasuringStrategy.Canvas
       : TextMeasuringStrategy.OpenTypeJS
   ) {
@@ -538,7 +960,7 @@ export class ChantContext {
     }
 
     // font styles
-    this.textStyles = {};
+    this.textStyles = {} as TextTypeStyles;
     this.textColor = "#000";
     this.setFont("'Palatino Linotype', 'Book Antiqua', Palatino, serif", 16);
 
@@ -558,7 +980,7 @@ export class ChantContext {
     };
     this.plusProperties = {};
     this.asteriskProperties = {};
-    this.specialCharText = (char) => this.specialCharMap[char] || char;
+    this.specialCharText = (char: string) => this.specialCharMap[char] || char;
 
     this.fontStyleDictionary = {
       b: { "font-weight": "bold" },
@@ -599,7 +1021,7 @@ export class ChantContext {
     this.maxExtraSpaceInStaffIntervals = 0.5;
 
     // for keeping track of the clef
-    this.activeClef = null;
+    this.activeClef = null as unknown as Clef;
 
     this.neumeLineColor = "#000";
     this.staffLineColor = "#000";
@@ -703,11 +1125,11 @@ export class ChantContext {
    * @param {number} staffPosition 
    * @returns {number}
    */
-  convertStaffPositionToSymmetric(staffPosition) {
+  convertStaffPositionToSymmetric(staffPosition: number) {
     return staffPosition - this.staffLineCount;
   }
 
-  convertSymmetricStaffPosition(staffPositionSymmetric) {
+  convertSymmetricStaffPosition(staffPositionSymmetric: number) {
     return staffPositionSymmetric + this.staffLineCount;
   }
 
@@ -717,13 +1139,16 @@ export class ChantContext {
    * @param {string} fontFamily 
    * @returns {import('opentype.js').Font | import('fontkit').Font | undefined}
    */
-  getFontForProperties(properties = {}, fontFamily) {
+  getFontForProperties(
+    properties: FontStyleProperties = {},
+    fontFamily?: string
+  ): MeasuringFont | undefined {
     let key = this.getFontFilenameForProperties(properties),
       keyWithFontFamily = this.getFontFilenameForProperties(properties, fontFamily);
     return (
       this.fontDictionary &&
       (this.fontDictionary[keyWithFontFamily] ||
-        this.fontDictionary[fontFamily] ||
+        this.fontDictionary[fontFamily as string] ||
         this.fontDictionary.Regular)
     );
   }
@@ -735,12 +1160,18 @@ export class ChantContext {
    * @param {any} baseStyle 
    * @param {{ [key: string]: import('opentype.js').Font }} fontDictionary 
    */
-  setFont(font, size = 16, baseStyle = {}, fontDictionary) {
-    for (let [key, textType] of Object.entries(TextTypes)) {
-      let textStyle = (this.textStyles[key] = this.textStyles[key] || {});
+  setFont(
+    font: string,
+    size = 16,
+    baseStyle: CssProperties = {},
+    fontDictionary?: FontDictionary
+  ) {
+    const textStyles = this.textStyles as { [key: string]: TextStyle };
+    for (let [key, textType] of __textTypeEntries()) {
+      let textStyle = (textStyles[key] = textStyles[key] || ({} as TextStyle));
       textStyle.size = textType.defaultSize
         ? textType.defaultSize(size, this)
-        : textType.size(this);
+        : textType.size!(this);
       textStyle.font = font;
       textStyle.color = this.textColor || "#000";
     }
@@ -754,7 +1185,7 @@ export class ChantContext {
     this.clearTextCache();
   }
 
-  setRubricColor(color) {
+  setRubricColor(color: string) {
     this.rubricColor = color;
     this.specialCharProperties.fill = color;
     this.fontStyleDictionary.c.fill = color;
@@ -797,7 +1228,7 @@ export class ChantContext {
    * @param {object} measurer what measures the text: a canvas context or a font
    * @returns {Map<string, any>} the measurements made with it so far
    */
-  getTextMetricsCache(measurer) {
+  getTextMetricsCache(measurer: object): Map<string, any> {
     if (
       this.fontLoadGeneration !== __fontLoadGeneration ||
       this.textMetricsCacheSize >= __maxCachedTextMetrics
@@ -811,7 +1242,7 @@ export class ChantContext {
     return cache;
   }
 
-  cacheTextMetrics(cache, key, metrics) {
+  cacheTextMetrics<T>(cache: Map<string, any>, key: string, metrics: T): T {
     cache.set(key, metrics);
     this.textMetricsCacheSize++;
     return metrics;
@@ -824,8 +1255,8 @@ export class ChantContext {
    * @param {string} text
    * @returns {TextMetrics}
    */
-  measureCanvasText(font, text) {
-    const canvasCtxt = this.canvasCtxt;
+  measureCanvasText(font: string, text: string): TextMetrics {
+    const canvasCtxt = this.canvasCtxt!;
     const cache = this.getTextMetricsCache(canvasCtxt);
     // the alignment moves the bounding box, and draw() leaves it set
     const key = canvasCtxt.textAlign + "\0" + font + "\0" + text;
@@ -844,12 +1275,12 @@ export class ChantContext {
    * @param {boolean} smallCaps
    * @returns {{ advanceWidth: number, bbox: { minX: number, maxY: number, height: number } }}
    */
-  layoutFontkitText(font, text, smallCaps) {
+  layoutFontkitText(font: FontkitFont, text: string, smallCaps: boolean): FontkitMetrics {
     const cache = this.getTextMetricsCache(font);
     const key = (smallCaps ? "c" : "-") + text;
     let metrics = cache.get(key);
     if (!metrics) {
-      const features = { liga: true };
+      const features: { [feature: string]: boolean } = { liga: true };
       if (smallCaps) features.smcp = true;
       const run = font.layout(text, features);
       // keep just the numbers rather than the whole glyph run
@@ -871,14 +1302,23 @@ export class ChantContext {
    * @param {boolean} smallCaps
    * @returns {{ advanceWidth: number, bbox: import('opentype.js').BoundingBox }}
    */
-  measureOpenTypeText(font, text, x, y, fontSize, smallCaps) {
+  measureOpenTypeText(
+    font: OpenTypeFont,
+    text: string,
+    x: number,
+    y: number,
+    fontSize: number,
+    smallCaps: boolean
+  ): OpenTypeMetrics {
     const cache = this.getTextMetricsCache(font);
     // the bounding box comes out slightly differently depending on where
     // the path is, so where it is is part of the key
     const key = `${x},${y},${fontSize},${smallCaps ? "c" : "-"},${text}`;
     let metrics = cache.get(key);
     if (!metrics) {
-      const options = { features: { liga: true } };
+      const options: { features: { [feature: string]: boolean } } = {
+        features: { liga: true }
+      };
       if (smallCaps) options.features.smcp = true;
       metrics = this.cacheTextMetrics(cache, key, {
         bbox: font.getPath(text, x, y, fontSize, options).getBoundingBox(),
@@ -888,11 +1328,11 @@ export class ChantContext {
     return metrics;
   }
 
-  setMergeAnnotationWithTextLeft(merge) {
+  setMergeAnnotationWithTextLeft(merge: boolean) {
     this.mergeAnnotationWithTextLeft = merge ? __mergeAnnotationWithTextLeft : undefined;
   }
 
-  setScaleDefs(scaleDefs) {
+  setScaleDefs(scaleDefs: boolean) {
     scaleDefs = !!scaleDefs;
     if (this.scaleDefs !== scaleDefs) {
       this.scaleDefs = scaleDefs;
@@ -902,7 +1342,7 @@ export class ChantContext {
 
   createStyleCss() {
     var style = "";
-    for (let [key, textType] of Object.entries(TextTypes)) {
+    for (let [key, textType] of __textTypeEntries()) {
       var cssClass = textType.cssClass,
         { color, font, size } = this.textStyles[key];
       // some text (e.g., choral signs) is measured at a size that follows the
@@ -914,12 +1354,12 @@ export class ChantContext {
   }
 
   createStyleNode() {
-    var node = QuickSvg.createNode("style", {});
+    var node = QuickSvg.createNode("style", {}) as SVGStyleElement;
     node.textContent = this.createStyleCss();
     return node;
   }
 
-  createStyleTree() {
+  createStyleTree(): { name: "style"; props: Record<string, never>; children: [string] } {
     return { name: "style", props: {}, children: [this.createStyleCss()] };
   }
 
@@ -939,20 +1379,20 @@ export class ChantContext {
     // lyric font to measure with yet) says nothing about that ratio, so keep
     // the ratio from the last hyphen that had a width.
     if (this.hyphenWidth > 0 && this.minLyricWordSpacing >= 0)
-      this.minLyricWordSpacingRatio =
+      (this as { minLyricWordSpacingRatio?: number }).minLyricWordSpacingRatio =
         this.minLyricWordSpacing / this.hyphenWidth;
     this.hyphenWidth = hyphen.bounds.width;
 
     this.minLyricWordSpacing =
-      (this.minLyricWordSpacingRatio >= 0 ? this.minLyricWordSpacingRatio : 1) *
+      (this.minLyricWordSpacingRatio! >= 0 ? this.minLyricWordSpacingRatio! : 1) *
       this.hyphenWidth;
   }
 
-  setStaffHeight(staffHeight, glyphMultiplier = 1) {
+  setStaffHeight(staffHeight: number, glyphMultiplier = 1) {
     this.setGlyphScaling(staffHeight / 600, glyphMultiplier);
   }
 
-  setGlyphScaling(glyphScaling, glyphMultiplier = 1) {
+  setGlyphScaling(glyphScaling: number, glyphMultiplier = 1) {
     this.glyphMultiplier = glyphMultiplier;
     this.glyphScaling = glyphScaling * glyphMultiplier;
 
@@ -970,7 +1410,7 @@ export class ChantContext {
 
     // some text (e.g., choral signs) is sized by the staff rather than by the
     // font size given to setFont(), so keep its style in step with the staff.
-    for (let [key, textType] of Object.entries(TextTypes)) {
+    for (let [key, textType] of __textTypeEntries()) {
       if (textType.size && this.textStyles[key])
         this.textStyles[key].size = textType.size(this);
     }
@@ -984,7 +1424,7 @@ export class ChantContext {
     this.updateHyphenWidth();
   }
 
-  calculateHeightFromStaffPosition(staffPosition) {
+  calculateHeightFromStaffPosition(staffPosition: number) {
     return -staffPosition * this.staffInterval;
   }
 
@@ -1006,14 +1446,14 @@ export class ChantContext {
 
   // returns the next neume starting at this.currNotationIndex, or null
   // if there isn't a neume after this one...
-  findNextNeume() {
+  findNextNeume(): Neume | null {
     if (typeof this.currNotationIndex === "undefined")
       throw "findNextNeume() called without a valid currNotationIndex set";
 
-    for (var i = this.currNotationIndex + 1; i < this.notations.length; i++) {
-      var notation = this.notations[i];
+    for (var i = this.currNotationIndex + 1; i < this.notations!.length; i++) {
+      var notation = this.notations![i];
 
-      if (notation.isNeume && !notation.hasNoWidth) return notation;
+      if (notation.isNeume && !notation.hasNoWidth) return notation as Neume;
     }
 
     return null;
@@ -1022,27 +1462,49 @@ export class ChantContext {
   makeCanvasIfNeeded() {
     if (!this.canvas) {
       this.canvas = document.createElement("canvas");
-      this.canvasCtxt = this.canvas.getContext("2d");
+      this.canvasCtxt = this.canvas.getContext("2d") as CanvasRenderingContext2D;
     }
   }
 
-  setCanvasSize(width, height, scale = 1) {
+  setCanvasSize(width: number, height: number, scale = 1) {
     this.makeCanvasIfNeeded();
 
-    this.canvas.style.width = width * scale + "px";
-    this.canvas.style.height = height * scale + "px";
+    this.canvas!.style.width = width * scale + "px";
+    this.canvas!.style.height = height * scale + "px";
     scale *= this.pixelRatio;
-    this.canvas.width = width * scale;
-    this.canvas.height = height * scale;
+    this.canvas!.width = width * scale;
+    this.canvas!.height = height * scale;
 
-    this.canvasCtxt.setTransform(scale, 0, 0, scale, 0, 0);
+    this.canvasCtxt!.setTransform(scale, 0, 0, scale, 0, 0);
   }
 }
 
 /*
  * ChantLayoutElement
  */
+/**
+ * what a glyph is drawn for, which its svg element is marked with: a note, or a
+ * notation such as a clef or custos
+ */
+export type GlyphSource = Note | ChantNotationElement;
+
+// each kind of ChantLayoutElement makes its own svg tree (this only adds the
+// signature, which each subclass implements)
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export interface ChantLayoutElement {
+  /** returns the element as an svg tree, e.g. for React */
+  createSvgTree(ctxt: ChantContext, ...args: any[]): SvgTreeNode;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class ChantLayoutElement {
+  bounds: Rect;
+  origin: Point;
+  selected: boolean;
+  highlighted: boolean;
+  /** leaves the element out of the bounds of the notation it's added to */
+  ignoreBounds?: boolean;
+
   constructor() {
     this.bounds = new Rect();
     this.origin = new Point(0, 0);
@@ -1052,23 +1514,30 @@ export class ChantLayoutElement {
   }
 
   // draws the element on an html5 canvas
-  draw(ctxt) {
+  draw(ctxt: ChantContext, ...args: any[]): void {
     throw "ChantLayout Elements must implement draw(ctxt)";
   }
 
   // returns svg element
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext, ...args: any[]): SvgElementWithSource | SvgElementWithSource[] {
     throw "ChantLayout Elements must implement createSvgNode(ctxt)";
   }
 
   // returns svg code for the element, used for printing support
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext, ...args: any[]): string {
     throw "ChantLayout Elements must implement createSvgFragment(ctxt)";
   }
 }
 
 export class DividerLineVisualizer extends ChantLayoutElement {
-  constructor(ctxt, staffPosition0, staffPosition1, divider) {
+  divider?: ChantNotationElement;
+
+  constructor(
+    ctxt: ChantContext,
+    staffPosition0: number,
+    staffPosition1: number,
+    divider?: ChantNotationElement
+  ) {
     super();
 
     this.divider = divider;
@@ -1091,8 +1560,8 @@ export class DividerLineVisualizer extends ChantLayoutElement {
     this.origin.y = y0;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.fillStyle = ctxt.dividerLineColor;
 
@@ -1104,8 +1573,8 @@ export class DividerLineVisualizer extends ChantLayoutElement {
     );
   }
 
-  getSvgProps(ctxt) {
-    let props = {
+  getSvgProps(ctxt: ChantContext) {
+    let props: SvgAttributes = {
       x: this.bounds.x,
       y: this.bounds.y,
       width: ctxt.dividerLineWeight,
@@ -1122,20 +1591,29 @@ export class DividerLineVisualizer extends ChantLayoutElement {
     return props;
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
   }
 }
 
 export class NeumeLineVisualizer extends ChantLayoutElement {
-  constructor(ctxt, note0, note1, hanging) {
+  /**
+   * @param note1 the note to draw the line to, or a staff position to draw it
+   * to, or nothing to draw it to four staff positions above note0
+   */
+  constructor(
+    ctxt: ChantContext,
+    note0: Note,
+    note1?: Note | number | null,
+    hanging?: boolean
+  ) {
     super();
 
     var staffPosition0 = note0.staffPosition;
@@ -1186,8 +1664,8 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.fillStyle = ctxt.neumeLineColor;
 
@@ -1199,7 +1677,7 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
     );
   }
 
-  getSvgProps(ctxt) {
+  getSvgProps(ctxt: ChantContext) {
     return {
       x: this.bounds.x,
       y: this.bounds.y,
@@ -1210,20 +1688,27 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
   }
 }
 
 export class NeumeBeamVisualizer extends ChantLayoutElement {
-  constructor(ctxt, x0, x1, staffPosition0, staffPosition1, yOffset = 0) {
+  constructor(
+    ctxt: ChantContext,
+    x0: number,
+    x1: number,
+    staffPosition0: number,
+    staffPosition1: number,
+    yOffset = 0
+  ) {
     super();
     
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition0);
@@ -1243,7 +1728,7 @@ export class NeumeBeamVisualizer extends ChantLayoutElement {
     this.origin.x = 0;
     this.origin.y = 0;
   }
-  getPoints(ctxt) {
+  getPoints(ctxt: ChantContext) {
     const lineHeight = ctxt.neumeLineWeight * 3;
     return {
       x0: this.bounds.x - ctxt.neumeLineWeight / 2,
@@ -1254,8 +1739,8 @@ export class NeumeBeamVisualizer extends ChantLayoutElement {
     };
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
     const points = this.getPoints(ctxt);
 
     canvasCtxt.fillStyle = ctxt.neumeLineColor;
@@ -1268,7 +1753,7 @@ export class NeumeBeamVisualizer extends ChantLayoutElement {
     canvasCtxt.fill();
   }
 
-  getSvgProps(ctxt) {
+  getSvgProps(ctxt: ChantContext) {
     const points = this.getPoints(ctxt);
     return {
       points: `${points.x0},${points.y0 + points.height / 2} ${points.x0},${points.y0 - points.height / 2} ${
@@ -1279,20 +1764,20 @@ export class NeumeBeamVisualizer extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     return QuickSvg.createNode("polygon", this.getSvgProps(ctxt));
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     return QuickSvg.createSvgTree("polygon", this.getSvgProps(ctxt));
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     return QuickSvg.createFragment("polygon", this.getSvgProps(ctxt));
   }
 }
 
 export class VirgaLineVisualizer extends ChantLayoutElement {
-  constructor(ctxt, note) {
+  constructor(ctxt: ChantContext, note: Note) {
     super();
 
     var staffPosition = note.staffPosition;
@@ -1312,8 +1797,8 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.fillStyle = ctxt.neumeLineColor;
     canvasCtxt.fillRect(
@@ -1324,7 +1809,7 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     );
   }
 
-  getSvgProps(ctxt) {
+  getSvgProps(ctxt: ChantContext) {
     return {
       x: this.bounds.x,
       y: this.bounds.y,
@@ -1335,20 +1820,20 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
   }
 }
 
 export class LineaVisualizer extends ChantLayoutElement {
-  constructor(ctxt, note) {
+  constructor(ctxt: ChantContext, note: Note) {
     super();
 
     var staffPosition = note.staffPosition;
@@ -1365,8 +1850,8 @@ export class LineaVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.fillStyle = ctxt.neumeLineColor;
     canvasCtxt.fillRect(
@@ -1383,7 +1868,7 @@ export class LineaVisualizer extends ChantLayoutElement {
     );
   }
 
-  getSvgProps(ctxt, x) {
+  getSvgProps(ctxt: ChantContext, x: number) {
     return {
       x,
       y: this.bounds.y,
@@ -1394,21 +1879,21 @@ export class LineaVisualizer extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     return QuickSvg.createNode("g", null, [
       this.bounds.x,
       this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
     ].map(x => QuickSvg.createNode("rect", this.getSvgProps(ctxt, x))));
   }
 
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     return QuickSvg.createSvgTree("g", {}, ...[
       this.bounds.x,
       this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
     ].map(x => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, x))));
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     return QuickSvg.createFragment("g", null, [
       this.bounds.x,
       this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
@@ -1417,15 +1902,22 @@ export class LineaVisualizer extends ChantLayoutElement {
 }
 
 export class GlyphVisualizer extends ChantLayoutElement {
-  constructor(ctxt, glyphCode) {
+  glyph: Glyph;
+  glyphCode!: GlyphCode;
+  /** for a porrectus, the staff positions its notes are apart; otherwise 0 */
+  porrectusNoteDiff!: number;
+  align?: "left" | "right";
+
+  constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null) {
     super();
 
-    this.glyph = null;
+    // setGlyph() sets the glyph just below
+    this.glyph = null as unknown as Glyph;
 
     this.setGlyph(ctxt, glyphCode);
   }
 
-  setGlyph(ctxt, glyphCode) {
+  setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | "") {
     if (this.glyphCode !== glyphCode) {
       if (
         typeof glyphCode === "undefined" ||
@@ -1442,7 +1934,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing
       if (!ctxt.defs.hasOwnProperty(glyphCode)) {
         var getDefProps = () => {
-          var options = {
+          var options: SvgAttributes = {
             id: glyphCode,
             class: "glyph"
           };
@@ -1451,10 +1943,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
           }
           return options;
         };
-        var makeDef = () => {
+        const makeDef = () => {
           let options = getDefProps();
           // create the ref
-          ctxt.defs[glyphCode] = QuickSvg.createFragment(
+          ctxt.defs[glyphCode as GlyphCode] = QuickSvg.createFragment(
             "g",
             options,
             QuickSvg.svgFragmentForGlyph(glyph, ctxt.negativeFillColor)
@@ -1501,13 +1993,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
     this.bounds.height = this.glyph.bounds.height * ctxt.glyphScaling;
   }
 
-  setStaffPosition(ctxt, staffPosition) {
+  setStaffPosition(ctxt: ChantContext, staffPosition: number) {
     this.bounds.y =
       ctxt.calculateHeightFromStaffPosition(staffPosition) - this.origin.y;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     const porrectusNoteDiff = this.porrectusNoteDiff;
 
@@ -1537,14 +2029,15 @@ export class GlyphVisualizer extends ChantLayoutElement {
     canvasCtxt.translate(-x, -y);
   }
 
-  getSvgAttributes(ctxt, source) {
+  getSvgAttributes(ctxt: ChantContext, source?: GlyphSource) {
     let className = "";
     const porrectusNoteDiff = this.porrectusNoteDiff;
     if (porrectusNoteDiff) {
-      let notes = source.neume.notes,
-        noteIndex = notes.indexOf(source),
+      // only the first note of a porrectus has a porrectus glyph
+      let notes = (source as Note).neume!.notes,
+        noteIndex = notes.indexOf(source as Note),
         nextNote = notes[noteIndex + 1];
-      className = source.selected
+      className = source!.selected
         ? nextNote.selected
           ? "selected"
           : "selectedA"
@@ -1553,10 +2046,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
         : "";
     } else {
       let isSelected =
-        source && (source.selected || (source.model && source.model.selected));
+        source && (source.selected || ((source as Clef).model && (source as Clef).model!.selected));
       className = isSelected ? "selected" : "";
     }
-    var result = {
+    var result: SvgAttributes = {
       "xlink:href": "#" + this.glyphCode,
       class: className
     };
@@ -1565,9 +2058,9 @@ export class GlyphVisualizer extends ChantLayoutElement {
       result["element-index"] = source.elementIndex;
       if ('noteIndex' in source) {
         result.class += ' note';
-        result.id = ctxt.noteIdPrefix + (source.noteIndex + 1);
+        result.id = ctxt.noteIdPrefix + (source.noteIndex! + 1);
         if (source.neume) {
-          const glyphCode = source.glyphVisualizer.glyphCode;
+          const glyphCode = source.glyphVisualizer!.glyphCode;
           if (porrectusNoteDiff) {
             result.class += ' porrectus porrectus-start';
           } else if (glyphCode === 'None') {
@@ -1596,24 +2089,28 @@ export class GlyphVisualizer extends ChantLayoutElement {
     return result;
   }
 
-  createSvgNode(ctxt, source) {
+  createSvgNode(ctxt: ChantContext, source?: GlyphSource) {
     var attributes = this.getSvgAttributes(ctxt, source);
     attributes.source = source;
     return QuickSvg.createNode("use", attributes);
   }
-  createSvgTree(ctxt, source) {
+  createSvgTree(ctxt: ChantContext, source?: GlyphSource) {
     var attributes = this.getSvgAttributes(ctxt, source);
     if (source) attributes.source = source;
     return QuickSvg.createSvgTree("use", attributes);
   }
 
-  createSvgFragment(ctxt, source) {
+  createSvgFragment(ctxt: ChantContext, source?: GlyphSource) {
     return QuickSvg.createFragment("use", this.getSvgAttributes(ctxt, source));
   }
 }
 
 export class RoundBraceVisualizer extends ChantLayoutElement {
-  constructor(ctxt, x1, x2, y, isAbove) {
+  isAbove: boolean;
+  braceHeight: number;
+  accent?: GlyphVisualizer;
+
+  constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove: boolean) {
     super();
     this.ignoreBounds = true;
 
@@ -1638,11 +2135,11 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  draw(ctxt) {
+  draw(ctxt: ChantContext) {
     /**
      * @type CanvasRenderingContext2D
      */
-    var d = ctxt.canvasCtxt;
+    var d = ctxt.canvasCtxt!;
 
     const { x1, x2, y, cx1, cx2, cy } = this.getPathPoints();
     d.beginPath();
@@ -1651,7 +2148,7 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
     d.stroke();
   }
 
-  getSvgPathProps(ctxt) {
+  getSvgPathProps(ctxt: ChantContext) {
     return {
       d: this.generatePathString(),
       stroke: ctxt.neumeLineColor,
@@ -1661,7 +2158,7 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     var node = QuickSvg.createNode("path", this.getSvgPathProps(ctxt));
     if (this.accent) {
       return QuickSvg.createNode(
@@ -1673,7 +2170,7 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
       );
     } else return node;
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     var node = QuickSvg.createSvgTree("path", this.getSvgPathProps(ctxt));
     if (this.accent) {
       return QuickSvg.createSvgTree(
@@ -1687,7 +2184,7 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
     } else return node;
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     var fragment = QuickSvg.createFragment("path", this.getSvgPathProps(ctxt));
 
     if (this.accent) {
@@ -1755,7 +2252,18 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
 }
 
 export class CurlyBraceVisualizer extends ChantLayoutElement {
-  constructor(ctxt, x1, x2, y, isAbove = true, addAcuteAccent = false) {
+  isAbove: boolean;
+  braceHeight: number;
+  accent?: GlyphVisualizer;
+
+  constructor(
+    ctxt: ChantContext,
+    x1: number,
+    x2: number,
+    y: number,
+    isAbove = true,
+    addAcuteAccent = false
+  ) {
     super();
 
     if (x1 > x2) {
@@ -1789,7 +2297,7 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  getSvgPathProps(ctxt) {
+  getSvgPathProps(ctxt: ChantContext) {
     return {
       d: this.generatePathString(),
       stroke: ctxt.neumeLineColor,
@@ -1799,7 +2307,7 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     var node = QuickSvg.createNode("path", this.getSvgPathProps(ctxt));
 
     if (this.accent) {
@@ -1812,7 +2320,7 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
       );
     } else return node;
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     var node = QuickSvg.createSvgTree("path", this.getSvgPathProps(ctxt));
     if (this.accent) {
       return QuickSvg.createSvgTree(
@@ -1826,7 +2334,7 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
     } else return node;
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     var fragment = QuickSvg.createFragment("path", this.getSvgPathProps(ctxt));
 
     if (this.accent) {
@@ -1911,8 +2419,58 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
   }
 }
 
+/** a group of css properties of a span of text; Object.assign() skips any missing ones */
+export type SpanPropertyDict = CssProperties | null | undefined;
+
+/** a span's css properties, along with where it starts a line */
+export interface TextSpanProperties {
+  [property: string]: string | number | boolean | undefined;
+  /** the number of line breaks before the span, or true where the text was wrapped */
+  newLine?: number | boolean;
+  /** how far to shift the line the span starts to the right */
+  xOffset?: number;
+  "font-weight"?: string;
+  "font-style"?: string;
+  "text-decoration"?: string;
+  "font-variant"?: string;
+  "font-variant-caps"?: string;
+  "font-feature-settings"?: string;
+  "-webkit-font-feature-settings"?: string;
+}
+
+// parseInt() of a span's newLine, which is the number of line breaks before
+// it, or true where the text was wrapped (which comes out NaN)
+const __parseNewLine = (newLine: number | boolean | undefined) =>
+  parseInt(newLine as unknown as string);
+
+/** a run of text in one style */
 export class TextSpan {
-  constructor(text, propertyArray, activeTags, index = 0, extraProps) {
+  text: string;
+  /** the css properties of the span, which are merged in order */
+  propertyArray: SpanPropertyDict[];
+  /** the markup tags (e.g. "b" or "i") that the span is in */
+  activeTags: string[];
+  /** where the span starts in the source text */
+  index: number;
+  /** how far to shift the line the span starts to the right */
+  xOffset?: number;
+  /** the number of line breaks before the span, or true where the text was wrapped */
+  newLine?: number | boolean;
+  /** where the text was wrapped before the span, the whitespace taken out */
+  wrappedSpace?: string;
+  /** the width to stretch or squeeze the span's text to (for connectors) */
+  textLength?: number;
+  private propertiesVersion?: number;
+  private cachedProperties?: CssProperties;
+  private cachedCss?: string;
+
+  constructor(
+    text: string,
+    propertyArray?: SpanPropertyDict[] | null,
+    activeTags?: string[],
+    index = 0,
+    extraProps?: { xOffset?: number; newLine?: number | boolean }
+  ) {
     if (typeof propertyArray === "undefined" || propertyArray === null)
       propertyArray = [];
 
@@ -1931,17 +2489,20 @@ export class TextSpan {
    * They're kept until the text styles change (see ChantContext.clearTextCache()),
    * since the objects in propertyArray belong to the ChantContext.
    */
-  get mergedProperties() {
+  get mergedProperties(): CssProperties {
     if (this.propertiesVersion !== __textStyleVersion) {
       this.propertiesVersion = __textStyleVersion;
-      this.cachedProperties = Object.assign.apply(null, [{}].concat(this.propertyArray));
+      this.cachedProperties = (Object.assign as (...objects: SpanPropertyDict[]) => CssProperties).apply(
+        null,
+        ([{}] as SpanPropertyDict[]).concat(this.propertyArray)
+      );
       this.cachedCss = undefined;
     }
-    return this.cachedProperties;
+    return this.cachedProperties!;
   }
 
   get properties() {
-    const result = Object.assign({}, this.mergedProperties);
+    const result: TextSpanProperties = Object.assign({}, this.mergedProperties);
     if ('xOffset' in this) result.xOffset = this.xOffset;
     if ('newLine' in this) result.newLine = this.newLine;
     return result;
@@ -1975,18 +2536,37 @@ export class TextSpan {
 }
 
 class MarkupStackFrame {
-  constructor(tagName, startIndex, propertyArray = [], symbol) {
+  tagName: string;
+  startIndex: number;
+  propertyArray: SpanPropertyDict[];
+  symbol?: string;
+
+  constructor(
+    tagName: string,
+    startIndex: number,
+    propertyArray: SpanPropertyDict[] = [],
+    symbol?: string
+  ) {
     this.tagName = tagName;
     this.startIndex = startIndex;
     this.propertyArray = propertyArray;
     if (symbol) this.symbol = symbol;
   }
 
-  get properties() {
-    return Object.assign.apply(null, [{}].concat(this.propertyArray));
+  get properties(): CssProperties {
+    return (Object.assign as (...objects: SpanPropertyDict[]) => CssProperties).apply(
+      null,
+      ([{}] as SpanPropertyDict[]).concat(this.propertyArray)
+    );
   }
 
-  static createStackFrame(ctxt, tagName, startIndex, extraProperties = {}, symbol = '') {
+  static createStackFrame(
+    ctxt: ChantContext,
+    tagName: string,
+    startIndex: number,
+    extraProperties: CssProperties = {},
+    symbol = ''
+  ) {
     return new MarkupStackFrame(
       tagName,
       startIndex,
@@ -1998,21 +2578,65 @@ class MarkupStackFrame {
 
 // for escaping html strings before they go into the svgs
 // adapted from http://stackoverflow.com/a/12034334/5720160
-var __subsForTspans = {
+var __subsForTspans: { [char: string]: string } = {
   "&": "&amp;",
   "<": "&lt;",
   ">": "&gt;"
 };
 
+/** what measureSubstring() gives with returnBBox */
+export interface TextBBox {
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}
+
+// a place where text can be wrapped: a run of whitespace (from a regular
+// expression's match), or a <br>
+interface BreakMatch {
+  index: number;
+  0: string;
+  /** whether the line has to break here */
+  forced?: boolean;
+}
+
+/** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
+  fontFamily: (ctxt: ChantContext) => string;
+  fontSize: (ctxt: ChantContext) => number;
+  textAnchor: string;
+  sourceIndex?: number;
+  /** the text as given, without its text style's prefix */
+  sourceGabc?: string;
+  dominantBaseline: string;
+  /** the text, without its markup */
+  text!: string;
+  /** the text, split up by style */
+  spans!: TextSpan[];
+  textType?: TextTypes[keyof TextTypes];
+  /** a lyric's drop cap, made from its first letter */
+  dropCap?: DropCap | null;
+  /** the width the text was wrapped to, if it was too wide */
+  maxWidth?: number;
+  firstLineMaxWidth?: number;
+  /** whether the lines after the first are aligned to the right of the first */
+  rightAligned?: boolean;
+  /** how much a lyric that was too wide has been shrunk */
+  resize?: number;
+  numLines?: number;
+  needsLayout?: boolean;
+  svgNode?: SvgElementWithSource;
+  elementIndex?: number;
+
   constructor(
-    ctxt,
-    text,
-    fontFamily,
-    fontSize,
-    textAnchor,
-    sourceIndex,
-    sourceGabc
+    ctxt: ChantContext,
+    text: string,
+    fontFamily: (ctxt: ChantContext) => string,
+    fontSize: (ctxt: ChantContext) => number,
+    textAnchor: string,
+    sourceIndex?: number,
+    sourceGabc?: string
   ) {
     super();
 
@@ -2036,11 +2660,15 @@ export class TextElement extends ChantLayoutElement {
     this.recalculateMetrics(ctxt);
   }
 
-  getFromScore(score) {
-    return this.textType.getFromScore(score, this);
+  /**
+   * The matching element in score (see TextType.getFromScore()).  For title
+   * text, score needs titles.
+   */
+  getFromScore(score: ChantScore): TextElement | null | undefined {
+    return (this.textType as TextType).getFromScore(score, this);
   }
 
-  generateSpansFromText(ctxt, text) {
+  generateSpansFromText(ctxt: ChantContext, text: string) {
     text = text.replace(/\s+/g, " ");
     this.text = "";
     this.spans = [];
@@ -2058,18 +2686,20 @@ export class TextElement extends ChantLayoutElement {
       return;
     }
 
-    var markupStack = [];
+    var markupStack: MarkupStackFrame[] = [];
     var spanStartIndex = 0;
     var newLineInNextSpan = 0;
 
-    var filterFrames = (frame, symbol) => frame.Symbol === symbol;
+    // (a frame has no Symbol, so this never matches)
+    var filterFrames = (frame: MarkupStackFrame, symbol: number) =>
+      (frame as unknown as { Symbol?: unknown }).Symbol === symbol;
 
-    var closeSpan = (spanText, index, extraProperties) => {
+    var closeSpan = (spanText: string, index: number, extraProperties?: CssProperties) => {
       if (spanText === "" && !this.dropCap) return;
 
       this.text += spanText;
 
-      var properties = [];
+      var properties: SpanPropertyDict[] = [];
       for (var i = 0; i < markupStack.length; i++) {
         properties.push.apply(properties, markupStack[i].propertyArray);
       }
@@ -2091,10 +2721,10 @@ export class TextElement extends ChantLayoutElement {
 
     var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
     var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
-    var match = null;
+    var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
-      closeSpan(text.substring(spanStartIndex, match.index), spanStartIndex);
+      closeSpan(text.substring(spanStartIndex, match!.index), spanStartIndex);
     while ((match = markupRegex.exec(text))) {
       var [
         ,
@@ -2127,7 +2757,7 @@ export class TextElement extends ChantLayoutElement {
         newLineInNextSpan++;
       } else if (vTag) {
         closeCurrentSpan();
-        let vMatch;
+        let vMatch: RegExpExecArray | null;
         let lastIndex = 0;
         let iOffset = 0;
         while ((vMatch = vTagRegex.exec(vTag))) {
@@ -2147,7 +2777,7 @@ export class TextElement extends ChantLayoutElement {
               // set up greextra so it will get handled with it below:
               greextra = 'Cross';
             }    
-            char = greextraGlyphs[greextra];
+            char = (greextraGlyphs as { [name: string]: string })[greextra];
             if (char) {
               closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
             }
@@ -2211,7 +2841,7 @@ export class TextElement extends ChantLayoutElement {
             markupStack[markupStack.length - 1].tagName === tagName &&
             markupStack[markupStack.length - 1].symbol === markupSymbol
           ) {
-            closingTag = true;
+            (closingTag as unknown as boolean) = true;
           }
         }
         if (
@@ -2241,7 +2871,7 @@ export class TextElement extends ChantLayoutElement {
             }
           } else {
             // group open
-            const extraProperties = {};
+            const extraProperties: CssProperties = {};
             if (family) extraProperties['font-family'] = family;
             if (fill) extraProperties.fill = fill;
             if (cssClass) extraProperties.class = cssClass;
@@ -2262,13 +2892,13 @@ export class TextElement extends ChantLayoutElement {
       closeSpan(text.slice(spanStartIndex), spanStartIndex);
   }
 
-  getCanvasFontForProperties(ctxt, properties = {}) {
+  getCanvasFontForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
     var font = "";
     if (properties["font-style"] === "italic") font += "italic ";
     if (properties["font-variant"] === "small-caps") font += "small-caps ";
     if (properties["font-weight"] === "bold") font += "bold ";
-    let fontSize = parseFloat(properties["font-size"]) || this.fontSize(ctxt);
-    if (/%$/.test(properties["font-size"])) {
+    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
+    if (/%$/.test(properties["font-size"] as string)) {
       fontSize *= this.fontSize(ctxt) / 100;
     }
     font += `${fontSize * (this.resize || 1)}px `;
@@ -2276,7 +2906,7 @@ export class TextElement extends ChantLayoutElement {
     return font;
   }
 
-  measureSubstringBBox(ctxt, length) {
+  measureSubstringBBox(ctxt: ChantContext, length?: number) {
     return this.measureSubstring(ctxt, length, true);
   }
 
@@ -2290,16 +2920,34 @@ export class TextElement extends ChantLayoutElement {
    * line, rather than its widest
    * @returns measured substring, as a simple width unless returnBBox == true
    */
-  measureSubstring(ctxt, length, returnBBox = false, lastLineOnly = false) {
+  measureSubstring(
+    ctxt: ChantContext,
+    length?: number,
+    returnBBox?: false,
+    lastLineOnly?: boolean
+  ): number;
+  measureSubstring(
+    ctxt: ChantContext,
+    length: number | undefined,
+    returnBBox: true,
+    lastLineOnly?: boolean
+  ): TextBBox;
+  measureSubstring(
+    ctxt: ChantContext,
+    length?: number,
+    returnBBox = false,
+    lastLineOnly = false
+  ): number | TextBBox {
     if (length === 0) return 0;
     if (!length) length = Infinity;
+    var lines: number | undefined;
     if (length < 0) {
-      var lines = -length;
+      lines = -length;
       length = Infinity;
     }
     var strategy = ctxt.textMeasuringStrategy;
     var width = 0;
-    var widths = [];
+    var widths: number[] = [];
     var newLineSpans = [this.spans[0]];
     var subStringLength = 0;
     var numLines = 1;
@@ -2309,12 +2957,12 @@ export class TextElement extends ChantLayoutElement {
       var span = this.spans[i],
         myText = span.text.slice(0, length - subStringLength);
       if (span.newLine) {
-        numLines += parseInt(span.newLine) || 1;
+        numLines += __parseNewLine(span.newLine) || 1;
         if (!lines && this.rightAligned === true && length === Infinity) {
           newLineSpans[newLineSpans.length - 1].xOffset =
-            this.firstLineMaxWidth - width;
+            this.firstLineMaxWidth! - width;
           newLineSpans.push(span);
-        } else if (--lines === 0) break;
+        } else if (--lines! === 0) break;
         widths.push(width);
         width = 0;
       }
@@ -2338,7 +2986,7 @@ export class TextElement extends ChantLayoutElement {
           }
         } else {
           bbox.union(
-            new Rect(width, fontSize * (numLines - 2), metrics.width, fontSize)
+            new Rect(width, fontSize * (numLines - 2), (metrics as TextMetrics).width, fontSize)
           );
         }
         width += metrics.width;
@@ -2351,7 +2999,7 @@ export class TextElement extends ChantLayoutElement {
         let font = ctxt.getFontForProperties(
           properties,
           properties["font-family"] || this.fontFamily(ctxt)
-        );
+        )!;
         const smallCaps = properties["font-variant"] === "small-caps";
         let spanFontSize = parseFloat(properties["font-size"]) || fontSize;
         if (/%$/.test(properties["font-size"])) {
@@ -2414,7 +3062,7 @@ export class TextElement extends ChantLayoutElement {
       length === Infinity
     ) {
       newLineSpans[newLineSpans.length - 1].xOffset =
-        this.firstLineMaxWidth - width;
+        this.firstLineMaxWidth! - width;
     }
     if (!lastLineOnly) width = Math.max(width, ...widths);
     if (returnBBox === true) {
@@ -2427,7 +3075,7 @@ export class TextElement extends ChantLayoutElement {
     }
   }
 
-  recalculateMetrics(ctxt, resetNewLines = true) {
+  recalculateMetrics(ctxt: ChantContext, resetNewLines = true) {
     if (resetNewLines) {
       delete this.maxWidth;
       delete this.firstLineMaxWidth;
@@ -2451,12 +3099,13 @@ export class TextElement extends ChantLayoutElement {
     this.origin.x = 0;
 
     if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-      while (ctxt.svgTextMeasurer.firstChild)
-        ctxt.svgTextMeasurer.removeChild(ctxt.svgTextMeasurer.firstChild);
-      ctxt.svgTextMeasurer.appendChild(this.createSvgNode(ctxt));
-      ctxt.svgTextMeasurer.appendChild(ctxt.createStyleNode());
+      while (ctxt.svgTextMeasurer!.firstChild)
+        ctxt.svgTextMeasurer!.removeChild(ctxt.svgTextMeasurer!.firstChild);
+      ctxt.svgTextMeasurer!.appendChild(this.createSvgNode(ctxt));
+      ctxt.svgTextMeasurer!.appendChild(ctxt.createStyleNode());
 
-      var bbox = ctxt.svgTextMeasurer.firstChild.getBBox();
+      // (the loop above leaves TypeScript thinking that firstChild is null)
+      var bbox = (ctxt.svgTextMeasurer!.firstChild as unknown as SVGGraphicsElement).getBBox();
       this.bounds.width = bbox.width;
       this.bounds.height = bbox.height;
       this.origin.y = -bbox.y; // offset to baseline from top
@@ -2471,12 +3120,12 @@ export class TextElement extends ChantLayoutElement {
     this.numLines = this.spans.reduce(
       (result, span) =>
         result +
-        (span.newLine ? parseInt(span.newLine) || 1 : 0),
+        (span.newLine ? __parseNewLine(span.newLine) || 1 : 0),
       1
     );
   }
 
-  setMaxWidth(ctxt, maxWidth, firstLineMaxWidth = maxWidth) {
+  setMaxWidth(ctxt: ChantContext, maxWidth: number, firstLineMaxWidth = maxWidth) {
     if (this.spans.filter((s) => s.newLine === true).length) {
       // first get rid of any new lines set from a previous maxWidth
       this.recalculateMetrics(ctxt);
@@ -2490,9 +3139,9 @@ export class TextElement extends ChantLayoutElement {
         if (firstLineMaxWidth < 0) firstLineMaxWidth = maxWidth;
         this.firstLineMaxWidth = firstLineMaxWidth;
         // the places where a line could break: each run of whitespace, and the end
-        var matches = [],
+        var matches: BreakMatch[] = [],
           regex = /\s+|$/g,
-          match;
+          match: BreakMatch | null;
         while (
           (match = regex.exec(this.text)) &&
           (!matches.length || match.index > matches[matches.length - 1].index)
@@ -2576,7 +3225,7 @@ export class TextElement extends ChantLayoutElement {
           var endSpan = this.spans[endIndex],
             nextSpan = this.spans[endIndex + 1],
             textRight = endSpan.text.slice(breakEnd - length),
-            newSpans = [];
+            newSpans: TextSpan[] = [];
           this.rightAligned =
             max === firstLineMaxWidth && firstLineMaxWidth !== maxWidth;
           removed += lastMatch[0].length;
@@ -2615,7 +3264,7 @@ export class TextElement extends ChantLayoutElement {
           this.needsLayout = true;
           max = maxWidth;
           if (
-            match.index === this.text.length ||
+            match!.index === this.text.length ||
             this.measureSubstring(ctxt) <= maxWidth
           )
             break;
@@ -2642,16 +3291,16 @@ export class TextElement extends ChantLayoutElement {
    * @returns {number} the index of that match, or end if there isn't one
    */
   findFirstMatchWiderThan(
-    ctxt,
-    matches,
-    start,
-    max,
+    ctxt: ChantContext,
+    matches: BreakMatch[],
+    start: number,
+    max: number,
     removed = 0,
     end = matches.length
   ) {
     // only the last line matters, since the lines before it were already
     // broken where they fit
-    var isWider = (i) =>
+    var isWider = (i: number) =>
       this.measureSubstring(ctxt, matches[i].index - removed, false, true) >
       max;
     // first gallop forward to bracket the match...
@@ -2677,18 +3326,18 @@ export class TextElement extends ChantLayoutElement {
     return (this.textType && this.textType.cssClass) || "";
   }
 
-  getExtraStyleProperties(ctxt) {
+  getExtraStyleProperties(ctxt: ChantContext): CssProperties {
     return ctxt.baseTextStyle || {};
   }
 
-  static escapeForTspan(string) {
+  static escapeForTspan(string: unknown) {
     return String(string).replace(/[&<>]/g, function (s) {
       return __subsForTspans[s];
     });
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     if (this.textAnchor === "middle") canvasCtxt.textAlign = "center";
     else canvasCtxt.textAlign = "start";
@@ -2696,12 +3345,12 @@ export class TextElement extends ChantLayoutElement {
     var translateWidth = 0,
       translateHeight = 0,
       extraStyleProperties = this.getExtraStyleProperties(ctxt),
-      font = null;
+      font: string | null = null;
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
       if (span.newLine) {
-        let count = parseInt(span.newLine) || 1;
+        let count = __parseNewLine(span.newLine) || 1;
         canvasCtxt.translate(
           translateWidth + xOffset,
           this.fontSize(ctxt) * count
@@ -2726,14 +3375,14 @@ export class TextElement extends ChantLayoutElement {
         this.bounds.y,
         span.textLength || undefined
       );
-      var metrics = ctxt.measureCanvasText(font, span.text);
+      var metrics = ctxt.measureCanvasText(font!, span.text);
       translateWidth -= metrics.width;
       canvasCtxt.translate(metrics.width, 0);
     }
     canvasCtxt.translate(translateWidth, translateHeight);
   }
 
-  getSvgProps() {
+  getSvgProps(): SvgAttributes {
     return {
       "source-index": this.sourceIndex,
       x: this.bounds.x,
@@ -2744,9 +3393,9 @@ export class TextElement extends ChantLayoutElement {
     };
   }
 
-  getSpanOptions(span, ctxt, useStyleObject = false) {
+  getSpanOptions(span: TextSpan, ctxt: ChantContext, useStyleObject = false) {
     var properties = span.mergedProperties;
-    var options = {
+    var options: SvgAttributes = {
       "source-index": span.index,
       class: properties.class,
       style: useStyleObject ? span.properties : span.getCss()
@@ -2754,7 +3403,7 @@ export class TextElement extends ChantLayoutElement {
 
     if (span.newLine) {
       var xOffset = span.xOffset || 0;
-      options.dy = 1.1 * (parseInt(span.newLine) || 1) + "em";
+      options.dy = 1.1 * (__parseNewLine(span.newLine) || 1) + "em";
       options.x = this.bounds.x + xOffset;
     } else if (span.xOffset) {
       options.x = this.bounds.x + span.xOffset;
@@ -2783,7 +3432,7 @@ export class TextElement extends ChantLayoutElement {
     return options;
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     var spans = [];
 
     for (var i = 0; i < this.spans.length; i++) {
@@ -2803,7 +3452,7 @@ export class TextElement extends ChantLayoutElement {
 
     return (this.svgNode = QuickSvg.createNode("text", options, spans));
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     var spans = [];
 
     for (var i = 0; i < this.spans.length; i++) {
@@ -2823,7 +3472,7 @@ export class TextElement extends ChantLayoutElement {
     return QuickSvg.createSvgTree("text", options, ...spans);
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     var spans = "";
 
     for (var i = 0; i < this.spans.length; i++) {
@@ -2851,17 +3500,19 @@ export class TextElement extends ChantLayoutElement {
   }
 }
 
-export var LyricType = {
+export const LyricType = {
   SingleSyllable: 0,
   BeginningSyllable: 1,
   MiddleSyllable: 2,
   EndingSyllable: 3,
 
   Directive: 4 // for asterisks, "ij." elements, or other performance notes.
-};
+} as const;
+export type LyricType = (typeof LyricType)[keyof typeof LyricType];
 
-export var LyricArray = {
-  getLeft: function (lyricArray) {
+/** helpers for the lyrics of a notation, one for each line of lyrics */
+export const LyricArray = {
+  getLeft: function (lyricArray: Lyric[]) {
     if (lyricArray.length === 0) return NaN;
 
     var x = Number.MAX_VALUE;
@@ -2876,7 +3527,7 @@ export var LyricArray = {
     return x;
   },
 
-  getRight: function (lyricArray, presumeConnectorNeeded) {
+  getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean) {
     if (lyricArray.length === 0) return NaN;
 
     var x = Number.MIN_VALUE;
@@ -2900,28 +3551,28 @@ export var LyricArray = {
     return x;
   },
 
-  hasOnlyOneLyric: function (lyricArray) {
+  hasOnlyOneLyric: function (lyricArray: Lyric[]) {
     return lyricArray.filter((l) => l.originalText).length === 1;
   },
 
-  indexOfLyric: function (lyricArray) {
+  indexOfLyric: function (lyricArray: Lyric[]) {
     return lyricArray.indexOf(lyricArray.filter((l) => l.originalText)[0]);
   },
 
-  mergeIn: function (lyricArray, newLyrics) {
+  mergeIn: function (lyricArray: Lyric[], newLyrics: Lyric[]) {
     for (var i = 0; i < newLyrics.length; ++i) {
       if (newLyrics[i].originalText || !lyricArray[i])
         lyricArray[i] = newLyrics[i];
     }
   },
 
-  mergeInArray: function (lyricArray, notations) {
+  mergeInArray: function (lyricArray: Lyric[], notations: ChantNotationElement[]) {
     for (var i = 0; i < notations.length; ++i) {
       this.mergeIn(lyricArray, notations[i].lyrics);
     }
   },
 
-  setNotation: function (lyricArray, notation) {
+  setNotation: function (lyricArray: Lyric[], notation: ChantNotationElement) {
     notation.lyrics = lyricArray;
     for (var i = 0; i < lyricArray.length; ++i) {
       lyricArray[i].notation = notation;
@@ -2930,7 +3581,43 @@ export var LyricArray = {
 };
 
 export class Lyric extends TextElement {
-  constructor(ctxt, text, lyricType, notation, notations, sourceIndex) {
+  declare textType: TextTypes["lyric"];
+  declare sourceIndex: number;
+  declare sourceGabc: string;
+  /** the text before any of it went to make a drop cap */
+  originalText: string;
+  notation: ChantNotationElement;
+  notations?: ChantNotationElement[];
+  lyricType: LyricType;
+  /** where the centering starts in the text, or -1 to center on the vowel */
+  centerStartIndex: number;
+  /** how many characters the lyric is centered on */
+  centerLength: number;
+  needsConnector: boolean;
+  preventConnector: boolean;
+  forceConnector?: boolean;
+  /** the language that the lyric is centered for, if not the context's */
+  language: Language | null;
+  /** the hyphen after the lyric, when it allows one */
+  connectorSpan?: TextSpan;
+  connectorWidth!: number;
+  defaultConnectorWidth!: number;
+  widthWithoutConnector!: number;
+  vowelSegmentWidth!: number;
+  elidesToNext?: boolean;
+  /** which line of lyrics this is */
+  lyricIndex?: number;
+  /** the right edge of a line of text-only syllables that starts with this lyric */
+  lineWidth?: number;
+
+  constructor(
+    ctxt: ChantContext,
+    text: string,
+    lyricType?: LyricType | null | "",
+    notation?: ChantNotationElement,
+    notations?: ChantNotationElement[],
+    sourceIndex?: number
+  ) {
     super(
       ctxt,
       (ctxt.textStyles.lyric.prefix || "") + text,
@@ -2946,7 +3633,8 @@ export class Lyric extends TextElement {
     // in a dropcap...
     this.originalText = text;
 
-    this.notation = notation;
+    // (only the lyrics of a score have a notation, rather than e.g. a hyphen being measured)
+    this.notation = notation!;
     this.notations = notations;
 
     if (
@@ -2982,17 +3670,17 @@ export class Lyric extends TextElement {
     );
   }
 
-  setForceConnector(force) {
+  setForceConnector(force: boolean) {
     this.forceConnector = force && this.allowsConnector();
   }
 
   // prevents a connector from ever being drawn after this lyric, without
   // affecting how the syllables are otherwise laid out within the word
-  setPreventConnector(prevent) {
+  setPreventConnector(prevent: boolean) {
     this.preventConnector = prevent && this.allowsConnector();
   }
 
-  setNeedsConnector(needs, width) {
+  setNeedsConnector(needs?: boolean, width?: number) {
     if ((needs === true || this.forceConnector) && !this.preventConnector) {
       this.needsConnector = true;
       if (typeof width !== "undefined") {
@@ -3006,7 +3694,7 @@ export class Lyric extends TextElement {
         this.spans.length > 0 &&
         this.spans[this.spans.length - 1] !== this.connectorSpan
       )
-        this.spans.push(this.connectorSpan);
+        this.spans.push(this.connectorSpan!);
     } else {
       this.connectorWidth = 0;
       this.needsConnector = false;
@@ -3017,9 +3705,9 @@ export class Lyric extends TextElement {
     }
   }
 
-  setConnectorWidth(width) {
+  setConnectorWidth(width: number) {
     this.connectorWidth = width;
-    this.connectorSpan.textLength = width;
+    this.connectorSpan!.textLength = width;
     if (this.needsConnector)
       this.bounds.width = this.widthWithoutConnector + this.getConnectorWidth();
   }
@@ -3036,7 +3724,7 @@ export class Lyric extends TextElement {
     return this.notation.bounds.x + this.bounds.x + this.bounds.width;
   }
 
-  recalculateMetrics(ctxt, resetNewLines = true) {
+  recalculateMetrics(ctxt: ChantContext, resetNewLines = true) {
     this.setNeedsConnector();
 
     super.recalculateMetrics(ctxt, resetNewLines);
@@ -3078,11 +3766,11 @@ export class Lyric extends TextElement {
       // then always use that.
       if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
         // svgTextMeasurer still has the current lyric in it...
-        x1 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(
+        x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
           0,
           this.centerStartIndex
         );
-        x2 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(
+        x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
           0,
           this.centerStartIndex + this.centerLength
         );
@@ -3113,7 +3801,7 @@ export class Lyric extends TextElement {
         }
 
         // find indices of e tags to ignore when finding vowel segment:
-        var ignore = [];
+        var ignore: IgnoredRange[] = [];
         let index = 0;
         let indexOffset = startIndex;
         for (var span of this.spans) {
@@ -3133,7 +3821,7 @@ export class Lyric extends TextElement {
         if (result.found !== true) {
           var match = this.text.slice(startIndex).match(/[a-z]+/i);
           if (match) {
-            result.startIndex = startIndex + match.index;
+            result.startIndex = startIndex + match.index!;
             result.length = match[0].length;
           } else {
             result.startIndex = startIndex;
@@ -3142,11 +3830,11 @@ export class Lyric extends TextElement {
         }
         if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
           // svgTextMeasurer still has the current lyric in it...
-          x1 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(
+          x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
             0,
             result.startIndex
           );
-          x2 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(
+          x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
             0,
             result.startIndex + result.length
           );
@@ -3167,7 +3855,7 @@ export class Lyric extends TextElement {
     this.origin.x = offset;
   }
 
-  generateDropCap(ctxt) {
+  generateDropCap(ctxt: ChantContext): DropCap | null {
     if (this.dropCap) return this.dropCap;
     // disallow special characters:
     if (this.spans[0].mergedProperties['font-family'] === ctxt.specialCharProperties['font-family']) {
@@ -3186,7 +3874,7 @@ export class Lyric extends TextElement {
     dropCap.spans = [dropCapSpan];
     let dropCapSourceGabcLength = this.sourceGabc.match(
       /^(?:<\/?[^>]+>)*.?(?:<\/[^>]+>)*/
-    )[0].length;
+    )![0].length;
     dropCap.sourceGabc = this.sourceGabc.slice(0, dropCapSourceGabcLength);
     this.sourceIndex += dropCap.sourceGabc.length;
     this.sourceGabc = this.sourceGabc.slice(dropCapSourceGabcLength);
@@ -3204,7 +3892,7 @@ export class Lyric extends TextElement {
     return classes + super.getCssClasses();
   }
 
-  getExtraStyleProperties(ctxt) {
+  getExtraStyleProperties(ctxt: ChantContext) {
     var props = super.getExtraStyleProperties(ctxt);
 
     if (this.lyricType === LyricType.Directive && ctxt.autoColor === true)
@@ -3215,7 +3903,11 @@ export class Lyric extends TextElement {
 }
 
 export class ChoralSign extends TextElement {
-  constructor(ctxt, text, note, sourceIndex) {
+  declare textType: TextTypes["choralSign"];
+  positionHint: MarkingPositionHint;
+  note: Note;
+
+  constructor(ctxt: ChantContext, text: string, note: Note, sourceIndex?: number) {
     super(
       ctxt,
       (ctxt.textStyles.choralSign.prefix || "") + text,
@@ -3230,17 +3922,17 @@ export class ChoralSign extends TextElement {
     this.textType = TextTypes.choralSign;
   }
 
-  recalculateMetrics(ctxt) {
+  recalculateMetrics(ctxt: ChantContext) {
     super.recalculateMetrics(ctxt);
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     this.recalculateMetrics(ctxt);
     this.bounds.x =
       this.note.bounds.x +
       Math.max(0, (ctxt.staffInterval - this.bounds.width) / 2); // center on the note itself
 
-    let offset, staffPosition;
+    let offset: number, staffPosition: number;
     if (this.positionHint === MarkingPositionHint.Below) {
       offset = -1;
       staffPosition = this.note.staffPosition + 2 * offset;
@@ -3260,7 +3952,21 @@ export class AboveLinesText extends TextElement {
   /**
    * @param {String} text
    */
-  constructor(ctxt, text, notation, sourceIndex) {
+  declare textType: TextTypes["al"];
+  declare sourceIndex: number;
+  notation: ChantNotationElement;
+  padding: number;
+  /** which line of above-lines text this is */
+  alIndex?: number;
+  /** for text above a note, which note of its neume it's above */
+  noteIndex?: number;
+
+  constructor(
+    ctxt: ChantContext,
+    text: string,
+    notation: ChantNotationElement | Note | null,
+    sourceIndex?: number
+  ) {
     super(
       ctxt,
       (ctxt.textStyles.al.prefix || "") + text,
@@ -3270,7 +3976,8 @@ export class AboveLinesText extends TextElement {
       sourceIndex,
       text
     );
-    this.notation = notation;
+    // (text above a note gets moved to its neume, see Gabc.createNeumesFromNotes)
+    this.notation = notation as ChantNotationElement;
     this.textType = TextTypes.al;
 
     this.padding = ctxt.staffInterval / 2;
@@ -3281,7 +3988,21 @@ export class TranslationText extends TextElement {
   /**
    * @param {String} text
    */
-  constructor(ctxt, text, notation, sourceIndex) {
+  declare textType: TextTypes["translation"];
+  declare sourceIndex: number;
+  notation: ChantNotationElement;
+  padding: number;
+  /** which line of translations this is */
+  translationIndex?: number;
+  /** the notation a translation ends at, for one that spans several */
+  endNeume?: ChantNotationElement;
+
+  constructor(
+    ctxt: ChantContext,
+    text: string,
+    notation: ChantNotationElement | null,
+    sourceIndex?: number
+  ) {
     var gabcSource = text;
     var anchor = "start";
     if (text === "/") {
@@ -3299,7 +4020,7 @@ export class TranslationText extends TextElement {
       sourceIndex,
       gabcSource
     );
-    this.notation = notation;
+    this.notation = notation!;
     this.textType = TextTypes.translation;
 
     this.padding = ctxt.staffInterval / 2;
@@ -3310,7 +4031,10 @@ export class DropCap extends TextElement {
   /**
    * @param {String} text
    */
-  constructor(ctxt, text, sourceIndex) {
+  declare textType: TextTypes["dropCap"];
+  padding: number;
+
+  constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
     super(
       ctxt,
       (ctxt.textStyles.dropCap.prefix || "") + text,
@@ -3327,14 +4051,17 @@ export class DropCap extends TextElement {
 }
 
 export class TitleTextElement extends TextElement {
+  /** the space after the text */
+  padding!: (ctxt: ChantContext) => number;
+
   constructor(
-    ctxt,
-    text,
-    fontFamily,
-    fontSize,
-    textAnchor,
-    sourceIndex,
-    sourceGabc
+    ctxt: ChantContext,
+    text: string,
+    fontFamily: (ctxt: ChantContext) => string,
+    fontSize: (ctxt: ChantContext) => number,
+    textAnchor: string,
+    sourceIndex?: number,
+    sourceGabc?: string
   ) {
     super(
       ctxt,
@@ -3349,7 +4076,7 @@ export class TitleTextElement extends TextElement {
 }
 
 export class Supertitle extends TitleTextElement {
-  constructor(ctxt, text, sourceIndex) {
+  constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
     super(
       ctxt,
       (ctxt.textStyles.supertitle.prefix || "") + text,
@@ -3361,14 +4088,14 @@ export class Supertitle extends TitleTextElement {
     );
     this.textType = TextTypes.supertitle;
 
-    this.padding = (ctxt) => (
+    this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.supertitle.padding) || 1) * ctxt.textStyles.supertitle.size / 3
     );
   }
 }
 
 export class Title extends TitleTextElement {
-  constructor(ctxt, text, sourceIndex) {
+  constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
     super(
       ctxt,
       (ctxt.textStyles.title.prefix || "") + text,
@@ -3380,14 +4107,14 @@ export class Title extends TitleTextElement {
     );
     this.textType = TextTypes.title;
 
-    this.padding = (ctxt) => (
+    this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.title.padding) || 1) * ctxt.textStyles.title.size / 3
     );
   }
 }
 
 export class Subtitle extends TitleTextElement {
-  constructor(ctxt, text, sourceIndex) {
+  constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
     super(
       ctxt,
       (ctxt.textStyles.subtitle.prefix || "") + text,
@@ -3399,14 +4126,18 @@ export class Subtitle extends TitleTextElement {
     );
     this.textType = TextTypes.subtitle;
 
-    this.padding = (ctxt) => (
+    this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.subtitle.padding) || 1) * ctxt.textStyles.subtitle.size / 3
     );
   }
 }
 
 export class TextLeftRight extends TitleTextElement {
-  constructor(ctxt, text, type, sourceIndex) {
+  extraClass: "textLeft" | "textRight";
+  /** the gabc header field this text comes from */
+  headerKey: string;
+
+  constructor(ctxt: ChantContext, text: string, type: string, sourceIndex?: number) {
     super(
       ctxt,
       (ctxt.textStyles.leftRight.prefix || "") + text,
@@ -3419,7 +4150,7 @@ export class TextLeftRight extends TitleTextElement {
     this.textType = TextTypes.leftRight;
     this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
     this.headerKey = type === "textLeft" ? "text-left" : "text-right";
-    this.padding = (ctxt) => (
+    this.padding = (ctxt: ChantContext) => (
       (Number(ctxt.textStyles.leftRight.padding) || 1) * ctxt.textStyles.leftRight.size / 5
     );
   }
@@ -3433,7 +4164,10 @@ export class Annotation extends TextElement {
   /**
    * @param {String} text
    */
-  constructor(ctxt, text, elementIndex) {
+  declare textType: TextTypes["annotation"];
+  padding: number;
+
+  constructor(ctxt: ChantContext, text: string, elementIndex?: number) {
     super(
       ctxt,
       (ctxt.textStyles.annotation.prefix || "") + text,
@@ -3450,10 +4184,14 @@ export class Annotation extends TextElement {
 }
 
 export class Annotations extends ChantLayoutElement {
+  lineHeight: number;
+  annotations: Annotation[];
+  padding: number;
+
   /**
    * @param {String} text
    */
-  constructor(ctxt, ...texts) {
+  constructor(ctxt: ChantContext, ...texts: string[]) {
     super();
 
     this.lineHeight = 1.1;
@@ -3468,7 +4206,7 @@ export class Annotations extends ChantLayoutElement {
     );
   }
 
-  updateBounds(multiplier) {
+  updateBounds(multiplier?: number) {
     if (!multiplier) multiplier = 1;
     for (var i = 0; i < this.annotations.length; ++i) {
       var annotation = this.annotations[i];
@@ -3477,7 +4215,7 @@ export class Annotations extends ChantLayoutElement {
     }
   }
 
-  recalculateMetrics(ctxt) {
+  recalculateMetrics(ctxt: ChantContext) {
     this.bounds.x = 0;
     this.bounds.y = 0;
 
@@ -3499,7 +4237,7 @@ export class Annotations extends ChantLayoutElement {
     }
   }
 
-  draw(ctxt) {
+  draw(ctxt: ChantContext) {
     this.updateBounds();
     this.annotations.forEach(function (annotation) {
       annotation.draw(ctxt);
@@ -3507,7 +4245,7 @@ export class Annotations extends ChantLayoutElement {
     this.updateBounds(-1);
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     this.updateBounds();
     var result = this.annotations.map(function (annotation) {
       return annotation.createSvgNode(ctxt);
@@ -3515,7 +4253,7 @@ export class Annotations extends ChantLayoutElement {
     this.updateBounds(-1);
     return result;
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     this.updateBounds();
     var result = this.annotations.map(function (annotation) {
       return annotation.createSvgTree(ctxt);
@@ -3524,7 +4262,7 @@ export class Annotations extends ChantLayoutElement {
     return { children: result };
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     this.updateBounds();
     var result = this.annotations
       .map(function (annotation) {
@@ -3536,7 +4274,70 @@ export class Annotations extends ChantLayoutElement {
   }
 }
 
+/** what was done to a neume's trailing space for a hidden soft accidental after it */
+export interface SoftAccidentalShift {
+  unshifted: number;
+  shifted?: number;
+}
+
+/**
+ * A notation in a score: a neume, clef, divider, accidental, custos, line
+ * break or text with no notes.  The layout tells them apart by the flags
+ * isNeume, isClef, isDivider and isAccidental.
+ */
 export class ChantNotationElement extends ChantLayoutElement {
+  leadingSpace: number;
+  trailingSpace: TrailingSpace;
+  /** the trailing space for the current layout */
+  calculatedTrailingSpace!: number;
+  keepWithNext: boolean;
+  /** lets the line break after this notation even though it's kept with the next */
+  allowLineBreakBeforeNext?: boolean;
+  needsLayout: boolean;
+
+  lyrics: Lyric[];
+  alText?: AboveLinesText[];
+  translationText?: TranslationText[];
+
+  /** the ChantScore */
+  score: ChantScore | null;
+  /** the ChantLine */
+  line: ChantLine | null;
+  mapping?: ChantMapping;
+  /** this notation's index in its score's notations */
+  notationIndex?: number;
+  /** this notation's index in its score's notes (if it isn't a neume) */
+  elementIndex?: number;
+
+  visualizers: ChantLayoutElement[];
+
+  sourceIndex?: number;
+  sourceLength?: number;
+  sourceGabc?: string;
+  /** whether the notation is the first of a syllable that has text */
+  firstOfSyllable?: boolean;
+  /** whether the notation is the first in its parentheses */
+  firstOfParentheses?: boolean;
+  /** whether the accidentals were reset (at a new word) just before this notation */
+  resetsAccidentalsBefore?: boolean;
+  /** whether the notation is in a group in braces that takes up no width */
+  hasNoWidth?: boolean;
+  /** the first notation of the group in braces that this notation is in */
+  firstWithNoWidth?: ChantNotationElement;
+  softAccidentalShift?: SoftAccidentalShift | null;
+  /** the css class of the notation's svg element; defaults to its class name */
+  cssClass?: string;
+
+  // poor man's reflection:
+  isNeume?: boolean;
+  isClef?: boolean;
+  isDivider?: boolean;
+  isAccidental?: boolean;
+  /** whether the notation resets the accidentals in effect */
+  resetsAccidentals?: boolean;
+  /** a neume's notes */
+  notes?: Note[];
+
   constructor() {
     super();
 
@@ -3589,7 +4390,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   }
 
   // used by subclasses while building up the chant notations.
-  addVisualizer(chantLayoutElement) {
+  addVisualizer(chantLayoutElement: ChantLayoutElement) {
     if (!chantLayoutElement.ignoreBounds) {
       if (this.bounds.isEmpty())
         this.bounds = chantLayoutElement.bounds.clone();
@@ -3602,7 +4403,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   // same as addVisualizer, except the element is unshifted to the front
   // of the visualizer array rather than the end. This way, some
   // visualizers can be placed behind the others...ledger lines for example.
-  prependVisualizer(chantLayoutElement) {
+  prependVisualizer(chantLayoutElement: ChantLayoutElement) {
     if (this.bounds.isEmpty()) this.bounds = chantLayoutElement.bounds.clone();
     else this.bounds.union(chantLayoutElement.bounds);
 
@@ -3613,7 +4414,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   // subclasses should call this function first in overrides of this function.
   // on completion, exsurge presumes that the bounds, the origin, and the fragment objects are
   // all valid and prepared for higher level layout.
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     if (typeof this.trailingSpace === "function")
       this.calculatedTrailingSpace = this.trailingSpace(ctxt);
     else this.calculatedTrailingSpace = this.trailingSpace;
@@ -3642,7 +4443,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   resetDependencies() {}
 
   // a helper function for subclasses to call after they are done performing layout...
-  finishLayout(ctxt) {
+  finishLayout(ctxt: ChantContext) {
     this.bounds.x = 0;
 
     let language =
@@ -3650,19 +4451,19 @@ export class ChantNotationElement extends ChantLayoutElement {
     // center the neume itself over the syllable, or just the first punctum
     // if the neume is wider than the syllable + the width of a punctum, we always revert to centering just over the punctum
     let calculateLyricX = language.centerNeume
-      ? (lyric) =>
+      ? (lyric: Lyric) =>
           (lyric.bounds.x =
             this.bounds.width + ctxt.staffInterval < lyric.vowelSegmentWidth
               ? this.bounds.width / 2 - lyric.origin.x
               : this.origin.x - lyric.origin.x)
-      : (lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
+      : (lyric: Lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
     this.lyrics.forEach(calculateLyricX);
 
     this.needsLayout = false;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
     canvasCtxt.translate(this.bounds.x, 0);
 
     for (var i = 0; i < this.visualizers.length; i++)
@@ -3680,8 +4481,11 @@ export class ChantNotationElement extends ChantLayoutElement {
     canvasCtxt.translate(-this.bounds.x, 0);
   }
 
-  getInnerSvgNodes(ctxt, functionName = "createSvgNode") {
-    var inner = [];
+  getInnerSvgNodes(
+    ctxt: ChantContext,
+    functionName: "createSvgNode" | "createSvgTree" = "createSvgNode"
+  ) {
+    var inner: Array<SvgElementWithSource | SvgTreeNode> = [];
 
     for (i = 0; i < this.lyrics.length; i++)
       inner.push(this.lyrics[i][functionName](ctxt));
@@ -3695,45 +4499,48 @@ export class ChantNotationElement extends ChantLayoutElement {
         inner.push(this.alText[i][functionName](ctxt));
 
     if (this.visualizers.length) {
-      let visualizers = [];
+      // (only annotations make more than one svg node)
+      let visualizers: Array<SvgElementWithSource | SvgTreeNode> = [];
       for (var i = 0; i < this.visualizers.length; i++)
-        visualizers.push(this.visualizers[i][functionName](ctxt, this));
+        visualizers.push(
+          this.visualizers[i][functionName](ctxt, this) as SvgElementWithSource | SvgTreeNode
+        );
 
       if (functionName === "createSvgTree") {
         inner.push(
-          QuickSvg.createSvgTree("g", { class: "Notations" }, ...visualizers)
+          QuickSvg.createSvgTree("g", { class: "Notations" }, ...(visualizers as SvgTreeNode[]))
         );
       } else {
         inner.push(
-          QuickSvg.createNode("g", { class: "Notations" }, visualizers)
+          QuickSvg.createNode("g", { class: "Notations" }, visualizers as SvgElementWithSource[])
         );
       }
     }
     return inner;
   }
 
-  getSvgProps() {
+  getSvgProps(): SvgAttributes {
     return {
-      // this.constructor.name will not be the same after being mangled by UglifyJS
+      // this.constructor.name is kept by the minified build too (see rollup.config.mjs)
       class: "ChantNotationElement " + (this.cssClass || this.constructor.name),
       transform: "translate(" + this.bounds.x + "," + 0 + ")"
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     var inner = this.getInnerSvgNodes(ctxt, "createSvgNode");
     var svgProps = this.getSvgProps();
     svgProps.source = this;
-    return QuickSvg.createNode("g", svgProps, inner);
+    return QuickSvg.createNode("g", svgProps, inner as SvgElementWithSource[]);
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     var inner = this.getInnerSvgNodes(ctxt, "createSvgTree");
     var svgProps = this.getSvgProps();
     svgProps.source = this;
-    return QuickSvg.createSvgTree("g", svgProps, ...inner);
+    return QuickSvg.createSvgTree("g", svgProps, ...(inner as SvgTreeNode[]));
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     var inner = "";
 
     for (i = 0; i < this.lyrics.length; i++)
@@ -3755,7 +4562,7 @@ export class ChantNotationElement extends ChantLayoutElement {
 }
 
 const __connectorSpan = new TextSpan(" • ");
-const __mergeAnnotationWithTextLeft = (...annotationSpans) =>
+const __mergeAnnotationWithTextLeft = (...annotationSpans: Array<TextSpan[] | null | undefined>) =>
     annotationSpans.reduce((result, spans) => {
       if (result && result.length) {
         if (spans && spans.length) return result.concat(__connectorSpan, spans);
@@ -3764,4 +4571,4 @@ const __mergeAnnotationWithTextLeft = (...annotationSpans) =>
         return spans;
       }
       return [];
-    });
+    }) as TextSpan[];

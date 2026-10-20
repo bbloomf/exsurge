@@ -23,18 +23,21 @@
 // THE SOFTWARE.
 //
 
-export var Units = {
+/** a unit of measurement: one of Units.DeviceIndepenedent, Centimeters, Millimeters or Inches */
+export type UnitsType = 0 | 1 | 2 | 3;
+
+export const Units = {
   // enums
-  DeviceIndepenedent: 0, // device independent units: 96/inch
-  Centimeters: 1,
-  Millimeters: 2,
-  Inches: 3,
+  DeviceIndepenedent: 0 as UnitsType, // device independent units: 96/inch
+  Centimeters: 1 as UnitsType,
+  Millimeters: 2 as UnitsType,
+  Inches: 3 as UnitsType,
 
   // constants for device independent units (diu)
   DIU_PER_INCH: 96,
   DIU_PER_CENTIMETER: 96 / 2.54,
 
-  ToDeviceIndependent: function (n, inputUnits) {
+  ToDeviceIndependent: function (n: number, inputUnits: UnitsType): number {
     switch (inputUnits) {
       case Units.Centimeters:
         return n * Units.DIU_PER_CENTIMETER;
@@ -47,7 +50,7 @@ export var Units = {
     }
   },
 
-  FromDeviceIndependent: function (n, outputUnits) {
+  FromDeviceIndependent: function (n: number, outputUnits: UnitsType): number {
     switch (outputUnits) {
       case Units.Centimeters:
         return n / Units.DIU_PER_CENTIMETER;
@@ -61,7 +64,7 @@ export var Units = {
   },
 
 
-  StringToUnitsType: function(s) {
+  StringToUnitsType: function(s: string): UnitsType {
     switch (s.toLowerCase()) {
       case "in":
       case "inches":
@@ -84,7 +87,7 @@ export var Units = {
     }
   },
 
-  UnitsTypeToString: function(units) {
+  UnitsTypeToString: function(units: UnitsType): string {
     switch (units) {
       case Units.Inches: return "in";
       case Units.Centimeters: return "cm";
@@ -95,31 +98,31 @@ export var Units = {
   }
 }
 
-export function DeviceIndependent(n) {
+export function DeviceIndependent(n: number) {
   return n;
 }
 
-export function Centimeters(n) {
+export function Centimeters(n: number) {
   return Units.ToDeviceIndependent(n, Units.Centimeters);
 }
 
-export function Millimeters(n) {
+export function Millimeters(n: number) {
   return Units.ToDeviceIndependent(n, Units.Millimeters);
 }
 
-export function Inches(n) {
+export function Inches(n: number) {
   return Units.ToDeviceIndependent(n, Units.Inches);
 }
 
-export function ToCentimeters(n) {
+export function ToCentimeters(n: number) {
   return Units.FromDeviceIndependent(n, Units.Centimeters);
 }
 
-export function ToMillimeters(n) {
+export function ToMillimeters(n: number) {
   return Units.FromDeviceIndependent(n, Units.Millimeters);
 }
 
-export function ToInches(n) {
+export function ToInches(n: number) {
   return Units.FromDeviceIndependent(n, Units.Inches);
 }
 
@@ -128,7 +131,10 @@ export function ToInches(n) {
  * Point
  */
 export class Point {
-  constructor(x, y) {
+  x: number;
+  y: number;
+
+  constructor(x?: number, y?: number) {
     this.x = (typeof x !== 'undefined') ? x : 0;
     this.y = (typeof y !== 'undefined') ? y : 0;
   }
@@ -137,7 +143,7 @@ export class Point {
     return new Point(this.x, this.y);
   }
 
-  equals(point) {
+  equals(point: Point) {
     return this.x === point.x && this.y === point.y;
   }
 }
@@ -146,7 +152,12 @@ export class Point {
  * Rect
  */
 export class Rect {
-  constructor(x, y, width, height) {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+
+  constructor(x?: number, y?: number, width?: number, height?: number) {
     this.x = (typeof x !== 'undefined') ? x : Infinity;
     this.y = (typeof y !== 'undefined') ? y : Infinity;
     this.width = (typeof width !== 'undefined') ? width : -Infinity;
@@ -173,13 +184,13 @@ export class Rect {
     return this.y + this.height;
   }
 
-  equals(rect) {
+  equals(rect: Rect) {
     return this.x === rect.x && this.y === rect.y &&
            this.width === rect.width && this.height === rect.height;
   }
 
   // other can be a Point or a Rect
-  contains(other) {
+  contains(other: Point | Rect) {
     if (other instanceof Point) {
       return other.x >= this.x &&
               other.x <= this.x + this.width &&
@@ -193,7 +204,7 @@ export class Rect {
     }
   }
 
-  union(rect) {
+  union(rect: Rect) {
 
     var right = Math.max(this.x + this.width, rect.x + rect.width);
     var bottom = Math.max(this.y + this.height, rect.y + rect.height);
@@ -212,7 +223,12 @@ export class Rect {
  * @class
  */
 export class Margins {
-  constructor(left, top, right, bottom) {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+
+  constructor(left?: number, top?: number, right?: number, bottom?: number) {
     this.left = (typeof left !== 'undefined') ? left : 0;
     this.top = (typeof top !== 'undefined') ? top : 0;
     this.right = (typeof right !== 'undefined') ? right : 0;
@@ -223,7 +239,7 @@ export class Margins {
     return new Margins(this.left, this.top, this.right, this.bottom);
   }
 
-  equals(margins) {
+  equals(margins: Margins) {
     return this.left === margins.left &&
         this.top === margins.top &&
         this.right === margins.right &&
@@ -237,7 +253,10 @@ export class Margins {
  * @class
  */
 export class Size {
-  constructor(width, height) {
+  width: number;
+  height: number;
+
+  constructor(width?: number, height?: number) {
     this.width = (typeof width !== 'undefined') ? width : 0;
     this.height = (typeof height !== 'undefined') ? height : 0;
   }
@@ -246,7 +265,7 @@ export class Size {
     return new Size(this.width, this.height);
   }
 
-  equals(size) {
+  equals(size: Size) {
     return this.width === size.width && this.height === size.height;
   }
 }
@@ -255,7 +274,7 @@ export class Size {
 /*
  * Pitches, notes
  */
-export var Step = {
+export const Step = {
   Do: 0,
   Du: 1,
   Re: 2,
@@ -267,7 +286,10 @@ export var Step = {
   La: 9,
   Te: 10,
   Ti: 11
-};
+} as const;
+
+/** a step of the scale, which Step names */
+export type Step = (typeof Step)[keyof typeof Step];
 
   // this little array helps map step values to staff positions. The numeric values of steps
   // correspond to whole step increments (2) or half step increments (1). This gives us the ability
@@ -281,7 +303,15 @@ var __StaffOffsetToStep = [Step.Do, Step.Re, Step.Mi, Step.Fa, Step.So, Step.La,
 
 
 export class Pitch {
-  constructor(step, octave) {
+  /** a Step, though applying an accidental can make it any number */
+  step: number;
+  octave: number;
+
+  /**
+   * @param step the step within the octave, or, without an octave, the
+   * number of half steps from step 0 of octave 0
+   */
+  constructor(step: number, octave?: number) {
     if(typeof octave === 'undefined') {
       octave = Math.floor(step / 12)
       step = step % 12;
@@ -294,27 +324,27 @@ export class Pitch {
     return this.octave * 12 + this.step;
   }
 
-  transpose(step) {
+  transpose(step: number) {
     return new Pitch(this.toInt() + step);
   }
 
-  isHigherThan(pitch) {
+  isHigherThan(pitch: Pitch) {
     return this.toInt() > pitch.toInt();
   }
 
-  isLowerThan(pitch) {
+  isLowerThan(pitch: Pitch) {
     return this.toInt() < pitch.toInt();
   }
 
-  equals(pitch) {
+  equals(pitch: Pitch) {
     return this.toInt() === pitch.toInt();
   }
 
-  static stepToStaffOffset(step) {
+  static stepToStaffOffset(step: number) {
     return __StepToStaffPosition[step];
   }
 
-  static staffOffsetToStep(offset) {
+  static staffOffsetToStep(offset: number) {
     while (offset < 0)
       offset = __StaffOffsetToStep.length + offset;
 
@@ -331,7 +361,7 @@ export function generateRandomGuid() {
   return s4() + s4();
 }
 
-export function getCssForProperties(properties) {
+export function getCssForProperties(properties: { [property: string]: unknown }) {
   return Object.entries(properties)
     .map(([key, val]) =>
       key && val && key !== "class" ? `${key}: ${val};` : ""

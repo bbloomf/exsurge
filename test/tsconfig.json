@@ -1,13 +1,14 @@
 {
-  // type-checks src/index.d.ts, and test/types.ts against it (npm run test:types)
+  // type-checks the tests, including test/types.ts, which checks the types
+  // that exsurge's source gives against how exsurge is used
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "strict": true,
-    "noEmit": true,
-    "target": "es2020",
-    "lib": ["es2020", "dom"],
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "types": ["opentype.js"]
+    // for the rollup config, which bundle.test.ts builds with
+    "allowJs": true,
+    "types": ["node", "opentype.js"],
+    "paths": {
+      "exsurge": ["../src/index.ts"]
+    }
   },
-  "files": ["types.ts", "../src/index.d.ts"]
+  "include": ["**/*.ts"]
 }

@@ -1,8 +1,9 @@
-var assert = require('assert');
-var ChantLine = require('../src/Exsurge.Chant.ChantLine').ChantLine;
-var Custos = require('../src/Exsurge.Chant.Signs').Custos;
-var Drawing = require('../src/Exsurge.Drawing');
-var Gabc = require('../src/Exsurge.Gabc').Gabc;
+import { describe, it } from "vitest";
+import assert from "node:assert";
+import { ChantLine } from "../src/Exsurge.Chant.ChantLine.js";
+import { Custos } from "../src/Exsurge.Chant.Signs.js";
+import * as Drawing from "../src/Exsurge.Drawing.js";
+import { Gabc } from "../src/Exsurge.Gabc.js";
 
 describe('Custos rendering', function() {
   ['draw', 'createSvgFragment', 'createSvgNode', 'createSvgTree'].forEach(function(method) {
@@ -16,17 +17,18 @@ describe('Custos rendering', function() {
         assert(custos.hasLyrics());
         assert(text.hasLyrics());
 
-        var line = new ChantLine({
+        // a line of a score with just these notations
+        var line: any = new ChantLine({
           notations: [custos, text],
           staffLineCount: 4,
           dropCap: null,
           annotation: null
-        });
+        } as any);
         line.numNotationsOnLine = 2;
         line.custos = explicit ? custos : new Custos(true);
         var elements = explicit ? [custos, text] : [custos, text, line.custos];
         var calls = elements.map(function() { return 0; });
-        elements.forEach(function(element, index) {
+        elements.forEach(function(element: any, index) {
           // Each notation renders its glyph and attached lyrics together.
           element[method] = function() {
             calls[index]++;
@@ -35,14 +37,15 @@ describe('Custos rendering', function() {
         });
         line.startingClef = {};
         line.startingClef[method] = function() { return ''; };
-        ctxt.canvasCtxt = {};
+        var canvasCtxt: any = {};
         ['translate', 'beginPath', 'moveTo', 'lineTo', 'stroke'].forEach(function(name) {
-          ctxt.canvasCtxt[name] = function() {};
+          canvasCtxt[name] = function() {};
         });
+        ctxt.canvasCtxt = canvasCtxt;
 
         // Supply a DOM-free node factory for the SVG DOM rendering path.
         var createNode = Drawing.QuickSvg.createNode;
-        Drawing.QuickSvg.createNode = function() { return {}; };
+        Drawing.QuickSvg.createNode = function() { return {} as Drawing.SvgElementWithSource; };
         try {
           line[method](ctxt);
         } finally {

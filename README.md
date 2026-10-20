@@ -49,14 +49,19 @@ Very few good chant layout software exist for developers. exsurge allows web dev
 
 ## Developer Installation
 
-After grabbing the repo from github, it's a simple matter of using `npm` to build exsurge:
+exsurge is written in TypeScript, in `src/`.  After grabbing the repo from github, it's a simple matter of using `npm` to build exsurge:
 
 ```
 npm install
 npm run build
 ```
 
-Alternatively, you can run `npm run dev` which will watch and compile the library after saved each change.
+This makes:
+
+- `dist/esm/`: ES modules with their typings, which the package's `module` and `types` point to
+- `dist/exsurge.min.js`: a minified UMD bundle, which the package's `main` points to (and `dist/exsurge.js`, the same unminified)
+
+Alternatively, you can run `npm run dev` which will watch and rebuild the UMD bundle after each saved change.  `test/index.html` is a page to try exsurge in a browser, once it's built; serve the repository and open it.
 
 ## API Reference
 
@@ -64,7 +69,13 @@ Under construction...
 
 ## Tests
 
-Under construction...
+`npm test` lints the code, type-checks it, and runs the tests (with [Vitest](https://vitest.dev)).  `npm run test:watch` runs the tests as files change.
+
+The golden tests (`test/golden/`) draw a collection of gabc, covering each kind of notation, marking and text and the settings that change the layout, in each way exsurge can draw it: the svg string, the svg tree, svg DOM nodes and on a canvas.  They compare what's drawn with the snapshots in `test/golden/__snapshots__/`, as do the tests of the minified bundle and the ES modules (`test/bundle.test.ts`), which build exsurge as it is published.  After a change that is meant to change what exsurge draws, look over the changes to the snapshots and update them with `npx vitest -u`.
+
+`npm run test:reference` compares what the source draws with what another version drew, on the golden tests at other widths and on random gabc, e.g. `EXSURGE_REFERENCE=v1.30.1 npm run test:reference`.
+
+`npm run bench` times parsing, layout and drawing an svg.
 
 ## Contributors
 

@@ -3,6 +3,7 @@
 // to TypeScript.  Run `npx vitest -u` to update the snapshots after a change
 // that is meant to change what exsurge draws.
 
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { featureCases, settingCases, type GoldenCase } from "./cases";
 import { render, type Exsurge, type OutputName } from "./harness";
@@ -21,8 +22,11 @@ export const allCases: GoldenCase[] = [
   ...settingCases.map((c) => ({ outputs: ["svg"] as OutputName[], ...c }))
 ];
 
+// (absolute, since the tests in other folders check the same snapshots)
+const snapshotDir = join(__dirname, "__snapshots__");
+
 export function snapshotPath(name: string, output: OutputName) {
-  return `./__snapshots__/${name}/${output}.${extensions[output]}`;
+  return join(snapshotDir, name, `${output}.${extensions[output]}`);
 }
 
 /**
@@ -69,13 +73,13 @@ export function describeGoldenTables(title: string, loadExsurge: () => Promise<E
   describe(title, () => {
     it("glyphs", async () => {
       const E = await loadExsurge();
-      await expect(JSON.stringify(E.Glyphs, null, 1)).toMatchFileSnapshot("./__snapshots__/tables/glyphs.json");
+      await expect(JSON.stringify(E.Glyphs, null, 1)).toMatchFileSnapshot(join(snapshotDir, "tables/glyphs.json"));
     });
 
     it("greextra glyphs", async () => {
       const E = await loadExsurge();
       await expect(JSON.stringify(E.greextraGlyphs, null, 1)).toMatchFileSnapshot(
-        "./__snapshots__/tables/greextraGlyphs.json"
+        join(snapshotDir, "tables/greextraGlyphs.json")
       );
     });
 
@@ -94,7 +98,7 @@ export function describeGoldenTables(title: string, loadExsurge: () => Promise<E
           ])
         )
       };
-      await expect(JSON.stringify(result, null, 1)).toMatchFileSnapshot("./__snapshots__/tables/textStyles.json");
+      await expect(JSON.stringify(result, null, 1)).toMatchFileSnapshot(join(snapshotDir, "tables/textStyles.json"));
     });
   });
 }

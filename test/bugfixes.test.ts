@@ -1,12 +1,13 @@
-var assert = require('assert');
-var Chant = require('../src/Exsurge.Chant');
-var Core = require('../src/Exsurge.Core');
-var Drawing = require('../src/Exsurge.Drawing');
-var Gabc = require('../src/Exsurge.Gabc').Gabc;
-var Neumes = require('../src/Exsurge.Chant.Neumes');
-var Spanish = require('../src/Exsurge.Text').Spanish;
+import { describe, it } from "vitest";
+import assert from "node:assert";
+import * as Chant from "../src/Exsurge.Chant.js";
+import * as Core from "../src/Exsurge.Core.js";
+import * as Drawing from "../src/Exsurge.Drawing.js";
+import { Gabc } from "../src/Exsurge.Gabc.js";
+import * as Neumes from "../src/Exsurge.Chant.Neumes.js";
+import { Spanish } from "../src/Exsurge.Text.js";
 
-function layoutNotations(gabc) {
+function layoutNotations(gabc: string) {
   var ctxt = new Drawing.ChantContext();
   var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
   score.performLayout(ctxt);
@@ -49,7 +50,7 @@ describe('Neume layout', function() {
       assert(virga instanceof Neumes.Virga);
       return virga.visualizers[virga.visualizers.length - 1];
     });
-    assert.equal(virgas[1].notes[0].shapeModifiers & Chant.NoteShapeModifiers.Reverse, Chant.NoteShapeModifiers.Reverse);
+    assert.equal(virgas[1].notes![0].shapeModifiers & Chant.NoteShapeModifiers.Reverse, Chant.NoteShapeModifiers.Reverse);
     assert(lines[0].bounds.x > 0);
     assert.equal(lines[1].bounds.x, 0);
   });
@@ -111,7 +112,7 @@ describe('Neume spacing', function() {
     );
     // the space after them is kept, though
     var ctxt = new Drawing.ChantContext();
-    assert(neumes[0].trailingSpace(ctxt) > 0);
+    assert((neumes[0].trailingSpace as Drawing.TrailingSpaceFunction)(ctxt) > 0);
   });
 
   it('gives !/ the width of its slash but keeps the neumes together', function() {
@@ -121,7 +122,10 @@ describe('Neume spacing', function() {
       neumes.map(function(neume) { return !!neume.keepWithNext && !neume.allowLineBreakBeforeNext; }),
       [true, true, true, false]
     );
-    assert.equal(neumes[1].trailingSpace(ctxt), 2 * neumes[0].trailingSpace(ctxt));
+    assert.equal(
+      (neumes[1].trailingSpace as Drawing.TrailingSpaceFunction)(ctxt),
+      2 * (neumes[0].trailingSpace as Drawing.TrailingSpaceFunction)(ctxt)
+    );
     assert.equal(neumes[2].trailingSpace, 0);
   });
 });
@@ -129,7 +133,7 @@ describe('Neume spacing', function() {
 describe('Units', function() {
   var Units = Core.Units;
 
-  function assertClose(actual, expected) {
+  function assertClose(actual: number, expected: number) {
     assert(Math.abs(actual - expected) < 1e-9, actual + ' is not close to ' + expected);
   }
 

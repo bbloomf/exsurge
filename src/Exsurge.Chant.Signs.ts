@@ -23,17 +23,25 @@
 // THE SOFTWARE.
 //
 
-import { Rect, Step } from "./Exsurge.Core.js";
+import { Rect, Step, type Pitch } from "./Exsurge.Core.js";
 import {
   ChantNotationElement, DividerLineVisualizer, GlyphCode,
   GlyphVisualizer,
-  RoundBraceVisualizer
+  RoundBraceVisualizer,
+  type ChantContext
 } from "./Exsurge.Drawing.js";
+import type { BracePoint } from "./Exsurge.Chant.Markings.js";
 
 /*
  *
  */
 export class Custos extends ChantNotationElement {
+  auto: boolean;
+  staffPosition: number;
+  staffPositionOffset?: number;
+  /** the end of a brace that ends at the custos, at the end of a line */
+  braceEnd?: BracePoint;
+
   // if auto is true, then the custos will automatically try to determine it's height based on
   // subsequent notations
   constructor(auto = false) {
@@ -42,7 +50,7 @@ export class Custos extends ChantNotationElement {
     this.staffPosition = 2; // default sane value
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     if (this.auto) {
@@ -51,7 +59,7 @@ export class Custos extends ChantNotationElement {
       if (neume) {
         const note = neume.notes[0];
         this.staffPosition = ctxt.activeClef.pitchToStaffPosition(
-          note.pitch
+          note.pitch!
         ) + (note.staffPositionOffset || 0);
         this.staffPositionOffset = note.staffPositionOffset;
       }
@@ -85,7 +93,7 @@ export class Custos extends ChantNotationElement {
    * @param {number} staffLineCount number of lines on staff
    * @returns 
    */
-  static getGlyphCode(staffPosition, staffLineCount = 4) {
+  static getGlyphCode(staffPosition: number, staffLineCount = 4) {
     if (staffPosition <= staffLineCount * 2 - 2) {
       // ascending custos
       if (Math.abs(staffPosition) % 2 === 1) return GlyphCode.CustosLong;
@@ -102,6 +110,10 @@ export class Custos extends ChantNotationElement {
  * Divider
  */
 export class Divider extends ChantNotationElement {
+  declare isDivider: true;
+  /** whether a brace above the divider carries the melody over it (gabc _) */
+  hasCarryover: boolean;
+
   constructor(withCarryover = false) {
     super();
 
@@ -110,7 +122,7 @@ export class Divider extends ChantNotationElement {
     this.resetsAccidentals = true;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     if (this.hasCarryover) {
       const top = ctxt.staffLineCount * 2;
@@ -125,7 +137,7 @@ export class Divider extends ChantNotationElement {
  * QuarterBar
  */
 export class QuarterBar extends Divider {
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     const top = ctxt.staffLineCount * 2;
     this.addVisualizer(new DividerLineVisualizer(ctxt, top - 2, top, this));
@@ -139,7 +151,7 @@ export class QuarterBar extends Divider {
  * HalfBar
  */
 export class HalfBar extends Divider {
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     const offset = ctxt.staffLineCount === 2 ? 1.5 : 2;
@@ -155,7 +167,7 @@ export class HalfBar extends Divider {
  * FullBar
  */
 export class FullBar extends Divider {
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     this.addVisualizer(new DividerLineVisualizer(ctxt, 1, ctxt.staffLineCount * 2 - 1, this));
@@ -170,7 +182,7 @@ export class FullBar extends Divider {
  * Insertion Cursor
  */
 export class InsertionCursor extends Divider {
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     this.cssClass = 'InsertionCursor';
 
@@ -188,14 +200,16 @@ export class InsertionCursor extends Divider {
  * DominicanBar
  */
 export class DominicanBar extends Divider {
-  constructor(staffPosition) {
+  staffPosition: number;
+
+  constructor(staffPosition: number) {
     super();
     var parity = (staffPosition + 1) % 2;
 
     this.staffPosition = staffPosition - 2 * parity;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     this.addVisualizer(
       new DividerLineVisualizer(
@@ -216,7 +230,7 @@ export class DominicanBar extends Divider {
  * DoubleBar
  */
 export class DoubleBar extends Divider {
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     const top = ctxt.staffLineCount * 2 - 1;
@@ -238,13 +252,22 @@ export const AccidentalType = {
   Flat: -1,
   Natural: 0,
   Sharp: 1
-};
+} as const;
+export type AccidentalType = (typeof AccidentalType)[keyof typeof AccidentalType];
 
 /*
  * Accidental
  */
 export class Accidental extends ChantNotationElement {
-  constructor(staffPosition, accidentalType, soft = false) {
+  declare isAccidental: true;
+  staffPosition: number;
+  accidentalType: AccidentalType;
+  /** a soft accidental (gabc X, Y or ##) is only printed if it changes the accidental in effect */
+  soft: boolean;
+  hidden: boolean;
+  pitch?: Pitch;
+
+  constructor(staffPosition: number, accidentalType: AccidentalType, soft = false) {
     super();
     this.isAccidental = true;
     this.keepWithNext = true; // accidentals should always stay connected...
@@ -258,7 +281,7 @@ export class Accidental extends ChantNotationElement {
     this.hidden = false;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     if (this.hidden) {
@@ -277,7 +300,7 @@ export class Accidental extends ChantNotationElement {
     this.finishLayout(ctxt);
   }
 
-  setHidden(ctxt, hidden) {
+  setHidden(ctxt: ChantContext, hidden: boolean) {
     if (this.hidden === hidden) return;
 
     this.hidden = hidden;
@@ -286,8 +309,8 @@ export class Accidental extends ChantNotationElement {
 
   // creation of the glyph visualizer is refactored out or performLayout
   // so that clefs can use the same logic for their accidental glyph
-  createGlyphVisualizer(ctxt) {
-    var glyphCode = GlyphCode.Flat;
+  createGlyphVisualizer(ctxt: ChantContext) {
+    var glyphCode: GlyphCode = GlyphCode.Flat;
 
     switch (this.accidentalType) {
       case AccidentalType.Natural:
@@ -307,7 +330,7 @@ export class Accidental extends ChantNotationElement {
     return glyph;
   }
 
-  adjustStep(step) {
+  adjustStep(step: number) {
     switch (this.accidentalType) {
       case AccidentalType.Flat:
         if (step === Step.Ti) return Step.Te;
@@ -329,9 +352,9 @@ export class Accidental extends ChantNotationElement {
     return step;
   }
 
-  applyToPitch(pitch) {
+  applyToPitch(pitch: Pitch) {
     // no adjusment needed
-    if (this.pitch.octave !== pitch.octave) return;
+    if (this.pitch!.octave !== pitch.octave) return;
 
     pitch.step = this.adjustStep(pitch.step);
   }
@@ -341,6 +364,8 @@ export class Accidental extends ChantNotationElement {
  * Virgula
  */
 export class Virgula extends Divider {
+  staffPosition: number;
+
   constructor(withCarryover = false) {
     super(withCarryover);
 
@@ -354,7 +379,7 @@ export class Virgula extends Divider {
     this.staffPosition = 7;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     var glyph = new GlyphVisualizer(ctxt, GlyphCode.Virgula);

@@ -1,17 +1,22 @@
-var assert = require('assert');
-var Drawing = require('../src/Exsurge.Drawing');
-var Gabc = require('../src/Exsurge.Gabc').Gabc;
+import { describe, it } from "vitest";
+import assert from "node:assert";
+import * as Drawing from "../src/Exsurge.Drawing.js";
+import { Gabc, type WordDiff } from "../src/Exsurge.Gabc.js";
+import type { ChantMapping } from "../src/Exsurge.Chant.js";
+
+type Descriptor = { source: string };
+type Diff = WordDiff<Descriptor>[];
 
 // the diff algorithm as it was before common prefixes and suffixes were split off
-function referenceDiff(before, after) {
-  var oldIndexMap = {}, i;
+function referenceDiff(before: Descriptor[], after: string[]): Diff {
+  var oldIndexMap: { [source: string]: number[] } = {}, i;
   for (i = 0; i < before.length; i++) {
     oldIndexMap[before[i].source] = oldIndexMap[before[i].source] || [];
     oldIndexMap[before[i].source].push(i);
   }
-  var overlap = [], startOld = 0, startNew = 0, subLength = 0;
+  var overlap: number[] = [], startOld = 0, startNew = 0, subLength = 0;
   for (var inew = 0; inew < after.length; inew++) {
-    var _overlap = [];
+    var _overlap: number[] = [];
     oldIndexMap[after[inew]] = oldIndexMap[after[inew]] || [];
     for (i = 0; i < oldIndexMap[after[inew]].length; i++) {
       var iold = oldIndexMap[after[inew]][i];
@@ -25,48 +30,49 @@ function referenceDiff(before, after) {
     overlap = _overlap;
   }
   if (subLength === 0) {
-    var result = [];
+    var result: Diff = [];
     if (before.length) result.push(['-', before]);
     if (after.length) result.push(['+', after]);
     return result;
   }
-  return [].concat(
+  return ([] as Diff).concat(
     referenceDiff(before.slice(0, startOld), after.slice(0, startNew)),
-    [['=', after.slice(startNew, startNew + subLength)]],
+    [['=', after.slice(startNew, startNew + subLength)]] as Diff,
     referenceDiff(before.slice(startOld + subLength), after.slice(startNew + subLength))
   );
 }
 
-function words(source) {
+function words(source: string) {
   return Gabc.splitWords(source);
 }
 
-function descriptors(source) {
+function descriptors(source: string): Descriptor[] {
   return words(source).map(function(word) { return { source: word }; });
 }
 
-function serializeDiff(results) {
+function serializeDiff(results: Diff) {
   return results.map(function(result) {
-    return [result[0], result[1].map(function(value) { return typeof value === 'string' ? value : value.source; })];
+    return [result[0], (result[1] as Array<string | Descriptor>).map(function(value) { return typeof value === 'string' ? value : value.source; })];
   });
 }
 
-function keptCount(results) {
-  return results.reduce(function(count, result) { return count + (result[0] === '=' ? result[1].length : 0); }, 0);
+function keptCount(results: Diff) {
+  return results.reduce(function(count: number, result) { return count + (result[0] === '=' ? result[1].length : 0); }, 0);
 }
 
-function serializeMappings(mappings) {
+function serializeMappings(mappings: ChantMapping[]): any[] {
   return mappings.map(function(mapping) {
-    return [mapping.source, mapping.sourceIndex, mapping.notations.map(function(notation) {
+    // (as any, to look at what each kind of notation has)
+    return [mapping.source, mapping.sourceIndex, mapping.notations.map(function(notation: any) {
       return [
         notation.constructor.name,
         notation.sourceIndex,
         notation.trailingSpace,
         notation.isAccidental ? notation.pitch.toInt() : null,
-        (notation.notes || []).map(function(note) {
+        (notation.notes || []).map(function(note: any) {
           return [note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape];
         }),
-        (notation.lyrics || []).map(function(lyric) {
+        (notation.lyrics || []).map(function(lyric: any) {
           return [lyric.text, lyric.sourceIndex, lyric.lyricType];
         })
       ];
@@ -74,13 +80,17 @@ function serializeMappings(mappings) {
   });
 }
 
-function parsedMappings(source) {
+function parsedMappings(source: string) {
   return serializeMappings(Gabc.createMappingsFromSource(new Drawing.ChantContext(), source));
 }
 
-function updatedMappings(beforeSource, afterSource, diff) {
+function updatedMappings(
+  beforeSource: string,
+  afterSource: string,
+  diff: (before: Descriptor[], after: string[]) => Diff
+) {
   var originalDiff = Gabc.diffDescriptorsAndNewWords;
-  Gabc.diffDescriptorsAndNewWords = diff;
+  Gabc.diffDescriptorsAndNewWords = diff as typeof Gabc.diffDescriptorsAndNewWords;
   try {
     var ctxt = new Drawing.ChantContext();
     var mappings = Gabc.createMappingsFromSource(ctxt, beforeSource);
@@ -94,10 +104,10 @@ function updatedMappings(beforeSource, afterSource, diff) {
 // checks that results is a diff of before into after: the unchanged and deleted words
 // make up before, the unchanged and inserted words make up after, and there are no
 // adjacent chunks of the same kind
-function assertValidDiff(before, after, results) {
-  var rebuiltBefore = [], rebuiltAfter = [];
+function assertValidDiff(before: Descriptor[], after: string[], results: Diff) {
+  var rebuiltBefore: string[] = [], rebuiltAfter: string[] = [];
   results.forEach(function(result, i) {
-    var values = result[1].map(function(value) { return typeof value === 'string' ? value : value.source; });
+    var values = (result[1] as Array<string | Descriptor>).map(function(value) { return typeof value === 'string' ? value : value.source; });
     if (result[0] !== '+') rebuiltBefore = rebuiltBefore.concat(values);
     if (result[0] !== '-') rebuiltAfter = rebuiltAfter.concat(values);
     assert.ok(values.length > 0, 'empty ' + result[0] + ' chunk');
@@ -174,7 +184,7 @@ describe('Gabc diff', function() {
     var mappings = parsedMappings('a(f)');
     parsedMappings('y(g[ub:0;4mm])');
     assert.deepStrictEqual(parsedMappings('a(f)'), mappings);
-    assert.strictEqual(Gabc.createMappingsFromSource(new Drawing.ChantContext(), 'a(f)')[0].notations[0].notes[0].braceEnd, undefined);
+    assert.strictEqual(Gabc.createMappingsFromSource(new Drawing.ChantContext(), 'a(f)')[0].notations[0].notes![0].braceEnd, undefined);
   });
 
   it('updates mappings to match a fresh parse for random edits with repeated words', function() {
@@ -182,14 +192,14 @@ describe('Gabc diff', function() {
       '(f3)', '(cb3)', 'a(ix)', 'd(ixi)', '(ixhi)', 'e(hy)', 'o(i#i)', 'f(e0f9)', 'q(f[ub:0;4mm])', 'r(gh[ob:1;6mm])'];
     // a small seeded generator (mulberry32), so that failures are reproducible
     var seed = 12345;
-    function random(n) {
+    function random(n: number) {
       var t = (seed = (seed + 0x6d2b79f5) | 0);
       t = Math.imul(t ^ (t >>> 15), t | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       return ((t ^ (t >>> 14)) >>> 0) % n;
     }
-    function randomWords(count) {
-      var result = [];
+    function randomWords(count: number) {
+      var result: string[] = [];
       for (var i = 0; i < count; i++) result.push(vocabulary[random(vocabulary.length)]);
       return result;
     }
@@ -200,7 +210,7 @@ describe('Gabc diff', function() {
       for (var edit = random(2); edit >= 0; edit--) {
         var position = 1 + random(afterWords.length);
         switch (random(3)) {
-          case 0: afterWords.splice.apply(afterWords, [position, 0].concat(randomWords(1 + random(3)))); break;
+          case 0: afterWords.splice(position, 0, ...randomWords(1 + random(3))); break;
           case 1: afterWords.splice(position, 1 + random(3)); break;
           default: afterWords.splice(position, 1, vocabulary[random(vocabulary.length)]);
         }

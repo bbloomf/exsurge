@@ -2,15 +2,14 @@
 // server (fontkit) and the browser (canvas) do, with stand-ins for the fonts so that
 // the timings are of exsurge rather than of a font engine.
 //
-// usage: node bench/layout.js [file.gabc ...]
+// usage: npm run bench -- [file.gabc ...]
+// which builds dist/exsurge.js and times that.
 // With no files, a built-in passage is repeated to make a long score.
 // To time real fonts as well, set BENCH_FONT to a .ttf or .otf file and
 // BENCH_FONTKIT and/or BENCH_OPENTYPE to where fontkit or opentype.js is installed.
-require('babel-core/register');
 var fs = require('fs');
-var Chant = require('../src/Exsurge.Chant');
-var Drawing = require('../src/Exsurge.Drawing');
-var Gabc = require('../src/Exsurge.Gabc').Gabc;
+var exsurge = require('../dist/exsurge.js');
+var Chant = exsurge, Drawing = exsurge, Gabc = exsurge.Gabc;
 
 var passage =
   "(c4) AD(c)te(d) le(f)vá(fe)vi(f) á(fg)ni(gf)mam(f) me(fe)am:(e.) (,) De(f)us(fg) me(f)us,(fe) in(e) te(f) con(gh)fí(g)do,(fe) (;) " +

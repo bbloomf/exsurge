@@ -1,15 +1,19 @@
-var assert = require('assert');
-var Chant = require('../src/Exsurge.Chant');
-var Drawing = require('../src/Exsurge.Drawing');
-var Gabc = require('../src/Exsurge.Gabc').Gabc;
+import { beforeEach, describe, it } from "vitest";
+import assert from "node:assert";
+import * as Chant from "../src/Exsurge.Chant.js";
+import * as Drawing from "../src/Exsurge.Drawing.js";
+import { Gabc } from "../src/Exsurge.Gabc.js";
+
+// the tests stand in a document of their own
+const g: any = globalThis;
 
 // stands in for a fontkit font, counting what it lays out: every character is half an em wide
 function countingFont() {
   var font = {
     unitsPerEm: 1000,
-    laidOut: [],
+    laidOut: [] as string[],
     charWidth: 500,
-    layout: function(text) {
+    layout: function(text: string) {
       font.laidOut.push(text);
       return { advanceWidth: font.charWidth * text.length, bbox: { minX: 0, maxY: 700, height: 900 } };
     }
@@ -19,12 +23,12 @@ function countingFont() {
 
 // stands in for a canvas context, counting what it measures
 function countingCanvas() {
-  var canvas = {
+  var canvas: any = {
     font: '',
     textAlign: 'start',
-    measured: [],
+    measured: [] as string[],
     charWidth: 0.5,
-    measureText: function(text) {
+    measureText: function(text: string) {
       canvas.measured.push(text);
       var size = parseFloat(this.font.match(/([\d.]+)px/)[1]);
       return { width: canvas.charWidth * size * text.length };
@@ -33,7 +37,7 @@ function countingCanvas() {
   return canvas;
 }
 
-function useCanvas(ctxt, canvas) {
+function useCanvas(ctxt: Drawing.ChantContext, canvas: any) {
   ctxt.textMeasuringStrategy = Drawing.TextMeasuringStrategy.Canvas;
   ctxt.canvasCtxt = canvas;
   ctxt.updateHyphenWidth();
@@ -68,11 +72,11 @@ describe('Text measurement', function() {
     var lyric = score.notations.filter(function(notation) {
       return notation.hasLyrics() && notation.lyrics[0].text === 'Ky';
     })[0].lyrics[0];
-    var drawn = [];
+    var drawn: string[][] = [];
     Object.assign(canvas, {
       fillStyle: '',
       translate: function() {},
-      fillText: function(text) { drawn.push([this.font, text]); }
+      fillText: function(this: { font: string }, text: string) { drawn.push([this.font, text]); }
     });
     lyric.draw(ctxt);
     assert.deepEqual(drawn[0], ['14.4px Fake', 'Ky']);
@@ -100,11 +104,11 @@ describe('Text measurement', function() {
   });
 
   it('measures again on a canvas once a font has loaded', function() {
-    var hadDocument = 'document' in global, oldDocument = global.document;
-    var listeners = [];
-    global.document = {
+    var hadDocument = 'document' in g, oldDocument = g.document;
+    var listeners: Array<() => void> = [];
+    g.document = {
       fonts: {
-        addEventListener: function(type, listener) {
+        addEventListener: function(type: string, listener: () => void) {
           if (type === 'loadingdone') listeners.push(listener);
         }
       }
@@ -132,8 +136,8 @@ describe('Text measurement', function() {
         assert.strictEqual(lyric.bounds.width, 28.8);
       }
     } finally {
-      if (hadDocument) global.document = oldDocument;
-      else delete global.document;
+      if (hadDocument) g.document = oldDocument;
+      else delete g.document;
     }
   });
 
@@ -147,7 +151,7 @@ describe('Text measurement', function() {
     assert(/fill: #123456;/.test(svg), svg);
     assert(!/#d00/.test(svg), svg);
     assert.strictEqual(lyric.spans[0].properties.fill, '#123456');
-    assert.strictEqual(lyric.createSvgTree(ctxt).children[0].props.style.fill, '#123456');
+    assert.strictEqual((lyric.createSvgTree(ctxt).children[0] as Drawing.SvgTreeNode).props!.style.fill, '#123456');
   });
 
   it('wraps text where each line still fits', function() {
@@ -167,7 +171,7 @@ describe('Text measurement', function() {
       return result;
     }
 
-    function wrap(chars) {
+    function wrap(chars: number) {
       var maxWidth = chars * charWidth;
       title.setMaxWidth(ctxt, maxWidth);
       var result = lines();
@@ -223,14 +227,14 @@ describe('Text measurement', function() {
     assert.strictEqual(title.numLines, 6);
   });
   describe('wrapping around line breaks', function() {
-    var ctxt;
+    var ctxt: Drawing.ChantContext;
     beforeEach(function() {
       ctxt = new Drawing.ChantContext();
       ctxt.setFont('Fake', 16, {}, { Regular: countingFont() });
     });
 
     // the lines of title, with the whitespace left before a <br> taken off
-    function lines(title) {
+    function lines(title: Drawing.Title) {
       var result = [''];
       title.spans.forEach(function(span) {
         if (span.newLine) result.push('');
@@ -240,7 +244,7 @@ describe('Text measurement', function() {
     }
 
     // the text of title, with a newline where each line starts
-    function joined(title) {
+    function joined(title: Drawing.Title) {
       return title.spans.map(function(span) {
         return (span.newLine ? '\n' : '') + span.text;
       }).join('');
@@ -248,12 +252,12 @@ describe('Text measurement', function() {
 
     // wraps title to chars characters, checking that each line is filled
     // greedily, and returns its lines
-    function wrap(title, chars) {
+    function wrap(title: Drawing.Title, chars: number) {
       var charWidth = ctxt.textStyles.title.size / 2;
       var maxWidth = chars * charWidth;
       title.setMaxWidth(ctxt, maxWidth);
       var result = lines(title);
-      var words = title.sourceGabc.replace(/<br>/g, ' ').replace(/<[^>]*>/g, '');
+      var words = title.sourceGabc!.replace(/<br>/g, ' ').replace(/<[^>]*>/g, '');
       assert.strictEqual(result.join(' ').split(/\s+/).filter(Boolean).join(' '),
         words.split(/\s+/).filter(Boolean).join(' '));
       // the spans that start each line
@@ -271,7 +275,7 @@ describe('Text measurement', function() {
       });
       // with a blank line for each <br> after the first in a row
       var blank = starts.reduce(function(sum, span) {
-        return sum + Math.max(0, (parseInt(span.newLine) || 1) - 1);
+        return sum + Math.max(0, (parseInt(span.newLine as unknown as string) || 1) - 1);
       }, 0);
       assert.strictEqual(title.numLines, result.length + blank);
       return result;

@@ -1,4 +1,4 @@
-const accentedVowels = {
+const accentedVowels: { [vowel: string]: string } = {
   "Æ": "Ǽ",
   "Œ": "Œ́",
   "A": "Á",
@@ -17,4 +17,4 @@ const accentedVowels = {
   "y": "ý"
 };
 
-export const addAccent = (vowel) => accentedVowels[vowel] || vowel;
+export const addAccent = (vowel: string) => accentedVowels[vowel] || vowel;

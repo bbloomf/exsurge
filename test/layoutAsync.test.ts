@@ -1,28 +1,32 @@
-var assert = require('assert');
-var Chant = require('../src/Exsurge.Chant');
-var Drawing = require('../src/Exsurge.Drawing');
-var Gabc = require('../src/Exsurge.Gabc').Gabc;
-var fakeFont = require('./helpers/fonts').fakeFont;
+import { afterEach, beforeEach, describe, it } from "vitest";
+import assert from "node:assert";
+import * as Chant from "../src/Exsurge.Chant.js";
+import * as Drawing from "../src/Exsurge.Drawing.js";
+import { Gabc } from "../src/Exsurge.Gabc.js";
+import { fakeFont } from "./helpers/fonts";
+
+// the tests stand in a document of their own
+const g: any = globalThis;
 
 // Courier New's hyphen, like every glyph in it, is 1229/2048em wide
 var courierNew = fakeFont(1229 / 2048);
 var palatino = fakeFont(0.33);
 
-function createScore(ctxt) {
+function createScore(ctxt: Drawing.ChantContext) {
   return new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (::)'), false);
 }
 
 // lays the score out asynchronously, and resolves with how long that took
-function performLayoutAsync(ctxt, score) {
+function performLayoutAsync(ctxt: Drawing.ChantContext, score: Chant.ChantScore) {
   var start = Date.now();
-  return new Promise(function(resolve) {
+  return new Promise<number>(function(resolve) {
     score.performLayoutAsync(ctxt, function() {
       resolve(Date.now() - start);
     });
   });
 }
 
-function assertLaidOut(score) {
+function assertLaidOut(score: Chant.ChantScore) {
   assert.strictEqual(score.needsLayout, false);
   score.notations.forEach(function(notation) {
     assert.strictEqual(notation.needsLayout, false);
@@ -30,16 +34,19 @@ function assertLaidOut(score) {
 }
 
 // measures text on a canvas the way a browser does: in the fallback font until the real one loads
-function useFakeCanvas(ctxt, getFont) {
+// a font, as far as the fake canvas uses one
+type CanvasFont = { unitsPerEm: number; layout(text: string): { advanceWidth: number } };
+
+function useFakeCanvas(ctxt: Drawing.ChantContext, getFont: () => CanvasFont) {
   ctxt.textMeasuringStrategy = Drawing.TextMeasuringStrategy.Canvas;
   ctxt.canvasCtxt = {
     font: '',
-    measureText: function(text) {
+    measureText: function(text: string) {
       var size = parseFloat(this.font.match(/([\d.]+)px/)[1]);
       var font = getFont();
       return { width: font.layout(text).advanceWidth / font.unitsPerEm * size };
     }
-  };
+  } as any;
   ctxt.updateHyphenWidth();
 }
 
@@ -78,11 +85,11 @@ describe('Asynchronous layout', function() {
   it('does not wait for the old ctxt.onFontLoaded callbacks', function() {
     var ctxt = new Drawing.ChantContext();
     ctxt.setFont('Palatino', 16, {}, { Regular: palatino });
-    ctxt.onFontLoaded = [];
+    (ctxt as any).onFontLoaded = [];
     var score = createScore(ctxt);
     return performLayoutAsync(ctxt, score).then(function() {
       assertLaidOut(score);
-      assert.deepEqual(ctxt.onFontLoaded, []);
+      assert.deepEqual((ctxt as any).onFontLoaded, []);
     });
   });
 
@@ -112,14 +119,14 @@ describe('Asynchronous layout', function() {
   });
 
   describe('with document.fonts', function() {
-    var hadDocument, oldDocument;
+    var hadDocument: boolean, oldDocument: unknown;
     beforeEach(function() {
-      hadDocument = 'document' in global;
-      oldDocument = global.document;
+      hadDocument = 'document' in g;
+      oldDocument = g.document;
     });
     afterEach(function() {
-      if (hadDocument) global.document = oldDocument;
-      else delete global.document;
+      if (hadDocument) g.document = oldDocument;
+      else delete g.document;
     });
 
     it('does not wait for a font that has loaded', function() {
@@ -127,10 +134,10 @@ describe('Asynchronous layout', function() {
       ctxt.setFont('Courier New', 16);
       useFakeCanvas(ctxt, function() { return courierNew; });
       ctxt.fontLoadTimeout = 5000;
-      var checked = [];
-      global.document = {
+      var checked: string[][] = [];
+      g.document = {
         fonts: {
-          check: function(font, text) {
+          check: function(font: string, text: string) {
             checked.push([font, text]);
             return true;
           },
@@ -153,11 +160,11 @@ describe('Asynchronous layout', function() {
       var font = fakeFont(0.8); // whatever the canvas falls back to while the font loads
       useFakeCanvas(ctxt, function() { return font; });
       ctxt.fontLoadTimeout = 5000;
-      var loaded = [];
-      global.document = {
+      var loaded: string[][] = [];
+      g.document = {
         fonts: {
           check: function() { return font === palatino; },
-          load: function(fontString, text) {
+          load: function(fontString: string, text: string) {
             loaded.push([fontString, text]);
             return new Promise(function(resolve) {
               setTimeout(function() {
@@ -185,14 +192,14 @@ describe('Asynchronous layout', function() {
       var font = fakeFont(0.8);
       useFakeCanvas(ctxt, function() { return font; });
       ctxt.fontLoadTimeout = 5000;
-      var checked = [], loaded = [];
-      global.document = {
+      var checked: string[][] = [], loaded: string[][] = [];
+      g.document = {
         fonts: {
-          check: function(fontString, text) {
+          check: function(fontString: string, text: string) {
             checked.push([fontString, text]);
             return false;
           },
-          load: function(fontString, text) {
+          load: function(fontString: string, text: string) {
             loaded.push([fontString, text]);
             font = palatino;
             return Promise.resolve([{}]);
@@ -212,7 +219,7 @@ describe('Asynchronous layout', function() {
       var fallback = palatino;
       var webfont = {
         unitsPerEm: 1000,
-        layout: function(text) {
+        layout: function(text: string) {
           var width = 0;
           for (var i = 0; i < text.length; i++) width += text[i] === '-' ? 250 : 600;
           return { advanceWidth: width };
@@ -220,10 +227,10 @@ describe('Asynchronous layout', function() {
       };
       var faces = [];
       // a FontFace loaded with new FontFace(...).load() and then added fires no events
-      global.document = {
+      g.document = {
         fonts: {
           get size() { return faces.length; },
-          add: function(face) { faces.push(face); },
+          add: function(face: object) { faces.push(face); },
           addEventListener: function() {},
           check: function() { return true; },
           load: function() {
@@ -235,7 +242,7 @@ describe('Asynchronous layout', function() {
       ctxt.setFont("'Webfont', serif", 16);
       useFakeCanvas(ctxt, function() { return faces.length ? webfont : fallback; });
       var lyricSize = ctxt.textStyles.lyric.size;
-      function kyWidth(score) {
+      function kyWidth(score: Chant.ChantScore) {
         return score.notations.filter(function(notation) {
           return notation.hasLyrics() && notation.lyrics[0].text === 'Ky';
         })[0].lyrics[0].bounds.width;
@@ -246,7 +253,7 @@ describe('Asynchronous layout', function() {
         assert(Math.abs(kyWidth(before) - lyricSize) < 1e-9);
         assert(Math.abs(ctxt.hyphenWidth / lyricSize - 0.33) < 1e-9);
 
-        global.document.fonts.add({ family: 'Webfont', status: 'loaded' });
+        g.document.fonts.add({ family: 'Webfont', status: 'loaded' });
         var after = createScore(ctxt);
         return performLayoutAsync(ctxt, after).then(function() {
           assertLaidOut(after);
@@ -265,7 +272,7 @@ describe('Asynchronous layout', function() {
       ctxt.setFont("'Webfont', serif", 16);
       useFakeCanvas(ctxt, function() { return courierNew; });
       ctxt.fontLoadTimeout = 300;
-      global.document = {
+      g.document = {
         fonts: {
           check: function() { return false; },
           load: function() { return new Promise(function() {}); }

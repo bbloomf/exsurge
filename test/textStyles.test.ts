@@ -1,6 +1,7 @@
-var assert = require('assert');
-var Drawing = require('../src/Exsurge.Drawing');
-var fakeFont = require('./helpers/fonts').fakeFont;
+import { describe, it } from "vitest";
+import assert from "node:assert";
+import * as Drawing from "../src/Exsurge.Drawing.js";
+import { fakeFont } from "./helpers/fonts";
 
 describe('Text styles', function() {
   it('styles choral signs at the size they are measured at', function() {

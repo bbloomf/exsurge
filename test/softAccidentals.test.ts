@@ -1,19 +1,21 @@
-var assert = require('assert');
-var Chant = require('../src/Exsurge.Chant');
-var Drawing = require('../src/Exsurge.Drawing');
-var Gabc = require('../src/Exsurge.Gabc').Gabc;
-var Signs = require('../src/Exsurge.Chant.Signs');
-var Step = require('../src/Exsurge.Core').Step;
+import { describe, it } from "vitest";
+import assert from "node:assert";
+import * as Chant from "../src/Exsurge.Chant.js";
+import * as Drawing from "../src/Exsurge.Drawing.js";
+import { Gabc } from "../src/Exsurge.Gabc.js";
+import * as Signs from "../src/Exsurge.Chant.Signs.js";
+import { Step } from "../src/Exsurge.Core.js";
+import type { ChantLine } from "../src/Exsurge.Chant.ChantLine.js";
 
 // stands in for a fontkit font so that lyrics have widths: every character is half an em wide
 var font = {
   unitsPerEm: 1000,
-  layout: function(text) {
+  layout: function(text: string) {
     return { advanceWidth: 500 * text.length, bbox: { minX: 0, maxY: 700, height: 900 } };
   }
 };
 
-function createScore(gabc) {
+function createScore(gabc: string) {
   var ctxt = new Drawing.ChantContext();
   ctxt.setFont('serif', 16, {}, { Regular: font });
   var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
@@ -21,18 +23,19 @@ function createScore(gabc) {
   return { ctxt: ctxt, score: score };
 }
 
-function layout(gabc, width) {
+function layout(gabc: string, width: number) {
   var chant = createScore(gabc);
   chant.score.layoutChantLines(chant.ctxt, width);
   return chant.score;
 }
 
-function notationsOnLine(score, line) {
+// (as any, so that the tests can look at what each kind of notation has)
+function notationsOnLine(score: Chant.ChantScore, line: ChantLine): any[] {
   return score.notations.slice(line.notationsStartIndex, line.notationsStartIndex + line.numNotationsOnLine);
 }
 
 // the accidentals on each line, with the ones that aren't printed in parentheses
-function accidentalsByLine(score) {
+function accidentalsByLine(score: Chant.ChantScore) {
   return score.lines.map(function(line) {
     return notationsOnLine(score, line)
       .filter(function(notation) { return notation.isAccidental; })
@@ -42,7 +45,7 @@ function accidentalsByLine(score) {
 }
 
 // where each line's notations are drawn
-function positions(score, includeAccidentals) {
+function positions(score: Chant.ChantScore, includeAccidentals?: boolean) {
   return score.lines.map(function(line) {
     return notationsOnLine(score, line)
       .filter(function(notation) { return includeAccidentals || !notation.isAccidental; })
@@ -71,7 +74,7 @@ describe('Soft accidentals', function() {
       assert(notations[0] instanceof Signs.Accidental);
       assert.equal(notations[0].accidentalType, e[0]);
       assert.equal(notations[0].soft, e[1]);
-      assert.equal(notations[1].notes.length, 1);
+      assert.equal(notations[1].notes!.length, 1);
     });
   });
 
@@ -81,7 +84,7 @@ describe('Soft accidentals', function() {
     assert.deepEqual(accidentalsByLine(score), ['gX (gX) gY d## (d##) dY']);
     var steps = score.notes
       .filter(function(note) { return note instanceof Chant.Note; })
-      .map(function(note) { return note.pitch.step; });
+      .map(function(note) { return (note as Chant.Note).pitch!.step; });
     assert.deepEqual(steps, [Step.Te, Step.Te, Step.Ti, Step.Fu, Step.Fu, Step.Fa]);
   });
 

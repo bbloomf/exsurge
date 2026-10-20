@@ -1,10 +1,30 @@
 ﻿//
 
+/** where the vowel segment of a syllable is, which lyrics are centered on */
+export interface VowelSegment {
+  found: boolean;
+  startIndex: number;
+  length: number;
+}
+
+/** a range of the text to leave out when looking for a vowel segment */
+export interface IgnoredRange {
+  index: number;
+  endIndex: number;
+}
+
 /**
  * @class
  */
-export class Language {
-  constructor(name) {
+export abstract class Language {
+  name: string;
+  /**
+   * whether a neume is centered over its syllable, rather than its first
+   * note being centered over the syllable's vowel
+   */
+  centerNeume: boolean;
+
+  constructor(name?: string) {
     this.name = typeof name !== "undefined" ? name : "<unknown>";
     this.centerNeume = false;
   }
@@ -13,8 +33,8 @@ export class Language {
    * @param {String} text The string to parsed into words.
    * @return {Word[]} the resulting parsed words from syllabification
    */
-  syllabify(text) {
-    var parsedWords = [];
+  syllabify(text: string) {
+    var parsedWords: string[][] = [];
 
     if (typeof text === "undefined" || text === "") return parsedWords;
 
@@ -22,13 +42,25 @@ export class Language {
     var words = text.split(/[\s]+/);
 
     for (var i = 0, end = words.length; i < end; i++)
-      parsedWords.push(this.syllabifyWord(words[i]));
+      parsedWords.push(this.syllabifyWord!(words[i]));
 
     return parsedWords;
   }
+
+  /** splits word into its syllables (not every language can) */
+  syllabifyWord?(word: string): string[];
+
+  /**
+   * @param s the string to search
+   * @param startIndex The index at which to start searching for a vowel in the string
+   * @param ignore ranges of s, counted from startIndex, to skip over
+   */
+  abstract findVowelSegment(s: string, startIndex: number, ignore?: IgnoredRange[]): VowelSegment;
 }
 
 export class English extends Language {
+  regexLetter: RegExp;
+
   constructor() {
     super("English");
     this.centerNeume = true;
@@ -40,7 +72,7 @@ export class English extends Language {
    * @param {Number} startIndex The index at which to start searching for a vowel in the string
    * @retuns a custom class with three properties: {found: (true/false) startIndex: (start index in s of vowel segment) length ()}
    */
-  findVowelSegment(s, startIndex) {
+  findVowelSegment(s: string, startIndex: number): VowelSegment {
     var match = this.regexLetter.exec(s.slice(startIndex));
     if (match)
       return {
@@ -58,6 +90,14 @@ export class English extends Language {
  * @class
  */
 export class Latin extends Language {
+  diphthongs: string[];
+  possibleDiphthongs: string[];
+  regexVowel: RegExp;
+  vowels: string[];
+  vowelsThatMightBeConsonants: string[];
+  muteConsonantsAndF: string[];
+  liquidConsonants: string[];
+
   /**
    * @constructs
    */
@@ -78,7 +118,7 @@ export class Latin extends Language {
     this.regexVowel = /(i|(?:[qg]|^)u)?([eé][iu]|[uú]i|[ao][eé]|[aá]u|[aeiouáéíóúäëïöüāēīōūăĕĭŏŭåe̊o̊ůæœǽyýÿ])/gi;
 
     // some words that are simply exceptions to standard syllabification rules!
-    var wordExceptions = new Object();
+    var wordExceptions: { [word: string]: string[] } = {};
 
     // ui combos pronounced as diphthongs
     wordExceptions["huius"] = ["hui", "us"];
@@ -137,14 +177,14 @@ export class Latin extends Language {
   }
 
   // c must be lowercase!
-  isVowel(c) {
+  isVowel(c: string) {
     for (var i = 0, end = this.vowels.length; i < end; i++)
       if (this.vowels[i] === c) return true;
 
     return false;
   }
 
-  isVowelThatMightBeConsonant(c) {
+  isVowelThatMightBeConsonant(c: string) {
     for (var i = 0, end = this.vowelsThatMightBeConsonants.length; i < end; i++)
       if (this.vowelsThatMightBeConsonants[i] === c) return true;
 
@@ -152,7 +192,7 @@ export class Latin extends Language {
   }
 
   // substring should be a vowel and the character following
-  isVowelActingAsConsonant(substring) {
+  isVowelActingAsConsonant(substring: string) {
     return (
       this.isVowelThatMightBeConsonant(substring[0]) &&
       this.isVowel(substring[1])
@@ -166,7 +206,7 @@ export class Latin extends Language {
    * @param {String} c The character to test; must be lowercase
    * @return {boolean} true if c is an f or a mute consonant
    */
-  isMuteConsonantOrF(c) {
+  isMuteConsonantOrF(c: string) {
     for (var i = 0, end = this.muteConsonantsAndF.length; i < end; i++)
       if (this.muteConsonantsAndF[i] === c) return true;
 
@@ -178,7 +218,7 @@ export class Latin extends Language {
    * @param {String} c The character to test; must be lowercase
    * @return {boolean} true if c is a liquid consonant
    */
-  isLiquidConsonant(c) {
+  isLiquidConsonant(c: string) {
     for (var i = 0, end = this.liquidConsonants.length; i < end; i++)
       if (this.liquidConsonants[i] === c) return true;
 
@@ -190,7 +230,7 @@ export class Latin extends Language {
    * @param {String} s The string to test; must be lowercase
    * @return {boolean} true if s is a diphthong
    */
-  isDiphthong(s) {
+  isDiphthong(s: string) {
     for (var i = 0, end = this.diphthongs.length; i < end; i++)
       if (this.diphthongs[i] === s) return true;
 
@@ -202,7 +242,7 @@ export class Latin extends Language {
    * @param {String} s The string to test; must be lowercase
    * @return {boolean} true if s is a diphthong
    */
-  isPossibleDiphthong(s) {
+  isPossibleDiphthong(s: string) {
     for (var i = 0, end = this.possibleDiphthongs.length; i < end; i++)
       if (this.possibleDiphthongs[i] === s) return true;
 
@@ -229,8 +269,8 @@ export class Latin extends Language {
    *      architectus, ar-chi-tec-tus; loquacem, lo-qua-cem.
    *
    */
-  syllabifyWord(word) {
-    var syllables = [];
+  syllabifyWord(word: string) {
+    var syllables: string[] = [];
     var haveCompleteSyllable = false;
     var previousWasVowel = false;
     var workingString = word.toLowerCase();
@@ -239,7 +279,7 @@ export class Latin extends Language {
     var c, lookahead, haveLookahead;
 
     // a helper function to create syllables
-    var makeSyllable = function(length) {
+    var makeSyllable = function(length: number) {
       if (haveCompleteSyllable) {
         syllables.push(word.substr(startSyllable, length));
         startSyllable += length;
@@ -331,15 +371,15 @@ export class Latin extends Language {
    * @param {Number} startIndex The index at which to start searching for a vowel in the string
    * @retuns a custom class with three properties: {found: (true/false) startIndex: (start index in s of vowel segment) length ()}
    */
-  findVowelSegment(s, startIndex, ignore) {
+  findVowelSegment(s: string, startIndex: number, ignore?: IgnoredRange[]): VowelSegment {
     this.regexVowel.lastIndex = 0;
     let stringSlice = s.slice(startIndex);
     var match = this.regexVowel.exec(stringSlice);
-    var isIgnoredMatch = ({ index, endIndex }) => (index <= match.index && endIndex > match.index) || (index < this.regexVowel.lastIndex && endIndex >= this.regexVowel.lastIndex);
+    var isIgnoredMatch = ({ index, endIndex }: IgnoredRange) => (index <= match!.index && endIndex > match!.index) || (index < this.regexVowel.lastIndex && endIndex >= this.regexVowel.lastIndex);
     let inIgnore = match && ignore && ignore.length && ignore.find(isIgnoredMatch);
     while (inIgnore) {
       match = this.regexVowel.exec(stringSlice);
-      inIgnore = match && ignore.find(isIgnoredMatch);
+      inIgnore = match && ignore!.find(isIgnoredMatch);
     }
     if (match) {
       if (match[1]) {
@@ -362,6 +402,12 @@ export class Latin extends Language {
  * @class
  */
 export class Spanish extends Language {
+  vowels: string[];
+  weakVowels: string[];
+  strongVowels: string[];
+  diphthongs: string[];
+  uDiphthongExceptions: string[];
+
   constructor() {
     super("Spanish");
 
@@ -422,7 +468,7 @@ export class Spanish extends Language {
   }
 
   // c must be lowercase!
-  isVowel(c) {
+  isVowel(c: string) {
     for (var i = 0, end = this.vowels.length; i < end; i++)
       if (this.vowels[i] === c) return true;
 
@@ -433,7 +479,7 @@ export class Spanish extends Language {
    * @param {String} c The character to test; must be lowercase
    * @return {boolean} true if c is an f or a mute consonant
    */
-  isWeakVowel(c) {
+  isWeakVowel(c: string) {
     for (var i = 0, end = this.weakVowels.length; i < end; i++)
       if (this.weakVowels[i] === c) return true;
 
@@ -444,7 +490,7 @@ export class Spanish extends Language {
    * @param {String} c The character to test; must be lowercase
    * @return {boolean} true if c is an f or a mute consonant
    */
-  isStrongVowel(c) {
+  isStrongVowel(c: string) {
     for (var i = 0, end = this.strongVowels.length; i < end; i++)
       if (this.strongVowels[i] === c) return true;
 
@@ -456,14 +502,14 @@ export class Spanish extends Language {
    * @param {String} s The string to test; must be lowercase
    * @return {boolean} true if s is a diphthong
    */
-  isDiphthong(s) {
+  isDiphthong(s: string) {
     for (var i = 0, end = this.diphthongs.length; i < end; i++)
       if (this.diphthongs[i] === s) return true;
 
     return false;
   }
 
-  createSyllable(text) {
+  createSyllable(text: string) {
     /*
     var accented = false;
     var ellidesToNext = false;
@@ -491,8 +537,8 @@ export class Spanish extends Language {
 
   /**
    */
-  syllabifyWord(word) {
-    var syllables = [];
+  syllabifyWord(word: string) {
+    var syllables: string[] = [];
 
     var haveCompleteSyllable = false;
     var previousIsVowel = false;
@@ -631,7 +677,7 @@ export class Spanish extends Language {
    * @param {Number} startIndex The index at which to start searching for a vowel in the string
    * @retuns a custom class with three properties: {found: (true/false) startIndex: (start index in s of vowel segment) length ()}
    */
-  findVowelSegment(s, startIndex) {
+  findVowelSegment(s: string, startIndex: number): VowelSegment {
     var workingString = s.toLowerCase();
 
     // the first vowel segment after startIndex, whether a diphthong or a single vowel

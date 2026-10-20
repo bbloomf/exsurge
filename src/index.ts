@@ -99,3 +99,11 @@ export * from './Exsurge.Chant.Neumes.js'
 export * from './Exsurge.Gabc.js'
 export * from './Exsurge.Titles.js'
 export * from './greextraGlyphs.js'
+
+// names that the hand-written typings had for these, before exsurge was in TypeScript
+import type { ChantNotationElement } from './Exsurge.Drawing.js'
+import type { Language } from './Exsurge.Text.js'
+/** a notation in a score (see ChantNotationElement) */
+export type ChantNotation = ChantNotationElement
+/** a language that lyrics are centered for (see Language) */
+export type ExsurgeLanguage = Language

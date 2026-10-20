@@ -23,23 +23,28 @@
 // THE SOFTWARE.
 //
 
-import { NoteShape } from "./Exsurge.Chant.js";
+import { NoteShape, type Note } from "./Exsurge.Chant.js";
 import {
   ChantLayoutElement,
   GlyphCode,
   GlyphVisualizer,
   MarkingPositionHint,
-  QuickSvg
+  QuickSvg,
+  type ChantContext,
+  type ChantNotationElement
 } from "./Exsurge.Drawing.js";
 
 export class Accent extends GlyphVisualizer {
-  constructor(ctxt, note, glyphCode = GlyphCode.AcuteAccent) {
+  note: Note;
+  positionHint: MarkingPositionHint;
+
+  constructor(ctxt: ChantContext, note: Note, glyphCode: GlyphCode = GlyphCode.AcuteAccent) {
     super(ctxt, glyphCode);
     this.note = note;
     this.positionHint = MarkingPositionHint.Above;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     this.bounds.x = this.note.bounds.x + this.bounds.width / 2; // center on the note itself
 
     // this puts the acute accent either over the staff lines, or over the note if the
@@ -49,12 +54,14 @@ export class Accent extends GlyphVisualizer {
 }
 
 // for positioning markings on notes
-export var HorizontalEpisemaAlignment = {
+export const HorizontalEpisemaAlignment = {
   Default: 0,
   Left: 1,
   Center: 2,
   Right: 3
-};
+} as const;
+export type HorizontalEpisemaAlignment =
+  (typeof HorizontalEpisemaAlignment)[keyof typeof HorizontalEpisemaAlignment];
 
 /*
  * HorizontalEpisema
@@ -62,7 +69,13 @@ export var HorizontalEpisemaAlignment = {
  * A horizontal episema marking is it's own visualizer (that is, it implements createSvgFragment)
  */
 export class HorizontalEpisema extends ChantLayoutElement {
-  constructor(note) {
+  note: Note;
+  positionHint: MarkingPositionHint;
+  /** whether the episema stops at its note, rather than joining the next one */
+  terminating: boolean;
+  alignment: HorizontalEpisemaAlignment;
+
+  constructor(note: Note) {
     super();
 
     this.note = note;
@@ -72,23 +85,23 @@ export class HorizontalEpisema extends ChantLayoutElement {
     this.alignment = HorizontalEpisemaAlignment.Default;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     // following logic helps to keep the episemata away from staff lines if they get too close
 
     var y = 0,
       step;
     var minDistanceAway = ctxt.staffInterval * 0.25; // min distance from neume
-    var glyphCode = this.note.glyphVisualizer.glyphCode;
-    var ledgerLine = this.note.neume.ledgerLines[0] || {};
+    var glyphCode = this.note.glyphVisualizer!.glyphCode;
+    var ledgerLine: { staffPosition?: number } = this.note.neume!.ledgerLines[0] || {};
     var punctumInclinatumShorten = false;
 
     if (glyphCode === GlyphCode.PunctumInclinatum) {
-      let notes = this.note.neume.notes,
+      let notes = this.note.neume!.notes,
         index = notes.indexOf(this.note),
         prevNote = notes[index - 1];
       if (
         prevNote &&
-        prevNote.glyphVisualizer.glyphCode === GlyphCode.PunctumInclinatum &&
+        prevNote.glyphVisualizer!.glyphCode === GlyphCode.PunctumInclinatum &&
         prevNote.staffPosition - this.note.staffPosition === 1
       ) {
         punctumInclinatumShorten = true;
@@ -116,7 +129,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
         // if it's an odd step, that means we're on a staff line,
         // so we shift to between the staff line
         if (Math.abs(step) % 2 === staffLineCountNonParity) {
-          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition) === -step) {
+          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition as number) === -step) {
             step += 2 / 3;
           } else {
             // no ledger line, but we don't want the episema to be at exactly the same height the ledger line would occupy:
@@ -140,7 +153,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
         // find nearest acceptable third between staff lines (or staff line)
         if (Math.abs(step) % 2 === staffLineCountNonParity) {
           // if it was a staff line, we need to adjust
-          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition) === -step) {
+          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition as number) === -step) {
             step -= 2 / 3;
           } else {
             // no ledger line, but we don't want the episema to be at exactly the same height the ledger line would occupy:
@@ -195,8 +208,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.fillStyle = ctxt.neumeLineColor;
 
@@ -208,7 +221,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
     );
   }
 
-  getSvgProps(ctxt) {
+  getSvgProps(ctxt: ChantContext) {
     return {
       x: this.bounds.x,
       y: this.bounds.y,
@@ -219,14 +232,14 @@ export class HorizontalEpisema extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
   }
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
   }
 }
@@ -235,14 +248,17 @@ export class HorizontalEpisema extends ChantLayoutElement {
  * Ictus
  */
 export class Ictus extends GlyphVisualizer {
-  constructor(ctxt, note) {
+  note: Note;
+  positionHint: MarkingPositionHint;
+
+  constructor(ctxt: ChantContext, note: Note) {
     super(ctxt, GlyphCode.VerticalEpisemaAbove);
     this.note = note;
     this.positionHint = MarkingPositionHint.Default;
   }
 
-  performLayout(ctxt) {
-    var glyphCode = this.note.glyphVisualizer.glyphCode;
+  performLayout(ctxt: ChantContext) {
+    var glyphCode = this.note.glyphVisualizer!.glyphCode;
     // we have to place the ictus further from the note in some cases to avoid a collision with an episema on the same note:
     var positionHint = this.positionHint || MarkingPositionHint.Below;
     var staffPosition =
@@ -259,7 +275,8 @@ export class Ictus extends GlyphVisualizer {
     var collisionWithStaffLine =
       staffPosition % 2 &&
       (Math.abs(ctxt.convertStaffPositionToSymmetric(staffPosition)) < ctxt.staffLineCount ||
-        (this.note.neume.ledgerLines[0] || {}).staffPosition === staffPosition);
+        (this.note.neume!.ledgerLines[0] || ({} as { staffPosition?: number })).staffPosition ===
+          staffPosition);
 
     // The porrectus requires special handling of the note width,
     // otherwise the width is just that of the note itself
@@ -308,14 +325,19 @@ export class Ictus extends GlyphVisualizer {
  * Mora
  */
 export class Mora extends GlyphVisualizer {
-  constructor(ctxt, note) {
+  note: Note;
+  positionHint: MarkingPositionHint;
+  /** how far the dot is from the right of the note */
+  horizontalOffset: number;
+
+  constructor(ctxt: ChantContext, note: Note) {
     super(ctxt, GlyphCode.Mora);
     this.note = note;
     this.positionHint = MarkingPositionHint.Default;
     this.horizontalOffset = ctxt.staffInterval / 2 + this.origin.x;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     this.setGlyph(ctxt, this.glyphCode);
     this.horizontalOffset = ctxt.staffInterval / 2 + this.origin.x;
     var staffPosition = this.note.staffPosition;
@@ -324,16 +346,16 @@ export class Mora extends GlyphVisualizer {
 
     var verticalOffset = 0;
     // First, we need to find the next note in the neume.
-    var noteIndex = this.note.neume.notes.indexOf(this.note);
-    var nextNote;
+    var noteIndex = this.note.neume!.notes.indexOf(this.note);
+    var nextNote: Note | null | undefined;
     if (noteIndex >= 0) {
       ++noteIndex;
-      if (this.note.neume.notes.length > noteIndex) {
-        nextNote = this.note.neume.notes[noteIndex];
+      if (this.note.neume!.notes.length > noteIndex) {
+        nextNote = this.note.neume!.notes[noteIndex];
         if (
           nextNote.morae &&
           nextNote.morae.length &&
-          this.note.neume.notes.length === noteIndex + 1
+          this.note.neume!.notes.length === noteIndex + 1
         ) {
           // this note is the second to last in its neume, and the last note also has a mora
           this.horizontalOffset +=
@@ -348,16 +370,16 @@ export class Mora extends GlyphVisualizer {
         } else {
           nextNote = null;
         }
-      } else if (this.note.neume.notes.length === noteIndex) {
+      } else if (this.note.neume!.notes.length === noteIndex) {
         // this note is the last in its neume:
-        if (this.note.neume.trailingSpace === 0) {
+        if (this.note.neume!.trailingSpace === 0) {
           // if this was the last note in its neume, we only care about the next note if there is no trailing space at the end of this neume.
-          var notations = this.note.neume.score.notations;
+          var notations = this.note.neume!.score!.notations;
           // the neume is usually the notation being laid out, so avoid searching for it
           var notationIndex =
             notations[ctxt.currNotationIndex] === this.note.neume
               ? ctxt.currNotationIndex
-              : notations.indexOf(this.note.neume);
+              : notations.indexOf(this.note.neume!);
           if (notationIndex >= 0) {
             var nextNotation = notations[notationIndex + 1];
             if (nextNotation && nextNotation.notes) {
@@ -365,7 +387,7 @@ export class Mora extends GlyphVisualizer {
             }
           }
         } else if (this.note.shape !== NoteShape.Inclinatum) {
-          this.note.neume.calculatedTrailingSpace += this.origin.x;
+          this.note.neume!.calculatedTrailingSpace += this.origin.x;
         }
       }
     }
@@ -393,20 +415,39 @@ export class Mora extends GlyphVisualizer {
 }
 
 // indicates the shape of the brace
-export var BraceShape = {
+export const BraceShape = {
   RoundBrace: 0,
   CurlyBrace: 1,
   AccentedCurlyBrace: 2
-};
+} as const;
+export type BraceShape = (typeof BraceShape)[keyof typeof BraceShape];
 
 // indicates how the brace is alignerd to the note to which it's connected
-export var BraceAttachment = {
+export const BraceAttachment = {
   Left: 0,
   Right: 1
-};
+} as const;
+export type BraceAttachment = (typeof BraceAttachment)[keyof typeof BraceAttachment];
+
+/** what a brace is attached to: a note, or a clef or custos at either end of a line */
+export type BraceNote = Note | ChantNotationElement;
 
 export class BracePoint extends ChantLayoutElement {
-  constructor(note, isAbove, shape, attachment) {
+  note: BraceNote | null;
+  isAbove: boolean;
+  shape: BraceShape;
+  attachment: BraceAttachment;
+  /** whether the brace was given a length (rather than an end), so the next note ends it */
+  automatic?: boolean;
+  /** the index of the notation that the brace starts at */
+  notationIndex?: number;
+
+  constructor(
+    note: BraceNote | null,
+    isAbove: boolean,
+    shape: BraceShape,
+    attachment: BraceAttachment
+  ) {
     super();
 
     this.note = note;
@@ -415,10 +456,11 @@ export class BracePoint extends ChantLayoutElement {
     this.attachment = attachment;
   }
 
-  getAttachmentX(note) {
-    if (!note) note = this.note;
+  getAttachmentX(note?: BraceNote | null) {
+    if (!note) note = this.note!;
+    // (only a note has a neume)
     if (this.attachment === BraceAttachment.Left)
-      return (note.neume ? note.neume.bounds.x : 0) + note.bounds.x;
-    else return (note.neume ? note.neume.bounds.x : 0) + note.bounds.right();
+      return ((note as Note).neume ? (note as Note).neume!.bounds.x : 0) + note.bounds.x;
+    else return ((note as Note).neume ? (note as Note).neume!.bounds.x : 0) + note.bounds.right();
   }
 }

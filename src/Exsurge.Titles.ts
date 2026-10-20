@@ -25,14 +25,36 @@
 
 import { Rect } from "./Exsurge.Core.js";
 import {
-  ChantLayoutElement, QuickSvg, Subtitle, Supertitle, TextLeftRight, Title
+  ChantLayoutElement, QuickSvg, Subtitle, Supertitle, TextLeftRight, Title,
+  type ChantContext,
+  type SvgElementWithSource,
+  type SvgTreeNode
 } from "./Exsurge.Drawing.js";
+import type { ChantScore } from "./Exsurge.Chant.js";
+
+/** the text of the titles of a score */
+export interface TitlesText {
+  supertitle?: string;
+  title?: string;
+  subtitle?: string;
+  textLeft?: string;
+  textRight?: string;
+}
 
 export class Titles extends ChantLayoutElement {
+  score: ChantScore;
+  // each is null when the score doesn't have it:
+  supertitle!: Supertitle | null;
+  title!: Title | null;
+  subtitle!: Subtitle | null;
+  textLeft!: TextLeftRight | null;
+  textRight!: TextLeftRight | null;
+  svg?: SvgElementWithSource;
+
   constructor(
-    ctxt,
-    score,
-    { supertitle, title, subtitle, textLeft, textRight } = {}
+    ctxt: ChantContext,
+    score: ChantScore,
+    { supertitle, title, subtitle, textLeft, textRight }: TitlesText = {}
   ) {
     super();
     this.score = score;
@@ -43,8 +65,12 @@ export class Titles extends ChantLayoutElement {
     this.setTextRight(ctxt, textRight);
   }
 
-  setBoundsX(ctxt, elementName, width) {
-    let element = this[elementName];
+  setBoundsX(
+    ctxt: ChantContext,
+    elementName: "supertitle" | "title" | "subtitle",
+    width: number
+  ) {
+    let element = this[elementName]!;
     switch (ctxt.textStyles[elementName].alignment) {
       case "left":
         element.textAnchor = "start";
@@ -66,7 +92,7 @@ export class Titles extends ChantLayoutElement {
    * @param  {ChantContext} ctxt
    * @return {number}      the tottal height of titles laid out
    */
-  layoutTitles(ctxt, width) {
+  layoutTitles(ctxt: ChantContext, width: number) {
     this.bounds = new Rect(0, 0, 0, 0);
     let y = 0;
     if (this.supertitle) {
@@ -122,44 +148,44 @@ export class Titles extends ChantLayoutElement {
     return finalY;
   }
 
-  setSupertitle(ctxt, supertitle) {
+  setSupertitle(ctxt: ChantContext, supertitle?: string) {
     this.supertitle = supertitle ? new Supertitle(ctxt, supertitle) : null;
   }
-  setTitle(ctxt, title) {
+  setTitle(ctxt: ChantContext, title?: string) {
     this.title = title ? new Title(ctxt, title) : null;
   }
-  setSubtitle(ctxt, subtitle) {
+  setSubtitle(ctxt: ChantContext, subtitle?: string) {
     this.subtitle = subtitle ? new Subtitle(ctxt, subtitle) : null;
   }
-  setTextLeft(ctxt, textLeft) {
+  setTextLeft(ctxt: ChantContext, textLeft?: string) {
     this.textLeft = textLeft
       ? new TextLeftRight(ctxt, textLeft, "textLeft")
       : null;
   }
-  setTextRight(ctxt, textRight) {
+  setTextRight(ctxt: ChantContext, textRight?: string) {
     this.textRight = textRight
       ? new TextLeftRight(ctxt, textRight, "textRight")
       : null;
   }
 
-  hasSupertitle(ctxt, supertitle) {
+  hasSupertitle(ctxt?: ChantContext, supertitle?: string) {
     return !!this.supertitle;
   }
-  hasTitle(ctxt, title) {
+  hasTitle(ctxt?: ChantContext, title?: string) {
     return !!this.title;
   }
-  hasSubtitle(ctxt, subtitle) {
+  hasSubtitle(ctxt?: ChantContext, subtitle?: string) {
     return !!this.subtitle;
   }
-  hasTextLeft(ctxt, textLeft) {
+  hasTextLeft(ctxt?: ChantContext, textLeft?: string) {
     return !!this.textLeft;
   }
-  hasTextRight(ctxt, textRight) {
+  hasTextRight(ctxt?: ChantContext, textRight?: string) {
     return !!this.textRight;
   }
 
-  draw(ctxt, scale = 1) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext, scale = 1) {
+    var canvasCtxt = ctxt.canvasCtxt!;
     canvasCtxt.translate(this.bounds.x, this.bounds.y);
 
     for (let el of [
@@ -169,14 +195,17 @@ export class Titles extends ChantLayoutElement {
       this.score.overrideTextLeft || this.textLeft,
       this.textRight
     ]) {
-      if (el) el.draw(ctxt, scale);
+      if (el) el.draw(ctxt);
     }
 
     canvasCtxt.translate(-this.bounds.x, -this.bounds.y);
   }
 
-  getInnerNodes(ctxt, functionName = "createSvgNode") {
-    var nodes = [];
+  getInnerNodes(
+    ctxt: ChantContext,
+    functionName: "createSvgNode" | "createSvgTree" = "createSvgNode"
+  ) {
+    var nodes: Array<SvgElementWithSource | SvgTreeNode> = [];
 
     for (let el of [
       this.supertitle,
@@ -190,10 +219,10 @@ export class Titles extends ChantLayoutElement {
     return nodes;
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     var nodes = this.getInnerNodes(ctxt, "createSvgNode");
 
-    var node = QuickSvg.createNode("g", { class: "Titles" }, nodes);
+    var node = QuickSvg.createNode("g", { class: "Titles" }, nodes as SvgElementWithSource[]);
 
     node.source = this;
     this.svg = node;
@@ -201,17 +230,17 @@ export class Titles extends ChantLayoutElement {
     return node;
   }
 
-  createSvgTree(ctxt) {
+  createSvgTree(ctxt: ChantContext) {
     var nodes = this.getInnerNodes(ctxt, "createSvgTree");
 
     return QuickSvg.createSvgTree(
       "g",
       { class: "Titles", source: this },
-      ...nodes
+      ...(nodes as SvgTreeNode[])
     );
   }
 
-  createSvgFragment(ctxt) {
+  createSvgFragment(ctxt: ChantContext) {
     var fragment = "";
 
     for (let el of [

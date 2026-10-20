@@ -36,8 +36,26 @@ import {
 } from "./Exsurge.Drawing.js";
 import { Gabc } from "./Exsurge.Gabc.js";
 import { Titles } from "./Exsurge.Titles.js";
+import type { Accidental } from "./Exsurge.Chant.Signs.js";
+import type {
+  Accent,
+  BracePoint,
+  HorizontalEpisema,
+  Ictus,
+  Mora
+} from "./Exsurge.Chant.Markings.js";
+import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import type {
+  AboveLinesText,
+  Annotations,
+  ChantContext,
+  ChoralSign,
+  DropCap,
+  SvgElementWithSource,
+  SvgTreeNode
+} from "./Exsurge.Drawing.js";
 
-export var LiquescentType = {
+export const LiquescentType = {
   None: 0,
 
   // flags that can be combined, though of course it
@@ -53,9 +71,11 @@ export var LiquescentType = {
   LargeDescending: (1 << 0) | (1 << 3),
   SmallAscending: (1 << 1) | (1 << 2),
   SmallDescending: (1 << 1) | (1 << 3)
-};
+} as const;
+/** LiquescentType flags, combined */
+export type LiquescentType = number;
 
-export var NoteShape = {
+export const NoteShape = {
   // shapes
   Default: 0,
   Virga: 1,
@@ -63,9 +83,10 @@ export var NoteShape = {
   Quilisma: 3,
   Stropha: 4,
   Oriscus: 5
-};
+} as const;
+export type NoteShape = (typeof NoteShape)[keyof typeof NoteShape];
 
-export var NoteShapeModifiers = {
+export const NoteShapeModifiers = {
   // flags which modify the shape
   // not all of them apply to every shape of course
   None: 0,
@@ -75,16 +96,52 @@ export var NoteShapeModifiers = {
   Stemmed: 1 << 3,
   Linea: 1 << 4,
   Reverse: 1 << 5
-};
+} as const;
+/** NoteShapeModifiers flags, combined */
+export type NoteShapeModifiers = number;
 
 /**
  * @class
  */
 export class Note extends ChantLayoutElement {
+  pitch: Pitch | null;
+  glyphVisualizer: GlyphVisualizer | null;
+  /**
+   * the vertical position of the note on the staff, where 0 is the space
+   * below the lowest line (gabc "c")
+   */
+  staffPosition: number;
+  /** a nudge up or down a third of a space (gabc 9 or 0 after a pitch) */
+  staffPositionOffset?: number;
+  liquescent: LiquescentType;
+  shape: NoteShape;
+  shapeModifiers: NoteShapeModifiers;
+  /** the neume the note is in */
+  neume: Neume | null;
+  episemata: HorizontalEpisema[];
+  morae: Mora[];
+  ictus?: Ictus;
+  accent?: Accent;
+  braceStart?: BracePoint;
+  braceEnd?: BracePoint;
+  choralSign?: ChoralSign;
+  /** text above the note, which goes to its neume's alText */
+  alText?: AboveLinesText;
+  /** the number of stems of a punctum inclinatum (gabc |) */
+  inclinataFlags?: number;
+  /** where the note is in the gabc source */
+  sourceIndex!: number;
+  sourceGabc!: string;
+  /** the note's index in its score's notes */
+  elementIndex?: number;
+  /** the note's index among the notes of its score, not counting other notations */
+  noteIndex?: number;
+  svgNode?: SvgElementWithSource;
+
   /**
    * @para {Pitch} pitch
    */
-  constructor(pitch) {
+  constructor(pitch?: Pitch) {
     super();
 
     if (typeof pitch !== "undefined") this.pitch = pitch;
@@ -116,7 +173,7 @@ export class Note extends ChantLayoutElement {
     // this.braceEnd
   }
 
-  setGlyph(ctxt, glyphCode) {
+  setGlyph(ctxt: ChantContext, glyphCode: GlyphCode) {
     if (this.glyphVisualizer) this.glyphVisualizer.setGlyph(ctxt, glyphCode);
     else this.glyphVisualizer = new GlyphVisualizer(ctxt, glyphCode);
 
@@ -133,40 +190,59 @@ export class Note extends ChantLayoutElement {
   }
 
   // a utility function for modifiers
-  shapeModifierMatches(shapeModifier) {
+  shapeModifierMatches(shapeModifier: NoteShapeModifiers) {
     if (shapeModifier === NoteShapeModifiers.None)
       return this.shapeModifiers === NoteShapeModifiers.None;
     else return (this.shapeModifiers & shapeModifier) !== 0;
   }
 
-  draw(ctxt) {
-    this.glyphVisualizer.bounds.x = this.bounds.x;
-    this.glyphVisualizer.bounds.y = this.bounds.y;
+  draw(ctxt: ChantContext) {
+    this.glyphVisualizer!.bounds.x = this.bounds.x;
+    this.glyphVisualizer!.bounds.y = this.bounds.y;
 
-    this.glyphVisualizer.draw(ctxt);
+    this.glyphVisualizer!.draw(ctxt);
   }
 
-  createSvgNode(ctxt) {
-    this.glyphVisualizer.bounds.x = this.bounds.x;
-    this.glyphVisualizer.bounds.y = this.bounds.y;
-    this.svgNode = this.glyphVisualizer.createSvgNode(ctxt, this);
+  createSvgNode(ctxt: ChantContext) {
+    this.glyphVisualizer!.bounds.x = this.bounds.x;
+    this.glyphVisualizer!.bounds.y = this.bounds.y;
+    this.svgNode = this.glyphVisualizer!.createSvgNode(ctxt, this);
     return this.svgNode;
   }
-  createSvgTree(ctxt) {
-    this.glyphVisualizer.bounds.x = this.bounds.x;
-    this.glyphVisualizer.bounds.y = this.bounds.y;
-    return this.glyphVisualizer.createSvgTree(ctxt, this);
+  createSvgTree(ctxt: ChantContext) {
+    this.glyphVisualizer!.bounds.x = this.bounds.x;
+    this.glyphVisualizer!.bounds.y = this.bounds.y;
+    return this.glyphVisualizer!.createSvgTree(ctxt, this);
   }
 
-  createSvgFragment(ctxt) {
-    this.glyphVisualizer.bounds.x = this.bounds.x;
-    this.glyphVisualizer.bounds.y = this.bounds.y;
-    return this.glyphVisualizer.createSvgFragment(ctxt, this);
+  createSvgFragment(ctxt: ChantContext) {
+    this.glyphVisualizer!.bounds.x = this.bounds.x;
+    this.glyphVisualizer!.bounds.y = this.bounds.y;
+    return this.glyphVisualizer!.createSvgFragment(ctxt, this);
   }
 }
 
+// each kind of clef has its own staffPositionToPitch() (this only adds the
+// signature, which each subclass implements)
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export interface Clef {
+  staffPositionToPitch(staffPosition: number): Pitch;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class Clef extends ChantNotationElement {
-  constructor(staffPosition, octave, defaultAccidental = null) {
+  declare isClef: true;
+  staffPosition: number;
+  octave: number;
+  /** the flat of a flat clef (gabc cb) */
+  defaultAccidental: Accidental | null;
+  activeAccidental: Accidental | null;
+  small?: boolean;
+  sans?: boolean;
+  /** the clef that this clef (at the start of a line) is a copy of */
+  model?: Clef;
+
+  constructor(staffPosition: number, octave: number, defaultAccidental: Accidental | null = null) {
     super();
 
     this.isClef = true;
@@ -181,9 +257,12 @@ export class Clef extends ChantNotationElement {
     this.activeAccidental = this.defaultAccidental;
   }
 
-  pitchToStaffPosition(pitch) {}
+  // each kind of clef has its own
+  pitchToStaffPosition(pitch: Pitch): number {
+    return undefined as unknown as number;
+  }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     ctxt.activeClef = this;
 
     if (this.defaultAccidental) this.defaultAccidental.performLayout(ctxt);
@@ -191,7 +270,7 @@ export class Clef extends ChantNotationElement {
     super.performLayout(ctxt);
   }
 
-  finishLayout(ctxt) {
+  finishLayout(ctxt: ChantContext) {
     // if we have a default accidental, then add a glyph for it now
     if (this.defaultAccidental) {
       var accidentalGlyph = this.defaultAccidental.createGlyphVisualizer(ctxt);
@@ -203,13 +282,17 @@ export class Clef extends ChantNotationElement {
     super.finishLayout(ctxt);
   }
 
-  static default() {
+  static default(): Clef {
     return __defaultDoClef;
   }
 
-  clone() {
+  clone(): Clef {
     if (this.model) return this.model.clone();
-    let clone = new this.constructor(
+    let clone = new (this.constructor as new (
+      staffPosition: number,
+      octave: number,
+      defaultAccidental: Accidental | null
+    ) => Clef)(
       this.staffPosition,
       this.octave,
       this.defaultAccidental
@@ -225,13 +308,13 @@ export class Clef extends ChantNotationElement {
 }
 
 export class DoClef extends Clef {
-  constructor(staffPosition, octave, defaultAccidental = null) {
+  constructor(staffPosition: number, octave: number, defaultAccidental: Accidental | null = null) {
     super(staffPosition, octave, defaultAccidental);
 
     this.leadingSpace = 0;
   }
 
-  pitchToStaffPosition(pitch) {
+  pitchToStaffPosition(pitch: Pitch) {
     return (
       (pitch.octave - this.octave) * 7 +
       this.staffPosition +
@@ -240,7 +323,7 @@ export class DoClef extends Clef {
     );
   }
 
-  staffPositionToPitch(staffPosition) {
+  staffPositionToPitch(staffPosition: number) {
     var offset = staffPosition - this.staffPosition;
     var octaveOffset = Math.floor(offset / 7);
 
@@ -255,7 +338,7 @@ export class DoClef extends Clef {
     return new Pitch(step, this.octave + octaveOffset);
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     var glyph = new GlyphVisualizer(ctxt, GlyphCode.DoClef);
@@ -269,13 +352,13 @@ export class DoClef extends Clef {
 var __defaultDoClef = new DoClef(7, 2);
 
 export class FaClef extends Clef {
-  constructor(staffPosition, octave, defaultAccidental = null) {
+  constructor(staffPosition: number, octave: number, defaultAccidental: Accidental | null = null) {
     super(staffPosition, octave, defaultAccidental);
 
     this.leadingSpace = 0;
   }
 
-  pitchToStaffPosition(pitch) {
+  pitchToStaffPosition(pitch: Pitch) {
     return (
       (pitch.octave - this.octave) * 7 +
       this.staffPosition +
@@ -284,7 +367,7 @@ export class FaClef extends Clef {
     );
   }
 
-  staffPositionToPitch(staffPosition) {
+  staffPositionToPitch(staffPosition: number) {
     var offset = staffPosition - this.staffPosition + 3; // + 3 because it's a fa clef (3 == offset from Do)
     var octaveOffset = Math.floor(offset / 7);
 
@@ -299,7 +382,7 @@ export class FaClef extends Clef {
     return new Pitch(step, this.octave + octaveOffset);
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     var glyph = new GlyphVisualizer(ctxt, GlyphCode.FaClef);
@@ -311,14 +394,19 @@ export class FaClef extends Clef {
 }
 
 export class TrebleClef extends Clef {
-  constructor(staffPosition, octave, defaultAccidental = null, small = false) {
+  constructor(
+    staffPosition: number,
+    octave: number,
+    defaultAccidental: Accidental | null = null,
+    small = false
+  ) {
     super(staffPosition, octave, defaultAccidental);
 
     this.leadingSpace = 0;
     this.small = small;
   }
 
-  pitchToStaffPosition(pitch) {
+  pitchToStaffPosition(pitch: Pitch) {
     return (
       (pitch.octave - this.octave) * 7 +
       this.staffPosition +
@@ -327,7 +415,7 @@ export class TrebleClef extends Clef {
     );
   }
 
-  staffPositionToPitch(staffPosition) {
+  staffPositionToPitch(staffPosition: number) {
     var offset = staffPosition - this.staffPosition + 4; // + 4 because it's a sol clef (4 == offset from Do)
     var octaveOffset = Math.floor(offset / 7);
 
@@ -342,7 +430,7 @@ export class TrebleClef extends Clef {
     return new Pitch(step, this.octave + octaveOffset);
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     var glyph = new GlyphVisualizer(ctxt, this.small ? GlyphCode.TrebleClefSmall : GlyphCode.TrebleClef);
@@ -354,7 +442,12 @@ export class TrebleClef extends Clef {
 }
 
 export class ChiRhoClef extends Clef {
-  constructor(staffPosition, octave, defaultAccidental = null, sans = false) {
+  constructor(
+    staffPosition: number,
+    octave: number,
+    defaultAccidental: Accidental | null = null,
+    sans = false
+  ) {
     super(staffPosition, octave, defaultAccidental);
 
     this.leadingSpace = 0;
@@ -362,7 +455,7 @@ export class ChiRhoClef extends Clef {
   }
 
   // TODO: actually handle this correctly?
-  pitchToStaffPosition(pitch) {
+  pitchToStaffPosition(pitch: Pitch) {
     return (
       (pitch.octave - this.octave) * 7 +
       this.staffPosition +
@@ -372,7 +465,7 @@ export class ChiRhoClef extends Clef {
   }
 
   // TODO: actually handle this correctly?
-  staffPositionToPitch(staffPosition) {
+  staffPositionToPitch(staffPosition: number) {
     var offset = staffPosition - this.staffPosition;
     var octaveOffset = Math.floor(offset / 7);
 
@@ -387,7 +480,7 @@ export class ChiRhoClef extends Clef {
     return new Pitch(step, this.octave + octaveOffset);
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     var glyph = new GlyphVisualizer(ctxt, this.sans ? GlyphCode.ChiRhoClefSans : GlyphCode.ChiRhoClef);
@@ -402,7 +495,7 @@ export class ChiRhoClef extends Clef {
  * TextOnly
  */
 export class TextOnly extends ChantNotationElement {
-  constructor(sourceIndex, sourceLength) {
+  constructor(sourceIndex: number, sourceLength: number) {
     super();
     this.sourceIndex = sourceIndex;
     this.sourceLength = sourceLength;
@@ -410,7 +503,7 @@ export class TextOnly extends ChantNotationElement {
     this.trailingSpace = 0;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
     // add an empty glyph as a placeholder
@@ -424,13 +517,16 @@ export class TextOnly extends ChantNotationElement {
 }
 
 export class ChantLineBreak extends ChantNotationElement {
-  constructor(justify) {
+  /** whether to justify the line that it ends */
+  justify?: boolean;
+
+  constructor(justify?: boolean) {
     super();
     this.calculatedTrailingSpace = this.trailingSpace = 0;
     this.justify = justify;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     // reset the bounds before doing a layout
     this.bounds = new Rect(0, 0, 0, 0);
   }
@@ -447,10 +543,14 @@ export class ChantLineBreak extends ChantNotationElement {
 // tracking how a chant language (e.g., gabc) has been
 // mapped to exsurge notations.
 export class ChantMapping {
+  source: string;
+  notations: ChantNotationElement[];
+  sourceIndex: number;
+
   // source can be any object type. in the case of gabc, source is a text
   // string that maps to a gabc word (e.g.: "no(g)bis(fg)").
   // notations is an array of ChantNotationElements
-  constructor(source, notations, sourceIndex) {
+  constructor(source: string, notations: ChantNotationElement[], sourceIndex: number) {
     this.source = source;
     this.notations = notations;
     this.sourceIndex = sourceIndex;
@@ -459,14 +559,79 @@ export class ChantMapping {
 
 // for each ChantContext, the lyric fonts that ChantScore.waitForLyricFont()
 // last gave up waiting for when it had no document.fonts to ask.
-const __lyricFontsWaitedFor = new WeakMap();
+const __lyricFontsWaitedFor = new WeakMap<ChantContext, string>();
+
+export interface ElementSelection {
+  /** the indices of the selected elements in the score's notes (-1 for the starting clef) */
+  indices: number[];
+  insertion?: {
+    afterElementIndex?: number;
+    chantLine?: number;
+  };
+}
+export interface Selection {
+  element?: ElementSelection;
+}
+
+/** the layout of a ChantDocument */
+interface ChantDocumentLayout {
+  units: string;
+  "default-font": {
+    "font-family": string;
+    "font-size": number;
+  };
+  page: {
+    width: number;
+    height: number;
+    "margin-left": number;
+    "margin-top": number;
+    "margin-right": number;
+    "margin-bottom": number;
+  };
+}
 
 /*
  * Score, document
  */
 export class ChantScore {
+  mappings: ChantMapping[];
+  lines: ChantLine[];
+  /**
+   * Every element of the score, in order (the notes of each neume, plus the
+   * other notations such as dividers and clefs).  Set by updateNotations().
+   */
+  notes: Array<Note | ChantNotationElement>;
+  notations!: ChantNotationElement[];
+  staffLineCount: number;
+  titles?: Titles;
+  startingClef: Clef;
+  useDropCap: boolean | undefined;
+  dropCap: DropCap | null;
+  annotation: Annotation | Annotations | null;
+  compiled: boolean;
+  autoColoring: boolean;
+  needsLayout: boolean;
+  extendLastSystemStaffLines: boolean;
+  bounds: Rect;
+  hasLyrics!: boolean;
+  hasAboveLinesText!: boolean;
+  hasTranslations!: boolean;
+  /**
+   * Not read by exsurge; available for clients to track whether they need
+   * to pass `force` to performLayout().
+   */
+  forceLayout?: boolean;
+  /** the score split into pages, by paginate() (or just this score) */
+  pages!: ChantScore[];
+  selection?: Selection;
+  /** the notation that the insertion cursor is after */
+  insertionElement?: ChantNotationElement | null;
+  /** the annotation and left text together, when they're merged */
+  overrideTextLeft?: TextLeftRight | null;
+  svg?: SvgElementWithSource;
+
   // mappings is an array of ChantMappings.
-  constructor(ctxt, mappings = [], useDropCap) {
+  constructor(ctxt?: ChantContext, mappings: ChantMapping[] = [], useDropCap?: boolean) {
     this.mappings = mappings;
 
     this.lines = [];
@@ -474,7 +639,8 @@ export class ChantScore {
     this.staffLineCount = 4;
     if (ctxt) this.titles = new Titles(ctxt, this);
 
-    this.startingClef = null;
+    // set by updateNotations()
+    this.startingClef = null as unknown as Clef;
 
     this.useDropCap = useDropCap;
     this.dropCap = null;
@@ -499,7 +665,7 @@ export class ChantScore {
    * @param  {number} endLine   ending index
    * @return {ChantScore}           the partial score
    */
-  copyLines(startLine, endLine) {
+  copyLines(startLine: number, endLine: number) {
     let result = new ChantScore();
     result.lines = this.lines.slice(startLine, endLine);
     result.bounds = this.bounds.clone();
@@ -513,9 +679,9 @@ export class ChantScore {
     return result;
   }
 
-  updateSelection(selection) {
+  updateSelection(selection?: Selection) {
     this.selection = selection;
-    const elementSelection = (selection && selection.element) || {
+    const elementSelection: ElementSelection = (selection && selection.element) || {
       indices: []
     };
     const selectedIndices = elementSelection.indices;
@@ -542,29 +708,30 @@ export class ChantScore {
     }
     // update the insertion cursor, so it can be drawn on the correct system
     this.insertionElement = null;
-    let insertionLine = null;
+    let insertionLine: ChantLine | null = null;
     if (insertion) {
       if (typeof insertion.chantLine === "number") {
         insertionLine = this.lines[insertion.chantLine];
         this.insertionElement = insertionLine.startingClef;
         insertionLine.insertionCursor = new InsertionCursor();
       } else if (typeof insertion.afterElementIndex === "number") {
-        this.insertionElement = this.notes[insertion.afterElementIndex];
+        // a note is replaced by its neume just below
+        this.insertionElement = this.notes[insertion.afterElementIndex] as ChantNotationElement;
         if (!this.insertionElement) {
           insertionLine = this.lines[0];
           this.insertionElement = insertionLine.startingClef;
-        } else if (this.insertionElement.neume) {
-          this.insertionElement = this.insertionElement.neume;
+        } else if ((this.insertionElement as unknown as Note).neume) {
+          this.insertionElement = (this.insertionElement as unknown as Note).neume;
         }
         if (!insertionLine) {
-          insertionLine = this.insertionElement.line || this.lines[this.lines.length - 1];
+          insertionLine = this.insertionElement!.line || this.lines[this.lines.length - 1];
         }
         insertionLine.insertionCursor = new InsertionCursor();
       }
     }
   }
 
-  updateNotations(ctxt) {
+  updateNotations(ctxt: ChantContext) {
     var i, j, mapping, notation;
 
     // flatten all mappings into one array for N(0) access to notations
@@ -581,7 +748,7 @@ export class ChantScore {
 
     // find the starting clef...
     // start with a default clef in case the notations don't provide one.
-    this.startingClef = null;
+    this.startingClef = null as unknown as Clef;
 
     for (i = 0; i < this.mappings.length; i++) {
       mapping = this.mappings[i];
@@ -594,7 +761,7 @@ export class ChantScore {
           if (notation.isNeume) {
             this.startingClef = Clef.default();
           } else if (notation.isClef) {
-            this.startingClef = notation;
+            this.startingClef = notation as Clef;
             continue;
           }
         }
@@ -634,7 +801,7 @@ export class ChantScore {
     this.needsLayout = true;
   }
 
-  recreateDropCap(ctxt) {
+  recreateDropCap(ctxt: ChantContext) {
     this.dropCap = null;
 
     // find the first notation with lyrics to use
@@ -663,7 +830,7 @@ export class ChantScore {
    * Shared layout initialization method for performLayout() and performLayoutAsync()
    * @param  {ChantContext} ctxt
    */
-  initializeLayout(ctxt) {
+  private initializeLayout(ctxt: ChantContext) {
     // setup the context
     ctxt.activeClef = this.startingClef;
     ctxt.notations = this.notations;
@@ -678,7 +845,7 @@ export class ChantScore {
   // this is the the synchronous version of performLayout that
   // process everything without yielding to any other workers/threads.
   // good for server side processing or very small chant pieces.
-  performLayout(ctxt, force) {
+  performLayout(ctxt: ChantContext, force?: boolean) {
     if (!force && this.needsLayout === false) return; // nothing to do here!
 
     ctxt.noticeFontChanges();
@@ -700,7 +867,7 @@ export class ChantScore {
   // for web applications, probably performLayoutAsync would be more
   // apppropriate that the above performLayout, since it will process
   // the notations without locking up the UI thread.
-  performLayoutAsync(ctxt, finishedCallback) {
+  performLayoutAsync(ctxt: ChantContext, finishedCallback?: () => void) {
     if (this.needsLayout === false) {
       if (finishedCallback) setTimeout(() => finishedCallback(), 0);
 
@@ -728,7 +895,7 @@ export class ChantScore {
    * @param  {ChantContext} ctxt
    * @param  {function(): void} ready
    */
-  waitForLyricFont(ctxt, ready) {
+  waitForLyricFont(ctxt: ChantContext, ready: () => void) {
     const hasSaneHyphenWidth = () => {
       ctxt.updateHyphenWidth();
       return (
@@ -760,7 +927,7 @@ export class ChantScore {
     if (fonts) {
       // the browser knows whether the font is still loading, so ask it
       // rather than polling until the deadline.
-      let loaded;
+      let loaded: boolean;
       try {
         loaded = hyphenFonts.every(({ font, text }) => fonts.check(font, text));
       } catch (e) {
@@ -813,7 +980,7 @@ export class ChantScore {
     setTimeout(retry, 100);
   }
 
-  layoutElementsAsync(ctxt, index, finishedCallback) {
+  layoutElementsAsync(ctxt: ChantContext, index: number, finishedCallback?: () => void) {
     if (index >= this.notations.length) {
       this.needsLayout = false;
 
@@ -842,28 +1009,32 @@ export class ChantScore {
     );
   }
 
-  layoutChantLines(ctxt, width, finishedCallback) {
+  layoutChantLines(
+    ctxt: ChantContext,
+    width: number,
+    finishedCallback?: (score: ChantScore) => void
+  ) {
     this.lines = [];
     ctxt.noticeFontChanges();
 
     if (ctxt.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
       let annotation = this.annotation,
-        annotationSpans = annotation.annotations
-          ? annotation.annotations.map((annotation) => annotation.spans)
-          : [annotation.spans];
+        annotationSpans = (annotation as Annotations).annotations
+          ? (annotation as Annotations).annotations.map((annotation) => annotation.spans)
+          : [(annotation as Annotation).spans];
       this.overrideTextLeft = new TextLeftRight(ctxt, "", "textLeft");
       if (ctxt.mapAnnotationSpansToTextLeft) {
         annotationSpans = annotationSpans.map(ctxt.mapAnnotationSpansToTextLeft);
       }
       this.overrideTextLeft.spans = ctxt.mergeAnnotationWithTextLeft(
         ...annotationSpans,
-        this.titles.textLeft && this.titles.textLeft.spans
+        this.titles!.textLeft && this.titles!.textLeft.spans
       );
     } else {
       this.overrideTextLeft = null;
     }
 
-    var y = width > 0 ? this.titles.layoutTitles(ctxt, width) : 0;
+    var y = width > 0 ? this.titles!.layoutTitles(ctxt, width) : 0;
     var currIndex = 0;
 
     ctxt.activeClef = this.startingClef;
@@ -899,7 +1070,7 @@ export class ChantScore {
     if (finishedCallback) finishedCallback(this);
   }
 
-  paginate(height) {
+  paginate(height: number) {
     if (!height) return;
     this.pages = [];
     let pageHeightOffset = 0,
@@ -922,12 +1093,12 @@ export class ChantScore {
     this.pages.push(this.copyLines(startLineIndex, this.lines.length));
   }
 
-  draw(ctxt, scale = 1) {
+  draw(ctxt: ChantContext, scale = 1) {
     ctxt.setCanvasSize(this.bounds.width, this.bounds.height, scale);
 
-    var canvasCtxt = ctxt.canvasCtxt;
+    var canvasCtxt = ctxt.canvasCtxt!;
 
-    canvasCtxt.clearRect(0, 0, ctxt.canvas.width, ctxt.canvas.height);
+    canvasCtxt.clearRect(0, 0, ctxt.canvas!.width, ctxt.canvas!.height);
 
     canvasCtxt.translate(this.bounds.x, this.bounds.y);
 
@@ -938,7 +1109,10 @@ export class ChantScore {
     canvasCtxt.translate(-this.bounds.x, -this.bounds.y);
   }
 
-  getSvgProps(ctxt, zoom) {
+  getSvgProps(
+    ctxt: ChantContext,
+    zoom?: number | boolean
+  ): { [attribute: string]: string | number | undefined } {
     let width =
         typeof zoom === "number"
           ? zoom * this.bounds.width
@@ -958,17 +1132,17 @@ export class ChantScore {
     };
   }
 
-  createSvgNode(ctxt) {
+  createSvgNode(ctxt: ChantContext) {
     // create defs section
-    var node = [ctxt.defsNode.cloneNode(true)];
-    node[0].appendChild(ctxt.createStyleNode());
+    var nodes: Node[] = [ctxt.defsNode!.cloneNode(true)];
+    nodes[0].appendChild(ctxt.createStyleNode());
 
-    if (this.titles) node.push(this.titles.createSvgNode(ctxt));
+    if (this.titles) nodes.push(this.titles.createSvgNode(ctxt));
 
     for (var i = 0; i < this.lines.length; i++)
-      node.push(this.lines[i].createSvgNode(ctxt));
+      nodes.push(this.lines[i].createSvgNode(ctxt));
 
-    node = QuickSvg.createNode("g", {}, node);
+    var node = QuickSvg.createNode("g", {}, nodes);
 
     node = QuickSvg.createNode("svg", this.getSvgProps(ctxt), node);
 
@@ -978,9 +1152,9 @@ export class ChantScore {
     return node;
   }
 
-  createSvgTree(ctxt, zoom) {
+  createSvgTree(ctxt: ChantContext, zoom?: number | boolean) {
     // create defs section
-    var node = [
+    var nodes = [
       QuickSvg.createSvgTree(
         "defs",
         {},
@@ -989,20 +1163,20 @@ export class ChantScore {
       )
     ];
 
-    if (this.titles) node.push(this.titles.createSvgTree(ctxt));
+    if (this.titles) nodes.push(this.titles.createSvgTree(ctxt));
 
     for (var i = 0; i < this.lines.length; i++)
-      node.push(this.lines[i].createSvgTree(ctxt));
+      nodes.push(this.lines[i].createSvgTree(ctxt));
 
-    node = QuickSvg.createSvgTree("g", {}, ...node);
-    let svgProps = this.getSvgProps(ctxt, zoom);
+    var node = QuickSvg.createSvgTree("g", {}, ...nodes);
+    let svgProps: { [attribute: string]: unknown } = this.getSvgProps(ctxt, zoom);
     svgProps.source = this;
     node = QuickSvg.createSvgTree("svg", svgProps, node);
 
     return node;
   }
 
-  createSvg(ctxt) {
+  createSvg(ctxt: ChantContext) {
     var fragment = "";
 
     // create defs section
@@ -1024,18 +1198,18 @@ export class ChantScore {
     return fragment;
   }
 
-  createSvgNodeForEachLine(ctxt) {
-    var node = [];
+  createSvgNodeForEachLine(ctxt: ChantContext) {
+    var node: SvgElementWithSource[] = [];
 
     var top = 0;
     for (var i = 0; i < this.lines.length; i++) {
-      var lineFragment = [
-        ctxt.defsNode.cloneNode(true),
+      var lineNodes: Node[] = [
+        ctxt.defsNode!.cloneNode(true),
         this.lines[i].createSvgNode(ctxt, top)
       ];
-      lineFragment[0].appendChild(ctxt.createStyleNode());
+      lineNodes[0].appendChild(ctxt.createStyleNode());
       var height = this.lines[i].bounds.height + ctxt.staffInterval * 1.5;
-      lineFragment = QuickSvg.createNode("g", {}, lineFragment);
+      var lineFragment = QuickSvg.createNode("g", {}, lineNodes);
       lineFragment = QuickSvg.createNode(
         "svg",
         {
@@ -1054,7 +1228,7 @@ export class ChantScore {
     return node;
   }
 
-  createSvgForEachLine(ctxt) {
+  createSvgForEachLine(ctxt: ChantContext) {
     var fragment = "",
       fragmentDefs = "";
 
@@ -1088,27 +1262,30 @@ export class ChantScore {
     return fragment;
   }
 
-  unserializeFromJson(data, ctxt) {
+  // (Gabc has no parseChantNotations(), so this throws)
+  unserializeFromJson(data: any, ctxt?: ChantContext) {
     this.autoColoring = data["auto-coloring"];
 
     if (data.annotation !== null && data.annotation !== "") {
       // create the annotation
-      this.annotation = new Annotation(ctxt, data.annotation);
+      this.annotation = new Annotation(ctxt!, data.annotation);
     } else this.annotation = null;
 
     var createDropCap = data["drop-cap"] === "auto" ? true : false;
 
-    Gabc.parseChantNotations(data.notations, this, createDropCap);
+    (Gabc as unknown as {
+      parseChantNotations(notations: unknown, score: ChantScore, createDropCap: boolean): void;
+    }).parseChantNotations(data.notations, this, createDropCap);
   }
 
   serializeToJson() {
-    var data = {};
+    var data: { [key: string]: unknown } = {};
 
     data["type"] = "score";
     data["auto-coloring"] = true;
 
     if (this.annotation !== null)
-      data.annotation = this.annotation.unsanitizedText;
+      data.annotation = (this.annotation as unknown as { unsanitizedText?: string }).unsanitizedText;
     else data.annotation = "";
 
     return data;
@@ -1116,6 +1293,9 @@ export class ChantScore {
 }
 
 export class ChantDocument {
+  layout!: ChantDocumentLayout;
+  scores: ChantScore[];
+
   constructor() {
     var defaults = {
       layout: {
@@ -1142,7 +1322,7 @@ export class ChantDocument {
     this.scores = defaults.scores;
   }
 
-  copyLayout(to, from) {
+  copyLayout(to: { layout?: ChantDocumentLayout }, from: { layout: ChantDocumentLayout }) {
     to.layout = {
       units: from.layout.units,
       "default-font": {
@@ -1160,7 +1340,7 @@ export class ChantDocument {
     };
   }
 
-  unserializeFromJson(data) {
+  unserializeFromJson(data: any) {
     this.copyLayout(this, data);
 
     this.scores = [];
@@ -1175,7 +1355,7 @@ export class ChantDocument {
   }
 
   serializeToJson() {
-    var data = {};
+    var data: { layout?: ChantDocumentLayout; scores?: unknown[] } = {};
 
     this.copyLayout(data, this);
 

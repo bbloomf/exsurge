@@ -40,15 +40,102 @@ import {
   LyricType, MarkingPositionHint, QuickSvg, RoundBraceVisualizer
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
+import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
+import type { BraceNote, HorizontalEpisema } from "./Exsurge.Chant.Markings.js";
+import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import type { Accidental, InsertionCursor } from "./Exsurge.Chant.Signs.js";
+import type {
+  ChantContext,
+  ChantNotationElement,
+  SvgAttributes,
+  SvgElementWithSource,
+  SvgTreeNode,
+  TextElement,
+  TrailingSpaceFunction
+} from "./Exsurge.Drawing.js";
 
 // a soft accidental that isn't printed takes no space, unless it has to hold lyrics
-const isHiddenAccidental = notation =>
-  notation.isAccidental && notation.hidden && !notation.hasLyrics();
+const isHiddenAccidental = (notation: ChantNotationElement) =>
+  notation.isAccidental && (notation as Accidental).hidden && !notation.hasLyrics();
+
+/** a ledger line on a chant line */
+export interface LedgerLine {
+  x1: number;
+  x2: number;
+  staffPosition: number;
+}
+
+/** the space before a notation, and how much of it can be taken out to fit more on the line */
+interface CondensableSpace {
+  notation: ChantNotationElement;
+  total: number;
+  condensable: number;
+}
+
+/** the spaces between notations so far on a line, and the sum of their condensable space */
+type CondensableSpaces = CondensableSpace[] & { sum: number };
+
+// QuickSvg.createNode() or QuickSvg.createSvgTree(), as getInnerNodes() calls them
+type CreateSvgElement = (
+  name: string,
+  attributes: SvgAttributes,
+  children?: Array<SvgElementWithSource | SvgTreeNode>
+) => SvgElementWithSource | SvgTreeNode;
 
 // a chant line represents one staff line on the page. ChantLines are created by the score
 // and laid out by the page
 export class ChantLine extends ChantLayoutElement {
-  constructor(score) {
+  score: ChantScore;
+  /** the index in the score's notations of the first notation on the line */
+  notationsStartIndex: number;
+  numNotationsOnLine: number;
+  /** how many notations would have fit, when fewer were kept on the line to keep some together */
+  maxNumNotationsOnLine?: number;
+  notationBounds: Rect | null;
+  staffLeft: number;
+  staffRight: number;
+  /** the space to the left of the drop cap */
+  paddingLeft!: number;
+  /** a copy of the clef in effect at the start of the line */
+  startingClef: Clef;
+  custos: Custos | null;
+  justify: boolean | undefined;
+  ledgerLines: LedgerLine[];
+  braces: Array<RoundBraceVisualizer | CurlyBraceVisualizer>;
+  nextLine: ChantLine | null;
+  previousLine: ChantLine | null;
+  lyricLineHeight: number;
+  lyricLineBaseline: number;
+  numLyricLines: number;
+  altLineHeight!: number;
+  altLineBaseline!: number;
+  numAltLines!: number;
+  translationLineHeight!: number;
+  translationLineBaseline!: number;
+  numTranslationLines!: number;
+  spaceAfterNotations: number;
+  spaceBetweenTextTracks: number;
+  /** the last lyrics on the line, on each line of lyrics */
+  lastLyrics: Lyric[];
+  /**
+   * the index of the first of the text-only notations at the end of the line
+   * whose lyrics go on lines of their own under the line, or null
+   */
+  extraTextOnlyIndex!: number | null;
+  /** which line of lyrics the text-only notations at the end of the line are on */
+  extraTextOnlyLyricIndex!: number;
+  extraTextOnlyHeight!: number;
+  lastLyricsBeforeTextOnly?: Lyric[];
+  /** the notations that space can be added before, to justify the line */
+  toJustify?: Array<ChantNotationElement | null>;
+  condensableSpaces?: CondensableSpaces;
+  insertionCursor?: InsertionCursor | null;
+  /** the line's index in the score's lines */
+  elementIndex!: number;
+  /** a brace that continues onto the next line */
+  braceStart?: BracePoint;
+
+  constructor(score: ChantScore) {
     super();
 
     this.score = score;
@@ -60,7 +147,7 @@ export class ChantLine extends ChantLayoutElement {
     this.staffLeft = 0;
     this.staffRight = 0;
 
-    this.startingClef = null; // necessary for the layout process
+    this.startingClef = null as unknown as Clef; // necessary for the layout process
     this.custos = null;
 
     this.justify = true;
@@ -87,7 +174,7 @@ export class ChantLine extends ChantLayoutElement {
     return this.score.staffLineCount - 1;
   }
 
-  performLayout(ctxt) {
+  performLayout(ctxt: ChantContext) {
     // start off with a rectangle that holds at least the four staff lines
     const staffSpaces = this.staffSpaces;
     const staffLineCount = this.score.staffLineCount;
@@ -215,13 +302,13 @@ export class ChantLine extends ChantLayoutElement {
       var extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex;
       if (this.extraTextOnlyIndex === null) {
         // even if extraTextOnlyIndex is null, there might be extra lines on the last lyric if it is TextOnly:
-        let lastNotation = notations[lastNeumeIndex - 1] || {};
+        let lastNotation = (notations[lastNeumeIndex - 1] || {}) as ChantNotationElement;
         if (lastNotation.constructor === ChantLineBreak)
-          lastNotation = notations[lastNeumeIndex - 2] || {};
+          lastNotation = (notations[lastNeumeIndex - 2] || {}) as ChantNotationElement;
         if (
           lastNotation.constructor === TextOnly &&
-          lastNotation.lyrics.length === 1 &&
-          lastNotation.lyrics[0].bounds.height > this.lyricLineHeight
+          (lastNotation as TextOnly).lyrics.length === 1 &&
+          (lastNotation as TextOnly).lyrics[0].bounds.height > this.lyricLineHeight
         ) {
           this.extraTextOnlyHeight = this.lyricLineHeight;
         }
@@ -240,7 +327,7 @@ export class ChantLine extends ChantLayoutElement {
             offset += this.lyricLineHeight;
             extraLines++;
           }
-          extraLines += lastLyrics.numLines - 1;
+          extraLines += lastLyrics.numLines! - 1;
           lastLyrics.bounds.y = offset + this.lyricLineBaseline;
           notation.bounds.x += xOffset;
         }
@@ -342,14 +429,14 @@ export class ChantLine extends ChantLayoutElement {
   }
 
   // TODO: remove if not necsessary
-  layoutInsertionCursor(ctxt) {
+  layoutInsertionCursor(ctxt: ChantContext) {
     if (this.insertionCursor) {
       // we have either a Notation to draw the cursor after, or the ChantLine itself when the cursor is the first thing on the line
       this.insertionCursor.performLayout(ctxt);
       this.insertionCursor.bounds.x =
-        this.score.insertionElement.bounds.right() +
-        ((this.score.insertionElement.trailingSpace &&
-          this.score.insertionElement.calculatedTrailingSpace) ||
+        this.score.insertionElement!.bounds.right() +
+        ((this.score.insertionElement!.trailingSpace &&
+          this.score.insertionElement!.calculatedTrailingSpace) ||
           0) /
           2 -
         this.insertionCursor.origin.x;
@@ -357,8 +444,8 @@ export class ChantLine extends ChantLayoutElement {
     return this.insertionCursor;
   }
 
-  draw(ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.translate(this.bounds.x, this.bounds.y);
 
@@ -380,7 +467,7 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     if (this.layoutInsertionCursor(ctxt)) {
-      this.insertionCursor.draw(ctxt);
+      this.insertionCursor!.draw(ctxt);
     }
 
     // draw the ledger lines
@@ -423,11 +510,14 @@ export class ChantLine extends ChantLayoutElement {
   }
 
   getInnerNodes(
-    ctxt,
+    ctxt: ChantContext,
     top = 0,
-    functionNames = { quickSvg: "createNode", elements: "createSvgNode" }
+    functionNames: {
+      quickSvg: "createNode" | "createSvgTree";
+      elements: "createSvgNode" | "createSvgTree";
+    } = { quickSvg: "createNode", elements: "createSvgNode" }
   ) {
-    var inner = [];
+    var inner: Array<SvgElementWithSource | SvgTreeNode> = [];
 
     // add the chant lines
     var i,
@@ -436,7 +526,7 @@ export class ChantLine extends ChantLayoutElement {
     const staffSpaces = this.staffSpaces;
     if (ctxt.editable) {
       inner.push(
-        QuickSvg[functionNames.quickSvg]("rect", {
+        (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("rect", {
           key: "insertion",
           x: x1,
           y: ctxt.staffInterval * this.score.staffLineCount * -2 + 1,
@@ -450,7 +540,7 @@ export class ChantLine extends ChantLayoutElement {
     // create the staff lines
     for (i = this.score.staffLineCount * -2 + 1; i < 0; i += 2) {
       inner.push(
-        QuickSvg[functionNames.quickSvg]("line", {
+        (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("line", {
           key: i,
           x1: x1,
           y1: ctxt.staffInterval * i,
@@ -464,11 +554,11 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     inner = [
-      QuickSvg[functionNames.quickSvg]("g", { class: "staffLines" }, inner)
+      (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("g", { class: "staffLines" }, inner)
     ];
 
     if (this.layoutInsertionCursor(ctxt)) {
-      inner.push(this.insertionCursor[functionNames.elements](ctxt));
+      inner.push(this.insertionCursor![functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
     }
 
     // create the ledger lines
@@ -477,7 +567,7 @@ export class ChantLine extends ChantLayoutElement {
       var y = ctxt.calculateHeightFromStaffPosition(ledgerLine.staffPosition);
 
       inner.push(
-        QuickSvg[functionNames.quickSvg]("line", {
+        (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("line", {
           x1: ledgerLine.x1,
           y1: y,
           x2: ledgerLine.x2,
@@ -491,12 +581,12 @@ export class ChantLine extends ChantLayoutElement {
 
     // add any braces
     for (i = 0; i < this.braces.length; i++)
-      inner.push(this.braces[i][functionNames.elements](ctxt));
+      inner.push(this.braces[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
     // dropCap and the annotations
     if (this.notationsStartIndex === 0) {
       if (this.score.dropCap !== null)
-        inner.push(this.score.dropCap[functionNames.elements](ctxt));
+        inner.push(this.score.dropCap[functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
       if (
         this.score.annotation !== null &&
@@ -508,7 +598,7 @@ export class ChantLine extends ChantLayoutElement {
         );
     }
 
-    inner.push(this.startingClef[functionNames.elements](ctxt));
+    inner.push(this.startingClef[functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
@@ -516,13 +606,14 @@ export class ChantLine extends ChantLayoutElement {
     // The ending custos is added separately, even when it is an explicit notation.
     for (i = this.notationsStartIndex; i < lastIndex; i++)
       if (notations[i] !== this.custos)
-        inner.push(notations[i][functionNames.elements](ctxt));
+        inner.push(notations[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
-    if (this.custos) inner.push(this.custos[functionNames.elements](ctxt));
+    if (this.custos)
+      inner.push(this.custos[functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
     return inner;
   }
 
-  createSvgNode(ctxt, top = 0) {
+  createSvgNode(ctxt: ChantContext, top = 0) {
     let inner = this.getInnerNodes(ctxt, top, {
       quickSvg: "createNode",
       elements: "createSvgNode"
@@ -537,11 +628,11 @@ export class ChantLine extends ChantLayoutElement {
         "element-index": this.elementIndex,
         source: this
       },
-      inner
+      inner as SvgElementWithSource[]
     );
   }
 
-  createSvgTree(ctxt, top = 0) {
+  createSvgTree(ctxt: ChantContext, top = 0) {
     let inner = this.getInnerNodes(ctxt, top, {
       quickSvg: "createSvgTree",
       elements: "createSvgTree"
@@ -555,11 +646,11 @@ export class ChantLine extends ChantLayoutElement {
           "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
         "element-index": this.elementIndex
       },
-      ...inner
+      ...(inner as SvgTreeNode[])
     );
   }
 
-  createSvgFragment(ctxt, top = 0) {
+  createSvgFragment(ctxt: ChantContext, top = 0) {
     var inner = "";
 
     // add the chant lines
@@ -583,7 +674,7 @@ export class ChantLine extends ChantLayoutElement {
     inner = QuickSvg.createFragment("g", { class: "staffLines" }, inner);
 
     if (this.layoutInsertionCursor(ctxt)) {
-      inner += this.insertionCursor.createSvgFragment(ctxt);
+      inner += this.insertionCursor!.createSvgFragment(ctxt);
     }
 
     // create the ledger lines
@@ -647,7 +738,7 @@ export class ChantLine extends ChantLayoutElement {
   //
   // optimized for braces that are only drawn horizontally.
   // returns svg path string ready to insert into svg doc
-  generateCurlyBraceDrawable(ctxt, x1, x2, y, isAbove) {
+  generateCurlyBraceDrawable(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove: boolean) {
     var h;
 
     if (isAbove) h = -ctxt.staffInterval / 2;
@@ -711,14 +802,14 @@ export class ChantLine extends ChantLayoutElement {
     });
   }
 
-  buildFromChantNotationIndex(ctxt, newElementStart, width) {
+  buildFromChantNotationIndex(ctxt: ChantContext, newElementStart: number, width: number) {
     // todo: reset / clear the children we have in case they have data
     var notations = this.score.notations,
-      beginningLyrics = null,
-      prev = null,
-      prevNeume = null,
-      prevLyrics = [];
-    var condensableSpaces = [];
+      beginningLyrics: Lyric[] | null = null,
+      prev: ChantNotationElement | null = null,
+      prevNeume: ChantNotationElement | null = null,
+      prevLyrics: Lyric[] = [];
+    var condensableSpaces = [] as unknown as CondensableSpaces;
     this.notationsStartIndex = newElementStart;
     this.numNotationsOnLine = 0;
 
@@ -756,10 +847,11 @@ export class ChantLine extends ChantLayoutElement {
       prev = notations[newElementStart - 1];
       if (
         prev.constructor === DoubleBar &&
-        prev.hasLyrics() &&
-        (prev.lyrics.length > 1 || !prev.lyrics[0].text.match(/^(i\.?)+j\.?/))
+        (prev as DoubleBar).hasLyrics() &&
+        ((prev as DoubleBar).lyrics.length > 1 ||
+          !(prev as DoubleBar).lyrics[0].text.match(/^(i\.?)+j\.?/))
       ) {
-        beginningLyrics = prev.lyrics.map((lyric) => {
+        beginningLyrics = (prev as DoubleBar).lyrics.map((lyric) => {
           var newLyric = new Lyric(
             ctxt,
             lyric.originalText,
@@ -787,7 +879,7 @@ export class ChantLine extends ChantLayoutElement {
     // if the first notation on the line is a starting clef, then we treat it a little differently...
     // the clef becomes this line's starting clef and we skip over the clef in the notations array
     if (notations.length && notations[newElementStart].isClef) {
-      ctxt.activeClef = notations[newElementStart];
+      ctxt.activeClef = notations[newElementStart] as Clef;
       newElementStart++;
       this.notationsStartIndex++;
     }
@@ -797,7 +889,7 @@ export class ChantLine extends ChantLayoutElement {
     this.startingClef.performLayout(ctxt);
     this.startingClef.bounds.x = this.staffLeft;
 
-    var curr = this.startingClef;
+    var curr: ChantNotationElement = this.startingClef;
 
     if (beginningLyrics) {
       LyricArray.setNotation(beginningLyrics, curr);
@@ -806,7 +898,7 @@ export class ChantLine extends ChantLayoutElement {
     // estimate how much space we have available to us
     var rightNotationBoundary =
       this.staffRight - Glyphs.CustosLong.bounds.width * ctxt.glyphScaling; // possible custos on the line
-    var lastTranslationTextWithEndNeume = null;
+    var lastTranslationTextWithEndNeume: ChantNotationElement | null = null;
 
     // iterate through the notations, fittng what we can on this line
     var i,
@@ -819,8 +911,8 @@ export class ChantLine extends ChantLayoutElement {
     if (ctxt.lastStartBrace && !ctxt.lastStartBrace.note) {
       ctxt.lastStartBrace.note = this.startingClef;
     }
-    var lastLyricsBeforeTextOnly;
-    var textOnlyStartIndex;
+    var lastLyricsBeforeTextOnly: Lyric[] | undefined;
+    var textOnlyStartIndex: number | undefined;
 
     for (i = newElementStart; i <= lastNotationIndex; i++) {
       // a hidden soft accidental takes no space, so the notation after it is
@@ -832,17 +924,17 @@ export class ChantLine extends ChantLayoutElement {
 
       curr = notations[i];
 
-      if (curr.isAccidental && curr.soft)
-        curr.setHidden(ctxt, !this.isSoftAccidentalVisible(i));
+      if (curr.isAccidental && (curr as Accidental).soft)
+        (curr as Accidental).setHidden(ctxt, !this.isSoftAccidentalVisible(i));
       else if (curr.isNeume) this.spaceNeumeBeforeSoftAccidental(ctxt, i);
 
       var actualRightBoundary;
       if (
         i === lastNotationIndex ||
         curr.constructor === Custos ||
-        (prev.constructor === Custos && curr.isDivider) ||
+        (prev!.constructor === Custos && curr.isDivider) ||
         (curr.constructor === ChantLineBreak &&
-          prevNeume.constructor === Custos)
+          prevNeume!.constructor === Custos)
       ) {
         // on the last notation of the score, we don't need a custos or trailing space, so we use staffRight as the
         // right boundary.
@@ -870,12 +962,12 @@ export class ChantLine extends ChantLayoutElement {
         curr.constructor !== Custos &&
         !(
           curr.constructor === TextOnly &&
-          curr.hasLyrics() &&
-          /^(?:[*†]|i+j\.?)$/.test(curr.lyrics[0].text)
+          (curr as TextOnly).hasLyrics() &&
+          /^(?:[*†]|i+j\.?)$/.test((curr as TextOnly).lyrics[0].text)
         ) &&
         lastNotationIndex - i > 1 &&
-        !prevNeume.keepWithNext &&
-        prevNeume.bounds.right() >= rightNotationBoundary;
+        !prevNeume!.keepWithNext &&
+        prevNeume!.bounds.right() >= rightNotationBoundary;
 
       // also force a break if we've run into extra TextOnly elements, but the current notation is not a TextOnly and has lyrics
       forceBreak =
@@ -892,8 +984,8 @@ export class ChantLine extends ChantLayoutElement {
       }
       if (
         curr instanceof TextOnly &&
-        notations[textOnlyStartIndex] &&
-        !notations[textOnlyStartIndex].hasLyrics()
+        notations[textOnlyStartIndex!] &&
+        !notations[textOnlyStartIndex!].hasLyrics()
       ) {
         // we want textOnlyStartIndex to be the first TextOnly that actually has lyrics,
         // so if the current "textOnlyStart" element does not have lyrics, and we have another textOnly
@@ -910,7 +1002,7 @@ export class ChantLine extends ChantLayoutElement {
       var fitsOnLine;
       if (isHiddenAccidental(curr)) {
         // it will be moved to the notation that follows it in alignHiddenAccidentals()
-        curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
+        curr.bounds.x = prevNeume!.bounds.right() + prevNeume!.calculatedTrailingSpace;
         fitsOnLine = true;
       } else {
         fitsOnLine =
@@ -918,16 +1010,16 @@ export class ChantLine extends ChantLayoutElement {
           this.positionNotationElement(
             ctxt,
             this.lastLyrics,
-            prevNeume,
+            prevNeume!,
             curr,
             actualRightBoundary,
-            this.extraTextOnlyIndex ? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
+            this.extraTextOnlyIndex ? ([] as unknown as CondensableSpaces) : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
           );
       }
       var candidateForExtraTextOnlyLine =
         ctxt.useExtraTextOnly &&
         curr.constructor === TextOnly &&
-        LyricArray.hasOnlyOneLyric(curr.lyrics) &&
+        LyricArray.hasOnlyOneLyric((curr as TextOnly).lyrics) &&
         (fitsOnLine === false || this.extraTextOnlyIndex !== null);
       var extraTextOnlyLyricIndex;
       if (candidateForExtraTextOnlyLine && this.extraTextOnlyIndex === null) {
@@ -940,8 +1032,8 @@ export class ChantLine extends ChantLayoutElement {
             candidateForExtraTextOnlyLine =
               nextNotation &&
               nextNotation.constructor === TextOnly &&
-              nextNotation.lyrics[extraTextOnlyLyricIndex] &&
-              nextNotation.lyrics[extraTextOnlyLyricIndex].text.length > 0;
+              (nextNotation as TextOnly).lyrics[extraTextOnlyLyricIndex] &&
+              (nextNotation as TextOnly).lyrics[extraTextOnlyLyricIndex].text.length > 0;
           }
         }
       }
@@ -953,7 +1045,7 @@ export class ChantLine extends ChantLayoutElement {
         extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex;
         if (
           this.extraTextOnlyIndex === null &&
-          notations[textOnlyStartIndex].lyrics.length
+          notations[textOnlyStartIndex!].lyrics.length
         ) {
           if (
             textOnlyStartIndex === this.notationsStartIndex ||
@@ -973,15 +1065,15 @@ export class ChantLine extends ChantLayoutElement {
               [];
           }
           // go back to the first in this string of consecutive TextOnly elements.
-          this.extraTextOnlyIndex = textOnlyStartIndex;
+          this.extraTextOnlyIndex = textOnlyStartIndex!;
           extraTextOnlyLyricIndex = this.extraTextOnlyLyricIndex = LyricArray.indexOfLyric(
             curr.lyrics
           );
           this.lastLyricsBeforeTextOnly = lastLyricsBeforeTextOnly;
           this.lastLyrics = [];
-          i = textOnlyStartIndex - 1;
+          i = textOnlyStartIndex! - 1;
           this.numNotationsOnLine =
-            textOnlyStartIndex - this.notationsStartIndex;
+            textOnlyStartIndex! - this.notationsStartIndex;
           continue;
         }
         delete curr.lyrics[extraTextOnlyLyricIndex].lineWidth;
@@ -1003,7 +1095,7 @@ export class ChantLine extends ChantLayoutElement {
             extraTextOnlyLyricIndex
           ].getRight();
       } else if (fitsOnLine === false) {
-        const isTextOnlyBeforeDivider = (i) => {
+        const isTextOnlyBeforeDivider = (i: number) => {
           const curr = notations[i];
           if (curr.constructor !== TextOnly) return false;
           // only TextOnly elements may come between it and the next divider
@@ -1111,7 +1203,7 @@ export class ChantLine extends ChantLayoutElement {
         if (this.numNotationsOnLine === 0) this.numNotationsOnLine = 1;
 
         // determine the neumes we can space apart, if we do end up justifying
-        curr = this.findNeumesToJustify(prevLyrics);
+        curr = this.findNeumesToJustify(prevLyrics)!;
 
         this.lastLyrics = prevLyrics;
         if (this.maxNumNotationsOnLine) {
@@ -1119,7 +1211,7 @@ export class ChantLine extends ChantLayoutElement {
           // Check how much space we would have without the extra notations
           var extraSpace = this.getWhitespaceOnRight(ctxt);
           if (
-            extraSpace / this.toJustify.length >
+            extraSpace / this.toJustify!.length >
             ctxt.staffInterval * ctxt.maxExtraSpaceInStaffIntervals
           ) {
             LyricArray.mergeInArray(
@@ -1146,7 +1238,7 @@ export class ChantLine extends ChantLayoutElement {
           (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
             next.lyrics[0].lyricType === LyricType.SingleSyllable)
         ) {
-          this.toJustify.push(this.custos);
+          this.toJustify!.push(this.custos);
         }
 
         if (
@@ -1163,8 +1255,8 @@ export class ChantLine extends ChantLayoutElement {
             }
           }
           // remove the custos and divider from the condensable spaces list, before adding the divider back, when repositioning it.
-          condensableSpaces.sum -= condensableSpaces.pop().condensable;
-          condensableSpaces.sum -= condensableSpaces.pop().condensable;
+          condensableSpaces.sum -= condensableSpaces.pop()!.condensable;
+          condensableSpaces.sum -= condensableSpaces.pop()!.condensable;
           this.positionNotationElement(
             ctxt,
             prevLyrics,
@@ -1173,7 +1265,7 @@ export class ChantLine extends ChantLayoutElement {
             this.staffRight,
             condensableSpaces
           );
-          this.custos = notations[j - 1];
+          this.custos = notations[j - 1] as Custos;
           this.custos.bounds.x =
             this.staffRight -
             this.custos.bounds.width -
@@ -1188,7 +1280,7 @@ export class ChantLine extends ChantLayoutElement {
 
       if (
         lastTranslationTextWithEndNeume &&
-        curr === lastTranslationTextWithEndNeume.translationText[0].endNeume
+        curr === lastTranslationTextWithEndNeume.translationText![0].endNeume
       ) {
         lastTranslationTextWithEndNeume = null;
       } else if (
@@ -1202,12 +1294,12 @@ export class ChantLine extends ChantLayoutElement {
       curr.line = this;
       this.numNotationsOnLine++;
 
-      if (curr.isClef) ctxt.activeClef = curr;
+      if (curr.isClef) ctxt.activeClef = curr as Clef;
 
       // line breaks are a special case indicating to stop processing here
       if (curr.constructor === ChantLineBreak && width > 0) {
         this.justify =
-          curr.justify ||
+          (curr as ChantLineBreak).justify ||
           this.extraTextOnlyIndex !== null ||
           this.getWhitespaceOnRight(ctxt) < 0;
         if (this.justify) this.findNeumesToJustify(prevLyrics);
@@ -1241,7 +1333,7 @@ export class ChantLine extends ChantLayoutElement {
       if (!this.toJustify) this.findNeumesToJustify(prevLyrics);
       this.justify =
         (!isLastLine || last.isDivider) &&
-        this.getWhitespaceOnRight(ctxt) / (this.toJustify.length || 1) <=
+        this.getWhitespaceOnRight(ctxt) / (this.toJustify!.length || 1) <=
           ctxt.staffInterval * ctxt.maxExtraSpaceInStaffIntervals;
     }
 
@@ -1267,7 +1359,7 @@ export class ChantLine extends ChantLayoutElement {
               this.custos.leadingSpace;
           } else {
             this.custos.bounds.x =
-              prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
+              prevNeume!.bounds.right() + prevNeume!.calculatedTrailingSpace;
           }
           // nothing more to see here...
           break;
@@ -1294,7 +1386,7 @@ export class ChantLine extends ChantLayoutElement {
       if (lyrics.allowsConnector()) {
         lyrics.setNeedsConnector(true, 0);
         if (width > 0 && ctxt.minLyricWordSpacing < ctxt.hyphenWidth) {
-          whitespace = rightEdge - lyrics.getRight();
+          whitespace = rightEdge! - lyrics.getRight();
           // shrink the hyphen if we are already out of whitespace or if we would be if we used a regular hyphen:
           if (whitespace < 0) {
             var minHyphenWidth = Math.max(
@@ -1400,7 +1492,8 @@ export class ChantLine extends ChantLayoutElement {
           this.justify &&
           (curr.constructor === DoubleBar || curr.constructor === FullBar)
         ) {
-          curr.bounds.x = this.staffRight - curr.bounds.width;
+          (curr as ChantNotationElement).bounds.x =
+            this.staffRight - (curr as ChantNotationElement).bounds.width;
         }
       }
     }
@@ -1412,23 +1505,23 @@ export class ChantLine extends ChantLayoutElement {
   // until another accidental there replaces it. A soft flat or sharp is printed only
   // when it isn't already in effect, and a soft natural only when a flat or sharp is.
   // A clef's flat counts as in effect from the clef onward.
-  isSoftAccidentalVisible(index) {
+  isSoftAccidentalVisible(index: number) {
     var notations = this.score.notations;
-    var accidental = notations[index];
+    var accidental = notations[index] as Accidental;
     var clef = this.startingClef;
-    var inEffect = null;
+    var inEffect: AccidentalType | null = null;
 
     for (var i = index - 1; i >= this.notationsStartIndex; i--) {
       var notation = notations[i];
       if (
         notation.isAccidental &&
-        notation.staffPosition === accidental.staffPosition
+        (notation as Accidental).staffPosition === accidental.staffPosition
       ) {
-        inEffect = notation.accidentalType;
+        inEffect = (notation as Accidental).accidentalType;
         break;
       }
       if (notation.isClef) {
-        clef = notation;
+        clef = notation as Clef;
         break;
       }
     }
@@ -1451,10 +1544,10 @@ export class ChantLine extends ChantLayoutElement {
   // spaced as though the run had simply been split there (see createNeume in
   // Gabc.createNeumesFromNotes) rather than as a neume before an accidental.
   // This is decided before that neume is positioned, since it changes its spacing.
-  spaceNeumeBeforeSoftAccidental(ctxt, index) {
+  spaceNeumeBeforeSoftAccidental(ctxt: ChantContext, index: number) {
     var notations = this.score.notations;
     var neume = notations[index];
-    var accidental = notations[index + 1];
+    var accidental = notations[index + 1] as Accidental | undefined;
     var next = notations[index + 2];
     if (
       !accidental ||
@@ -1463,7 +1556,7 @@ export class ChantLine extends ChantLayoutElement {
       !next ||
       !next.isNeume ||
       next.firstOfParentheses ||
-      !neume.trailingSpace.isDefault
+      !(neume.trailingSpace as TrailingSpaceFunction).isDefault
     )
       return;
 
@@ -1481,12 +1574,13 @@ export class ChantLine extends ChantLayoutElement {
     neume.allowLineBreakBeforeNext = false;
     if (accidental.hidden) {
       var splitSpace = 0;
-      if (next.notes[0].shape !== NoteShape.Quilisma) {
+      if (next.notes![0].shape !== NoteShape.Quilisma) {
         splitSpace = ctxt.intraNeumeSpacing;
         neume.allowLineBreakBeforeNext = true;
       }
       shift = { unshifted: neume.calculatedTrailingSpace };
-      neume.calculatedTrailingSpace += splitSpace - neume.trailingSpace(ctxt);
+      neume.calculatedTrailingSpace +=
+        splitSpace - (neume.trailingSpace as TrailingSpaceFunction)(ctxt);
       shift.shifted = neume.calculatedTrailingSpace;
       neume.softAccidentalShift = shift;
     }
@@ -1508,7 +1602,7 @@ export class ChantLine extends ChantLayoutElement {
     }
   }
 
-  findNeumesToJustify(prevLyrics) {
+  findNeumesToJustify(prevLyrics: Lyric[]) {
     this.toJustify = [];
     var prev,
       curr = null,
@@ -1557,7 +1651,7 @@ export class ChantLine extends ChantLayoutElement {
     return nextOrCurr;
   }
 
-  getWhitespaceOnRight(ctxt) {
+  getWhitespaceOnRight(ctxt?: ChantContext) {
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
     var last = notations[lastIndex - 1];
@@ -1584,9 +1678,14 @@ export class ChantLine extends ChantLayoutElement {
     return this.staffRight - Math.max(lastRightLyric, lastRightNeume);
   }
 
-  justifyElements(ctxt, doJustify, condensableSpaces) {
+  justifyElements(
+    ctxt: ChantContext,
+    doJustify: boolean | undefined,
+    condensableSpaces: CondensableSpaces
+  ) {
     var i;
-    var toJustify = this.toJustify || [];
+    var toJustify: Array<ChantNotationElement | null | CondensableSpace> =
+      this.toJustify || [];
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
 
@@ -1595,13 +1694,13 @@ export class ChantLine extends ChantLayoutElement {
     // We do this first so that if it opens up any new whitespace, that gets accounted for when we do the justification
     var lastNotation =
       notations[this.notationsStartIndex + this.numNotationsOnLine - 1];
-    var extraSpaceBeforeCustos =
-      this.staffRight < Infinity &&
+    // (false or null when there isn't one)
+    var extraSpaceBeforeCustos = (this.staffRight < Infinity &&
       this.custos &&
       lastNotation.keepWithNext &&
       this.custos.bounds.x -
         lastNotation.bounds.right() -
-        lastNotation.calculatedTrailingSpace;
+        lastNotation.calculatedTrailingSpace) as number;
     if (extraSpaceBeforeCustos > 0) {
       // first, shrink the hyphen(s) if applicable, to move the neumes closer to the custos:
       i = 0;
@@ -1622,7 +1721,7 @@ export class ChantLine extends ChantLayoutElement {
         }
         ++i;
       }
-      this.custos.bounds.x =
+      this.custos!.bounds.x =
         lastNotation.bounds.right() + lastNotation.calculatedTrailingSpace;
     }
 
@@ -1637,7 +1736,7 @@ export class ChantLine extends ChantLayoutElement {
 
     this.condensableSpaces = condensableSpaces;
 
-    var curr, prev;
+    var curr, prev: ChantNotationElement | undefined;
     var offset = 0;
     var increment = extraSpace / toJustify.length;
     var multiplier = 0;
@@ -1679,18 +1778,19 @@ export class ChantLine extends ChantLayoutElement {
       }
 
       if (multiplier) {
-        if (nextToJustify && nextToJustify.notation === curr) {
-          offset += multiplier * nextToJustify.condensable;
+        // (the spaces that can be condensed)
+        if (nextToJustify && (nextToJustify as CondensableSpace).notation === curr) {
+          offset += multiplier * (nextToJustify as CondensableSpace).condensable;
           nextToJustify = toJustify[toJustifyIndex++];
         }
       } else if (nextToJustify === curr) {
-        if (prev.hasNoWidth) {
+        if (prev!.hasNoWidth) {
           incrementOffsetAtNextChance = true;
         } else {
           offset += increment;
         }
         nextToJustify = toJustify[toJustifyIndex++];
-      } else if (incrementOffsetAtNextChance && !prev.hasNoWidth) {
+      } else if (incrementOffsetAtNextChance && !prev!.hasNoWidth) {
         incrementOffsetAtNextChance = false;
         offset += increment;
       }
@@ -1699,12 +1799,12 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     if (extraSpaceBeforeCustos > 0) {
-      this.custos.bounds.x =
+      this.custos!.bounds.x =
         lastNotation.bounds.right() + lastNotation.calculatedTrailingSpace;
     }
   }
 
-  handleEndBrace(ctxt, note, i) {
+  handleEndBrace(ctxt: ChantContext, note: BraceNote & { braceEnd?: BracePoint }, i: number) {
     var startBrace = ctxt.lastStartBrace;
     if (!startBrace) return;
     // calculate the y value of the brace by iterating over all notations
@@ -1720,14 +1820,14 @@ export class ChantLine extends ChantLayoutElement {
         ctxt.calculateHeightFromStaffPosition(this.score.staffLineCount * 2),
         ...[startNote, note]
           .concat(notations.slice(k, i + 1))
-          .map(n => n.bounds.y - dy)
+          .map(n => n!.bounds.y - dy)
       );
     } else {
       y = Math.max(
         ctxt.calculateHeightFromStaffPosition(0),
         ...[startNote, note]
           .concat(notations.slice(k, i + 1))
-          .map(n => n.bounds.bottom() + dy)
+          .map(n => n!.bounds.bottom() + dy)
       );
     }
 
@@ -1738,7 +1838,7 @@ export class ChantLine extends ChantLayoutElement {
         new RoundBraceVisualizer(
           ctxt,
           startBrace.getAttachmentX(startNote),
-          note.braceEnd.getAttachmentX(note),
+          note.braceEnd!.getAttachmentX(note),
           y,
           startBrace.isAbove
         )
@@ -1751,7 +1851,7 @@ export class ChantLine extends ChantLayoutElement {
         new CurlyBraceVisualizer(
           ctxt,
           startBrace.getAttachmentX(startNote),
-          note.braceEnd.getAttachmentX(note),
+          note.braceEnd!.getAttachmentX(note),
           y,
           startBrace.isAbove,
           addAcuteAccent
@@ -1762,7 +1862,7 @@ export class ChantLine extends ChantLayoutElement {
     delete ctxt.lastStartBrace;
   }
 
-  finishLayout(ctxt) {
+  finishLayout(ctxt: ChantContext) {
     this.ledgerLines = []; // clear any existing ledger lines
 
     var notations = this.score.notations;
@@ -1773,10 +1873,10 @@ export class ChantLine extends ChantLayoutElement {
     // offsetX can be used to add to the position info for the element,
     // useful in the case of notes.
     var processElementForLedgerLine = (
-      element,
-      endElem = element,
-      staffPosition = element.staffPosition,
-      offsetX = element.neume ? element.neume.bounds.x : 0
+      element: Note | Custos,
+      endElem: Note | Custos = element,
+      staffPosition: number = element.staffPosition,
+      offsetX: number = (element as Note).neume ? (element as Note).neume!.bounds.x : 0
     ) => {
       // do we need a ledger line for this note?
       const ledgerLinePositionAbove = ctxt.staffLineCount * 2 + 1;
@@ -1821,12 +1921,12 @@ export class ChantLine extends ChantLayoutElement {
       }
     };
 
-    var episemata = []; // keep track of episemata in case we can connect some
+    var episemata: HorizontalEpisema[] = []; // keep track of episemata in case we can connect some
     var startBrace = null;
     var minY = Number.MAX_VALUE,
       maxY = Number.MIN_VALUE; // for braces
 
-    var positionNonLyricText = (text, neume, rightX) => {
+    var positionNonLyricText = (text: TextElement, neume: ChantNotationElement, rightX?: number) => {
       text.setMaxWidth(ctxt, this.staffRight);
       //text.bounds.x = neume.hasLyrics()? Math.min(...neume.lyrics.map(l => l.bounds.x)) : 0;
       text.bounds.x = 0;
@@ -1882,14 +1982,14 @@ export class ChantLine extends ChantLayoutElement {
       // if it's not a neume then just skip here
       if (!neume.isNeume) continue;
 
-      for (j = 0; j < neume.ledgerLines.length; j++) {
-        var ll = neume.ledgerLines[j];
+      for (j = 0; j < (neume as Neume).ledgerLines.length; j++) {
+        var ll = (neume as Neume).ledgerLines[j];
         processElementForLedgerLine(ll.element, ll.endElem, ll.staffPosition);
       }
 
-      for (j = 0; j < neume.notes.length; j++) {
+      for (j = 0; j < neume.notes!.length; j++) {
         var k,
-          note = neume.notes[j];
+          note = neume.notes![j];
 
         // blend episemata as we're able
         if (note.episemata.length === 0) episemata = [];
@@ -1904,7 +2004,7 @@ export class ChantLine extends ChantLayoutElement {
             spaceBetweenEpisemata =
               neume.bounds.x +
               episema.bounds.x -
-              (episemata[episemata.length - 1].note.neume.bounds.x +
+              (episemata[episemata.length - 1].note.neume!.bounds.x +
                 episemata[episemata.length - 1].bounds.right());
 
           // we try to blend the episema if we're able.
@@ -1920,7 +2020,7 @@ export class ChantLine extends ChantLayoutElement {
             episema.alignment === HorizontalEpisemaAlignment.Right ||
             episema.alignment === HorizontalEpisemaAlignment.Center ||
             (spaceBetweenEpisemata > ctxt.intraNeumeSpacing * 2 &&
-              note.glyphVisualizer.glyphCode !== GlyphCode.None)
+              note.glyphVisualizer!.glyphCode !== GlyphCode.None)
           ) {
             // start a new set of episemata to potentially blend
             episemata = [episema];
@@ -1949,7 +2049,7 @@ export class ChantLine extends ChantLayoutElement {
             var newWidth =
               neume.bounds.x +
               episema.bounds.x -
-              (episemata[episemata.length - 1].note.neume.bounds.x +
+              (episemata[episemata.length - 1].note.neume!.bounds.x +
                 episemata[episemata.length - 1].bounds.x);
             if (newWidth < 0) {
               newWidth *= -1;
@@ -2020,16 +2120,17 @@ export class ChantLine extends ChantLayoutElement {
   // returns false if cannot fit before given right margin.
   // fixme: if this returns false, shouldn't we set the connectors on prev to be activated?!
   positionNotationElement(
-    ctxt,
-    prevLyrics,
-    prev,
-    curr,
-    rightNotationBoundary,
-    condensableSpaces = []
+    ctxt: ChantContext,
+    prevLyrics: Lyric[],
+    prev: ChantNotationElement,
+    curr: ChantNotationElement,
+    rightNotationBoundary: number,
+    condensableSpaces = [] as unknown as CondensableSpaces
   ) {
     if (!condensableSpaces.hasOwnProperty("sum")) condensableSpaces.sum = 0;
     var i,
-      space = { notation: curr },
+      // (its total and condensable space are set just below)
+      space = { notation: curr } as CondensableSpace,
       fixedX = false;
 
     // To begin we just place the current notation right after the previous,
@@ -2055,8 +2156,8 @@ export class ChantLine extends ChantLayoutElement {
       curr.calculatedTrailingSpace = prev.calculatedTrailingSpace;
       if (curr.hasLyrics())
         curr.calculatedTrailingSpace -= curr.lyrics[0].bounds.width;
-      if (curr.constructor === TextOnly && curr.lyrics.length === 1) {
-        curr.lyrics[0].setMaxWidth(
+      if (curr.constructor === TextOnly && (curr as TextOnly).lyrics.length === 1) {
+        (curr as TextOnly).lyrics[0].setMaxWidth(
           ctxt,
           this.staffRight,
           this.staffRight -
@@ -2084,7 +2185,7 @@ export class ChantLine extends ChantLayoutElement {
       this.extraTextOnlyIndex !== null &&
       curr.constructor === TextOnly
     ) {
-      curr.bounds.x = 0;
+      (curr as TextOnly).bounds.x = 0;
       space.total = space.condensable = 0;
     } else {
       space.total = curr.bounds.x - prev.bounds.right();
@@ -2106,7 +2207,7 @@ export class ChantLine extends ChantLayoutElement {
           currLyric.dropCap &&
           currLyric.originalText &&
           !currLyric.text;
-        currLyric.setNeedsConnector(needsConnector);
+        currLyric.setNeedsConnector(needsConnector as boolean);
         let minLeft = this.staffLeft - this.paddingLeft;
 
         if (currLyric.getLeft() < minLeft)
@@ -2158,7 +2259,7 @@ export class ChantLine extends ChantLayoutElement {
       for (i = 0; i < curr.lyrics.length; i++) {
         if (!curr.lyrics[i].originalText) continue;
         var prevLyricRight = 0;
-        let condensableSpacesSincePrevLyric = [];
+        let condensableSpacesSincePrevLyric = [] as unknown as CondensableSpaces;
         let condensableSpaceSincePrevLyric = null;
         if (i < prevLyrics.length && prevLyrics[i]) {
           prevLyricRight = prevLyrics[i].getRight();
@@ -2168,7 +2269,7 @@ export class ChantLine extends ChantLayoutElement {
           if (notationI >= 0) {
             condensableSpacesSincePrevLyric = condensableSpaces.slice(
               notationI + 1
-            );
+            ) as CondensableSpaces;
             condensableSpacesSincePrevLyric.sum = condensableSpacesSincePrevLyric
               .map(s => s.condensable)
               .reduce((a, b) => a + b, 0);
@@ -2291,7 +2392,7 @@ export class ChantLine extends ChantLayoutElement {
       LyricArray.getRight(curr.lyrics, true) <=
         this.staffRight + condensableSpaces.sum + space.condensable
     ) {
-      if (prev.isAccidental && !prev.hidden) {
+      if (prev.isAccidental && !(prev as Accidental).hidden) {
         // move the previous accidental up next to the current note:
         let shift =
           curr.bounds.x -
@@ -2318,7 +2419,7 @@ export class ChantLine extends ChantLayoutElement {
    * Find the notation closest to x without going past it
    * @param {number} x
    */
-  bisectNotationAtX(x, useMidpoint = true) {
+  bisectNotationAtX(x: number, useMidpoint = true) {
     let minIndex = -1,
       maxIndex = Math.min(this.numNotationsOnLine, Infinity),
       curIndex = minIndex + ((maxIndex - minIndex) >> 1),
@@ -2331,14 +2432,14 @@ export class ChantLine extends ChantLayoutElement {
         )
       ),
       // the notations on this line, indexed from the start of the line
-      notationAt = index =>
+      notationAt = (index: number) =>
         index >= 0 && index < length
           ? this.score.notations[startIndex + index]
           : undefined;
 
     while (minIndex < curIndex) {
       let notation = notationAt(curIndex);
-      let notationX = notation.bounds.x;
+      let notationX = notation!.bounds.x;
       if (notationX > x) {
         maxIndex = curIndex;
       } else {
@@ -2355,8 +2456,8 @@ export class ChantLine extends ChantLayoutElement {
     ) {
       let nextNotation = notationAt(curIndex + 1),
         closenessToLeft = x - notation.bounds.x,
-        closenessToRight = nextNotation.bounds.x - x;
-      if (nextNotation.bounds.width === 0 && closenessToRight < closenessToLeft)
+        closenessToRight = nextNotation!.bounds.x - x;
+      if (nextNotation!.bounds.width === 0 && closenessToRight < closenessToLeft)
         ++curIndex;
     }
     return notationAt(curIndex);

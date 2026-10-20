@@ -39,3 +39,5 @@ node_modules
 
 # the src of other versions of exsurge, for test/reference
 test/reference/.cache
+# exsurge built by test/bundle.test.ts
+test/.build

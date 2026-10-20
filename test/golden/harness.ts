@@ -7,7 +7,6 @@
 // than importing it, so that the same cases can be run on the source and on
 // the built bundles.
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export type Exsurge = any;
 
 export type Strategy =

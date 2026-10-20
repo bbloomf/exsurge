@@ -23,80 +23,83 @@
 // THE SOFTWARE.
 //
 
-var should = require('chai').should(), Exsurge = require('../dist/exsurge.min.js');
+import assert from "node:assert";
+import { describe, it } from "vitest";
+import * as Exsurge from "../src/index.js";
+
 
 
 describe('Core functionality', function() {
 
   it('Point object', function() {
     var point = new Exsurge.Point(3.14, 159.26);
-    point.x.should.equal(3.14);
-    point.y.should.equal(159.26);
+    assert.strictEqual(point.x, 3.14);
+    assert.strictEqual(point.y, 159.26);
 
     var clone = point.clone();
-    clone.x.should.equal(3.14);
-    clone.y.should.equal(159.26);
+    assert.strictEqual(clone.x, 3.14);
+    assert.strictEqual(clone.y, 159.26);
 
-    point.equals(clone).should.equal(true);
-    point.equals(new Exsurge.Point()).should.equal(false);
+    assert.strictEqual(point.equals(clone), true);
+    assert.strictEqual(point.equals(new Exsurge.Point()), false);
   });
 
   it('Rect object', function() {
 
     var rect = new Exsurge.Rect(3, 1, 4, 5);
-    rect.x.should.equal(3);
-    rect.y.should.equal(1);
-    rect.width.should.equal(4);
-    rect.height.should.equal(5);
+    assert.strictEqual(rect.x, 3);
+    assert.strictEqual(rect.y, 1);
+    assert.strictEqual(rect.width, 4);
+    assert.strictEqual(rect.height, 5);
 
     var clone = rect.clone();
-    clone.x.should.equal(3);
-    clone.y.should.equal(1);
-    clone.width.should.equal(4);
-    clone.height.should.equal(5);
+    assert.strictEqual(clone.x, 3);
+    assert.strictEqual(clone.y, 1);
+    assert.strictEqual(clone.width, 4);
+    assert.strictEqual(clone.height, 5);
 
-    rect.isEmpty().should.equal(false);
+    assert.strictEqual(rect.isEmpty(), false);
 
-    rect.right().should.equal(3 + 4);
-    rect.bottom().should.equal(1 + 5);
+    assert.strictEqual(rect.right(), 3 + 4);
+    assert.strictEqual(rect.bottom(), 1 + 5);
 
-    rect.equals(clone).should.equal(true);
+    assert.strictEqual(rect.equals(clone), true);
 
     var badRect = new Exsurge.Rect();
-    badRect.isEmpty().should.equal(true);
+    assert.strictEqual(badRect.isEmpty(), true);
 
-    rect.equals(badRect).should.equal(false);
+    assert.strictEqual(rect.equals(badRect), false);
 
     // fixme: test Rect.contains and Rect.union
   });
 
   it('Margins object', function() {
     var margins = new Exsurge.Margins(10, 11, 12, 13);
-    margins.left.should.equal(10);
-    margins.top.should.equal(11);
-    margins.right.should.equal(12);
-    margins.bottom.should.equal(13);
+    assert.strictEqual(margins.left, 10);
+    assert.strictEqual(margins.top, 11);
+    assert.strictEqual(margins.right, 12);
+    assert.strictEqual(margins.bottom, 13);
 
     var clone = margins.clone();
-    clone.left.should.equal(10);
-    clone.top.should.equal(11);
-    clone.right.should.equal(12);
-    clone.bottom.should.equal(13);
+    assert.strictEqual(clone.left, 10);
+    assert.strictEqual(clone.top, 11);
+    assert.strictEqual(clone.right, 12);
+    assert.strictEqual(clone.bottom, 13);
 
-    margins.equals(clone).should.equal(true);
+    assert.strictEqual(margins.equals(clone), true);
   });
 
   it('Size object', function() {
     var size = new Exsurge.Size(3.14, 159.26);
-    size.width.should.equal(3.14);
-    size.height.should.equal(159.26);
+    assert.strictEqual(size.width, 3.14);
+    assert.strictEqual(size.height, 159.26);
 
     var clone = size.clone();
-    clone.width.should.equal(3.14);
-    clone.height.should.equal(159.26);
+    assert.strictEqual(clone.width, 3.14);
+    assert.strictEqual(clone.height, 159.26);
 
-    size.equals(clone).should.equal(true);
-    size.equals(new Exsurge.Size()).should.equal(false);
+    assert.strictEqual(size.equals(clone), true);
+    assert.strictEqual(size.equals(new Exsurge.Size()), false);
   });
 });
 
@@ -104,18 +107,18 @@ describe('Latin syllabification', function() {
 
   var lang = new Exsurge.Latin();
 
-  var assertWordSyllables = function(word, syllables) {
-    word.length.should.equal(syllables.length);
+  var assertWordSyllables = function(word: string[], syllables: string[]) {
+    assert.strictEqual(word.length, syllables.length);
 
     for (var i = 0; i < word.length; i++) {
-      word[i].should.equal(syllables[i]);
+      assert.strictEqual(word[i], syllables[i]);
     }
   }
 
   it("Syllabify 'Puer natus est'", function() {
 
     var words = lang.syllabify('Puer natus est');
-    words.length.should.equal(3);
+    assert.strictEqual(words.length, 3);
 
     assertWordSyllables(words[0], ['Pu', 'er']);
     assertWordSyllables(words[1], ['na', 'tus']);
