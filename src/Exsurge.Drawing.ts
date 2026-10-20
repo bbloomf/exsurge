@@ -474,7 +474,7 @@ export type QuickSvgRoot = SVGSVGElement & {
 export const QuickSvg = {
   // namespaces
   ns: "http://www.w3.org/2000/svg" as const,
-  xmlns: "https://www.w3.org/2000/xmlns/",
+  xmlns: "http://www.w3.org/2000/xmlns/",
   xlink: "http://www.w3.org/1999/xlink",
 
   hasDOMAccess: function () {
@@ -605,7 +605,8 @@ export const QuickSvg = {
         if (match) {
           node.setAttributeNS(
             (this as unknown as { [prefix: string]: string })[match[1]],
-            match[2],
+            // a namespace declaration such as xmlns:xlink keeps its prefix
+            match[1] === "xmlns" ? attr : match[2],
             val
           );
         } else {

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" {https://www.w3.org/2000/xmlns/}xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="220" height="165.58825000000002" viewBox="0 0 220 165.58825000000002" source=<ChantScore>>
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="220" height="165.58825000000002" viewBox="0 0 220 165.58825000000002" source=<ChantScore>>
   <g>
     <defs>
       <g id="PodatusLowerShort" class="glyph" transform="scale(0.0625)">

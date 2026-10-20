@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" {https://www.w3.org/2000/xmlns/}xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="77.09" viewBox="0 0 600 77.09" source=<ChantScore>>
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="77.09" viewBox="0 0 600 77.09" source=<ChantScore>>
   <g>
     <defs>
       <g id="Flat" class="glyph" transform="scale(0.0625)">
