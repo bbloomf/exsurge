@@ -1,0 +1,1073 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="250.3254090909091" viewBox="0 0 600 250.3254090909091" >
+<g >
+<defs >
+<g id="PodatusLower" class="glyph" transform="scale(0.05)" >
+<path d="M-50 42.17V-50q0-5.42 3.61-5.42h2.41q19.28 3.61 35.55 3.61 4.21 0 10.84-.3t9.04-.3q13.25 0 20.48-4.82t7.23-12.65L50-75.3V41.57q0 3.61-11.14 6.92-11.15 3.32-24.4 3.32-3.01 0-7.83-.3-4.82-.31-12.05-.31-19.88 0-28.31-1.2Q-50 46.99-50 42.17" >
+</path>
+</g>
+<g id="PodatusUpper" class="glyph" transform="scale(0.05)" >
+<path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
+</path>
+</g>
+<g id="PunctumQuadratum" class="glyph" transform="scale(0.05)" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="None" class="glyph" transform="scale(0.05)" >
+<g >
+</g>
+</g>
+<g id="BeginningAscLiquescent" class="glyph" transform="scale(0.05)" >
+<path d="M-50 43.688V-61c4.167 7.292 12.76 10.938 25.78 10.938 9.376 0 20.053-1.563 32.032-4.688C31.773-60.48 45.833-71.677 50-88.344v117.97C43.75 42.645 32.812 51.5 17.187 56.186-.52 61.398-15.886 64-28.906 64-42.97 64-50 57.23-50 43.687z" >
+</path>
+</g>
+<g id="TerminatingAscLiquescent" class="glyph" transform="scale(0.05)" >
+<path d="M-9.375 40.22c0-11.98-4.948-17.97-14.844-17.97-10.936 0-19.53 3.646-25.78 10.938v-53.126c0-6.77 2.604-12.76 7.813-17.968 5.208-5.21 10.677-8.594 16.406-10.157 2.603-.52 5.207-.78 7.81-.78 3.647 0 7.032.78 10.157 2.343C-2.603-43.896 0-39.73 0-34V73.03h-9.375V40.22z" >
+</path>
+</g>
+<g id="PunctumInclinatum" class="glyph" transform="scale(0.05)" >
+<path d="M0-75.78L50 0 0 75-50 0 0-75.78z" >
+</path>
+</g>
+<g id="Quilisma" class="glyph" transform="scale(0.05)" >
+<path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z" >
+</path>
+</g>
+<g id="DoClef" class="glyph" transform="scale(0.05)" >
+<path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z" >
+</path>
+</g>
+<g id="CustosLong" class="glyph" transform="scale(0.05)" >
+<path d="M39.063-269.562c5.73-.52 7.29 6.25 4.687 20.312V69.5c-13.542-2.083-24.22-5.47-32.03-10.156C3.905 54.134 0 47.624 0 39.812V-68c5.73 5.208 10.677 8.594 14.844 10.156 5.73 1.563 12.24 2.344 19.53 2.344v-196.875c0-11.458 1.563-17.187 4.688-17.187z" >
+</path>
+</g>
+<g id="CustosShort" class="glyph" transform="scale(0.05)" >
+<path d="M34.375-188.125c0-8.333 1.563-12.24 4.688-11.72 3.125.522 4.687 7.033 4.687 19.532v250c-13.542-2.083-24.22-5.468-32.03-10.156C3.905 54.324 0 47.813 0 40V-67.813c5.73 5.21 10.677 8.594 14.844 10.157 5.73 1.562 12.24 2.344 19.53 2.343v-132.812z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,58.75)" element-index="0" >
+<g class="staffLines" >
+<line x1="34.196" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="34.196" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="34.196" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="34.196" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<text source-index="5" x="17.098" y="13.012000000000008" class="dropCap" text-anchor="middle" style="" >
+<tspan source-index="0" style="" >P</tspan>
+</text>
+<g class="ChantNotationElement DoClef" transform="translate(34.196,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-31.25" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(44.95459281048544,0)" >
+<text source-index="6" x="-1.5751999999999997" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >U</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="8" element-index="0" id="note-1" x="2.5" y="-12.5" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="9" element-index="1" id="note-2" x="5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(56.962530809122946,0)" >
+<text source-index="11" x="-0.33679999999999977" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ER</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="14" element-index="2" id="note-3" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement TextOnly" transform="translate(78.54973080912295,0)" >
+<text source-index="17" x="-4.716" y="13.012000000000008" class="directive lyric" text-anchor="start" style="fill: #d00;" >
+<tspan source-index="0" style="" >*</tspan>
+</text>
+<use xlink:href="#None" class="" source-index="19" element-index="3" x="0" y="0" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(99.37053080912295,0)" >
+<text source-index="21" x="-11.122399999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >na</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="24" element-index="4" id="note-4" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="25" element-index="5" id="note-5" x="6.7" y="-43.75" >
+</use>
+<rect x="8.399999999999999" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="26" element-index="6" id="note-6" x="10.899999999999999" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(118.89091800176992,0)" >
+<text source-index="28" x="-7.5512" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >tus</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="32" element-index="7" id="note-7" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Tristropha" transform="translate(135.68131800176994,0)" >
+<text source-index="35" x="0.21039999999999992" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >est</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="39" element-index="8" id="note-8" x="2.5" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="40" element-index="9" id="note-9" x="10.625" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="41" element-index="10" id="note-10" x="18.75" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(166.90669119499958,0)" >
+<text source-index="44" x="-8.803999999999998" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >no</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-37.5" width="0.8" height="9.055409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="47" element-index="11" id="note-11" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="48" element-index="12" id="note-12" x="6.7" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(178.41012831919375,0)" >
+<rect x="0" y="-43.75" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="50" element-index="13" id="note-13" x="2.5" y="-43.75" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="51" element-index="14" id="note-14" x="6.7" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(193.3687211296792,0)" >
+<text source-index="53" x="-9.884" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >bis,</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="58" element-index="15" id="note-15" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement HalfBar" transform="translate(206.0244450246321,0)" >
+<rect x="0" y="-37.5" width="0.8" height="25" fill="#000" class="dividerLine" source-index="62" element-index="16" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(214.480168919585,0)" >
+<text source-index="65" x="0.21039999999999992" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >et</tspan>
+</text>
+<use xlink:href="#BeginningAscLiquescent" class=" note" source-index="68" element-index="17" id="note-16" x="2.5" y="-12.5" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#TerminatingAscLiquescent" class=" note" source-index="69" element-index="18" id="note-17" x="5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(235.61936891958499,0)" >
+<text source-index="73" x="-4.844" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >fí</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="76" element-index="19" id="note-18" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="77" element-index="20" id="note-19" x="6.7" y="-43.75" >
+</use>
+<rect x="8.399999999999999" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="78" element-index="21" id="note-20" x="10.899999999999999" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(254.78641835060537,0)" >
+<text source-index="80" x="-9.164" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >li</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="83" element-index="22" id="note-21" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="84" element-index="23" id="note-22" x="6.7" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(269.7450111610908,0)" >
+<text source-index="86" x="-1.028" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >us</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="89" element-index="24" id="note-23" x="2.5" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Apostropha" transform="translate(292.5402111610908,0)" >
+<text source-index="92" x="-5.7943999999999996" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >da</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="95" element-index="25" id="note-24" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(300.2506051523908,0)" >
+<use xlink:href="#PodatusLower" class=" note" source-index="96" element-index="26" id="note-25" x="2.5" y="-31.250000000000004" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="97" element-index="27" id="note-26" x="5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(312.0265901306408,0)" >
+<text source-index="99" x="-7.5512" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >tus</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="103" element-index="28" id="note-27" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(328.81699013064076,0)" >
+<text source-index="106" x="0.21039999999999992" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >est</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="110" element-index="29" id="note-28" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(359.9065901306407,0)" >
+<text source-index="113" x="-8.803999999999998" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >no</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="116" element-index="30" id="note-29" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="117" element-index="31" id="note-30" x="6.7" y="-37.5" >
+</use>
+<rect x="8.399999999999999" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="118" element-index="32" id="note-31" x="10.899999999999999" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(375.6100272548349,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="119" element-index="33" id="note-32" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(386.36862006532033,0)" >
+<text source-index="121" x="-9.884" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >bis:</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="126" element-index="34" id="note-33" x="2.5" y="-12.5" >
+</use>
+<rect x="4.2" y="-18.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="127" element-index="35" id="note-34" x="6.7" y="-18.75" >
+</use>
+<rect x="8.399999999999999" y="-18.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="128" element-index="36" id="note-35" x="10.899999999999999" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement FullBar" transform="translate(409.30782006532036,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="132" element-index="37" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(419.6470200653203,0)" >
+<text source-index="135" x="-10.5896" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >cu</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="138" element-index="38" id="note-36" x="2.5" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(433.9462200653203,0)" >
+<text source-index="140" x="-8.2712" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >jus</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="144" element-index="39" id="note-37" x="2.5" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(451.8022200653203,0)" >
+<text source-index="147" x="-0.8552" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >im</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="150" element-index="40" id="note-38" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(472.5814200653203,0)" >
+<text source-index="152" x="-6.0824" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >pé</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="155" element-index="41" id="note-39" x="2.5" y="-25" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="156" element-index="42" id="note-40" x="5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(477.5814200653203,0)" >
+<use xlink:href="#PodatusLower" class=" note" source-index="158" element-index="43" id="note-41" x="2.5" y="-43.75" >
+</use>
+<rect x="4.2" y="-50" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="159" element-index="44" id="note-42" x="5" y="-50" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(490.56702006532026,0)" >
+<text source-index="161" x="-6.312799999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ri</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-37.5" width="0.8" height="9.055409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="164" element-index="45" id="note-43" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="165" element-index="46" id="note-44" x="6.7" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(505.52561287580573,0)" >
+<text source-index="167" x="-1.028" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >um</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="170" element-index="47" id="note-45" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement QuarterBar" transform="translate(521.0608128758058,0)" >
+<rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="174" element-index="48" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(532.3960128758058,0)" >
+<text source-index="177" x="-7.0184" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >su</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="180" element-index="49" id="note-46" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(547.5880128758058,0)" >
+<text source-index="182" x="-4.1815999999999995" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >per</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="186" element-index="50" id="note-47" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(569.1664128758058,0)" >
+<text source-index="189" x="-6.348800000000001" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >hú</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-37.5" width="0.8" height="9.055409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="192" element-index="51" id="note-48" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="193" element-index="52" id="note-49" x="6.7" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(580.66985,0)" >
+<rect x="0" y="-43.75" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="195" element-index="53" id="note-50" x="2.5" y="-43.75" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="196" element-index="54" id="note-51" x="6.7" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Custos" transform="translate(597.68235,0)" >
+<use xlink:href="#CustosLong" class="" x="0" y="-31.25" >
+</use>
+</g>
+</g>
+<g class="chantLine" transform="translate(0,145.215)" element-index="1" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-31.25" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(11.360958083614316,0)" >
+<text source-index="198" x="-8.6312" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >me</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="201" element-index="55" id="note-52" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="202" element-index="56" id="note-53" x="6.7" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Tristropha" transform="translate(27.90592998007104,0)" >
+<text source-index="204" x="-6.4856" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >rum</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="208" element-index="57" id="note-54" x="2.5" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="209" element-index="58" id="note-55" x="10.625" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="210" element-index="59" id="note-56" x="18.75" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(58.061271297131086,0)" >
+<text source-index="213" x="0.21039999999999992" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >e</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="215" element-index="60" id="note-57" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="216" element-index="61" id="note-58" x="6.7" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(72.35003776402255,0)" >
+<rect x="0" y="-31.25" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="219" element-index="62" id="note-59" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="220" element-index="63" id="note-60" x="6.7" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Climacus" transform="translate(84.09442099746826,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="221" element-index="64" id="note-61" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="16.875" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="223" element-index="65" id="note-62" x="9.825" y="-25" >
+</use>
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="224" element-index="66" id="note-63" x="13.158333333333333" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(106.11371241441591,0)" >
+<text source-index="226" x="-8.2712" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >jus:</tspan>
+</text>
+<rect x="0" y="-25" width="0.8" height="9.055409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="231" element-index="67" id="note-64" x="2.5" y="-25" >
+</use>
+<rect x="4.2" y="-25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="232" element-index="68" id="note-65" x="6.7" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement FullBar" transform="translate(122.20533873954705,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="236" element-index="69" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(129.8969650646782,0)" >
+<text source-index="239" x="0.21039999999999992" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >et</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="242" element-index="70" id="note-66" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="243" element-index="71" id="note-67" x="6.7" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(153.2105650646782,0)" >
+<text source-index="246" x="-7.0184" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >vo</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="249" element-index="72" id="note-68" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(166.7609650646782,0)" >
+<text source-index="251" x="-9.1208" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >cá</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="254" element-index="73" id="note-69" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="255" element-index="74" id="note-70" x="6.7" y="-43.75" >
+</use>
+<rect x="8.399999999999999" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="256" element-index="75" id="note-71" x="10.899999999999999" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(186.86679402451196,0)" >
+<text source-index="258" x="-9.884" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >bi</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="261" element-index="76" id="note-72" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Tristropha" transform="translate(200.27319402451198,0)" >
+<text source-index="263" x="-7.5512" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >tur</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="267" element-index="77" id="note-73" x="2.5" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="268" element-index="78" id="note-74" x="10.625" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="269" element-index="79" id="note-75" x="18.75" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(230.42853534157203,0)" >
+<text source-index="272" x="-8.803999999999998" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >no</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="275" element-index="80" id="note-76" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Tristropha" transform="translate(243.48933534157203,0)" >
+<text source-index="277" x="-8.6312" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >men</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="281" element-index="81" id="note-77" x="2.5" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="282" element-index="82" id="note-78" x="10.625" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="283" element-index="83" id="note-79" x="18.75" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(273.6446766586321,0)" >
+<text source-index="286" x="0.21039999999999992" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >e</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="288" element-index="84" id="note-80" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="289" element-index="85" id="note-81" x="6.7" y="-37.5" >
+</use>
+<rect x="8.399999999999999" y="-37.5" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="290" element-index="86" id="note-82" x="10.899999999999999" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Climacus" transform="translate(289.5890598920778,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="291" element-index="87" id="note-83" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="16.875" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="293" element-index="88" id="note-84" x="9.825" y="-25" >
+</use>
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="294" element-index="89" id="note-85" x="13.158333333333333" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(311.60835130902547,0)" >
+<text source-index="296" x="-8.2712" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >jus,</tspan>
+</text>
+<rect x="0" y="-25" width="0.8" height="9.055409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="301" element-index="90" id="note-86" x="2.5" y="-25" >
+</use>
+<rect x="4.2" y="-25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="302" element-index="91" id="note-87" x="6.7" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement HalfBar" transform="translate(331.8283513090255,0)" >
+<rect x="0" y="-37.5" width="0.8" height="25" fill="#000" class="dividerLine" source-index="306" element-index="92" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(343.64835130902543,0)" >
+<text source-index="309" x="-10.589599999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ma</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="312" element-index="93" id="note-88" x="2.5" y="-31.250000000000004" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="313" element-index="94" id="note-89" x="5" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(366.2707513090254,0)" >
+<text source-index="315" x="-15.874399999999998" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >gni</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="319" element-index="95" id="note-90" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(386.0995513090254,0)" >
+<text source-index="322" x="-8.9912" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >con</tspan>
+</text>
+<use xlink:href="#BeginningAscLiquescent" class=" note" source-index="326" element-index="96" id="note-91" x="2.5" y="-12.5" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#TerminatingAscLiquescent" class=" note" source-index="327" element-index="97" id="note-92" x="5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(405.6259513090254,0)" >
+<text source-index="330" x="-5.7224" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >sí</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="333" element-index="98" id="note-93" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Distropha" transform="translate(419.52195130902544,0)" >
+<text source-index="335" x="-9.164" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >li</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="338" element-index="99" id="note-94" x="2.5" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="339" element-index="100" id="note-95" x="10.625" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(435.19133454247117,0)" >
+<rect x="0" y="-31.25" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="340" element-index="101" id="note-96" x="2.5" y="-31.249999999999996" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="341" element-index="102" id="note-97" x="6.7" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(450.7522926260855,0)" >
+<text source-index="343" x="-0.8552" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >i</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="345" element-index="103" id="note-98" x="2.5" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(464.95277305792035,0)" >
+<text source-index="348" x="-2.2951999999999995" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >An</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="351" element-index="104" id="note-99" x="2.5" y="-18.75" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="352" element-index="105" id="note-100" x="6.7" y="-31.249999999999996" >
+</use>
+<rect x="8.399999999999999" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="353" element-index="106" id="note-101" x="10.899999999999999" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(478.35277305792033,0)" >
+<use xlink:href="#Quilisma" class=" note" source-index="355" element-index="107" id="note-102" x="2.5" y="-25" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="357" element-index="108" id="note-103" x="5" y="-31.25" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(492.0391730579203,0)" >
+<text source-index="359" x="-5.4344" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ge</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="362" element-index="109" id="note-104" x="2.5" y="-12.5" >
+</use>
+<rect x="4.2" y="-18.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="363" element-index="110" id="note-105" x="6.7" y="-18.75" >
+</use>
+<rect x="8.399999999999999" y="-18.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="364" element-index="111" id="note-106" x="10.899999999999999" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(511.9488000000001,0)" >
+<text source-index="366" x="-9.3368" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >lus.</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="371" element-index="112" id="note-107" x="2.5" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(536.7470000000001,0)" >
+<text source-index="374" x="-2.2822000000000084" y="13.012000000000008" class="directive lyric" text-anchor="start" style="fill: #d00;" >
+<tspan source-index="0" style="" >Ps.</tspan>
+</text>
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="378" element-index="113" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="378" element-index="113" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(562.7952,0)" >
+<text source-index="382" x="-6.356" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >Can</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="386" element-index="114" id="note-108" x="2.5" y="-12.5" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="387" element-index="115" id="note-109" x="6.7" y="-31.249999999999996" >
+</use>
+<rect x="8.399999999999999" y="-31.25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="388" element-index="116" id="note-110" x="10.899999999999999" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(585,0)" >
+<text source-index="390" x="-6.0824" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >tá</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="393" element-index="117" id="note-111" x="2.5" y="-31.250000000000004" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="394" element-index="118" id="note-112" x="5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Custos" transform="translate(597.8125,0)" >
+<use xlink:href="#CustosShort" class="" x="0" y="-37.5" >
+</use>
+</g>
+</g>
+<g class="chantLine" transform="translate(0,231.68)" element-index="2" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-31.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(11.188645627130501,0)" >
+<text source-index="396" x="-6.312799999999999" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >te</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="399" element-index="119" id="note-113" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(27.4318456271305,0)" >
+<text source-index="402" x="-6.4712" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >Dó</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="405" element-index="120" id="note-114" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(43.4590456271305,0)" >
+<text source-index="407" x="-9.6968" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >mi</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="410" element-index="121" id="note-115" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(58.118245627130506,0)" >
+<text source-index="412" x="-8.803999999999998" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >no</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="415" element-index="122" id="note-116" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(76.6510456271305,0)" >
+<text source-index="418" x="-9.1208" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >cán</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="422" element-index="123" id="note-117" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-50" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="423" element-index="124" id="note-118" x="5" y="-50" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(97.9630456271305,0)" >
+<text source-index="425" x="-7.378399999999999" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ti</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="428" element-index="125" id="note-119" x="2.5" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(114.4078456271305,0)" >
+<text source-index="430" x="-10.5896" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >cum</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="434" element-index="126" id="note-120" x="2.5" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(143.06384562713052,0)" >
+<text source-index="437" x="-8.803999999999998" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >no</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-43.75" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="440" element-index="127" id="note-121" x="2.5" y="-43.75" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="441" element-index="128" id="note-122" x="6.7" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(161.09264562713054,0)" >
+<text source-index="443" x="-8.6168" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >vum:</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="448" element-index="129" id="note-123" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-43.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="449" element-index="130" id="note-124" x="5" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement FullBar" transform="translate(189.67424562713055,0)" >
+<text source-index="452" x="-2.8687999999999905" y="13.317409090909095" class="directive lyric" text-anchor="start" style="fill: #d00;" >
+<tspan source-index="0" style="" >*</tspan>
+</text>
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="454" element-index="131" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(214.05584562713057,0)" >
+<text source-index="457" x="-12.835999999999999" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >qui</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<rect x="0" y="-37.5" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="461" element-index="132" id="note-125" x="2.5" y="-37.5" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="462" element-index="133" id="note-126" x="6.7" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(229.44449125426104,0)" >
+<text source-index="464" x="-1.7480000000000002" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="466" element-index="134" id="note-127" x="2.5" y="-31.250000000000004" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="467" element-index="135" id="note-128" x="5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(250.87169125426107,0)" >
+<text source-index="470" x="-9.6968" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >mi</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="473" element-index="136" id="note-129" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(263.9324912542611,0)" >
+<text source-index="475" x="-7.2056000000000004" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ra</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="478" element-index="137" id="note-130" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(279.4412912542611,0)" >
+<text source-index="480" x="-8.7608" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >bí</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="483" element-index="138" id="note-131" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(284.4412912542611,0)" >
+<use xlink:href="#Quilisma" class=" note" source-index="485" element-index="139" id="note-132" x="2.5" y="-43.75" >
+</use>
+<rect x="4.2" y="-50" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="487" element-index="140" id="note-133" x="5" y="-50" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(298.31969125426104,0)" >
+<text source-index="489" x="-9.164" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >li</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="492" element-index="141" id="note-134" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(310.97498482985395,0)" >
+<text source-index="494" x="-1.7480000000000002" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="496" element-index="142" id="note-135" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Tristropha" transform="translate(327.6069848298539,0)" >
+<text source-index="499" x="-4.9016" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >fe</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="502" element-index="143" id="note-136" x="2.5" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="503" element-index="144" id="note-137" x="10.625" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="504" element-index="145" id="note-138" x="18.75" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(355.0456304569844,0)" >
+<text source-index="506" x="-10.416799999999999" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >cit.</tspan>
+</text>
+<rect x="0" y="-18.75" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="511" element-index="146" id="note-139" x="2.5" y="-18.75" >
+</use>
+<rect x="4.2" y="-18.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="512" element-index="147" id="note-140" x="6.7" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(376.14783045698437,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="516" element-index="148" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="516" element-index="148" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(394.30003045698436,0)" >
+<text source-index="520" x="-16.3784" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >Gló</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="524" element-index="149" id="note-141" x="2.5" y="-12.5" >
+</use>
+<rect x="4.2" y="-31.25" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="525" element-index="150" id="note-142" x="6.7" y="-31.249999999999996" >
+</use>
+<rect x="8.399999999999999" y="-31.25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="526" element-index="151" id="note-143" x="10.899999999999999" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(413.8886760841149,0)" >
+<text source-index="528" x="-6.312799999999999" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ri</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<use xlink:href="#PodatusLower" class=" note" source-index="531" element-index="152" id="note-144" x="2.5" y="-31.250000000000004" >
+</use>
+<rect x="4.2" y="-37.5" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="532" element-index="153" id="note-145" x="5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(426.5439696597078,0)" >
+<text source-index="534" x="-1.7480000000000002" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="536" element-index="154" id="note-146" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(445.50876965970775,0)" >
+<text source-index="539" x="-7.234400000000001" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >Pa</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="542" element-index="155" id="note-147" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(465.09276965970776,0)" >
+<text source-index="544" x="-12.835999999999999" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >tri.</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="549" element-index="156" id="note-148" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(476.28141528683824,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="553" element-index="157" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="553" element-index="157" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(488.7200609139687,0)" >
+<text source-index="557" x="-0.33679999999999977" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >E</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="559" element-index="158" id="note-149" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(502.38416479195143,0)" >
+<text source-index="562" x="-1.028" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >u</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="564" element-index="159" id="note-150" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(507.38416479195143,0)" >
+<use xlink:href="#Quilisma" class=" note" source-index="566" element-index="160" id="note-151" x="2.5" y="-43.75" >
+</use>
+<rect x="4.2" y="-50" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="568" element-index="161" id="note-152" x="5" y="-50" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(521.0482686699341,0)" >
+<text source-index="571" x="0.5704" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >o</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="573" element-index="162" id="note-153" x="2.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(534.7123725479169,0)" >
+<text source-index="576" x="-1.028" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >u</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="578" element-index="163" id="note-154" x="2.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Tristropha" transform="translate(548.4472504948867,0)" >
+<text source-index="581" x="-1.7480000000000002" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="583" element-index="164" id="note-155" x="2.5" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="584" element-index="165" id="note-156" x="10.625" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="585" element-index="166" id="note-157" x="18.75" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(578.3613543728694,0)" >
+<text source-index="588" x="0.21039999999999992" y="13.317409090909095" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >e.</tspan>
+</text>
+<rect x="0" y="-18.75" width="0.8" height="15.305409090909091" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="591" element-index="167" id="note-158" x="2.5" y="-18.75" >
+</use>
+<rect x="4.2" y="-18.75" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="592" element-index="168" id="note-159" x="6.7" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(593.75,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="596" element-index="169" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="596" element-index="169" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>

@@ -1,0 +1,32 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 600, 77.09) [matrix=1,0,0,1,0,0]
+beginPath()
+moveTo(0, -43.75)
+lineTo(600, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -31.25)
+lineTo(600, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -18.75)
+lineTo(600, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -6.25)
+lineTo(600, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fillRect(0, -25, 0.8, 9.756761363636363) [fillStyle="#000" matrix=1,0,0,1,14.0625,58.75]
+fill(Path2D(Porrectus1[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,-341.25]
+fill(Path2D(PodatusUpperShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,32.959,33.75]
+fillText("a", -1.1230000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.062500000000004,58.75]
+fillRect(0, -31.25, 0.8, 16.006761363636365) [fillStyle="#000" matrix=1,0,0,1,43.8965,58.75]
+fill(Path2D(Porrectus2[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,47.0215,-441.25]
+fillRect(22.7839375, -31.25, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,43.8965,58.75]
+fill(Path2D(PodatusUpper[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,67.48043750000001,27.500000000000004]
+fillText("b", -1.3894000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,43.8965,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,81.54293750000001,40]
+fillText("c", -1.6558000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,78.41793750000001,58.75]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,92.48043750000001,58.75]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,92.48043750000001,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]

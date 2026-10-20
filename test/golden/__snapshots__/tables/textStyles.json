@@ -1,0 +1,128 @@
+{
+ "css": "svg.Exsurge .supertitle{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:12px;font-kerning:normal}",
+ "style": "<style>svg.Exsurge .supertitle{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:12px;font-kerning:normal}</style>",
+ "styleTree": {
+  "name": "style",
+  "props": {},
+  "children": [
+   "svg.Exsurge .supertitle{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, serif;font-size:12px;font-kerning:normal}"
+  ]
+ },
+ "textStyles": {
+  "supertitle": {
+   "size": 18.666666666666668,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000"
+  },
+  "title": {
+   "size": 24,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000"
+  },
+  "subtitle": {
+   "size": 16,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000"
+  },
+  "leftRight": {
+   "size": 14.4,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000"
+  },
+  "annotation": {
+   "size": 10.666666666666666,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000",
+   "padding": 1
+  },
+  "dropCap": {
+   "size": 64,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000",
+   "padding": 1
+  },
+  "al": {
+   "size": 16,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000",
+   "prefix": "<i>"
+  },
+  "choralSign": {
+   "size": 9.375,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000"
+  },
+  "lyric": {
+   "size": 14.4,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000"
+  },
+  "translation": {
+   "size": 12,
+   "font": "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
+   "color": "#000",
+   "prefix": "<i>"
+  }
+ },
+ "textTypes": {
+  "supertitle": {
+   "display": "Supertitle",
+   "key": "supertitle",
+   "cssClass": "supertitle",
+   "defaultSize": 14
+  },
+  "title": {
+   "display": "Title",
+   "key": "title",
+   "cssClass": "title",
+   "defaultSize": 18
+  },
+  "subtitle": {
+   "display": "Subtitle",
+   "key": "subtitle",
+   "cssClass": "subtitle",
+   "defaultSize": 12
+  },
+  "leftRight": {
+   "display": "Left / Right Text",
+   "key": "leftRight",
+   "cssClass": "textLeftRight",
+   "defaultSize": 10.8
+  },
+  "annotation": {
+   "display": "Annotation",
+   "key": "annotation",
+   "cssClass": "annotation",
+   "defaultSize": 8
+  },
+  "dropCap": {
+   "display": "Drop Cap",
+   "key": "dropCap",
+   "cssClass": "dropCap",
+   "defaultSize": 48
+  },
+  "al": {
+   "display": "Above Staff",
+   "key": "al",
+   "cssClass": "aboveLinesText",
+   "defaultSize": 12
+  },
+  "choralSign": {
+   "display": "Choral Sign",
+   "key": "choralSign",
+   "cssClass": "choralSign"
+  },
+  "lyric": {
+   "display": "Lyric",
+   "key": "lyric",
+   "cssClass": "lyric",
+   "defaultSize": 10.8
+  },
+  "translation": {
+   "display": "Translation",
+   "key": "translation",
+   "cssClass": "translation",
+   "defaultSize": 9
+  }
+ }
+}
