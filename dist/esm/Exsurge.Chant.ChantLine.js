@@ -1554,14 +1554,16 @@ export class ChantLine extends ChantLayoutElement {
                 // if the next end brace is on the first note following the line break, simply use it with the custos
                 // Do the same if there is only an accidental between
                 // otherwise, make a new end brace to work for this one, and a new start brace for the next line.
+                // (An explicit custos can end the score, in which case there is no next notation.)
                 var nextNotation = notations[lastIndex];
-                var nextNote = nextNotation.notes && nextNotation.notes[0];
+                var nextNote = nextNotation && nextNotation.notes && nextNotation.notes[0];
                 var nextNotationButOne = notations[lastIndex + 1];
                 var nextNoteButOne = nextNotationButOne &&
                     nextNotationButOne.notes &&
                     nextNotationButOne.notes[0];
                 var braceEnd = (nextNote && nextNote.braceEnd) ||
-                    (nextNotation.isAccidental &&
+                    (nextNotation &&
+                        nextNotation.isAccidental &&
                         nextNoteButOne &&
                         nextNoteButOne.braceEnd);
                 if (braceEnd) {

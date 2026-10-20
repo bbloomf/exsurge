@@ -477,6 +477,15 @@ export declare class ChantContext {
      */
     measureCanvasText(font: string, text: string): TextMetrics;
     /**
+     * measures a text element in the DOM, with TextMeasuringStrategy.Svg
+     * @returns the text's advance width, and its bounding box, with the baseline
+     * at y = 0
+     */
+    measureSvgText(node: SVGTextElement): {
+        advanceWidth: number;
+        bbox: TextBBox;
+    };
+    /**
      * lays out text with a fontkit font, in font units
      * @param {import('fontkit').Font} font
      * @param {string} text
@@ -764,7 +773,9 @@ export declare class TextElement extends ChantLayoutElement {
     needsLayout?: boolean;
     svgNode?: SvgElementWithSource;
     elementIndex?: number;
-    constructor(ctxt: ChantContext, text: string, fontFamily: (ctxt: ChantContext) => string, fontSize: (ctxt: ChantContext) => number, textAnchor: string, sourceIndex?: number, sourceGabc?: string);
+    constructor(ctxt: ChantContext, text: string, fontFamily: (ctxt: ChantContext) => string, fontSize: (ctxt: ChantContext) => number, textAnchor: string, sourceIndex?: number, sourceGabc?: string, 
+    /** set before the text is measured, since its css class can style it */
+    textType?: TextTypes[keyof TextTypes]);
     /**
      * The matching element in score (see TextType.getFromScore()).  For title
      * text, score needs titles.
@@ -809,6 +820,11 @@ export declare class TextElement extends ChantLayoutElement {
     draw(ctxt: ChantContext): void;
     getSvgProps(): SvgAttributes;
     getSpanOptions(span: TextSpan, ctxt: ChantContext, useStyleObject?: boolean): SvgAttributes;
+    /**
+     * a text element of text in span's style, styled as createSvgNode() styles
+     * this one, but starting at the origin, for TextMeasuringStrategy.Svg
+     */
+    createSvgNodeToMeasure(ctxt: ChantContext, span: TextSpan, text: string): SVGTextElement;
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext): string;
@@ -921,7 +937,7 @@ export declare class DropCap extends TextElement {
 export declare class TitleTextElement extends TextElement {
     /** the space after the text */
     padding: (ctxt: ChantContext) => number;
-    constructor(ctxt: ChantContext, text: string, fontFamily: (ctxt: ChantContext) => string, fontSize: (ctxt: ChantContext) => number, textAnchor: string, sourceIndex?: number, sourceGabc?: string);
+    constructor(ctxt: ChantContext, text: string, fontFamily: (ctxt: ChantContext) => string, fontSize: (ctxt: ChantContext) => number, textAnchor: string, sourceIndex?: number, sourceGabc?: string, textType?: TextTypes[keyof TextTypes]);
 }
 export declare class Supertitle extends TitleTextElement {
     constructor(ctxt: ChantContext, text: string, sourceIndex?: number);

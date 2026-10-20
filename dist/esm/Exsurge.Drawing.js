@@ -230,7 +230,7 @@ export const GlyphCode = {
 export const QuickSvg = {
     // namespaces
     ns: "http://www.w3.org/2000/svg",
-    xmlns: "https://www.w3.org/2000/xmlns/",
+    xmlns: "http://www.w3.org/2000/xmlns/",
     xlink: "http://www.w3.org/1999/xlink",
     hasDOMAccess: function () {
         return canAccessDOM;
@@ -325,7 +325,7 @@ export const QuickSvg = {
                 var val = attributes[attr];
                 var match = attr.match(/^([^:]+):([^:]+)$/);
                 if (match) {
-                    node.setAttributeNS(this[match[1]], match[2], val);
+                    node.setAttributeNS(this[match[1]], attr, val);
                 }
                 else {
                     node.setAttribute(attr, val);
@@ -367,8 +367,12 @@ export const QuickSvg = {
             }
         };
         convertKeysToCamelCase(props);
-        if (props.style)
+        if (props.style && typeof props.style === "object") {
+            // camelCase a copy, since the style object may not be the caller's to
+            // change (TextElement passes ctxt.baseTextStyle)
+            props.style = Object.assign({}, props.style);
             convertKeysToCamelCase(props.style);
+        }
         let source = props.source;
         if (source && source.sourceGabc) {
             props["source-gabc"] = source.sourceGabc;
@@ -518,6 +522,9 @@ export class ChantContext {
         if (textMeasuringStrategy === TextMeasuringStrategy.Svg) {
             this.svgTextMeasurer = QuickSvg.svg(0, 0);
             this.svgTextMeasurer.setAttribute("id", "TextMeasurer");
+            // the classes of the svg that the score is drawn in, which the text
+            // styles (see createStyleCss()) are for
+            this.svgTextMeasurer.setAttribute("class", "Exsurge ChantScore");
             this.svgTextMeasurer.setAttribute("style", "position:absolute");
             document.body.insertBefore(this.svgTextMeasurer, document.body.firstChild);
         }
@@ -696,6 +703,21 @@ export class ChantContext {
             metrics = this.cacheTextMetrics(cache, key, canvasCtxt.measureText(text));
         }
         return metrics;
+    }
+    /**
+     * measures a text element in the DOM, with TextMeasuringStrategy.Svg
+     * @returns the text's advance width, and its bounding box, with the baseline
+     * at y = 0
+     */
+    measureSvgText(node) {
+        const measurer = this.svgTextMeasurer;
+        // (after the text that recalculateMetrics() leaves in the measurer, which
+        // Lyric.recalculateMetrics() goes on to measure)
+        measurer.appendChild(node);
+        const { x, y, width, height } = node.getBBox();
+        const advanceWidth = node.getComputedTextLength();
+        measurer.removeChild(node);
+        return { advanceWidth, bbox: { x, y, width, height } };
     }
     /**
      * lays out text with a fontkit font, in font units
@@ -1642,7 +1664,9 @@ var __subsForTspans = {
 };
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
-    constructor(ctxt, text, fontFamily, fontSize, textAnchor, sourceIndex, sourceGabc) {
+    constructor(ctxt, text, fontFamily, fontSize, textAnchor, sourceIndex, sourceGabc, 
+    /** set before the text is measured, since its css class can style it */
+    textType) {
         super();
         // set these to some sane values for now...
         this.bounds.x = 0;
@@ -1657,6 +1681,8 @@ export class TextElement extends ChantLayoutElement {
         this.sourceIndex = sourceIndex;
         this.sourceGabc = sourceGabc;
         this.dominantBaseline = "baseline"; // default placement
+        if (textType)
+            this.textType = textType;
         this.generateSpansFromText(ctxt, text);
         this.recalculateMetrics(ctxt);
     }
@@ -1958,6 +1984,15 @@ export class TextElement extends ChantLayoutElement {
                     if (this instanceof DropCap) {
                         width -= subBbox.minX * multiplier;
                     }
+                }
+            }
+            else if (strategy === TextMeasuringStrategy.Svg) {
+                const measured = ctxt.measureSvgText(this.createSvgNodeToMeasure(ctxt, span, myText));
+                const subBbox = measured.bbox;
+                bbox.union(new Rect(width + subBbox.x, fontSize * (numLines - 1) + subBbox.y, subBbox.width, subBbox.height));
+                width += measured.advanceWidth;
+                if (this instanceof DropCap) {
+                    width -= Math.min(0, subBbox.x);
                 }
             }
             subStringLength += myText.length;
@@ -2271,6 +2306,25 @@ export class TextElement extends ChantLayoutElement {
         // }
         return options;
     }
+    /**
+     * a text element of text in span's style, styled as createSvgNode() styles
+     * this one, but starting at the origin, for TextMeasuringStrategy.Svg
+     */
+    createSvgNodeToMeasure(ctxt, span, text) {
+        const properties = span.mergedProperties;
+        const extraStyleProperties = this.getExtraStyleProperties(ctxt);
+        let textClass = this.getCssClasses().trim();
+        if (extraStyleProperties.class)
+            textClass = extraStyleProperties.class + " " + textClass;
+        const spanNode = QuickSvg.createNode("tspan", {
+            class: properties.class,
+            style: getCssForProperties(properties),
+            "font-size": this.resize
+                ? properties["font-size"] || this.fontSize(ctxt) * this.resize
+                : undefined
+        }, text);
+        return QuickSvg.createNode("text", { class: textClass, style: getCssForProperties(extraStyleProperties) }, spanNode);
+    }
     createSvgNode(ctxt) {
         var spans = [];
         for (var i = 0; i < this.spans.length; i++) {
@@ -2385,8 +2439,7 @@ export const LyricArray = {
 };
 export class Lyric extends TextElement {
     constructor(ctxt, text, lyricType, notation, notations, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.lyric.prefix || "") + text, (ctxt) => ctxt.textStyles.lyric.font, (ctxt) => ctxt.textStyles.lyric.size, "start", sourceIndex, text);
-        this.textType = TextTypes.lyric;
+        super(ctxt, (ctxt.textStyles.lyric.prefix || "") + text, (ctxt) => ctxt.textStyles.lyric.font, (ctxt) => ctxt.textStyles.lyric.size, "start", sourceIndex, text, TextTypes.lyric);
         // save the original text in case we need to later use the lyric
         // in a dropcap...
         this.originalText = text;
@@ -2412,6 +2465,10 @@ export class Lyric extends TextElement {
         this.language = null;
         if (this.allowsConnector())
             this.connectorSpan = new TextSpan(ctxt.syllableConnector);
+        // TextElement measured the lyric before it knew it was a directive, which
+        // has a css class of its own and is centered differently
+        if (this.lyricType === LyricType.Directive)
+            this.recalculateMetrics(ctxt);
     }
     allowsConnector() {
         return (this.lyricType === LyricType.BeginningSyllable ||
@@ -2603,10 +2660,9 @@ export class Lyric extends TextElement {
 }
 export class ChoralSign extends TextElement {
     constructor(ctxt, text, note, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.choralSign.prefix || "") + text, (ctxt) => ctxt.textStyles.choralSign.font, TextTypes.choralSign.size, "start", sourceIndex, text);
+        super(ctxt, (ctxt.textStyles.choralSign.prefix || "") + text, (ctxt) => ctxt.textStyles.choralSign.font, TextTypes.choralSign.size, "start", sourceIndex, text, TextTypes.choralSign);
         this.positionHint = MarkingPositionHint.Default;
         this.note = note;
-        this.textType = TextTypes.choralSign;
     }
     recalculateMetrics(ctxt) {
         super.recalculateMetrics(ctxt);
@@ -2634,10 +2690,9 @@ export class ChoralSign extends TextElement {
 }
 export class AboveLinesText extends TextElement {
     constructor(ctxt, text, notation, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.al.prefix || "") + text, (ctxt) => ctxt.textStyles.al.font, (ctxt) => ctxt.textStyles.al.size, "start", sourceIndex, text);
+        super(ctxt, (ctxt.textStyles.al.prefix || "") + text, (ctxt) => ctxt.textStyles.al.font, (ctxt) => ctxt.textStyles.al.size, "start", sourceIndex, text, TextTypes.al);
         // (text above a note gets moved to its neume, see Gabc.createNeumesFromNotes)
         this.notation = notation;
-        this.textType = TextTypes.al;
         this.padding = ctxt.staffInterval / 2;
     }
 }
@@ -2652,52 +2707,48 @@ export class TranslationText extends TextElement {
         else {
             text = (ctxt.textStyles.translation.prefix || "") + text;
         }
-        super(ctxt, text, (ctxt) => ctxt.textStyles.translation.font, (ctxt) => ctxt.textStyles.translation.size, anchor, sourceIndex, gabcSource);
+        super(ctxt, text, (ctxt) => ctxt.textStyles.translation.font, (ctxt) => ctxt.textStyles.translation.size, anchor, sourceIndex, gabcSource, TextTypes.translation);
         this.notation = notation;
-        this.textType = TextTypes.translation;
         this.padding = ctxt.staffInterval / 2;
     }
 }
 export class DropCap extends TextElement {
     constructor(ctxt, text, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.dropCap.prefix || "") + text, (ctxt) => ctxt.textStyles.dropCap.font, (ctxt) => ctxt.textStyles.dropCap.size, "middle", sourceIndex, text);
-        this.textType = TextTypes.dropCap;
+        super(ctxt, (ctxt.textStyles.dropCap.prefix || "") + text, (ctxt) => ctxt.textStyles.dropCap.font, (ctxt) => ctxt.textStyles.dropCap.size, "middle", sourceIndex, text, TextTypes.dropCap);
         this.padding = ctxt.staffInterval * ctxt.textStyles.dropCap.padding;
     }
 }
 export class TitleTextElement extends TextElement {
-    constructor(ctxt, text, fontFamily, fontSize, textAnchor, sourceIndex, sourceGabc) {
-        super(ctxt, text, fontFamily, fontSize, textAnchor, sourceIndex, sourceGabc);
+    constructor(ctxt, text, fontFamily, fontSize, textAnchor, sourceIndex, sourceGabc, textType) {
+        super(ctxt, text, fontFamily, fontSize, textAnchor, sourceIndex, sourceGabc, textType);
     }
 }
 export class Supertitle extends TitleTextElement {
     constructor(ctxt, text, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.supertitle.prefix || "") + text, (ctxt) => ctxt.textStyles.supertitle.font, (ctxt) => ctxt.textStyles.supertitle.size, "middle", sourceIndex, text);
-        this.textType = TextTypes.supertitle;
+        super(ctxt, (ctxt.textStyles.supertitle.prefix || "") + text, (ctxt) => ctxt.textStyles.supertitle.font, (ctxt) => ctxt.textStyles.supertitle.size, "middle", sourceIndex, text, TextTypes.supertitle);
         this.padding = (ctxt) => ((Number(ctxt.textStyles.supertitle.padding) || 1) * ctxt.textStyles.supertitle.size / 3);
     }
 }
 export class Title extends TitleTextElement {
     constructor(ctxt, text, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.title.prefix || "") + text, (ctxt) => ctxt.textStyles.title.font, (ctxt) => ctxt.textStyles.title.size, "middle", sourceIndex, text);
-        this.textType = TextTypes.title;
+        super(ctxt, (ctxt.textStyles.title.prefix || "") + text, (ctxt) => ctxt.textStyles.title.font, (ctxt) => ctxt.textStyles.title.size, "middle", sourceIndex, text, TextTypes.title);
         this.padding = (ctxt) => ((Number(ctxt.textStyles.title.padding) || 1) * ctxt.textStyles.title.size / 3);
     }
 }
 export class Subtitle extends TitleTextElement {
     constructor(ctxt, text, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.subtitle.prefix || "") + text, (ctxt) => ctxt.textStyles.subtitle.font, (ctxt) => ctxt.textStyles.subtitle.size, "middle", sourceIndex, text);
-        this.textType = TextTypes.subtitle;
+        super(ctxt, (ctxt.textStyles.subtitle.prefix || "") + text, (ctxt) => ctxt.textStyles.subtitle.font, (ctxt) => ctxt.textStyles.subtitle.size, "middle", sourceIndex, text, TextTypes.subtitle);
         this.padding = (ctxt) => ((Number(ctxt.textStyles.subtitle.padding) || 1) * ctxt.textStyles.subtitle.size / 3);
     }
 }
 export class TextLeftRight extends TitleTextElement {
     constructor(ctxt, text, type, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.leftRight.prefix || "") + text, (ctxt) => ctxt.textStyles.leftRight.font, (ctxt) => ctxt.textStyles.leftRight.size, type === "textLeft" ? "start" : "end", sourceIndex, text);
-        this.textType = TextTypes.leftRight;
+        super(ctxt, (ctxt.textStyles.leftRight.prefix || "") + text, (ctxt) => ctxt.textStyles.leftRight.font, (ctxt) => ctxt.textStyles.leftRight.size, type === "textLeft" ? "start" : "end", sourceIndex, text, TextTypes.leftRight);
         this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
         this.headerKey = type === "textLeft" ? "text-left" : "text-right";
         this.padding = (ctxt) => ((Number(ctxt.textStyles.leftRight.padding) || 1) * ctxt.textStyles.leftRight.size / 5);
+        // measured again, since TextElement measured it before it had extraClass
+        this.recalculateMetrics(ctxt);
     }
     getCssClasses() {
         return this.extraClass + " " + super.getCssClasses();
@@ -2705,11 +2756,9 @@ export class TextLeftRight extends TitleTextElement {
 }
 export class Annotation extends TextElement {
     constructor(ctxt, text, elementIndex) {
-        super(ctxt, (ctxt.textStyles.annotation.prefix || "") + text, (ctxt) => ctxt.textStyles.annotation.font, (ctxt) => ctxt.textStyles.annotation.size, "middle");
-        this.sourceGabc = text;
+        super(ctxt, (ctxt.textStyles.annotation.prefix || "") + text, (ctxt) => ctxt.textStyles.annotation.font, (ctxt) => ctxt.textStyles.annotation.size, "middle", undefined, text, TextTypes.annotation);
         if (typeof elementIndex === 'number')
             this.elementIndex = elementIndex;
-        this.textType = TextTypes.annotation;
         this.padding = ctxt.staffInterval * ctxt.textStyles.annotation.padding;
         this.dominantBaseline = "hanging"; // so that annotations can be aligned at the top.
     }
