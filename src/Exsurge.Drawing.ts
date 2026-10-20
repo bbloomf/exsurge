@@ -652,7 +652,12 @@ export const QuickSvg = {
       }
     };
     convertKeysToCamelCase(props);
-    if (props.style) convertKeysToCamelCase(props.style);
+    if (props.style && typeof props.style === "object") {
+      // camelCase a copy, since the style object may not be the caller's to
+      // change (TextElement passes ctxt.baseTextStyle)
+      props.style = Object.assign({}, props.style);
+      convertKeysToCamelCase(props.style);
+    }
     let source = props.source;
     if (source && source.sourceGabc) {
       props["source-gabc"] = source.sourceGabc;
