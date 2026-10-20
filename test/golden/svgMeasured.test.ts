@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // What the source draws with text measured from svg elements in the DOM
-// (TextMeasuringStrategy.Svg), with getBBox() and getSubStringLength()
-// stubbed, since jsdom has neither.
+// (TextMeasuringStrategy.Svg), with getBBox(), getComputedTextLength() and
+// getSubStringLength() stubbed, since jsdom has none of them.
 
 import { afterAll, beforeAll, vi } from "vitest";
 import { svgMeasuredCases } from "./cases";

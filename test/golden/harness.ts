@@ -294,6 +294,11 @@ function measureSvgText(text: Element) {
   return { x: left, y: top, width: right - left, height: bottom - top };
 }
 
+// the advance of all of a text element's text
+function measureSvgTextLength(text: Element) {
+  return svgTextRuns(text).reduce((width, run) => width + run.advance(run.text), 0);
+}
+
 // the advance of nchars characters of a text element, from charnum
 function measureSvgSubString(text: Element, charnum: number, nchars: number) {
   const runs = svgTextRuns(text);
@@ -311,21 +316,26 @@ function measureSvgSubString(text: Element, charnum: number, nchars: number) {
 }
 
 /**
- * Gives svg elements the getBBox() and getSubStringLength() that jsdom
- * doesn't have, for TextMeasuringStrategy.Svg, measuring text in the fake
- * canvas fonts at the font that its styles give it.  Returns a function that
- * takes them away again.
+ * Gives svg elements the getBBox(), getComputedTextLength() and
+ * getSubStringLength() that jsdom doesn't have, for
+ * TextMeasuringStrategy.Svg, measuring text in the fake canvas fonts at the
+ * font that its styles give it.  Returns a function that takes them away
+ * again.
  */
 export function stubSvgTextMeasurement() {
   const prototype = (globalThis as any).SVGElement.prototype;
   prototype.getBBox = function (this: Element) {
     return measureSvgText(this);
   };
+  prototype.getComputedTextLength = function (this: Element) {
+    return measureSvgTextLength(this);
+  };
   prototype.getSubStringLength = function (this: Element, charnum: number, nchars: number) {
     return measureSvgSubString(this, charnum, nchars);
   };
   return () => {
     delete prototype.getBBox;
+    delete prototype.getComputedTextLength;
     delete prototype.getSubStringLength;
   };
 }

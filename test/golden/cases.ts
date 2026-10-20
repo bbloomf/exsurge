@@ -620,8 +620,8 @@ export const settingCases: GoldenCase[] = [
 
 /**
  * Cases that measure text with TextMeasuringStrategy.Svg, which needs a DOM
- * with getBBox() and getSubStringLength(), so these are rendered only by the
- * tests that stub those (see stubSvgTextMeasurement() in harness.ts).
+ * that can measure text, so these are rendered only by the tests that stub
+ * that (see stubSvgTextMeasurement() in harness.ts).
  */
 export const svgMeasuredCases: GoldenCase[] = [
   { name: "svg-measured", outputs: allOutputs, gabc: adTeLevavi, useDropCap: true, strategy: "svg" },
