@@ -605,8 +605,7 @@ export const QuickSvg = {
         if (match) {
           node.setAttributeNS(
             (this as unknown as { [prefix: string]: string })[match[1]],
-            // a namespace declaration such as xmlns:xlink keeps its prefix
-            match[1] === "xmlns" ? attr : match[2],
+            attr,
             val
           );
         } else {
