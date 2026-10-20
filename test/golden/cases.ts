@@ -138,6 +138,10 @@ export const featureCases: GoldenCase[] = [
       "(c4) Ky(f[ob:1{]g)ri(h)e(g) e(f)lé(g)i(h)son(g) Ky(f)ri(e)e(d) e(f)lé(g)i(h[ob:0}])son(g) (::) " +
       "Chri(f[ocb:1{]g)ste(h) e(g)lé(f)i(e)son(f[ocb:0}]) (::)"
   },
+  {
+    name: "brace-open-at-final-custos",
+    gabc: "(c4) a(g[ob:1{]h+)"
+  },
 
   // ---- accidentals and clefs
   {
