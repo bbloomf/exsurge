@@ -909,6 +909,7 @@ export class ChantLine extends ChantLayoutElement {
     // make a copy for this line to use at the beginning
     this.startingClef = ctxt.activeClef.clone();
     this.startingClef.performLayout(ctxt);
+    if (ctxt.clefVisibility !== "visible") this.startingClef.hide(ctxt);
     this.startingClef.bounds.x = this.staffLeft;
 
     var curr: ChantNotationElement = this.startingClef;

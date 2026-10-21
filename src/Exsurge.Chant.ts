@@ -329,6 +329,13 @@ export class Clef extends ChantNotationElement {
     super.finishLayout(ctxt);
   }
 
+  // takes the glyphs away after a layout, for ctxt.clefVisibility: an
+  // invisible clef has no width, and a phantom one keeps its width
+  hide(ctxt: ChantContext) {
+    this.visualizers = [];
+    if (ctxt.clefVisibility === "invisible") this.bounds.width = 0;
+  }
+
   // adds the glyphs of the second clef, placed as Gregorio places them
   // (gre@boxclef in gregoriotex-signs.tex): clefs two or more lines apart
   // start at the same x, and clefs on the same or neighboring lines go one

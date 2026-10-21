@@ -792,6 +792,9 @@ export type TextTypeStyles = {
 
 export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
 
+/** whether the clefs at the start of lines are drawn (see ChantContext.clefVisibility) */
+export type ClefVisibility = "visible" | "invisible" | "phantom";
+
 /** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
 export type MakeDef = (() => void) & {
   /** the def as an svg tree */
@@ -908,6 +911,14 @@ export class ChantContext {
   staffLineColor: string;
   dividerLineColor: string;
   negativeFillColor: string;
+
+  /**
+   * whether the clef at the start of each line is drawn, as with Gregorio's
+   * \gresetclef: "invisible" leaves it out, and "phantom" leaves its space
+   * empty.  A change of clef within a line is drawn either way.  Defaults to
+   * "visible".
+   */
+  clefVisibility: ClefVisibility;
 
   defaultLanguage: Language;
 
@@ -1094,6 +1105,8 @@ export class ChantContext {
     // page theme needs to set this rather than style the paths from a
     // stylesheet.
     this.negativeFillColor = "#fff";
+
+    this.clefVisibility = "visible";
 
     this.defaultLanguage = language.latin;
 
