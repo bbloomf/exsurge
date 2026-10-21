@@ -52,6 +52,16 @@ const salveRegina =
   "Ad(j) te(ji) cla(h)má(gh)mus,(g.) (,) éx(e)su(f)les,(g) fí(h)li(i)i(j) He(j)vae.(i.) (:) " +
   "Ad(i) te(h) su(ixh)spi(g)rá(f)mus,(e.) (,) ge(f)mén(g)tes(h) et(i) flen(j)tes(k) in(j) hac(i) la(h)cri(g)má(f)rum(e) val(f)le.(e.) (::)";
 
+// headers for Gabc.applyHeader()
+const headerSettings =
+  "name: Ave Maria;\noffice-part: Antiphona;\nannotation: Ant.;\nannotation: VIII\nG;;\n" +
+  "staff-lines: 5;\nlanguage: English;\n%%\n" +
+  "(c4) A(f)ve(gh) Ma(h)ri(g)a,(f.) (;) gra(hj)ti(i)a(h) ple(gh)na(g.) (::)";
+
+const headerModeAnnotation =
+  "name: Ave Maria;\nmode: 8;\nmode-modifier: t.;\nmode-differentia: G*;\n%%\n" +
+  "(c4) A(f)ve(gh) Ma(h)ri(g)a,(f.) (;) gra(hj)ti(i)a(h) ple(gh)na(g.) (::)";
+
 export const featureCases: GoldenCase[] = [
   // ---- notes and neumes
   {
@@ -437,6 +447,23 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c1@c4) A(d)B(j) (c3) C(h) (f3@c4) D(h) (c2@c3) E(h) (cb4@cb2) F(h) (z) " +
       "G(g) (c4@fb2) H(h) (c1@fb3) I(h) (::)"
+  },
+  {
+    // the annotation (the second written over two lines), the staff lines
+    // and the language, from the header
+    name: "header-settings",
+    outputs: allOutputs,
+    useDropCap: true,
+    gabc: headerSettings,
+    setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerSettings))
+  },
+  {
+    // with no annotation header, the mode is the annotation
+    name: "header-mode-annotation",
+    outputs: allOutputs,
+    useDropCap: true,
+    gabc: headerModeAnnotation,
+    setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerModeAnnotation))
   }
 ];
 

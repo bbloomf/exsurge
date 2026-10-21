@@ -41,8 +41,11 @@ import {
   ChoralSign,
   TranslationText,
   DefaultTrailingSpace,
-  GlyphCode
+  GlyphCode,
+  Annotation,
+  Annotations
 } from "./Exsurge.Drawing.js";
+import { language as languages, type Language } from "./Exsurge.Text.js";
 import {
   Note,
   LiquescentType,
@@ -379,6 +382,63 @@ var maskGabc = (gabc: string) =>
 // whether a gabc word is only spaces and comments
 var isEmptyWord = (word: string) => maskGabc(word).replace(__commentMaskRegex, "").trim() === "";
 
+/**
+ * Which headers Gabc.applyHeader() applies.  Each is applied unless it is
+ * set to false, except the legacy ones, which are only applied if legacy is
+ * set to true.
+ */
+export interface ApplyHeaderOptions {
+  /** annotation, as the score's annotation */
+  annotation?: boolean;
+  /**
+   * mode, mode-modifier and mode-differentia, as the score's annotation, if
+   * the header has no annotation
+   */
+  mode?: boolean;
+  /** staff-lines, as the score's staffLineCount */
+  staffLines?: boolean;
+  /** language, as ctxt.defaultLanguage */
+  language?: boolean;
+  /**
+   * the headers that Gregorio no longer reads: initial-style, as the score's
+   * useDropCap, and centering-scheme, as ctxt.defaultLanguage
+   */
+  legacy?: boolean;
+}
+
+// the languages of the language header, by their names and their ISO 639
+// codes, in lower case
+const __languagesByName: { [name: string]: Language } = {
+  latin: languages.latin,
+  la: languages.latin,
+  lat: languages.latin,
+  english: languages.english,
+  en: languages.english,
+  eng: languages.english,
+  spanish: languages.spanish,
+  "español": languages.spanish,
+  es: languages.spanish,
+  spa: languages.spanish
+};
+
+// the languages of the old centering-scheme header, which said how to center
+// the lyrics: on the vowel (latine) or on the whole syllable (english)
+const __languagesByCenteringScheme: { [scheme: string]: Language } = {
+  latine: languages.latin,
+  english: languages.english
+};
+
+const __romanModeNumbers = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"];
+
+// text that starts with punctuation: ASCII's, as Lua's %p has it, and that
+// of Latin-1 and of Unicode's general punctuation
+const __punctuationRegex = /^[!-/:-@[-`{-~\u00a1-\u00bf\u2010-\u205e]/;
+
+// a header value as one line of text: Gregorio's values go into TeX, which
+// reads the line ends of a multi-line value as spaces
+const headerText = (value: string | undefined) =>
+  (value || "").replace(/\s+/g, " ").trim();
+
 var elementCountForNotations = (items: ChantNotationElement[]) =>
   items.reduce((sum, item) => sum + (item.notes ? item.notes.length : 1), 0);
 
@@ -545,6 +605,100 @@ export class Gabc {
     // (a voice that was skipped with || has an empty string)
     for (let p of parts) for (let v = 0; v < p.nabc.length; v++) p.nabc[v] = p.nabc[v] || "";
     return { gabc, cuts, parts: parts.filter((p) => p.nabc.length > 0) };
+  }
+
+  /**
+   * Applies the settings in a gabc header to a score, as Gregorio does.
+   * exsurge doesn't otherwise read them, so call this after making the score
+   * and before laying it out.
+   *
+   * - annotation: the first two, one line each, as the score's annotation.
+   * - mode, mode-modifier and mode-differentia, if there is no annotation
+   *   header: one line, as the score's annotation (see modeText()).
+   * - staff-lines: 2 to 5, as the score's staffLineCount.
+   * - language: Latin, English or Spanish, by name or ISO 639 code, as
+   *   ctxt.defaultLanguage.  A language that exsurge doesn't have leaves it
+   *   as it is.
+   * - with options.legacy, the headers that Gregorio no longer reads:
+   *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
+   *   useDropCap, and centering-scheme (latine or english) as
+   *   ctxt.defaultLanguage, in place of the language header.
+   *
+   * A score that already has an annotation keeps it, and gets no mode line,
+   * as in Gregorio, where an annotation set in TeX wins over the header.
+   */
+  static applyHeader(
+    score: ChantScore,
+    ctxt: ChantContext,
+    header: GabcHeader,
+    options: ApplyHeaderOptions = {}
+  ) {
+    var annotations = (header.annotationArray || [header.annotation])
+      .map(headerText)
+      .filter((text) => text)
+      .slice(0, 2);
+    if (!score.annotation) {
+      if (annotations.length) {
+        if (options.annotation !== false)
+          score.annotation =
+            annotations.length === 1
+              ? new Annotation(ctxt, annotations[0])
+              : new Annotations(ctxt, ...annotations);
+      } else if (options.mode !== false) {
+        var mode = this.modeText(
+          ctxt,
+          headerText(header.mode),
+          headerText(header["mode-modifier"]),
+          headerText(header["mode-differentia"])
+        );
+        if (mode) score.annotation = new Annotation(ctxt, mode);
+      }
+    }
+
+    var staffLineCount = parseInt(headerText(header["staff-lines"]), 10);
+    if (options.staffLines !== false && staffLineCount >= 2 && staffLineCount <= 5)
+      score.staffLineCount = staffLineCount;
+
+    var language = __languagesByName[headerText(header.language).toLowerCase()];
+    if (options.language !== false && language) ctxt.defaultLanguage = language;
+
+    if (options.legacy) {
+      var centeringLanguage =
+        __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()];
+      if (centeringLanguage) ctxt.defaultLanguage = centeringLanguage;
+
+      var initialStyle = headerText(header["initial-style"]);
+      if (/^[012]$/.test(initialStyle)) {
+        score.useDropCap = initialStyle !== "0";
+        score.recreateDropCap(ctxt);
+      }
+    }
+  }
+
+  /**
+   * The mode line that Gregorio writes above the initial when there is no
+   * annotation (\GreMode): the mode, then the modifier and the differentia,
+   * each after a space unless it starts with punctuation.  A mode that
+   * starts with a number from 1 to 8 has it written in ctxt.modeNumberSystem
+   * ("8" is VIII, "4A" is IVA); any other mode is written as it is.  With no
+   * mode, the modifier and differentia aren't written either.
+   */
+  static modeText(ctxt: ChantContext, mode: string, modifier = "", differentia = "") {
+    if (!mode) return "";
+    var number = /^[1-8]/.test(mode) ? parseInt(mode[0], 10) : 0;
+    if (number) {
+      var roman = __romanModeNumbers[number - 1];
+      mode =
+        (ctxt.modeNumberSystem === "arabic"
+          ? mode[0]
+          : ctxt.modeNumberSystem === "roman-minuscule"
+          ? roman
+          : roman.toUpperCase()) + mode.slice(1);
+    }
+    for (var part of [modifier, differentia]) {
+      if (part) mode += (__punctuationRegex.test(part) ? "" : " ") + part;
+    }
+    return mode;
   }
 
   // A simple general purpose diff algorithm adapted here for comparing

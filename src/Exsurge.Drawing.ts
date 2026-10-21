@@ -795,6 +795,9 @@ export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
 /** whether the clefs at the start of lines are drawn (see ChantContext.clefVisibility) */
 export type ClefVisibility = "visible" | "invisible" | "phantom";
 
+/** how the number of a mode is written (see ChantContext.modeNumberSystem) */
+export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
+
 /** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
 export type MakeDef = (() => void) & {
   /** the def as an svg tree */
@@ -919,6 +922,13 @@ export class ChantContext {
    * "visible".
    */
   clefVisibility: ClefVisibility;
+
+  /**
+   * how Gabc.applyHeader() writes the number of the mode header (1 to 8), as
+   * with Gregorio's \gresetmodenumbersystem: "roman-majuscule" (VIII), the
+   * default, "roman-minuscule" (viii) or "arabic" (8)
+   */
+  modeNumberSystem: ModeNumberSystem;
 
   defaultLanguage: Language;
 
@@ -1107,6 +1117,7 @@ export class ChantContext {
     this.negativeFillColor = "#fff";
 
     this.clefVisibility = "visible";
+    this.modeNumberSystem = "roman-majuscule";
 
     this.defaultLanguage = language.latin;
 
