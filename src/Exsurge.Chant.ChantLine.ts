@@ -105,6 +105,12 @@ export class ChantLine extends ChantLayoutElement {
   /** a copy of the clef in effect at the start of the line */
   startingClef: Clef;
   custos: Custos | null;
+  /**
+   * the line break that ends the line when a clef comes just before it: the
+   * clef goes at the start of the next line instead, and the line break is
+   * left out of both lines
+   */
+  clefLineBreak: ChantLineBreak | null;
   justify: boolean | undefined;
   ledgerLines: LedgerLine[];
   braces: Array<RoundBraceVisualizer | CurlyBraceVisualizer>;
@@ -155,6 +161,7 @@ export class ChantLine extends ChantLayoutElement {
 
     this.startingClef = null as unknown as Clef; // necessary for the layout process
     this.custos = null;
+    this.clefLineBreak = null;
 
     this.justify = true;
 
@@ -818,6 +825,7 @@ export class ChantLine extends ChantLayoutElement {
     var condensableSpaces = [] as unknown as CondensableSpaces;
     this.notationsStartIndex = newElementStart;
     this.numNotationsOnLine = 0;
+    this.clefLineBreak = null;
 
     this.staffLeft = 0;
     this.paddingLeft = 0;
@@ -888,6 +896,13 @@ export class ChantLine extends ChantLayoutElement {
       ctxt.activeClef = notations[newElementStart] as Clef;
       newElementStart++;
       this.notationsStartIndex++;
+
+      // a line break just after the clef has already ended the line before
+      // (see clefLineBreak)
+      if (width > 0 && notations[newElementStart] && notations[newElementStart].constructor === ChantLineBreak) {
+        newElementStart++;
+        this.notationsStartIndex++;
+      }
     }
 
     // make a copy for this line to use at the beginning
@@ -929,6 +944,25 @@ export class ChantLine extends ChantLayoutElement {
       }
 
       curr = notations[i];
+
+      // as in Gregorio, a clef just before a line break only goes at the start
+      // of the next line, and the custos at the end of this line is worked out
+      // from the clef that is in effect on it
+      if (
+        width > 0 &&
+        curr.isClef &&
+        this.numNotationsOnLine > 0 &&
+        i + 1 < lastNotationIndex &&
+        notations[i + 1].constructor === ChantLineBreak
+      ) {
+        this.clefLineBreak = notations[i + 1] as ChantLineBreak;
+        this.justify =
+          this.clefLineBreak.justify ||
+          this.extraTextOnlyIndex !== null ||
+          this.getWhitespaceOnRight(ctxt) < 0;
+        if (this.justify) this.findNeumesToJustify(prevLyrics);
+        break;
+      }
 
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !this.isSoftAccidentalVisible(i));
@@ -1694,7 +1728,7 @@ export class ChantLine extends ChantLayoutElement {
   wantsEolCustos(ctxt: ChantContext) {
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine - 1;
-    var last = notations[lastIndex];
+    var last = this.clefLineBreak || notations[lastIndex];
     if (last && last.constructor === ChantLineBreak) {
       if ((last as ChantLineBreak).custos === "force") return true;
       if ((last as ChantLineBreak).custos === "none") return false;

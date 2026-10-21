@@ -404,6 +404,13 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(f/g) b(f//g) c(f g) d(f!g) e(f!/g) f(f!//g) g(f///g) h(fg/hg) i(f/) j(g//) k(h ) l(f!/g!//h!i) m(f/ g) " +
       "n(fg//hi) o(f/0g) p(f/!g) q(f/[2]g) r(f! g) (::)"
+  },
+  {
+    // each clef goes only at the start of the line after the break
+    name: "clef-change-before-break",
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (c3) (z) e(g)lé(f)i(e)son.(f) (::c4) (Z) Chri(f)ste(g) e(h)lé(i)i(h)son.(g) " +
+      "(z0) (;) (f3) (z+) Ky(f)ri(g)e(h) (cb3) (z-) e(g)lé(f)i(e)son.(f) (::)"
   }
 ];
 
