@@ -380,6 +380,13 @@ export const DefaultTrailingSpace: TrailingSpaceFunction = (ctxt: ChantContext) 
   ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier;
 DefaultTrailingSpace.isDefault = true;
 
+/**
+ * the gabc for a space between neumes: half a space within the neume ("/0"),
+ * a small space within the neume ("/!"), a small space ("/"), a medium space
+ * ("//") or a large space (" ")
+ */
+export type NeumeSpaceCode = "/0" | "/!" | "/" | "//" | " ";
+
 export const GlyphCode = {
   None: "None",
 
@@ -928,6 +935,15 @@ export class ChantContext {
 
   interVerbalMultiplier: number;
 
+  /**
+   * the width of each space between neumes that the gabc gives, in multiples
+   * of this.intraNeumeSpacing.  /[n] is n times "/", and three or more
+   * slashes are "//" and then "/" for each slash after the second.  The
+   * defaults make a large space (" ") the same as "//"; Gregorio's own widths
+   * are about { "/0": 0.5, "/!": 1, "/": 1, "//": 1.58, " ": 3.16 }.
+   */
+  neumeSpaceMultipliers: { [code in NeumeSpaceCode]: number };
+
   drawGuides: boolean;
   drawDebuggingBounds: boolean;
 
@@ -1127,6 +1143,9 @@ export class ChantContext {
 
     // space added between puncta of different words, in multiples of this.intraNeumeSpacing
     this.interVerbalMultiplier = 1;
+
+    // the width of each space between neumes, in multiples of this.intraNeumeSpacing
+    this.neumeSpaceMultipliers = { "/0": 0.5, "/!": 1, "/": 1, "//": 2, " ": 2 };
 
     this.drawGuides = false;
     this.drawDebuggingBounds = true;

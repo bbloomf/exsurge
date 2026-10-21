@@ -58,6 +58,12 @@ import type {
 const isHiddenAccidental = (notation: ChantNotationElement) =>
   notation.isAccidental && (notation as Accidental).hidden && !notation.hasLyrics();
 
+// a notation whose own trailing space is negative (gabc /[-1]) moves the next one back
+const hasBackspace = (ctxt: ChantContext, notation: ChantNotationElement) =>
+  (typeof notation.trailingSpace === "function"
+    ? notation.trailingSpace(ctxt)
+    : notation.trailingSpace) < 0;
+
 /** a ledger line on a chant line */
 export interface LedgerLine {
   x1: number;
@@ -2179,7 +2185,9 @@ export class ChantLine extends ChantLayoutElement {
 
     if (
       (curr.constructor === TextOnly && this.extraTextOnlyIndex === null) ||
-      (!curr.hasLyrics() && prev.calculatedTrailingSpace < 0)
+      (!curr.hasLyrics() &&
+        prev.calculatedTrailingSpace < 0 &&
+        !hasBackspace(ctxt, prev))
     ) {
       // We transfer over the trailing space from the previous neume if the current neume is text only,
       // so that the text only neume has a better chance at not needing a connector.
@@ -2219,7 +2227,10 @@ export class ChantLine extends ChantLayoutElement {
       space.total = space.condensable = 0;
     } else {
       space.total = curr.bounds.x - prev.bounds.right();
-      space.condensable = space.total * ctxt.condensingTolerance;
+      // (a backspace can't be condensed)
+      space.condensable = hasBackspace(ctxt, prev)
+        ? 0
+        : space.total * ctxt.condensingTolerance;
     }
 
     // if the previous notation has no lyrics, then we simply make sure the

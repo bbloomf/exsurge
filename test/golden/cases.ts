@@ -382,6 +382,28 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) Ky(f)ri(g)e(h) (z) e(g)lé(f)i(e)son.(f) (z+) Chri(f)ste(g) (Z) e(h)lé(i)i(h)son.(g) (Z+) " +
       "Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) Chri(f)ste(g) e(h)lé(i)i(h)son.(g) (::)"
+  },
+  {
+    name: "gregorio-spacing-codes",
+    gabc:
+      "(c4) a(f/0g) b(f/!g) c(f/g) d(f/[2]g) e(f/[0.5]g) f(f/[-1]g) g(f!/[2]g) h(f! g) i(f g) j(f//g) k(f///g) " +
+      "l(gh/[-2]ih) m(f!/0g!/!h) (::)"
+  },
+  {
+    // the line can only break before the hg that the /0, /! and "! " spaces keep together
+    name: "gregorio-spacing-codes-unbreakable",
+    width: 120,
+    gabc: "(c4) Ky(f)ri(gf/hg/fe/fg/hg/0hi/!hg! hg/!fe/0fg)e(f) e(gh/gf/ef/gh/ih/gf)lé(f)i(e)son.(f) (::)"
+  },
+  {
+    name: "neume-spacing-gregorio-widths",
+    setupContext: (ctxt: any) => {
+      ctxt.neumeSpaceMultipliers = { "/0": 0.5, "/!": 1, "/": 1, "//": 1.58, " ": 3.16 };
+    },
+    // neume-spacing's gabc, and the codes it doesn't have
+    gabc:
+      "(c4) a(f/g) b(f//g) c(f g) d(f!g) e(f!/g) f(f!//g) g(f///g) h(fg/hg) i(f/) j(g//) k(h ) l(f!/g!//h!i) m(f/ g) " +
+      "n(fg//hi) o(f/0g) p(f/!g) q(f/[2]g) r(f! g) (::)"
   }
 ];
 

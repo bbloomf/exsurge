@@ -70,6 +70,7 @@ import type {
   ChantContext,
   ChantNotationElement,
   LyricProtrusion,
+  NeumeSpaceCode,
   TrailingSpace,
   TrailingSpaceFunction
 } from "./Exsurge.Drawing.js";
@@ -132,7 +133,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\[nocustos\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -153,6 +154,9 @@ const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
 const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * multiplier;
+// a space between neumes, from ctxt.neumeSpaceMultipliers, times factor
+const NeumeSpace = (code: NeumeSpaceCode, factor = 1) => (ctxt: ChantContext) =>
+  ctxt.intraNeumeSpacing * ctxt.neumeSpaceMultipliers[code] * factor;
 
 // the line that ends the header: two or more %s, as Gregorio allows, and the
 // blank lines after it, which Gregorio also takes
@@ -1491,6 +1495,27 @@ export class Gabc {
         notes[notes.length - 1].sourceGabc += gabc;
       }
     };
+    // ends the neume before a space (/0, /!, /, //, /[n] or a space), which
+    // the line can break at only if it is breakable
+    var addSpace = (atom: string, space: TrailingSpaceFunction, breakable: boolean) => {
+      let prevNotation = notations[notations.length - 1];
+      if (
+        !notes.length &&
+        data[match!.index - 1] === "!" &&
+        prevNotation &&
+        prevNotation.isNeume
+      ) {
+        // a space after a ! can't be broken: the neume before it
+        // already keeps with the next one, so it only needs the width
+        prevNotation.trailingSpace = space;
+      }
+      let endsNeume = notes.length > 0;
+      trailingSpace = space;
+      addToLastSourceGabc(atom);
+      addNotation(null);
+      if (endsNeume && !breakable)
+        notations[notations.length - 1].allowLineBreakBeforeNext = false;
+    };
     var addNotation = (notation: ChantNotationElement | null) => {
       // first, if we have any notes left over, we create a neume out of them
       if (notes.length > 0) {
@@ -1742,30 +1767,31 @@ export class Gabc {
           addNotation(null);
           break;
         case " ":
-          // fixme: is this correct? logically what is the difference in gabc
-          // between putting a space between notes vs putting '//' between notes?
-          trailingSpace = TrailingSpaceMultiple(2);
-          addToLastSourceGabc(atom);
-          addNotation(null);
+          // (by default the same width as //, see ctxt.neumeSpaceMultipliers)
+          addSpace(atom, NeumeSpace(" "), true);
+          break;
+        case "/0":
+        case "/!":
+          // spaces within a neume, which the line can't break at
+          addSpace(atom, NeumeSpace(atom), false);
           break;
 
         default:
           // might be a number of slashes, a custos, might be an accidental, or might be a note
-          if (atom[0] === "/") {
-            let prevNotation = notations[notations.length - 1];
-            if (
-              !notes.length &&
-              data[match.index - 1] === "!" &&
-              prevNotation &&
-              prevNotation.isNeume
-            ) {
-              // !/ is a space that can't be broken: the neume before it
-              // already keeps with the next one, so it only needs the width
-              prevNotation.trailingSpace = TrailingSpaceMultiple(atom.length);
-            }
-            trailingSpace = TrailingSpaceMultiple(atom.length);
-            addToLastSourceGabc(atom);
-            addNotation(null);
+          if (atom.startsWith("/[")) {
+            // /[n]: n times /, where a negative n moves the next neume back
+            let factor = parseFloat(atom.slice(2, -1));
+            addSpace(atom, NeumeSpace("/", factor), factor > 0);
+          } else if (atom[0] === "/") {
+            // (/// and more: // and then / for each further slash)
+            let slashes = atom.length;
+            addSpace(
+              atom,
+              slashes === 1
+                ? NeumeSpace("/")
+                : (ctxt) => NeumeSpace("//")(ctxt) + NeumeSpace("/", slashes - 2)(ctxt),
+              true
+            );
           } else if (atom.length > 1 && atom.endsWith("+")) {
             // custos
             var custos = new Signs.Custos();
