@@ -490,6 +490,19 @@ export const featureCases: GoldenCase[] = [
       ctxt.firstSyllableStyle = { "font-weight": "bold" };
       ctxt.firstSyllableInitialStyle = { fill: "#d00" };
     }
+  },
+  {
+    // ő and ű are vowels, which the Latin rules don't know
+    name: "language-hungarian",
+    gabc: "(c4) Üd(f)vöz(g)légy,(h) sző(g)lő(f) fű(g) nyűg(h) Ö(g)rök(f)ké(g) (::)",
+    setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.hungarian)
+  },
+  {
+    // the Czech and Polish that Gregorio's Church Slavonic rules are for, with
+    // syllables centered on a syllabic l or r, which have no vowel
+    name: "language-church-slavonic",
+    gabc: "(c4) Hos(f)po(g)di(h)ne,(g) po(f)mi(g)luj(h) ny.(g) (;) Smrt(f) vlk(g) Świę(h)ty(g) Bůh(f) (::)",
+    setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.churchSlavonic)
   }
 ];
 

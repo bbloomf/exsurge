@@ -28,7 +28,7 @@ import {
   Rect
 } from "./Exsurge.Core.js";
 import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
-import { language, type IgnoredRange, type Language } from "./Exsurge.Text.js";
+import { language, type IgnoredRange, type Language, type VowelSegment } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
@@ -944,6 +944,15 @@ export class ChantContext {
 
   defaultLanguage: Language;
   /**
+   * What each lyric is centered under its notation on, as Gregorio's
+   * \gresetlyriccentering: "vowel" (the default) centers it on its vowel
+   * segment, found by its language's rules (see defaultLanguage); "syllable"
+   * on the whole syllable; and "firstletter" on its first letter (after any
+   * drop cap).  Centering marked in the gabc with braces (e.g. "f{i}re")
+   * wins over each of these.
+   */
+  lyricCentering: "vowel" | "syllable" | "firstletter";
+  /**
    * Whether a syllable that ends in italics (e.g. "ri<i>a</i>") elides into
    * the next one, as a syllable that ends in an elision ("ri<e>a</e>") does.
    * Defaults to true.
@@ -1156,6 +1165,7 @@ export class ChantContext {
     this.modeNumberSystem = "roman-majuscule";
 
     this.defaultLanguage = language.latin;
+    this.lyricCentering = "vowel";
     this.italicMeansElision = true;
     this.lyricTie = "space";
     this.firstWordStyle = {};
@@ -4063,7 +4073,13 @@ export class Lyric extends TextElement {
           endIndex: range.endIndex - startIndex
         }));
         // Non-directive elements are lined up to the chant notation based on vowel segments,
-        var result = activeLanguage.findVowelSegment(this.text, startIndex, ignore);
+        // or (as ctxt.lyricCentering says) on the whole syllable or its first letter
+        var result: VowelSegment =
+          ctxt.lyricCentering === "syllable"
+            ? { found: true, startIndex: 0, length: this.text.length }
+            : ctxt.lyricCentering === "firstletter"
+            ? { found: true, startIndex: 0, length: Array.from(this.text)[0].length }
+            : activeLanguage.findVowelSegment(this.text, startIndex, ignore);
 
         if (result.found !== true) {
           // with no vowel, center on the syllable's letters, elisions and all

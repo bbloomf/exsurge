@@ -3,6 +3,7 @@ import assert from "node:assert";
 import * as Chant from "../src/Exsurge.Chant.js";
 import * as Drawing from "../src/Exsurge.Drawing.js";
 import { Gabc } from "../src/Exsurge.Gabc.js";
+import * as Text from "../src/Exsurge.Text.js";
 import { fakeFont } from "./helpers/fonts";
 
 function lyricsOf(gabc: string, setupContext?: (ctxt: Drawing.ChantContext) => void) {
@@ -109,5 +110,76 @@ describe('First word styles', function() {
     ctxt.firstSyllableStyle = {};
     score.updateNotations(ctxt);
     assert.deepEqual(spans(), [['In:'], ['ex:']]);
+  });
+});
+
+describe('Vowel rules', function() {
+  // the example vowel file in Gregorio's documentation (doc/Gabc.tex)
+  var vowelFile = `
+    # a comment; with a semicolon
+    alias [english] to [en];
+    alias [English] to [en];
+    alias [eng] to [english];
+
+    language [en];
+
+    vowel aàáAÀÁ;
+    vowel eèéëEÈÉË;
+    vowel iìíIÌÍ;
+    vowel oòóOÒÓ;
+    vowel uùúUÙÚ;
+    vowel yỳýYỲÝ;
+    vowel æǽÆǼ;
+    vowel œŒ;
+
+    prefix qu Qu qU QU;
+    prefix y Y;
+
+    suffix w W;
+    suffix we We wE WE;
+
+    secondary w W;
+  `;
+  var segment = (lang: Text.Language, s: string, ignore?: Text.IgnoredRange[]) => {
+    var result = lang.findVowelSegment(s, 0, ignore);
+    return result.found ? s.substr(result.startIndex, result.length) : null;
+  };
+
+  it('reads the languages of a Gregorio vowel file by their names and aliases', function() {
+    var languages = Text.VowelRulesLanguage.fromVowelFile(vowelFile);
+    assert.deepEqual(Object.keys(languages).sort(), ['English', 'en', 'eng', 'english']);
+    assert.strictEqual(languages.eng, languages.en);
+    var english = languages.en;
+    assert.deepEqual(
+      ['queen', 'quick', 'yes', 'rhythm', 'cow', 'cowed', 'cower', 'psst', 'pfft', 'cwm', 'Equus'].map((s) => segment(english, s)),
+      ['ee', 'i', 'e', 'y', 'ow', 'owe', 'owe', null, null, 'w', 'E']
+    );
+  });
+
+  it('counts an elision as consonants, and a vowel before one as part of a prefix', function() {
+    var english = Text.VowelRulesLanguage.fromVowelFile(vowelFile).en;
+    assert.equal(segment(english, 'tea', [{ index: 1, endIndex: 2 }]), 'a');
+    // the u of qu, before an elision, is still part of the prefix
+    assert.equal(segment(english, 'que', [{ index: 2, endIndex: 3 }]), null);
+  });
+
+  it('has the Hungarian and Church Slavonic rules of Gregorio', function() {
+    var hungarian = Text.language.hungarian;
+    assert.deepEqual(['szőlő', 'fű', 'Úr', 'gyöngy'].map((s) => segment(hungarian, s)), ['ő', 'ű', 'Ú', 'ö']);
+    var slavonic = Text.language.churchSlavonic;
+    // (m is a secondary center too)
+    assert.deepEqual(['vlk', 'krk', 'smrt', 'Bůh', 'świę', 'mlha'].map((s) => segment(slavonic, s)), ['l', 'r', 'm', 'ů', 'ię', 'a']);
+  });
+
+  it('centers a lyric on its first letter or its whole syllable, as ctxt.lyricCentering says', function() {
+    var centers = (lyricCentering: Drawing.ChantContext['lyricCentering']) =>
+      lyricsOf('(c4) Glo(f) f{i}re(g)', (ctxt) => (ctxt.lyricCentering = lyricCentering)).map(
+        // in characters, which are each 7.2 wide
+        (lyric) => Math.round((lyric.origin.x / 7.2) * 100) / 100
+      );
+    // (the braces always win)
+    assert.deepEqual(centers('vowel'), [2.5, 1.5]);
+    assert.deepEqual(centers('firstletter'), [0.5, 1.5]);
+    assert.deepEqual(centers('syllable'), [1.5, 1.5]);
   });
 });

@@ -704,8 +704,229 @@ export class Spanish extends Language {
   }
 }
 
+/** the rules of a VowelRulesLanguage, as Gregorio's vowel files give them */
+export interface VowelRules {
+  /** the characters that are vowels */
+  vowels: string;
+  /**
+   * strings ending in a vowel that aren't part of the vowel segment when a
+   * vowel follows them (e.g. "qu" in English)
+   */
+  prefixes?: string[];
+  /**
+   * strings not starting with a vowel that are part of the vowel segment
+   * when they follow one (e.g. "w" in English)
+   */
+  suffixes?: string[];
+  /**
+   * strings without vowels that a syllable with no vowels is centered on
+   * (e.g. the syllabic "l" and "r" of Czech)
+   */
+  secondary?: string[];
+}
+
+// a trie of strings, as Gregorio keeps its prefixes, suffixes and secondaries
+interface CharacterTrie {
+  next: Map<string, CharacterTrie>;
+  isFinal: boolean;
+}
+
+function makeTrie(strings: string[], backwards = false): CharacterTrie {
+  const root: CharacterTrie = { next: new Map(), isFinal: false };
+  for (const string of strings) {
+    let chars = Array.from(string);
+    if (!chars.length) continue;
+    if (backwards) chars = chars.reverse();
+    let node = root;
+    for (const char of chars) {
+      let next = node.next.get(char);
+      if (!next) node.next.set(char, (next = { next: new Map(), isFinal: false }));
+      node = next;
+    }
+    node.isFinal = true;
+  }
+  return root;
+}
+
+// stands for an elision in the text searched for a vowel segment, as
+// Gregorio's GREVOWEL_ELISION_MARK does
+const ELISION_MARK = "\ufffe";
+
+/**
+ * A language whose vowel segments are found with rules like those of
+ * Gregorio's vowel files (gregorio-vowels.dat): sets of vowels, prefixes,
+ * suffixes and secondary centers.  It can't split words into syllables.
+ * Like Gregorio, it doesn't fold case, so the rules list upper- and
+ * lower-case characters.
+ */
+export class VowelRulesLanguage extends Language {
+  vowels: Set<string>;
+  prefixes: CharacterTrie;
+  suffixes: CharacterTrie;
+  secondary: CharacterTrie;
+
+  constructor(name: string, rules: VowelRules) {
+    super(name);
+    this.vowels = new Set(Array.from(rules.vowels));
+    // prefixes are matched backwards from the vowel
+    this.prefixes = makeTrie(rules.prefixes || [], true);
+    this.suffixes = makeTrie(rules.suffixes || []);
+    this.secondary = makeTrie(rules.secondary || []);
+  }
+
+  /**
+   * Reads the languages in the text of a Gregorio vowel file, by their names
+   * and their aliases.
+   */
+  static fromVowelFile(text: string) {
+    const rules: { [name: string]: VowelRules } = {};
+    const aliases: { [alias: string]: string } = {};
+    let current: VowelRules | null = null;
+    // (comments end at the end of the line; each statement ends with a ;)
+    const statements = text.replace(/#[^\n\r]*/g, "").split(";");
+    for (const statement of statements) {
+      const match = /^\s*(\w+)([\s\S]*)$/.exec(statement);
+      if (!match) continue;
+      const [, keyword, rest] = match;
+      const names: string[] = [];
+      const nameRegex = /\[([^\]]+)\]/g;
+      let name: RegExpExecArray | null;
+      while ((name = nameRegex.exec(rest))) names.push(name[1]);
+      const strings = rest.split(/[\s,]+/).filter(Boolean);
+      if (keyword === "language" && names.length) {
+        current = rules[names[0]] = rules[names[0]] || { vowels: "", prefixes: [], suffixes: [], secondary: [] };
+      } else if (keyword === "alias" && names.length === 2) {
+        aliases[names[0]] = names[1];
+      } else if (current && keyword === "vowel") {
+        current.vowels += strings.join("");
+      } else if (current && (keyword === "prefix" || keyword === "suffix")) {
+        current[keyword === "prefix" ? "prefixes" : "suffixes"]!.push(...strings);
+      } else if (current && keyword === "secondary") {
+        current.secondary!.push(...strings);
+      }
+    }
+    const languages: { [name: string]: VowelRulesLanguage } = {};
+    for (const name of Object.keys(rules))
+      languages[name] = new VowelRulesLanguage(name, rules[name]);
+    for (let alias of Object.keys(aliases)) {
+      // (an alias can be of another alias)
+      let name = aliases[alias];
+      for (let i = 0; i < 10 && !languages[name] && aliases[name]; i++) name = aliases[name];
+      if (languages[name] && !languages[alias]) languages[alias] = languages[name];
+    }
+    return languages;
+  }
+
+  isVowel(char: string | undefined) {
+    return char !== undefined && this.vowels.has(char);
+  }
+
+  /**
+   * Finds the vowel segment as Gregorio does (gregorio_find_vowel_group in
+   * its src/vowel/vowel.c), with the text in each ignored range (an elision)
+   * counting as consonants.
+   */
+  findVowelSegment(s: string, startIndex: number, ignore: IgnoredRange[] = []): VowelSegment {
+    // the characters searched, and where each is in s
+    const chars: string[] = [];
+    const indices: number[] = [];
+    let index = startIndex;
+    for (const char of Array.from(s.slice(startIndex))) {
+      const offset = index - startIndex;
+      const range = ignore.find((range) => range.index <= offset && offset < range.endIndex);
+      if (!range) {
+        chars.push(char);
+        indices.push(index);
+      } else if (offset === range.index) {
+        chars.push(ELISION_MARK);
+        indices.push(index);
+      }
+      index += char.length;
+    }
+    indices.push(index);
+    const segment = (start: number, end: number): VowelSegment => ({
+      found: true,
+      startIndex: indices[start],
+      length: indices[end] - indices[start]
+    });
+
+    // whether the vowel at i ends one of the prefixes
+    const isInPrefix = (i: number) => {
+      let node = this.prefixes;
+      let next: CharacterTrie | undefined;
+      while (i >= 0 && (next = node.next.get(chars[i]))) {
+        node = next;
+        i--;
+      }
+      return node.isFinal;
+    };
+
+    let start = -1,
+      end = -1,
+      suffix: CharacterTrie | undefined;
+    for (let i = 0; i <= chars.length; i++) {
+      const char = chars[i];
+      if (start < 0) {
+        if (this.isVowel(char)) {
+          const following = chars[i + 1];
+          if ((!this.isVowel(following) && following !== ELISION_MARK) || !isInPrefix(i))
+            start = i;
+        }
+      } else if (!suffix) {
+        if (!this.isVowel(char)) {
+          end = i;
+          suffix = this.suffixes.next.get(char);
+          if (!suffix) return segment(start, end);
+        }
+      } else {
+        if (suffix.isFinal) end = i;
+        suffix = suffix.next.get(char);
+        if (!suffix) return segment(start, end);
+      }
+    }
+
+    // no vowel, so look for a secondary center
+    for (start = 0; start < chars.length; start++) {
+      let node: CharacterTrie | undefined = this.secondary;
+      end = -1;
+      for (let i = start; (node = node.next.get(chars[i])); i++) {
+        if (node.isFinal) end = i + 1;
+      }
+      if (end >= 0) return segment(start, end);
+    }
+
+    // no vowels sets found after startIndex!
+    return { found: false, startIndex: -1, length: -1 };
+  }
+}
+
+/**
+ * Church Slavonic, which Gregorio also uses for Polish, Czech and Slovak
+ * (from Gregorio's gregorio-vowels.dat)
+ */
+export class ChurchSlavonic extends VowelRulesLanguage {
+  constructor() {
+    super("Church Slavonic", {
+      vowels:
+        "aàáâąAÀÁÂĄeèéêëěęEÈÉÊËĚĘiìíîIÌÍÎoòóôOÒÓÔuùúûůUÙÚÛŮyỳýYỲÝæǽÆǼœŒ",
+      secondary: ["l", "L", "ĺ", "Ĺ", "r", "R", "ŕ", "Ŕ", "m", "M"]
+    });
+  }
+}
+
+/** Hungarian (from Gregorio's gregorio-vowels.dat) */
+export class Hungarian extends VowelRulesLanguage {
+  constructor() {
+    super("Hungarian", {
+      vowels: "aáAÁéeëÉEËiíIÍoóöőOÓÖŐuúüűUÚÜŰ"
+    });
+  }
+}
+
 export const language = {
   english: new English(),
   latin: new Latin(),
-  spanish: new Spanish()
+  spanish: new Spanish(),
+  churchSlavonic: new ChurchSlavonic(),
+  hungarian: new Hungarian()
 };
