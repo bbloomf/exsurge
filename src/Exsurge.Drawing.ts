@@ -976,6 +976,14 @@ export class ChantContext {
   firstWordStyle: CssProperties;
   firstSyllableStyle: CssProperties;
   firstSyllableInitialStyle: CssProperties;
+  /**
+   * Where a translation starts under its syllable, as Gregorio's
+   * \gresettranslationcentering: "left" (the default) at the left of the
+   * syllable's notation, or "center" centered under its lyric.  A
+   * translation that ends at a later syllable ([/]) is centered between the
+   * two either way.
+   */
+  translationCentering: "left" | "center";
 
   pixelRatio: number;
 
@@ -1171,6 +1179,7 @@ export class ChantContext {
     this.firstWordStyle = {};
     this.firstSyllableStyle = {};
     this.firstSyllableInitialStyle = {};
+    this.translationCentering = "left";
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio =
@@ -3067,11 +3076,12 @@ export class TextElement extends ChantLayoutElement {
           markupStack.length > 0 &&
           markupStack[markupStack.length - 1].tagName === tagName
         ) {
-          if (closingTag) {
-            // group close
-            closeCurrentSpan();
-            markupStack.pop();
-          }
+          // (a tag opened again inside itself, e.g. <i> in a translation,
+          // which is already in italics, changes nothing, but the text
+          // before it is kept)
+          closeCurrentSpan();
+          // group close
+          if (closingTag) markupStack.pop();
         } else if (markupStack.filter(filterFrames).length > 0) {
           // trying to open a recursive group (or forgot to close a previous group)
           // in either case, we just unwind to the previous stack frame

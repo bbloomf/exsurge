@@ -512,6 +512,22 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a<v>\\textit{b}</v>c(f) <v>\\hspace{1em}</v>d(g) <v>{\\bf e}</v>(h) <v>\\GreStar</v>(g) " +
       "<v>\\'e\\&\\%</v>(f) <v>\\GreDagger{}</v>(g) <v>\\greextra{StarHeight}</v>(h) (::)"
+  },
+  {
+    // above-lines text and translations are in italics already, and keep the
+    // text before (and between) any italic markup of their own
+    name: "alt-text-markup",
+    gabc:
+      "(c4) <alt><b>Bold</b> <i>it</i> plain</alt>Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (,) " +
+      "[alt:<b>B</b> and <i>i</i>]Chri[<b>Christ</b> <i>have</i> mercy](g)ste(h) (::)"
+  },
+  {
+    // translations centered under their syllables, except one ended with [/]
+    name: "translation-centered",
+    gabc:
+      "(c4) Ky[Lord](f)ri(g)e(h) e[have mercy](g)lé(f)i(e)son.[on us](f) (,) " +
+      "Chri[Christ, have mercy](f)ste(g) e(h)lé(g)i(f)son[/](e) (::)",
+    setupContext: (ctxt) => (ctxt.translationCentering = "center")
   }
 ];
 

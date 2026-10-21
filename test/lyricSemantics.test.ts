@@ -206,3 +206,33 @@ describe('Verbatim text', function() {
     assert.deepEqual(spansOf("<v>\\'e{\\'\\ae}\\&\\%\\#\\_\\$</v>"), ['é', 'ǽ', '&', '%', '#', '_', '$']);
   });
 });
+
+describe('Above-lines text and translations', function() {
+  it('keeps the text before a tag that is already open', function() {
+    var ctxt = new Drawing.ChantContext();
+    var spans = (text: string) => new Drawing.AboveLinesText(ctxt, text, null).spans.map((span) => span.text);
+    assert.deepEqual(spans('<b>Bold</b> <i>it</i> plain'), ['Bold', ' ', 'it', ' plain']);
+    assert.deepEqual(spans('a <i>b</i> c'), ['a ', 'b', ' c']);
+  });
+
+  it('centers a translation under its lyric with translationCentering "center"', function() {
+    var translations = (translationCentering: Drawing.ChantContext['translationCentering']) => {
+      var ctxt = new Drawing.ChantContext();
+      ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+      ctxt.translationCentering = translationCentering;
+      var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) Kyrie[Lord](f) a(g)'), false);
+      score.performLayout(ctxt);
+      score.layoutChantLines(ctxt, 600);
+      var notation = score.notations.find((notation) => notation.translationText)!;
+      var lyric = notation.lyrics[0], translation = notation.translationText![0];
+      return {
+        lyric: lyric.bounds.x + lyric.bounds.width / 2,
+        translation: translation.bounds.x + translation.bounds.width / 2,
+        left: translation.bounds.x
+      };
+    };
+    assert.strictEqual(translations('left').left, 0);
+    var centered = translations('center');
+    assert(Math.abs(centered.lyric - centered.translation) < 1e-9, JSON.stringify(centered));
+  });
+});

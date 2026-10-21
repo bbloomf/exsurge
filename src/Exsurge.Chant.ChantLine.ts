@@ -2048,10 +2048,11 @@ export class ChantLine extends ChantLayoutElement {
     var minY = Number.MAX_VALUE,
       maxY = Number.MIN_VALUE; // for braces
 
-    var positionNonLyricText = (text: TextElement, neume: ChantNotationElement, rightX?: number) => {
+    // (centered between leftX and rightX, when there's a rightX)
+    var positionNonLyricText = (text: TextElement, neume: ChantNotationElement, rightX?: number, leftX = 0) => {
       text.setMaxWidth(ctxt, this.staffRight);
       //text.bounds.x = neume.hasLyrics()? Math.min(...neume.lyrics.map(l => l.bounds.x)) : 0;
-      text.bounds.x = 0;
+      text.bounds.x = leftX;
       if (rightX)
         text.bounds.x = (text.bounds.x + rightX - text.bounds.width) / 2;
       var beyondStaffRight =
@@ -2095,6 +2096,14 @@ export class ChantLine extends ChantLayoutElement {
               : text.endNeume.bounds.right();
             rightX -= neume.bounds.x;
             positionNonLyricText(text, neume, rightX);
+          } else if (ctxt.translationCentering === "center") {
+            // centered under the lyric (or the notation, if it has none)
+            var lyric = neume.hasLyrics() ? neume.lyrics[0] : null;
+            var lyricLeft = lyric ? lyric.bounds.x : 0;
+            var lyricRight = lyric
+              ? lyric.bounds.x + lyric.widthWithoutConnector
+              : neume.bounds.width;
+            positionNonLyricText(text, neume, lyricRight, lyricLeft);
           } else {
             positionNonLyricText(text, neume);
           }
