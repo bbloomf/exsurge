@@ -111,7 +111,10 @@ export class Note extends ChantLayoutElement {
    * below the lowest line (gabc "c")
    */
   staffPosition: number;
-  /** a nudge up or down a third of a space (gabc 9 or 0 after a pitch) */
+  /**
+   * a nudge up or down a third of a space, under a Chi-Rho clef (gabc 9 or 0 after a pitch;
+   * a note on a space without a 9 is nudged down)
+   */
   staffPositionOffset?: number;
   liquescent: LiquescentType;
   shape: NoteShape;
@@ -454,22 +457,23 @@ export class ChiRhoClef extends Clef {
     this.sans = sans;
   }
 
-  // TODO: actually handle this correctly?
+  // the pitches of a Chi-Rho clef are chromatic: its line is Do, and each line is a
+  // minor third above the one below it. A space holds the two half steps between its
+  // lines, the lower at its bottom (gabc 0 after the space, or 9 after the line below)
+  // and the upper at its top (9 after the space, or 0 after the line above), so going
+  // from a line to the space above it is a half step and a half. The middle of a space
+  // is never used: a note on a space with neither 0 nor 9 is at its bottom.
   pitchToStaffPosition(pitch: Pitch) {
-    return (
-      (pitch.octave - this.octave) * 7 +
-      this.staffPosition +
-      Pitch.stepToStaffOffset(pitch.step) -
-      Pitch.stepToStaffOffset(Step.Do)
-    );
+    var halfSteps = (pitch.octave - this.octave) * 12 + pitch.step;
+    return this.staffPosition + (halfSteps * 2) / 3;
   }
 
-  // TODO: actually handle this correctly?
   staffPositionToPitch(staffPosition: number) {
-    var offset = staffPosition - this.staffPosition;
-    var octaveOffset = Math.floor(offset / 7);
+    // the middle of a space (where an accidental is) is rounded down to the bottom of the space
+    var halfSteps = Math.ceil(((staffPosition - this.staffPosition) * 3) / 2 - 0.5);
+    var octaveOffset = Math.floor(halfSteps / 12);
 
-    var step = Pitch.staffOffsetToStep(offset);
+    var step = halfSteps - octaveOffset * 12;
 
     if (
       this.activeAccidental &&

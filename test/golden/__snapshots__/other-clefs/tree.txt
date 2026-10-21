@@ -55,7 +55,7 @@
           <tspan source-index=0 style={} className=undefined>
             "d"
         <g className="Notations">
-          <use source-index=54 element-index=6 id="note-4" x=3.125 y=-25 source=<Note sourceIndex=54 elementIndex=6 noteIndex=3> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
+          <use source-index=54 element-index=6 id="note-4" x=3.125 y=-22.916666666666664 source=<Note sourceIndex=54 elementIndex=6 noteIndex=3> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
       <g transform="translate(206.35431250000002,0)" source=<ChiRhoClef sourceIndex=58 elementIndex=7> className="ChantNotationElement ChiRhoClef" source-gabc="xp-3">
         <g className="Notations">
           <use source-index=58 element-index=7 x=0 y=-31.25 source=<ChiRhoClef sourceIndex=58 elementIndex=7> className="" xlinkHref="#ChiRhoClefSans" source-gabc="xp-3">
@@ -73,7 +73,7 @@
           <tspan source-index=0 style={} className=undefined>
             "f"
         <g className="Notations">
-          <use source-index=77 element-index=10 id="note-6" x=3.125 y=-12.5 source=<Note sourceIndex=77 elementIndex=10 noteIndex=5> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
+          <use source-index=77 element-index=10 id="note-6" x=3.125 y=-10.416666666666668 source=<Note sourceIndex=77 elementIndex=10 noteIndex=5> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
       <g transform="translate(290.446125,0)" source=<DoubleBar sourceIndex=81 elementIndex=11> className="ChantNotationElement DoubleBar" source-gabc="::">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=81 element-index=11 source=<DoubleBar sourceIndex=81 elementIndex=11> className="dividerLine" source-gabc="::">

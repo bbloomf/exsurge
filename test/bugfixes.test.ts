@@ -171,3 +171,127 @@ describe('Braces', function() {
     assert.equal(line.braces[0].bounds.right(), line.custos.bounds.right());
   });
 });
+
+describe('Staff position offsets', function() {
+  function notesOf(mappings: Chant.ChantMapping[]) {
+    var notes: Chant.Note[] = [];
+    mappings.forEach(function(mapping) {
+      mapping.notations.forEach(function(notation) {
+        if (notation.notes) notes.push(...notation.notes);
+      });
+    });
+    return notes;
+  }
+
+  function parseNotes(gabc: string) {
+    return notesOf(Gabc.createMappingsFromSource(new Drawing.ChantContext(), gabc));
+  }
+
+  // the number of half steps from the Do of a clef's octave to a note
+  function halfStepsFromDo(note: Chant.Note) {
+    assert(Number.isInteger(note.pitch!.step) && note.pitch!.step >= 0 && note.pitch!.step < 12, note.sourceGabc);
+    return note.pitch!.toInt() - new Core.Pitch(Core.Step.Do, 2).toInt();
+  }
+
+  it('ignores 0 and 9 after a pitch under clefs other than the Chi-Rho clef', function() {
+    ['c1', 'c2', 'c3', 'c4', 'f1', 'f2', 'f3', 'f4', 'cb3', 'treble2'].forEach(function(clef) {
+      var letters = 'abcdefghijklm'.split('');
+      var notes = parseNotes('(' + clef + ') ' + letters.map(function(letter) {
+        return '(' + letter + ') (' + letter + '0) (' + letter + '9)';
+      }).join(' '));
+      assert.equal(notes.length, letters.length * 3);
+      for (var i = 0; i < notes.length; i += 3) {
+        var plain = notes[i];
+        assert.equal(typeof plain.pitch!.step, 'number', clef + ' ' + plain.sourceGabc);
+        [notes[i + 1], notes[i + 2]].forEach(function(note) {
+          var message = clef + ' ' + note.sourceGabc;
+          assert.equal(note.staffPosition, plain.staffPosition, message);
+          assert.equal(note.staffPositionOffset, 0, message);
+          assert.deepEqual(note.pitch, plain.pitch, message);
+        });
+      }
+    });
+  });
+
+  it('gives the Chi-Rho clef chromatic pitches, with each line a minor third above the one below it', function() {
+    var expected: [string, number][] = [
+      ['b', -9], ['d', -6], ['f', -3], ['f9', -2], ['g0', -2], ['g', -2], ['g9', -1], ['h0', -1],
+      ['h', 0], ['h9', 1], ['i0', 1], ['i', 1], ['i9', 2], ['j0', 2], ['j', 3], ['j9', 4],
+      ['k0', 4], ['k', 4], ['k9', 5], ['l0', 5], ['l', 6], ['m0', 7], ['m', 7], ['m9', 8]
+    ];
+    var notes = parseNotes('(xp3) ' + expected.map(function(e) { return '(' + e[0] + ')'; }).join(' '));
+    assert.deepEqual(
+      notes.map(function(note) { return [note.sourceGabc, halfStepsFromDo(note)]; }),
+      expected
+    );
+    assert.deepEqual(notes[expected.findIndex(function(e) { return e[0] === 'i0'; })].pitch, new Core.Pitch(Core.Step.Du, 2));
+    assert.deepEqual(notes[expected.findIndex(function(e) { return e[0] === 'g0'; })].pitch, new Core.Pitch(Core.Step.Te, 1));
+
+    // the middle of a space is never used: a note on a space without 0 or 9 is at its bottom
+    ['a', 'c', 'e', 'g', 'i', 'k', 'm'].forEach(function(space) {
+      var spaceNotes = parseNotes('(xp3) (' + space + ') (' + space + '0)');
+      assert.equal(spaceNotes[0].staffPositionOffset, -1 / 3, space);
+      assert.equal(spaceNotes[0].staffPosition, spaceNotes[1].staffPosition, space);
+      assert.deepEqual(spaceNotes[0].pitch, spaceNotes[1].pitch, space);
+    });
+
+    // whichever line the clef is on, that line is Do
+    ['xp1', 'xp2', 'xp3', 'xp4', 'xp-2'].forEach(function(clef) {
+      var lines = parseNotes('(' + clef + ') (d) (f) (h) (j) (l)');
+      var clefLine = Number(clef.slice(-1)) - 1;
+      lines.forEach(function(note, line) {
+        assert.equal(halfStepsFromDo(note), (line - clefLine) * 3, clef + ' ' + note.sourceGabc);
+      });
+    });
+  });
+
+  it('nudges notes again when the kind of clef changes as the mappings are updated', function() {
+    var ctxt = new Drawing.ChantContext();
+    var mappings = Gabc.createMappingsFromSource(ctxt, '(xp3) a(k0) b(f)');
+    var note = mappings[1].notations[0].notes![0];
+    assert.equal(note.staffPosition, 8 - 1 / 3);
+    assert.equal(note.pitch!.step, Core.Step.Mi);
+
+    // the note is kept, with its pitch under the new clef
+    Gabc.updateMappingsFromSource(ctxt, mappings, '(xp4) a(k0) b(f)');
+    assert.equal(mappings[1].notations[0].notes![0], note);
+    assert.equal(note.pitch!.step, Core.Step.Du);
+
+    // under a C clef, the 0 no longer nudges the note
+    Gabc.updateMappingsFromSource(ctxt, mappings, '(c4) a(k0) b(f)');
+    note = mappings[1].notations[0].notes![0];
+    assert.equal(note.staffPosition, 8);
+    assert.equal(note.sourceIndex, '(c4) a('.length);
+    assert.equal(note.pitch!.step, Core.Step.Re);
+
+    Gabc.updateMappingsFromSource(ctxt, mappings, '(xp4) a(k0) b(f)');
+    note = mappings[1].notations[0].notes![0];
+    assert.equal(note.staffPosition, 8 - 1 / 3);
+    assert.equal(note.sourceIndex, '(xp4) a('.length);
+    assert.equal(note.pitch!.step, Core.Step.Du);
+  });
+
+  ['c4', 'xp4'].forEach(function(clef) {
+    it('places an automatic custos announcing g9 at a line break, under ' + clef, function() {
+      // the custos used to get a NaN position under c4, which made the whole svg NaN high
+      var ctxt = new Drawing.ChantContext();
+      ctxt.setStaffHeight(48);
+      var gabc = '(' + clef + ') a(f)b(g)c(h)d(g)e(f)f(e)g(f)h(g9)i(g0)j(g9)k(g0)l(g9)m(g0) (::)';
+      var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
+      score.performLayout(ctxt);
+      score.layoutChantLines(ctxt, 200);
+      assert(score.lines.length > 1);
+      score.lines.slice(0, -1).forEach(function(line, i) {
+        var next = score.lines[i + 1];
+        var neume = score.notations.slice(next.notationsStartIndex).find(function(notation) {
+          return notation.isNeume;
+        })!;
+        assert(line.custos);
+        assert(Math.abs(line.custos.staffPosition - neume.notes![0].staffPosition) < 1e-9,
+          'custos at ' + line.custos.staffPosition + ' for ' + neume.notes![0].sourceGabc);
+      });
+      assert(Number.isFinite(score.bounds.height));
+      assert.doesNotMatch(score.createSvg(ctxt), /NaN/);
+    });
+  });
+});

@@ -441,6 +441,17 @@ export class Gabc {
     // always remove the last old mapping since it's spacing/trailingSpace is handled specially
     mappings.pop();
 
+    // whether each mapping was parsed under a Chi-Rho clef, the only clef under which 0
+    // and 9 nudge notes, so that a mapping that is now under another kind of clef can be
+    // parsed again (the default clef is a do clef)
+    var parsedUnderChiRho = new Map<ChantMapping, boolean>();
+    var underChiRho = false;
+    for (const oldMapping of mappings) {
+      parsedUnderChiRho.set(oldMapping, underChiRho);
+      for (const notation of oldMapping.notations)
+        if (notation.isClef) underChiRho = notation instanceof ChiRhoClef;
+    }
+
     if (insertionIndex === null) {
       insertionIndex = NaN;
     }
@@ -532,6 +543,20 @@ export class Gabc {
             }
             elementIndex += elementCount;
           }
+          if (
+            parsedUnderChiRho.get(mapping) !==
+            ctxt.activeClef instanceof ChiRhoClef
+          ) {
+            // the kind of clef has changed, and with it whether 0 and 9 nudge the notes
+            mapping = this.createMappingFromWord(
+              ctxt,
+              resultValues[j],
+              mapping.sourceIndex + sourceIndexDiff,
+              lastTranslationNeumes
+            );
+            mappings.splice(index, 1, mapping);
+            continue;
+          }
           mapping.sourceIndex += sourceIndexDiff;
           for (k = 0; k < mapping.notations.length; k++) {
             var curNotation = mapping.notations[k];
@@ -563,9 +588,7 @@ export class Gabc {
               for (l = 0; l < curNotation.notes.length; ++l) {
                 let note = curNotation.notes[l];
                 note.sourceIndex += sourceIndexDiff;
-                note.pitch = ctxt.activeClef.staffPositionToPitch(
-                  note.staffPosition - (note.staffPositionOffset || 0)
-                );
+                note.pitch = ctxt.activeClef.staffPositionToPitch(note.staffPosition);
                 if (note.braceEnd && note.braceEnd.automatic)
                   delete note.braceEnd;
                 if (this.needToEndBrace && !note.braceStart && !note.braceEnd) {
@@ -1281,7 +1304,7 @@ export class Gabc {
             // custos
             var custos = new Signs.Custos();
 
-            this.setStaffPositionAndOffset(custos, atom);
+            this.setStaffPositionAndOffset(custos, atom, ctxt.activeClef);
 
             addNotation(custos);
           } else if (atom.length > 1 && /[xXyY#]/.test(atom[1])) {
@@ -1839,8 +1862,8 @@ export class Gabc {
 
     if (data[0] === data[0].toUpperCase()) note.shape = NoteShape.Inclinatum;
 
-    this.setStaffPositionAndOffset(note, data);
-    note.pitch = clef.staffPositionToPitch(note.staffPosition - note.staffPositionOffset!);
+    this.setStaffPositionAndOffset(note, data, clef);
+    note.pitch = clef.staffPositionToPitch(note.staffPosition);
 
     var mark;
 
@@ -2300,10 +2323,18 @@ export class Gabc {
    * 
    * @param {*} note to set staffPosition and staffPositionOffset on
    * @param {*} gabcAtom gabc letter from a to m with modifiers
+   * @param {*} clef the clef the note is under: only under a Chi-Rho clef do 0 and 9 nudge it
    */
-  static setStaffPositionAndOffset(note: Note | Signs.Custos, gabcAtom: string) {
+  static setStaffPositionAndOffset(note: Note | Signs.Custos, gabcAtom: string, clef: Clef) {
     const staffPosition = this.gabcHeightToExsurgeHeight(gabcAtom[0]);
-    note.staffPositionOffset = this.getStaffPositionOffset(staffPosition, gabcAtom[1]);
+    note.staffPositionOffset = 0;
+    if (clef instanceof ChiRhoClef) {
+      let zeroOrNine = gabcAtom[1];
+      // the middle of a space is never used: a note on a space without a 9 is at the
+      // bottom of the space, as if it had a 0
+      if (staffPosition % 2 === 0 && zeroOrNine !== "9") zeroOrNine = "0";
+      note.staffPositionOffset = this.getStaffPositionOffset(staffPosition, zeroOrNine);
+    }
     note.staffPosition = staffPosition + note.staffPositionOffset;
   }
 }
