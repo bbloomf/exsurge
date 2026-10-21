@@ -285,6 +285,16 @@ export const featureCases: GoldenCase[] = [
     name: "header",
     useDropCap: true,
     gabc: "name: Kyrie;\noffice-part: Kyriale;\n%commented: yes;\n%%\n" + kyrie
+  },
+
+  // Gregorio: Phase 1
+  {
+    // the tags aren't printed, and </eu> and </nlba> after the notes don't join two words
+    name: "gregorio-lyric-controls",
+    gabc:
+      "(c4) Gló(ehg)ri(hi)a(i) Pa(i)tri.(i) (:) <eu>E(i) u(i!jwk) o(i) u(h) a(hhh) e</eu>(fe..) (::) " +
+      "<eu>E(i) u(i) o(i) u(h) a(hhh) e(fe..)</eu> (::) <nlba>Ky(f)ri(g)e.(h)</nlba> Chri(g)ste(f) " +
+      "<nlba>e</nlba>(g) <clear>e(g)lé(f)i(g)son<pr>.(f) son<pr:0.5>;(g) a<clear/>b<pr/>c(h) (::)"
   }
 ];
 

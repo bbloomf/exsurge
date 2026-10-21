@@ -63,8 +63,10 @@ import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
 import type {
+  AreaBoundary,
   ChantContext,
   ChantNotationElement,
+  LyricProtrusion,
   TrailingSpace,
   TrailingSpaceFunction
 } from "./Exsurge.Drawing.js";
@@ -94,6 +96,11 @@ interface NeumeState {
 // reusable reg exps
 var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
+// Gregorio's syllable controls, which aren't printed: the euouae and
+// no-line-break areas, <clear> and <pr> (with spaces where Gregorio allows them)
+var __lyricAreaTagRegex = /<(\/)?(eu|nlba)>/g;
+var __lyricClearRegex = /<\s*clear\s*\/?\s*>/g;
+var __lyricProtrusionRegex = /<\s*pr\s*(?::\s*(\d*\.?\d+|\d+\.)\s*)?\/?\s*>/g;
 
 var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?[a-nA-N][oOwWvVrRsxXyY#~\+><_\.'0123459|]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
@@ -283,6 +290,49 @@ export const GabcHeader = GabcHeaderClass as unknown as GabcHeaderConstructor;
 
 var elementCountForNotations = (items: ChantNotationElement[]) =>
   items.reduce((sum, item) => sum + (item.notes ? item.notes.length : 1), 0);
+
+/** the Gregorio areas that a syllable's lyrics start or end */
+type SyllableAreas = { euouae?: AreaBoundary; noLineBreak?: AreaBoundary };
+
+// marks the start of an area on the first of a syllable's notations and its end on the last
+var setAreaBoundaries = (items: ChantNotationElement[], areas: SyllableAreas) => {
+  for (let name of ["euouae", "noLineBreak"] as const) {
+    let area = areas[name];
+    if (!area) continue;
+    if (area.start) items[0][name] = { ...items[0][name], start: true };
+    if (area.end) {
+      let last = items[items.length - 1];
+      last[name] = { ...last[name], end: true };
+    }
+  }
+};
+
+// reads the <eu> and <nlba> tags in a syllable's text into areas, and returns
+// the text that's printed: without those tags, <clear> or <pr>, and empty if
+// there's nothing else but spaces
+var readSyllableControls = (text: string, areas: SyllableAreas) => {
+  let printedText = text
+    .replace(__lyricAreaTagRegex, (tag, closing, name) => {
+      let area: keyof SyllableAreas = name === "eu" ? "euouae" : "noLineBreak";
+      areas[area] = { ...areas[area], [closing ? "end" : "start"]: true };
+      return "";
+    })
+    .replace(__lyricClearRegex, "")
+    .replace(__lyricProtrusionRegex, "");
+  return printedText !== text && printedText.trim() === "" ? "" : printedText;
+};
+
+// the index in a lyric's text of what was at index in the text it was made from
+var lyricTextIndex = (ctxt: ChantContext, lyric: Lyric, index: number) => {
+  index += (ctxt.textStyles.lyric.prefix || "").length;
+  let textIndex = 0;
+  for (let span of lyric.spans) {
+    if (index < span.index + span.text.length)
+      return textIndex + Math.max(0, index - span.index);
+    textIndex += span.text.length;
+  }
+  return textIndex;
+};
 
 export class Gabc {
   /** a brace given a length rather than an end, which the next note ends */
@@ -791,6 +841,19 @@ export class Gabc {
     var syllableMatch: RegExpExecArray | null;
     while ((syllableMatch = __syllablesRegex.exec(word))) matches.push(syllableMatch);
 
+    // Gregorio's controls after the word's last notes, with no notes of their
+    // own, like the closing tags that splitWords() leaves with the word they
+    // end ("son.(f)</nlba> Chri(f)"), belong to its last notation
+    var trailingAreas: SyllableAreas = {};
+    var lastMatch = matches[matches.length - 1];
+    if (
+      lastMatch &&
+      lastMatch[2] === undefined &&
+      readSyllableControls(lastMatch[1], trailingAreas) === ""
+    )
+      matches.pop();
+    else trailingAreas = {};
+
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
@@ -802,11 +865,18 @@ export class Gabc {
       var translationText: TranslationText[] = [];
       var notationData = match[2];
 
+      // Gregorio's controls, which aren't printed: <eu> and <nlba> start or
+      // end areas at the syllable's notations (and are taken out of the text
+      // below), and createSyllableLyrics() reads <clear> and <pr>
+      var areas: SyllableAreas = {};
+      var printedText = readSyllableControls(lyricText, areas);
+      if (printedText === "") lyricText = "";
+
       // new words reset the accidentals, per the Solesmes style (see LU xviij)
       // but we need to also make sure that there _is_ a word and that it has notes associated with it.
       if (
         currSyllable === 0 &&
-        /[a-z]/i.test(lyricText) &&
+        /[a-z]/i.test(printedText) &&
         /[a-n]/i.test(notationData)
       ) {
         ctxt.activeClef.resetAccidentals();
@@ -821,6 +891,7 @@ export class Gabc {
       );
 
       if (items.length === 0) continue;
+      setAreaBoundaries(items, areas);
       // so that updateMappingsFromSource can reset them at the same point
       if (resetAccidentals) {
         items[0].resetsAccidentalsBefore = true;
@@ -830,7 +901,7 @@ export class Gabc {
       if (insertionIndex! >= 0)
         (insertionIndex as number) -= elementCountForNotations(items);
 
-      items[0].firstOfSyllable = !!lyricText;
+      items[0].firstOfSyllable = !!printedText;
       items[0].firstOfParentheses = true;
       notations.push(...items);
 
@@ -876,6 +947,7 @@ export class Gabc {
         indexOffset += m[0].length;
         __altTranslationRegex.exec(undefined as unknown as string);
       }
+      lyricText = lyricText.replace(__lyricAreaTagRegex, "");
       if (lyricText === "" && alText.length === 0) continue;
 
       if (notationWithLyrics === null)
@@ -929,6 +1001,8 @@ export class Gabc {
       notationWithLyrics.lyrics = lyrics;
     }
 
+    if (notations.length) setAreaBoundaries(notations, trailingAreas);
+
     return new ChantMapping(word, notations, sourceIndex);
   }
 
@@ -957,6 +1031,22 @@ export class Gabc {
           proposedLyricType = LyricType.MiddleSyllable;
         }
       }
+
+      // Gregorio's <clear> and <pr>, which aren't printed (only the first <pr> counts, as in Gregorio)
+      var controlsLength = lyricText.length;
+      var clear = false;
+      var protrusion: LyricProtrusion | undefined;
+      lyricText = lyricText
+        .replace(__lyricClearRegex, () => {
+          clear = true;
+          return "";
+        })
+        .replace(__lyricProtrusionRegex, (tag, factor, index) => {
+          if (!protrusion)
+            protrusion = { factor: factor ? parseFloat(factor) : undefined, textIndex: index };
+          return "";
+        });
+      controlsLength -= lyricText.length;
 
       // gabc allows lyrics to indicate the centering part of the text by
       // using braces to indicate how to center the lyric. So a lyric can
@@ -1008,6 +1098,8 @@ export class Gabc {
             lyricText.substring(0, centerStartIndex) +
             lyricText.substring(centerStartIndex + 1, indexClosingBracket) +
             lyricText.substring(indexClosingBracket + 1, lyricText.length);
+          if (protrusion && protrusion.textIndex > centerStartIndex)
+            protrusion.textIndex -= protrusion.textIndex > indexClosingBracket ? 2 : 1;
         } else centerStartIndex = -1; // if there's no closing bracket, don't enable centering
       }
 
@@ -1056,8 +1148,14 @@ export class Gabc {
         lyric.centerLength = centerLength;
       }
 
+      if (clear) lyric.clear = true;
+      if (protrusion) {
+        protrusion.textIndex = lyricTextIndex(ctxt, lyric, protrusion.textIndex);
+        lyric.protrusion = protrusion;
+      }
+
       lyric.lyricIndex = lyrics.push(lyric) - 1;
-      sourceIndex += lyricText.length + 1;
+      sourceIndex += lyricText.length + controlsLength + 1;
     }
     notation.lyrics = lyrics;
     return lyrics;
@@ -2283,10 +2381,12 @@ export class Gabc {
     // immediately follows a set of parentheses. Prior to doing that, we replace
     // all whitespace with spaces, which prevents tabs and newlines from ending
     // up in the notation data.
+    // Gregorio's closing </eu> and </nlba> tags can come between the
+    // parentheses and the space, and stay with the word they end.
     gabcNotations = gabcNotations
       // .trim()
       // .replace(/\s/g, " ")
-      .replace(/\)\s(?=[^\)]*(?:\(|$))/g, ")\n");
+      .replace(/\)((?:<\/(?:eu|nlba)>)*)\s(?=[^\)]*(?:\(|$))/g, ")$1\n");
     return gabcNotations.split(/\n/g);
   }
 

@@ -3674,6 +3674,10 @@ export class Lyric extends TextElement {
   widthWithoutConnector!: number;
   vowelSegmentWidth!: number;
   elidesToNext?: boolean;
+  /** Gregorio's <clear>: the lyric may not reach back under the previous syllable's notes */
+  clear?: boolean;
+  /** Gregorio's <pr>: how much of the lyric may go into the right margin */
+  protrusion?: LyricProtrusion;
   /** which line of lyrics this is */
   lyricIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
@@ -4360,6 +4364,30 @@ export interface SoftAccidentalShift {
 }
 
 /**
+ * Where one of Gregorio's areas (<eu>…</eu> or <nlba>…</nlba>) starts or
+ * ends.  An area starts at the first notation of the syllable (or, in the
+ * notes, of the note) after its opening tag, and ends at the last notation
+ * of the syllable (or note) before its closing tag, so an area of one
+ * notation both starts and ends there.
+ */
+export interface AreaBoundary {
+  start?: boolean;
+  end?: boolean;
+}
+
+/** a lyric's Gregorio protrusion, <pr> or <pr:factor> */
+export interface LyricProtrusion {
+  /**
+   * how much of the text after the tag may go into the right margin, from 0
+   * to 1, or undefined for <pr>, which takes the default factor (1 in
+   * Gregorio)
+   */
+  factor?: number;
+  /** where the text that may protrude starts in the lyric's text */
+  textIndex: number;
+}
+
+/**
  * A notation in a score: a neume, clef, divider, accidental, custos, line
  * break or text with no notes.  The layout tells them apart by the flags
  * isNeume, isClef, isDivider and isAccidental.
@@ -4406,6 +4434,13 @@ export class ChantNotationElement extends ChantLayoutElement {
   softAccidentalShift?: SoftAccidentalShift | null;
   /** the css class of the notation's svg element; defaults to its class name */
   cssClass?: string;
+  /** whether a Gregorio euouae area (<eu>…</eu> in the lyrics) starts or ends at this notation */
+  euouae?: AreaBoundary;
+  /**
+   * whether a Gregorio no-line-break area (<nlba>…</nlba>, in the lyrics or
+   * in the notes) starts or ends at this notation
+   */
+  noLineBreak?: AreaBoundary;
 
   // poor man's reflection:
   isNeume?: boolean;

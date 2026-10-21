@@ -125,3 +125,78 @@ describe('Latin syllabification', function() {
     assertWordSyllables(words[2], ['est']);
   });
 });
+
+// ---- Gregorio GABC (docs/gregorio-feature-gap.md, Phase 1)
+
+// the notations of a score, without its first clef (as in score.notations)
+const parseNotations = (gabc: string) => {
+  const ctxt = new Exsurge.ChantContext();
+  const notations = Exsurge.Gabc.createMappingsFromSource(ctxt, gabc).flatMap((mapping) => mapping.notations);
+  return notations[0]?.isClef ? notations.slice(1) : notations;
+};
+const lyricTexts = (notations: Exsurge.ChantNotationElement[]) =>
+  notations.flatMap((notation) => notation.lyrics.map((lyric) => lyric.text));
+
+describe("Gregorio lyric controls", function() {
+  it("marks the notations where <eu> and <nlba> areas start and end", function() {
+    const notations = parseNotations(
+      "(c4) a(f) (:) <eu>E(i) u(i) o(i) u(h) a(hhh) e</eu>(fe..) (::) <nlba>Ky(f)ri(g)e(h/gh)</nlba> son(f)"
+    );
+    assert.deepStrictEqual(lyricTexts(notations), ["a", "E", "u", "o", "u", "a", "e", "Ky", "ri", "e", "son"]);
+    const marks = notations.map((notation) => [notation.euouae, notation.noLineBreak]);
+    assert.deepStrictEqual(marks[2], [{ start: true }, undefined]);
+    assert.deepStrictEqual(marks[7], [{ end: true }, undefined]);
+    assert.deepStrictEqual(marks[9], [undefined, { start: true }]);
+    // the syllable e(h/gh) is two notations, and the area ends at the last
+    assert.deepStrictEqual(marks[11], [undefined, undefined]);
+    assert.deepStrictEqual(marks[12], [undefined, { end: true }]);
+    assert.strictEqual(notations.filter((notation) => notation.euouae || notation.noLineBreak).length, 4);
+  });
+
+  it("ends an area at a closing tag between a word's notes and the next word", function() {
+    const notations = parseNotations("(c4) <nlba>Ky(f)ri(g)e.(h)</nlba> Chri(g)ste(f) e(g)lé(f)i(e)son(f)</eu> (::)");
+    assert.deepStrictEqual(lyricTexts(notations), ["Ky", "ri", "e.", "Chri", "ste", "e", "lé", "i", "son"]);
+    assert.deepStrictEqual(notations[2].noLineBreak, { end: true });
+    // e. is the end of a word, and Chri the start of the next
+    assert.strictEqual(notations[2].lyrics[0].lyricType, Exsurge.LyricType.EndingSyllable);
+    assert.strictEqual(notations[3].lyrics[0].lyricType, Exsurge.LyricType.BeginningSyllable);
+    assert.deepStrictEqual(notations[8].euouae, { end: true });
+    assert.strictEqual(notations[8].lyrics[0].lyricType, Exsurge.LyricType.EndingSyllable);
+    assert.strictEqual(notations.length, 10);
+  });
+
+  it("marks an area of one notation as both starting and ending there", function() {
+    const notations = parseNotations("(c4) <nlba>Ky</nlba>(f) e(g)");
+    assert.deepStrictEqual(notations[0].noLineBreak, { start: true, end: true });
+  });
+
+  it("records <clear> and <pr> on the lyric", function() {
+    const notations = parseNotations(
+      "(c4) <clear>e(g)lé(f)son<pr>.(f) son<pr:0.5>;(g) a<clear/>b< pr : .25 />c(h) f{i}re<pr>s(g) d(h)"
+    );
+    const lyrics = notations.map((notation) => notation.lyrics[0]);
+    assert.deepStrictEqual(lyrics.map((lyric) => lyric.text), ["e", "lé", "son.", "son;", "abc", "fires", "d"]);
+    assert.deepStrictEqual(lyrics.map((lyric) => !!lyric.clear), [true, false, false, false, true, false, false]);
+    assert.deepStrictEqual(
+      lyrics.map((lyric) => lyric.protrusion),
+      [
+        undefined,
+        undefined,
+        { factor: undefined, textIndex: 3 },
+        { factor: 0.5, textIndex: 3 },
+        { factor: 0.25, textIndex: 2 },
+        { factor: undefined, textIndex: 4 },
+        undefined
+      ]
+    );
+    // the centering braces still center on the i
+    assert.strictEqual(lyrics[5].centerStartIndex, 1);
+  });
+
+  it("makes no lyric of a syllable with only controls", function() {
+    const notations = parseNotations("(c4) a(f) <clear>(g) <pr>(h) <eu>(i) b</eu>(j)");
+    assert.deepStrictEqual(lyricTexts(notations), ["a", "b"]);
+    assert.deepStrictEqual(notations[3].euouae, { start: true });
+    assert.strictEqual(notations.length, 5);
+  });
+});
