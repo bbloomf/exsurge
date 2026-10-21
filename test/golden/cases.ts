@@ -461,6 +461,16 @@ export const featureCases: GoldenCase[] = [
     useDropCap: true,
     gabc: headerModeAnnotation,
     setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerModeAnnotation))
+  },
+
+  // Gregorio: Phase 4
+  {
+    // an elision counts as consonants when centering: at the start, in the
+    // middle and at the end of a syllable, and as the whole of one
+    name: "elision-tags",
+    gabc:
+      "(c4) <e>A</e>ve(f) ma(g)ri<e>a</e>(h) <e>et</e>(g) qu<e>e</e>(f) mon(g)str<e>a</e> te(h) " +
+      "s<e>a</e>n(g)ctum(f) (::)"
   }
 ];
 

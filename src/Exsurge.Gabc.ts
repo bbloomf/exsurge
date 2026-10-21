@@ -1625,7 +1625,10 @@ export class Gabc {
         // connecting hyphen from ever being drawn before the next syllable,
         // but the syllables are still laid out as part of a single word
         preventConnector = true;
-      } else if (/<\/i>$/.test(text)) {
+      } else if (
+        /<\/e>$/.test(text) ||
+        (ctxt.italicMeansElision && /<\/i>$/.test(text))
+      ) {
         // must be an elision
         elides = true;
       }

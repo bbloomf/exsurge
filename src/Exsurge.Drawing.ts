@@ -931,6 +931,12 @@ export class ChantContext {
   modeNumberSystem: ModeNumberSystem;
 
   defaultLanguage: Language;
+  /**
+   * Whether a syllable that ends in italics (e.g. "ri<i>a</i>") elides into
+   * the next one, as a syllable that ends in an elision ("ri<e>a</e>") does.
+   * Defaults to true.
+   */
+  italicMeansElision: boolean;
 
   pixelRatio: number;
 
@@ -1120,6 +1126,7 @@ export class ChantContext {
     this.modeNumberSystem = "roman-majuscule";
 
     this.defaultLanguage = language.latin;
+    this.italicMeansElision = true;
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio =
@@ -3995,25 +4002,34 @@ export class Lyric extends TextElement {
           startIndex = 0;
         }
 
-        // find indices of e tags to ignore when finding vowel segment:
-        var ignore: IgnoredRange[] = [];
+        // elisions (<e> tags) count as consonants when finding the vowel
+        // segment, so one at the start is skipped and any later one ignored:
+        var textStartIndex = startIndex;
+        var elisions: IgnoredRange[] = [];
         let index = 0;
-        let indexOffset = startIndex;
         for (var span of this.spans) {
           let endIndex = index + span.text.length;
-          if (span.activeTags.includes('e')) {
+          if (span.activeTags.includes('e') && endIndex > startIndex) {
             if (index <= startIndex) {
               startIndex = endIndex;
             } else {
-              ignore.push({ index: index - indexOffset, endIndex: endIndex - indexOffset });
+              elisions.push({ index, endIndex });
             }
           }
           index = endIndex;
         }
+        // (findVowelSegment counts the ranges from startIndex)
+        var ignore = elisions.map((range) => ({
+          index: range.index - startIndex,
+          endIndex: range.endIndex - startIndex
+        }));
         // Non-directive elements are lined up to the chant notation based on vowel segments,
         var result = activeLanguage.findVowelSegment(this.text, startIndex, ignore);
 
         if (result.found !== true) {
+          // with no vowel, center on the syllable's letters, elisions and all
+          // (as Gregorio centers a syllable with no vowel as a whole)
+          startIndex = textStartIndex;
           var match = this.text.slice(startIndex).match(/[a-z]+/i);
           if (match) {
             result.startIndex = startIndex + match.index!;
