@@ -87,6 +87,9 @@ export const NoteShape = {
 } as const;
 export type NoteShape = (typeof NoteShape)[keyof typeof NoteShape];
 
+/** which way Gregorio's punctum inclinatum leans (gabc G0, G1 and G2) */
+export type InclinatumLeaning = "descending" | "ascending" | "unison";
+
 export const NoteShapeModifiers = {
   // flags which modify the shape
   // not all of them apply to every shape of course
@@ -157,6 +160,8 @@ export class Note extends ChantLayoutElement {
   quadratum?: boolean;
   /** a quilisma quadratum (gabc W), drawn as a punctum for now */
   quilismaQuadratum?: boolean;
+  /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
+  leaning?: InclinatumLeaning;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;

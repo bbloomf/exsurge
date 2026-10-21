@@ -417,3 +417,42 @@ describe("Gregorio flat F clefs", function() {
     assert.strictEqual(notations[notations.length - 1].notes![0].pitch!.step, Exsurge.Step.Te);
   });
 });
+
+describe("Gregorio inclinatum digits", function() {
+  it("reads 0, 1 and 2 after an inclinatum as its leaning, not as a nudge", function() {
+    const notes = parseNotations("(c4) a(hG0F0) b(fG1H1) c(gG2) d(G) e(-G0)").flatMap(
+      (notation) => notation.notes || []
+    );
+    assert.deepStrictEqual(
+      notes.map((note) => [note.sourceGabc, note.leaning, note.staffPositionOffset]),
+      [
+        ["h", undefined, 0],
+        ["G0", "descending", 0],
+        ["F0", "descending", 0],
+        ["f", undefined, 0],
+        ["G1", "ascending", 0],
+        ["H1", "ascending", 0],
+        ["g", undefined, 0],
+        ["G2", "unison", 0],
+        ["G", undefined, 0],
+        ["-G0", "descending", 0]
+      ]
+    );
+  });
+
+  it("doesn't nudge an inclinatum with a 0 under a Chi-Rho clef, where 0 and 9 nudge other notes", function() {
+    const notes = parseNotations("(xp3) a(H0) b(h0) c(H9)").flatMap((notation) => notation.notes || []);
+    assert.deepStrictEqual(
+      notes.map((note) => [note.sourceGabc, note.leaning, note.staffPositionOffset]),
+      [
+        ["H0", "descending", 0],
+        // a lowercase pitch is still nudged, and so is an inclinatum with a 9
+        ["h0", undefined, -2 / 3],
+        ["H9", undefined, 2 / 3]
+      ]
+    );
+    // as is a custos
+    const custos = parseNotations("(xp3) a(h0+)").find((notation) => notation instanceof Exsurge.Custos) as Exsurge.Custos;
+    assert.strictEqual(custos.staffPositionOffset, -2 / 3);
+  });
+});

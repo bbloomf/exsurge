@@ -48,6 +48,7 @@ import {
   LiquescentType,
   NoteShape,
   NoteShapeModifiers,
+  type InclinatumLeaning,
   ChantMapping,
   ChantScore,
   ChantDocument,
@@ -2199,7 +2200,12 @@ export class Gabc {
 
     if (data.length < 1) throw "Invalid note data: " + data;
 
-    if (data[0] === data[0].toUpperCase()) note.shape = NoteShape.Inclinatum;
+    if (data[0] === data[0].toUpperCase()) {
+      note.shape = NoteShape.Inclinatum;
+      // Gregorio's leaning, which isn't a nudge after a capital (see setStaffPositionAndOffset())
+      let leaning = ["descending", "ascending", "unison"][Number(data[1])] as InclinatumLeaning | undefined;
+      if (leaning) note.leaning = leaning;
+    }
 
     this.setStaffPositionAndOffset(note, data, clef);
     note.pitch = clef.staffPositionToPitch(note.staffPosition);
@@ -2700,7 +2706,9 @@ export class Gabc {
     const staffPosition = this.gabcHeightToExsurgeHeight(gabcAtom[0]);
     note.staffPositionOffset = 0;
     if (clef instanceof ChiRhoClef) {
-      let zeroOrNine = gabcAtom[1];
+      // a 0 after a punctum inclinatum (a capital) is Gregorio's leaning rather than a nudge down
+      const isLeaning = note instanceof Note && /[A-N]/.test(gabcAtom[0]) && gabcAtom[1] === "0";
+      let zeroOrNine = isLeaning ? undefined : gabcAtom[1];
       // the middle of a space is never used: a note on a space without a 9 is at the
       // bottom of the space, as if it had a 0
       if (staffPosition % 2 === 0 && zeroOrNine !== "9") zeroOrNine = "0";

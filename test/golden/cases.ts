@@ -341,6 +341,11 @@ export const featureCases: GoldenCase[] = [
     // the flat on the B above the F on lines 1 and 2, and below it on lines 3 to 5
     name: "flat-fa-clefs",
     gabc: "(fb3) a(ghd) b(dfd) (fb4) c(egf) (fb2) d(ihi) (fb1) e(gfg) (fb5) f(hgh) (f3) g(d) (::)"
+  },
+  {
+    // a 0, 1 or 2 after an inclinatum is its leaning, so the notes stay on their pitches
+    name: "inclinatum-digits",
+    gabc: "(c4) a(G) b(G0) c(G1) d(G2) e(hGF) f(hG0F0) g(fG1H1) h(gG2G2) i(-G0) (::) (xp3) j(H0) k(h0) l(H9) (::)"
   }
 ];
 
