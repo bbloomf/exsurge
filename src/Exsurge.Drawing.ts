@@ -30,6 +30,7 @@ import {
 import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
 import { language, type IgnoredRange, type Language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
+import { restoreEscapes, unescapeChar } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
 import { makeLigature } from "./makeLigature.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
@@ -2701,7 +2702,7 @@ export class TextElement extends ChantLayoutElement {
     this.fontSize = fontSize;
     this.textAnchor = textAnchor;
     this.sourceIndex = sourceIndex;
-    this.sourceGabc = sourceGabc;
+    this.sourceGabc = sourceGabc === undefined ? sourceGabc : restoreEscapes(sourceGabc);
     this.dominantBaseline = "baseline"; // default placement
     if (textType) this.textType = textType;
 
@@ -2769,7 +2770,7 @@ export class TextElement extends ChantLayoutElement {
 
     };
 
-    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/gi;
+    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>|\uFDD1([\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S])/gi;
     var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
@@ -2795,7 +2796,8 @@ export class TextElement extends ChantLayoutElement {
         fill,
         cssClass,
         enclosedText,
-        special
+        special,
+        escaped
       ] = match;
       specialChar = specialChar || specialChar2 || specialChar3;
       // non-matching symbols first
@@ -2872,6 +2874,10 @@ export class TextElement extends ChantLayoutElement {
           match.index,
           ctxt.specialCharProperties
         );
+      } else if (escaped) {
+        // a character that Gregorio's $ escaped (see gabcEscapes.ts)
+        closeCurrentSpan();
+        closeSpan(unescapeChar(escaped), match.index);
       } else if (special !== undefined) {
         // the rest of Gregorio's specials
         closeCurrentSpan();

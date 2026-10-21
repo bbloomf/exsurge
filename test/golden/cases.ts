@@ -318,6 +318,12 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) Ky(f)ri(g)e(h) % a comment (x)\n e(g)lé(f)i(g)son.(f) (::)\n% a whole line\n" +
       "Chri(g)ste(h) % comment\n e(g)lé(f)i%c\non(g) a(f%c (x)\ng) %small%(g) a%b%c(h) % 50% off\n (::)"
+  },
+  {
+    // the escaped characters are printed as they are
+    name: "dollar-escapes",
+    gabc:
+      "(c4) a$(b$)(f) c$$d(g) e$<b>f(h) g$~h(g) i$[j$](f) k$|l(g) m$-(f) n(g) o$%p(g) q$*r*(f[cs:x$]y]) (::)"
   }
 ];
 

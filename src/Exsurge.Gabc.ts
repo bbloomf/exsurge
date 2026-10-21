@@ -62,6 +62,7 @@ import {
 import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
+import { escapeChar, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import type {
   AreaBoundary,
   ChantContext,
@@ -93,16 +94,16 @@ interface NeumeState {
   handle(currNote: Note, prevNote: Note, notesRemaining: number): NeumeState;
 }
 
-// what Gregorio's comments are masked with (see maskComments() below)
+// what Gregorio's comments are masked with (see maskGabc() below)
 var __commentMask = "\uFDD0";
 
 // reusable reg exps
 // (a syllable starts after any spaces or masked comments)
 var __syllablesRegex = /(?=[^\s\uFDD0])((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
-// Gregorio's comments in the notation section (see maskComments() below),
-// and the text where a % isn't one
-var __commentRegex = /<sp>[^<]*?<\/sp>|<v>[\s\S]*?<\/v>|\$[\s\S]|%[^%\s][^%\n]*%|(%[^\n]*\n?)/g;
+// Gregorio's comments and $ escapes in the notation section (see maskGabc()
+// below), and the text where a % isn't a comment
+var __commentRegex = /<sp>[^<]*?<\/sp>|<v>[\s\S]*?<\/v>|\$([\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S])|%[^%\s][^%\n]*%|(%[^\n]*\n?)/g;
 var __commentMaskRegex = /\uFDD0/g;
 // Gregorio's syllable controls, which aren't printed: the euouae and
 // no-line-break areas, <clear> and <pr> (with spaces where Gregorio allows them)
@@ -308,10 +309,14 @@ export const GabcHeader = GabcHeaderClass as unknown as GabcHeaderConstructor;
  * another % closes later on its line is exsurge's %small caps% markup
  * instead (when no space follows it), and a % in <sp>…</sp> or <v>…</v>, or
  * escaped as $%, isn't a comment.
+ *
+ * Also replaces Gregorio's $ escapes outside <sp> and <v> with characters
+ * that mean nothing to the parser (see gabcEscapes.ts), also keeping the
+ * length.
  */
-var maskComments = (gabc: string) =>
-  gabc.replace(__commentRegex, (match, comment) =>
-    comment ? __commentMask.repeat(comment.length) : match
+var maskGabc = (gabc: string) =>
+  gabc.replace(__commentRegex, (match, escaped, comment) =>
+    escaped ? escapeChar(escaped) : comment ? __commentMask.repeat(comment.length) : match
   );
 
 // whether a gabc word is only spaces and comments
@@ -864,6 +869,8 @@ export class Gabc {
     var matches: RegExpExecArray[] = [];
     var notations: ChantNotationElement[] = [];
     var currSyllable = 0;
+    // (a word from splitWords() is masked already, and masking it again changes nothing)
+    word = maskGabc(word);
     // whether the accidentals were reset since the last notation parsed
     var resetAccidentals = false;
 
@@ -2081,7 +2088,7 @@ export class Gabc {
   ) {
     var note = new Note();
     note.sourceIndex = sourceIndex;
-    note.sourceGabc = data;
+    note.sourceGabc = restoreEscapes(data);
 
     if (data.length < 1) throw "Invalid note data: " + data;
 
@@ -2492,8 +2499,8 @@ export class Gabc {
   // in a string of "me(f.) (,) ma(fff)num(d!ewf) tu(fgF'E)am,(f.)" would return
   // an array of four strings: ["me(f.)", "(,)", "ma(fff)num(d!ewf)", "tu(fgF'E)am,(f.)"]
   //
-  // Gregorio's comments are masked (see maskComments()), so a word can go on
-  // after a comment at the end of a line.
+  // Gregorio's comments and escapes are masked (see maskGabc()), so a word can
+  // go on after a comment at the end of a line, and "$)" doesn't end one.
   static splitWords(gabcNotations: string) {
     // split the notations on whitespace boundaries, as long as the space
     // immediately follows a set of parentheses. Prior to doing that, we replace
@@ -2501,7 +2508,7 @@ export class Gabc {
     // up in the notation data.
     // Gregorio's closing </eu> and </nlba> tags can come between the
     // parentheses and the space, and stay with the word they end.
-    gabcNotations = maskComments(gabcNotations)
+    gabcNotations = maskGabc(gabcNotations)
       // .trim()
       // .replace(/\s/g, " ")
       .replace(/\)((?:<\/(?:eu|nlba)>)*)\s(?=[^\)]*(?:\(|$))/g, ")$1\n");
@@ -2528,6 +2535,8 @@ export class Gabc {
   static parseWord(gabcWord: string) {
     var syllables = [] as unknown as ParsedSyllable[] & { wordLength: number };
     var matches: RegExpExecArray[] = [];
+    // (a word from splitWords() is masked already, and masking it again changes nothing)
+    gabcWord = maskGabc(gabcWord);
 
     syllables.wordLength = gabcWord.length;
 
@@ -2537,8 +2546,12 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
-      var lyrics = match[1].replace(__commentMaskRegex, "").trim().split("|");
-      var notations = match[2] && match[2].replace(__commentMaskRegex, "");
+      var lyrics = match[1]
+        .replace(__commentMaskRegex, "")
+        .trim()
+        .split("|")
+        .map(unescapeText);
+      var notations = match[2] && unescapeText(match[2].replace(__commentMaskRegex, ""));
 
       syllables.push({
         notations: notations,

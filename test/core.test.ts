@@ -323,3 +323,32 @@ describe("Gregorio comments", function() {
     assert.deepStrictEqual(notations[0].lyrics[0].spans[0].activeTags, ["sc"]);
   });
 });
+
+describe("Gregorio $ escapes", function() {
+  it("takes away the special meaning of the character after a $", function() {
+    const notations = parseNotations(
+      "(c4) a$(b$)(f) c$$d(g) e$<b>f(h) g$~h(g) i$[j$](f) k$|l(g) m$-(f) n(g) $*(h) o$%p(g) <eu>$<eu>(f)"
+    );
+    assert.deepStrictEqual(lyricTexts(notations), ["a(b)", "c$d", "e<b>f", "g~h", "i[j]", "k|l", "m-", "n", "*", "o%p", "<eu>"]);
+    // m$- is a word of its own rather than a syllable with a hyphen
+    assert.strictEqual(notations[6].lyrics[0].lyricType, Exsurge.LyricType.SingleSyllable);
+    assert.strictEqual(notations.length, 11);
+  });
+
+  it("keeps the escapes in the source and the source indices", function() {
+    const source = "(c4) a$(b$)(f[cs:x$]y]) c(g)";
+    const notations = parseNotations(source);
+    assert.strictEqual(notations[0].lyrics[0].sourceGabc, "a$(b$)");
+    assert.strictEqual(notations[0].notes![0].sourceGabc, "f[cs:x$]y]");
+    assert.strictEqual(notations[0].notes![0].choralSign!.text, "x]y");
+    assert.strictEqual(notations[0].notes![0].sourceIndex, source.indexOf("f[cs"));
+    assert.strictEqual(notations[1].lyrics[0].sourceIndex, source.indexOf("c(g)"));
+  });
+
+  it("unescapes the lyrics from parseWord()", function() {
+    assert.deepStrictEqual(Exsurge.Gabc.parseWord("a$(b$)(f)c$$(g)"), Object.assign(
+      [{ notations: "f", lyrics: ["a(b)"] }, { notations: "g", lyrics: ["c$"] }],
+      { wordLength: 15 }
+    ));
+  });
+});
