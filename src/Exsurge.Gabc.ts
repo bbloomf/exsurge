@@ -102,9 +102,12 @@ var __lyricAreaTagRegex = /<(\/)?(eu|nlba)>/g;
 var __lyricClearRegex = /<\s*clear\s*\/?\s*>/g;
 var __lyricProtrusionRegex = /<\s*pr\s*(?::\s*(\d*\.?\d+|\d+\.)\s*)?\/?\s*>/g;
 
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?[a-nA-N][oOwWvVrRsxXyY#~\+><_\.'0123459|]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?/g;
+// (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
+var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
+// Gregorio's marks between notes, which are recorded on the notes after or before them
+var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[)$/;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
 
@@ -1235,6 +1238,21 @@ export class Gabc {
     var trailingSpace: TrailingSpace = DefaultTrailingSpace;
     // whether the data so far ends with a / or a space after a neume
     var endsWithSpace = false;
+    // what Gregorio's [[, <nlba> and @[ (and a </nlba> before any note) mark on the next note
+    var nextNoteMarks: ((note: Note) => void)[] = [];
+    // the space before the next note, where a mark between notes ends the neume
+    var spaceBeforeNextNote: TrailingSpace | null = null;
+
+    // the last note before a mark, if any (the marks after it are recorded on it)
+    var lastNote = () => {
+      if (notes.length) return notes[notes.length - 1];
+      for (let i = notations.length - 1; i >= 0; i--) {
+        let notationNotes = notations[i].notes;
+        if (notationNotes && notationNotes.length)
+          return notationNotes[notationNotes.length - 1];
+      }
+      return null;
+    };
 
     var addToLastSourceGabc = (gabc: string) => {
       if (notes.length > 0) {
@@ -1299,7 +1317,7 @@ export class Gabc {
 
       if (atom === " " || atom[0] === "/")
         endsWithSpace = endsWithSpace || notes.length > 0;
-      else endsWithSpace = false;
+      else if (!__noteMarkRegex.test(atom)) endsWithSpace = false;
 
       // handle the clefs and dividers here
       switch (atom) {
@@ -1403,6 +1421,42 @@ export class Gabc {
           addNotation(new Signs.Custos(true));
           break;
 
+        // Gregorio's marks between notes, which are recorded on the notes
+        // after or before them.  Brackets end a neume as ! does, and
+        // no-line-break areas as / does, as they end Gregorio's glyphs and
+        // elements, so that their marks are where neumes start or end.
+        case "[[":
+          nextNoteMarks.push((note) => (note.bracketStart = true));
+          if (spaceBeforeNextNote === null) spaceBeforeNextNote = 0;
+          break;
+        case "]]": {
+          let note = lastNote();
+          if (note) note.bracketEnd = true;
+          if (spaceBeforeNextNote === null) spaceBeforeNextNote = 0;
+          break;
+        }
+        case "<nlba>":
+          nextNoteMarks.push((note) => (note.noLineBreak = { ...note.noLineBreak, start: true }));
+          spaceBeforeNextNote = TrailingSpaceMultiple(1);
+          break;
+        case "</nlba>": {
+          // (at the start of the notes, the area ends at the first note instead)
+          let markEnd = (note: Note) => (note.noLineBreak = { ...note.noLineBreak, end: true });
+          let note = lastNote();
+          if (note) markEnd(note);
+          else nextNoteMarks.push(markEnd);
+          spaceBeforeNextNote = TrailingSpaceMultiple(1);
+          break;
+        }
+        case "@[":
+          nextNoteMarks.push((note) => (note.autoFusion = { ...note.autoFusion, start: true }));
+          break;
+        case "]": {
+          let note = lastNote();
+          if (note) note.autoFusion = { ...note.autoFusion, end: true };
+          break;
+        }
+
         // spacing indicators
         case "!":
           trailingSpace = 0;
@@ -1471,6 +1525,7 @@ export class Gabc {
               accidentalType,
               /^.(?:[XY]|##)/.test(atom)
             );
+            if (atom[2] === "?") accidental.parenthesized = true;
             accidental.pitch = ctxt.activeClef.staffPositionToPitch(noteArray[0].staffPosition);
             accidental.sourceIndex = sourceIndex;
             accidental.sourceLength = sourceLength;
@@ -1495,10 +1550,18 @@ export class Gabc {
             notations.push(...bracketedNotations);
           } else {
             // looks like it's a note
+            if (spaceBeforeNextNote !== null) {
+              if (notes.length) {
+                trailingSpace = spaceBeforeNextNote;
+                addNotation(null);
+              }
+              spaceBeforeNextNote = null;
+            }
             if (insertionIndex === -1) {
               trailingSpace = TrailingSpaceMultiple(1);
               addNotation(null);
             }
+            let firstNewNote = notes.length;
             this.createNoteFromData(
               ctxt,
               ctxt.activeClef,
@@ -1506,6 +1569,8 @@ export class Gabc {
               notes,
               sourceIndex
             );
+            for (let mark of nextNoteMarks) mark(notes[firstNewNote]);
+            nextNoteMarks = [];
             --insertionIndex!;
           }
           break;
@@ -1514,6 +1579,14 @@ export class Gabc {
 
     // finish up any remaining notes we have left
     addNotation(null);
+
+    // a no-line-break area that starts or ends in the notes starts or ends at their notation
+    for (let notation of notations) {
+      for (let note of notation.notes || []) {
+        if (note.noLineBreak)
+          notation.noLineBreak = { ...notation.noLineBreak, ...note.noLineBreak };
+      }
+    }
 
     // a / or a space at the very end spaces the last neume from the next
     // syllable's, but the line can still break between them as usual
@@ -1990,6 +2063,10 @@ export class Gabc {
       // liquescent initio debilis
       note.liquescent = LiquescentType.InitioDebilis;
       data = data.substring(1);
+    } else if (data[0] === "@") {
+      // Gregorio's fusion to the note before
+      note.fused = true;
+      data = data.substring(1);
     }
 
     if (data.length < 1) throw "Invalid note data: " + data;
@@ -2107,7 +2184,7 @@ export class Gabc {
 
         //note shapes
         case "r":
-          if (haveLookahead && /^[0-5]$/.test(lookahead)) {
+          if (haveLookahead && /^[0-8]$/.test(lookahead)) {
             switch (lookahead) {
               case "0":
                 note.shapeModifiers |= NoteShapeModifiers.Cavum;
@@ -2144,6 +2221,7 @@ export class Gabc {
                   GlyphCode.ReversedSemicircle
                 );
                 break;
+              // (6, 7 and 8 are Gregorio's musica ficta, which aren't drawn yet)
               default:
             }
             i++;
@@ -2195,6 +2273,17 @@ export class Gabc {
 
         case "w":
           note.shape = NoteShape.Quilisma;
+          break;
+
+        // Gregorio's shapes that are read but not drawn yet
+        case "W":
+          note.quilismaQuadratum = true;
+          break;
+        case "q":
+          note.quadratum = true;
+          break;
+        case "=":
+          note.linea = true;
           break;
 
         case "o":

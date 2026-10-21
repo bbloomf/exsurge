@@ -231,3 +231,62 @@ describe("Gregorio special characters", function() {
     assert.strictEqual(lyric.spans[1].mergedProperties["font-family"], "monospace");
   });
 });
+
+describe("Gregorio note tokens", function() {
+  const notesOf = (notations: Exsurge.ChantNotationElement[]) =>
+    notations.flatMap((notation) => notation.notes || []);
+  const sources = (notations: Exsurge.ChantNotationElement[]) =>
+    notations.map((notation) => (notation.notes ? notation.notes.map((note) => note.sourceGabc).join("") : notation.sourceGabc));
+
+  it("keeps the notes in [[ ]] and records the bracket on them", function() {
+    const notations = parseNotations("(c4) a(f[[gh]]i) b([[g]]) c(fg]])");
+    // the brackets end the neumes, as ! does
+    assert.deepStrictEqual(sources(notations), ["f", "gh", "i", "g", "fg"]);
+    assert.strictEqual(notations[0].keepWithNext, true);
+    assert.strictEqual(notations[0].trailingSpace, 0);
+    const notes = notesOf(notations);
+    assert.deepStrictEqual(
+      notes.map((note) => [!!note.bracketStart, !!note.bracketEnd]),
+      [[false, false], [true, false], [false, true], [false, false], [true, true], [false, false], [false, true]]
+    );
+  });
+
+  it("keeps the notes in <nlba> </nlba> and marks the area on the notes and their notations", function() {
+    const notations = parseNotations("(c4) a(fg<nlba>hg</nlba>ih) b(<nlba>fg) c(hg</nlba>)");
+    // the tags end the neumes, as / does
+    assert.deepStrictEqual(sources(notations), ["fg", "hg", "ih", "fg", "hg"]);
+    assert.strictEqual(notations[0].allowLineBreakBeforeNext, true);
+    assert.deepStrictEqual(
+      notesOf(notations).map((note) => note.noLineBreak),
+      [undefined, undefined, { start: true }, { end: true }, undefined, undefined, { start: true }, undefined, undefined, { end: true }]
+    );
+    assert.deepStrictEqual(
+      notations.map((notation) => notation.noLineBreak),
+      [undefined, { start: true, end: true }, undefined, { start: true }, { end: true }]
+    );
+  });
+
+  it("records @, @[ and ]", function() {
+    const notations = parseNotations("(c4) a(h@iw@j) b(@[fhg]) c(@hg) d(c1@c4)");
+    const notes = notesOf(notations);
+    assert.deepStrictEqual(notes.map((note) => note.sourceGabc), ["h", "@iw", "@j", "f", "h", "g", "@h", "g"]);
+    assert.deepStrictEqual(notes.map((note) => !!note.fused), [false, true, true, false, false, false, true, false]);
+    assert.deepStrictEqual(notes[3].autoFusion, { start: true });
+    assert.deepStrictEqual(notes[5].autoFusion, { end: true });
+    // the @ between two clefs isn't a fusion
+    assert.deepStrictEqual(sources(notations).slice(-2), ["c1", "c4"]);
+  });
+
+  it("records =, q, W and parenthesized accidentals, and r6 to r8 aren't cavum", function() {
+    const notations = parseNotations("(c4) a(g=) b(fqg) c(gWh) d(fx?g) e(fyg) f(gr6) g(gr8)");
+    const notes = notesOf(notations);
+    assert.strictEqual(notes[0].linea, true);
+    assert.strictEqual(notes[1].quadratum, true);
+    assert.strictEqual(notes[3].quilismaQuadratum, true);
+    const accidentals = notations.filter((notation) => notation.isAccidental) as Exsurge.Accidental[];
+    assert.deepStrictEqual(accidentals.map((accidental) => !!accidental.parenthesized), [true, false]);
+    for (const note of notes.slice(-2)) {
+      assert.strictEqual(note.shapeModifiers & Exsurge.NoteShapeModifiers.Cavum, 0, note.sourceGabc);
+    }
+  });
+});

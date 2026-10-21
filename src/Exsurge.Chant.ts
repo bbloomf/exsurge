@@ -48,6 +48,7 @@ import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type {
   AboveLinesText,
   Annotations,
+  AreaBoundary,
   ChantContext,
   ChoralSign,
   DropCap,
@@ -132,6 +133,30 @@ export class Note extends ChantLayoutElement {
   alText?: AboveLinesText;
   /** the number of stems of a punctum inclinatum (gabc |) */
   inclinataFlags?: number;
+
+  // Gregorio's notation that's read but not drawn yet (see
+  // docs/gregorio-feature-gap.md, Phase 1)
+  /** a bracket (gabc [[) starts at the note */
+  bracketStart?: boolean;
+  /** a bracket (gabc ]]) ends at the note */
+  bracketEnd?: boolean;
+  /**
+   * whether a no-line-break area (<nlba>…</nlba> in the notes) starts at
+   * the note after <nlba> or ends at the note before </nlba>.  The note's
+   * notation has the same mark in its noLineBreak, and gabc's
+   * neume ends at the tag, as it does at a /.
+   */
+  noLineBreak?: AreaBoundary;
+  /** the note is fused to the note before it, or, first in its neume, drawn without a stem (gabc @ before the pitch) */
+  fused?: boolean;
+  /** whether an automatic fusion (gabc @[…]) starts or ends at the note */
+  autoFusion?: AreaBoundary;
+  /** a linea (gabc =), drawn as a punctum for now */
+  linea?: boolean;
+  /** the first note of a pes quadratum (gabc q) */
+  quadratum?: boolean;
+  /** a quilisma quadratum (gabc W), drawn as a punctum for now */
+  quilismaQuadratum?: boolean;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;

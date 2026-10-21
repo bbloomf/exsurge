@@ -303,6 +303,14 @@ export const featureCases: GoldenCase[] = [
       "(c4) <tt>tt</tt>(f) a<sp>*</sp>(g) b<sp>+</sp>(h) ex<sp>-</sp>cel(g) <sp>\\</sp>(f) <sp>&</sp>(g) <sp>#</sp>(h) " +
       "<sp>_</sp>(g) <sp>%</sp>(f) De<sp>ut</sp>us(g) De<sp>ot</sp>us(h) De<sp>dt</sp>us(g) <sp>unknown</sp>(f) " +
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
+  },
+  {
+    // no notes are lost or made up; the brackets, fusion, linea, quadratum
+    // and parentheses are read but not drawn yet
+    name: "gregorio-note-tokens",
+    gabc:
+      "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
+      "g(@[fhg]) h(@hg) i(g=) j(fqg) k(gWh) l(fx?g) m(fy?f) n(f#?f) o(gVV) (::)"
   }
 ];
 

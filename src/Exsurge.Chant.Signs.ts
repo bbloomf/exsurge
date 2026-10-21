@@ -264,6 +264,8 @@ export class Accidental extends ChantNotationElement {
   /** a soft accidental (gabc X, Y or ##) is only printed if it changes the accidental in effect */
   soft: boolean;
   hidden: boolean;
+  /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn without its parentheses for now */
+  parenthesized?: boolean;
   pitch?: Pitch;
 
   constructor(staffPosition: number, accidentalType: AccidentalType, soft = false) {
