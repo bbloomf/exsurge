@@ -411,6 +411,20 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) Ky(f)ri(g)e(h) (c3) (z) e(g)lé(f)i(e)son.(f) (::c4) (Z) Chri(f)ste(g) e(h)lé(i)i(h)son.(g) " +
       "(z0) (;) (f3) (z+) Ky(f)ri(g)e(h) (cb3) (z-) e(g)lé(f)i(e)son.(f) (::)"
+  },
+  {
+    // without the areas, the lines would break after "ste" and after "ih"
+    name: "no-line-break-areas",
+    width: 190,
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (;) <nlba>Chri(f)ste(g) e(h)lé(i)i(h)son.(g)</nlba> (:) " +
+      "Ky(f)ri(g)e(h) e(hg<nlba>hi/hg/ih/ji</nlba>hg)lé(f)i(e)son.(f) (::)"
+  },
+  {
+    // the line breaks before the euouae, with no custos, rather than in it
+    name: "euouae",
+    width: 200,
+    gabc: "(c4) Gló(ehg)ri(hi)a(i) Pa(i)tri.(i) (:) Ky(f)ri(g)e(h) <eu>E(i) u(i!jwk) o(i) u(h) a(hhh) e(fe..)</eu> (::)"
   }
 ];
 

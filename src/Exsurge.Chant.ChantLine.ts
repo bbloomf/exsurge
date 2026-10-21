@@ -1185,6 +1185,7 @@ export class ChantLine extends ChantLayoutElement {
         }
 
         // check if the prev elements want to be kept with this one
+        var breakInArea: number | undefined;
         for (j = i - 1; j > this.notationsStartIndex; j--) {
           var cne = notations[j];
           curr = notations[j + 1];
@@ -1229,11 +1230,19 @@ export class ChantLine extends ChantLayoutElement {
           // if the line break is allowed (cne.allowLineBreakBeforeNext), keep this number of notations around so we can check during justification
           // whether there would be too much space introduced between
           if (cne.keepWithNext === true) {
-            if (cne.allowLineBreakBeforeNext && !this.maxNumNotationsOnLine)
+            if (cne.allowLineBreakBeforeNext && !this.maxNumNotationsOnLine && !this.keepsInArea(j))
               this.maxNumNotationsOnLine = this.numNotationsOnLine;
+            this.numNotationsOnLine--;
+          } else if (this.keepsInArea(j)) {
+            // no line break in a Gregorio no-line-break or euouae area, unless
+            // the line can't break anywhere else (see just below)
+            if (breakInArea === undefined) breakInArea = this.numNotationsOnLine;
             this.numNotationsOnLine--;
           } else break;
         }
+        // (an area too long for the line has to break after all)
+        if (j === this.notationsStartIndex && breakInArea !== undefined)
+          this.numNotationsOnLine = breakInArea;
         if (this.extraTextOnlyIndex && (this.notationsStartIndex + this.numNotationsOnLine) <= this.extraTextOnlyIndex) {
           // we've cut back to before the extra text only index, so we have to remove it:
           this.extraTextOnlyIndex = null;
@@ -1720,10 +1729,28 @@ export class ChantLine extends ChantLayoutElement {
   }
 
   /**
+   * whether a Gregorio no-line-break or euouae area (gabc <nlba> or <eu>)
+   * keeps the score's notation at index on the same line as the one after it
+   */
+  keepsInArea(index: number) {
+    var notations = this.score.notations;
+    for (const area of ["noLineBreak", "euouae"] as const) {
+      // (the line can break after the end of an area)
+      if (notations[index][area] && notations[index][area]!.end) continue;
+      for (var k = index; k >= 0; k--) {
+        var boundary = notations[k][area];
+        if (boundary && boundary.end && k < index) break;
+        if (boundary && boundary.start) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * whether the line, ending where it does now, gets an automatic custos: as
    * the line break that ends it says (gabc z+ or z-), or else unless a
-   * [nocustos] is on the last note before the end of the line or
-   * ctxt.eolCustos is "manual"
+   * euouae area (gabc <eu>) starts the next line, a [nocustos] is on the last
+   * note before the end of the line or ctxt.eolCustos is "manual"
    */
   wantsEolCustos(ctxt: ChantContext) {
     var notations = this.score.notations;
@@ -1732,6 +1759,14 @@ export class ChantLine extends ChantLayoutElement {
     if (last && last.constructor === ChantLineBreak) {
       if ((last as ChantLineBreak).custos === "force") return true;
       if ((last as ChantLineBreak).custos === "none") return false;
+    }
+
+    // Gregorio leaves out the custos just before a euouae area (gabc <eu>)
+    for (var k = lastIndex + 1; k < notations.length; k++) {
+      var next = notations[k];
+      if (next.isClef || next.constructor === ChantLineBreak) continue;
+      if (next.euouae && next.euouae.start) return false;
+      break;
     }
 
     for (var i = lastIndex; i >= this.notationsStartIndex; i--) {
