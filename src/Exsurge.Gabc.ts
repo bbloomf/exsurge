@@ -93,9 +93,17 @@ interface NeumeState {
   handle(currNote: Note, prevNote: Note, notesRemaining: number): NeumeState;
 }
 
+// what Gregorio's comments are masked with (see maskComments() below)
+var __commentMask = "\uFDD0";
+
 // reusable reg exps
-var __syllablesRegex = /(?=\S)((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
+// (a syllable starts after any spaces or masked comments)
+var __syllablesRegex = /(?=[^\s\uFDD0])((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
+// Gregorio's comments in the notation section (see maskComments() below),
+// and the text where a % isn't one
+var __commentRegex = /<sp>[^<]*?<\/sp>|<v>[\s\S]*?<\/v>|\$[\s\S]|%[^%\s][^%\n]*%|(%[^\n]*\n?)/g;
+var __commentMaskRegex = /\uFDD0/g;
 // Gregorio's syllable controls, which aren't printed: the euouae and
 // no-line-break areas, <clear> and <pr> (with spaces where Gregorio allows them)
 var __lyricAreaTagRegex = /<(\/)?(eu|nlba)>/g;
@@ -290,6 +298,24 @@ const GabcHeaderClass = class GabcHeader {
   }
 };
 export const GabcHeader = GabcHeaderClass as unknown as GabcHeaderConstructor;
+
+/**
+ * Masks Gregorio's comments in the notation section: a % to the end of its
+ * line, which also takes the line break away.  Each character becomes a
+ * noncharacter (U+FDD0), so that the source keeps its length (and the source
+ * indices stay where they were), and the parser skips it as it does a space
+ * between syllables, though without ending a word or a neume.  A % that
+ * another % closes later on its line is exsurge's %small caps% markup
+ * instead (when no space follows it), and a % in <sp>…</sp> or <v>…</v>, or
+ * escaped as $%, isn't a comment.
+ */
+var maskComments = (gabc: string) =>
+  gabc.replace(__commentRegex, (match, comment) =>
+    comment ? __commentMask.repeat(comment.length) : match
+  );
+
+// whether a gabc word is only spaces and comments
+var isEmptyWord = (word: string) => word.replace(__commentMaskRegex, "").trim() === "";
 
 var elementCountForNotations = (items: ChantNotationElement[]) =>
   items.reduce((sum, item) => sum + (item.notes ? item.notes.length : 1), 0);
@@ -739,7 +765,7 @@ export class Gabc {
           wordLength = resultValues[j].length + 1;
           // like createMappingsFromWords, skip the empty word that trailing
           // whitespace leaves at the end of the source
-          if (resultValues[j].trim() === "") {
+          if (isEmptyWord(resultValues[j])) {
             sourceIndex += wordLength;
             continue;
           }
@@ -810,7 +836,7 @@ export class Gabc {
       wordLength = words[i].length + 1;
       var word = words[i].trim();
 
-      if (word === "") continue;
+      if (isEmptyWord(word)) continue;
 
       var mapping = this.createMappingFromWord(
         ctxt,
@@ -852,7 +878,7 @@ export class Gabc {
     if (
       lastMatch &&
       lastMatch[2] === undefined &&
-      readSyllableControls(lastMatch[1], trailingAreas) === ""
+      readSyllableControls(lastMatch[1].replace(__commentMaskRegex, ""), trailingAreas) === ""
     )
       matches.pop();
     else trailingAreas = {};
@@ -860,7 +886,7 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
-      var lyricText = match[1].replace(
+      var lyricText = match[1].replace(__commentMaskRegex, "").replace(
         /(^|<\/sp>)([\s\S]*?)($|<sp>)/g,
         (_, pre, main, post) => `${pre}${main.replace(/~/g, " ")}${post}`
       );
@@ -2465,6 +2491,9 @@ export class Gabc {
   // takes raw gabc text source and parses it into words. For example, passing
   // in a string of "me(f.) (,) ma(fff)num(d!ewf) tu(fgF'E)am,(f.)" would return
   // an array of four strings: ["me(f.)", "(,)", "ma(fff)num(d!ewf)", "tu(fgF'E)am,(f.)"]
+  //
+  // Gregorio's comments are masked (see maskComments()), so a word can go on
+  // after a comment at the end of a line.
   static splitWords(gabcNotations: string) {
     // split the notations on whitespace boundaries, as long as the space
     // immediately follows a set of parentheses. Prior to doing that, we replace
@@ -2472,7 +2501,7 @@ export class Gabc {
     // up in the notation data.
     // Gregorio's closing </eu> and </nlba> tags can come between the
     // parentheses and the space, and stay with the word they end.
-    gabcNotations = gabcNotations
+    gabcNotations = maskComments(gabcNotations)
       // .trim()
       // .replace(/\s/g, " ")
       .replace(/\)((?:<\/(?:eu|nlba)>)*)\s(?=[^\)]*(?:\(|$))/g, ")$1\n");
@@ -2508,8 +2537,8 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
-      var lyrics = match[1].trim().split("|");
-      var notations = match[2];
+      var lyrics = match[1].replace(__commentMaskRegex, "").trim().split("|");
+      var notations = match[2] && match[2].replace(__commentMaskRegex, "");
 
       syllables.push({
         notations: notations,

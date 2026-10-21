@@ -136,7 +136,11 @@ var edits = [
   ['replaces everything', kyrie, '(c3) A(d)men.(d) (:)'],
   ['empties the source', kyrie, ''],
   ['starts from nothing', '', kyrie],
-  ['changes nothing', kyrie, kyrie]
+  ['changes nothing', kyrie, kyrie],
+  ['adds a Gregorio comment', kyrie, kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf) % a comment (f)\n')],
+  ['comments out a word', kyrie, kyrie.replace(' om(f)nes(g) ', ' % om(f)nes(g)\n ')],
+  ['edits a word after a comment', kyrie.replace('Lau(f)', '% x\nLau(f)'), kyrie.replace('Lau(f)', '% x\nLau(g)')],
+  ['adds a comment between syllables', kyrie, kyrie.replace('e(fg)lé(f)', 'e(fg)%c\nlé(f)')]
 ];
 
 describe('Gabc diff', function() {

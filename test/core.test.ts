@@ -290,3 +290,36 @@ describe("Gregorio note tokens", function() {
     }
   });
 });
+
+describe("Gregorio comments", function() {
+  it("leaves out a % comment to the end of the line", function() {
+    const notations = parseNotations("(c4) Ky(f)ri(g)e(h) % a comment (x)\n e(g)lé(f) (::)\n% a whole line\nChri(g)ste(h)");
+    assert.deepStrictEqual(lyricTexts(notations), ["Ky", "ri", "e", "e", "lé", "Chri", "ste"]);
+    assert.strictEqual(notations.length, 8);
+  });
+
+  it("takes away the line break at the end of a comment", function() {
+    const notations = parseNotations("(c4) Ky(f)ri(g)%comment\ne(h) Ky%c\nri(g)e(h) a(f%c (x)\ng)");
+    assert.deepStrictEqual(lyricTexts(notations), ["Ky", "ri", "e", "Kyri", "e", "a"]);
+    // Ky(f)ri(g)e(h) is still one word
+    assert.deepStrictEqual(
+      notations.slice(0, 3).map((notation) => notation.lyrics[0].lyricType),
+      [Exsurge.LyricType.BeginningSyllable, Exsurge.LyricType.MiddleSyllable, Exsurge.LyricType.EndingSyllable]
+    );
+    // and (f%c⏎g) is one neume
+    assert.strictEqual(notations[5].notes!.length, 2);
+  });
+
+  it("keeps the source indices of what comes after a comment", function() {
+    const source = "(c4) a(f) % comment\n b(g)";
+    const notations = parseNotations(source);
+    assert.strictEqual(notations[1].notes![0].sourceIndex, source.indexOf("g)"));
+    assert.strictEqual(notations[1].lyrics[0].sourceIndex, source.indexOf("b(g)"));
+  });
+
+  it("keeps a % closed on its line, a % in <sp> or <v> and an escaped %", function() {
+    const notations = parseNotations("(c4) %small%(g) a%b%c(h) <sp>%</sp>(f) <v>%y</v>(f) %%% sep\n d(g) % 50% off\n e(h)");
+    assert.deepStrictEqual(lyricTexts(notations), ["small", "abc", "%", "%y", "d", "e"]);
+    assert.deepStrictEqual(notations[0].lyrics[0].spans[0].activeTags, ["sc"]);
+  });
+});

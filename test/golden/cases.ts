@@ -311,6 +311,13 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
       "g(@[fhg]) h(@hg) i(g=) j(fqg) k(gWh) l(fx?g) m(fy?f) n(f#?f) o(gVV) (::)"
+  },
+  {
+    // the comments aren't printed, and one at the end of a line takes the line break away
+    name: "comments-in-notation",
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) % a comment (x)\n e(g)lé(f)i(g)son.(f) (::)\n% a whole line\n" +
+      "Chri(g)ste(h) % comment\n e(g)lé(f)i%c\non(g) a(f%c (x)\ng) %small%(g) a%b%c(h) % 50% off\n (::)"
   }
 ];
 
