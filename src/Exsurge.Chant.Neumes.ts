@@ -45,6 +45,23 @@ export interface NeumeLedgerLine {
   staffPosition: number;
 }
 
+// the stroke of a porrectus from start down to end, or GlyphCode.None if
+// there's no glyph for it (an interval of more than a fourth)
+function porrectusGlyph(start: Note, end: Note): GlyphCode {
+  switch (start.staffPosition - end.staffPosition) {
+    case 1:
+      return GlyphCode.Porrectus1;
+    case 2:
+      return GlyphCode.Porrectus2;
+    case 3:
+      return GlyphCode.Porrectus3;
+    case 4:
+      return GlyphCode.Porrectus4;
+    default:
+      return GlyphCode.None;
+  }
+}
+
 class NeumeBuilder {
   ctxt: ChantContext;
   neume: Neume;
@@ -345,6 +362,13 @@ class NeumeBuilder {
   }
 
   withPorrectusSwash(start: Note, end: Note) {
+    var glyph = porrectusGlyph(start, end);
+    if (glyph === GlyphCode.None) {
+      // a stroke wider than a fourth, which has no glyph yet: the two notes
+      // as puncta joined by a line, as a clivis's are, so that neither is lost
+      return this.noteAt(start, GlyphCode.PunctumQuadratum).noteAt(end, GlyphCode.PunctumQuadratum);
+    }
+
     var needsLine =
       this.lastNote !== null &&
       (this.ctxt.glyphMultiplier < 1 ||
@@ -363,27 +387,6 @@ class NeumeBuilder {
       this.x = Math.max(this.minX, this.x - line.bounds.width);
       line.bounds.x = this.x;
       this.neume.addVisualizer(line);
-    }
-
-    var glyph;
-
-    switch (start.staffPosition - end.staffPosition) {
-      case 1:
-        glyph = GlyphCode.Porrectus1;
-        break;
-      case 2:
-        glyph = GlyphCode.Porrectus2;
-        break;
-      case 3:
-        glyph = GlyphCode.Porrectus3;
-        break;
-      case 4:
-        glyph = GlyphCode.Porrectus4;
-        break;
-      default:
-        // fixme: should we generate an error here?
-        glyph = GlyphCode.None;
-        break;
     }
 
     start.setGlyph(this.ctxt, glyph);

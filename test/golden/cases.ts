@@ -346,6 +346,13 @@ export const featureCases: GoldenCase[] = [
     // a 0, 1 or 2 after an inclinatum is its leaning, so the notes stay on their pitches
     name: "inclinatum-digits",
     gabc: "(c4) a(G) b(G0) c(G1) d(G2) e(hGF) f(hG0F0) g(fG1H1) h(gG2G2) i(-G0) (::) (xp3) j(H0) k(h0) l(H9) (::)"
+  },
+  {
+    // a porrectus stroke wider than a fourth (or between nudged notes, as a
+    // note on a space is under a Chi-Rho clef) has no glyph yet, so its notes
+    // are drawn as puncta joined by a line
+    name: "porrectus-wide",
+    gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) (::)"
   }
 ];
 
