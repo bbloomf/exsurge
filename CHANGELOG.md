@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/frmatthew/exsurge/compare/v1.30.1...v2.0.0) (2026-10-21)
+
+
+### Bug Fixes
+
+* Declare the xlink namespace in the XMLNS namespace ([28a176e](https://github.com/frmatthew/exsurge/commit/28a176ec7d4fabae8db5f12fc23f6530a1906eb4))
+* Don't change ctxt.baseTextStyle when rendering an svg tree ([7bb8468](https://github.com/frmatthew/exsurge/commit/7bb8468d639905e144b8e2791d86b3b1a80be21e))
+* Don't throw on a brace still open at a custos that ends the score ([1164b06](https://github.com/frmatthew/exsurge/commit/1164b06e8a4599c22111e204c94b64b5f4a2de15))
+* Keep the prefix of namespaced attributes in svg nodes ([8d628c1](https://github.com/frmatthew/exsurge/commit/8d628c135cadff71bdc50715957a44f880f33bf9))
+* Measure directives and text left and right with their css classes ([25633fb](https://github.com/frmatthew/exsurge/commit/25633fbd2720a7149a5bf53b9966cb86c47b57af))
+* Measure text in its text style with TextMeasuringStrategy.Svg, and wrap it ([a3b57e7](https://github.com/frmatthew/exsurge/commit/a3b57e7f0d8146dfaa1748c39ad49eda5dbe6a75))
+
 ## [1.30.1](https://github.com/frmatthew/exsurge/compare/v1.30.0...v1.30.1) (2026-10-18)
 
 
