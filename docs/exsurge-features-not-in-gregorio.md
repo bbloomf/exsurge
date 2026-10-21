@@ -204,7 +204,7 @@ The upper and lower positions are each a sixth of the line spacing from the midd
 - **In neumes.** It works on any note of any neume: `(g0h9)` is a pes, and `(h9g0)` a clivis.
 - **Custodes.** `f9+` puts a custos at the offset position. An automatic custos at the end of a line copies the offset of the note it announces (`Signs.ts:55-65`).
 - **Outside the staff.** It works on ledger-line notes too: `a0`, `l9`, `m9`.
-- **Pitch.** The note keeps the pitch of its letter: `g9` is still So with a `c4` clef. Only the drawing moves. (But see [the bug with `g9`](#limits-and-bugs-found-while-checking).)
+- **Pitch.** The note keeps the pitch of its letter: `f9` is still Fa with a `c4` clef. Only the drawing moves. (But see [the bug](#limits-and-bugs-found-while-checking): under some clefs a few offset notes, such as `g9`, get a wrong pitch or none.)
 - **Capitals.** `G9` moves an inclinatum up, but `G0` collides with Gregorio (below).
 
 **What Gregorio does instead.** Nothing like it:
@@ -757,7 +757,7 @@ score.notes.filter((n) => n.pitch).map((n) => n.pitch.toInt());
 
 With `(c4) a(defghij) b(ixi) c(i) (::)`, the notes are Re, Mi, Fa, So, La, Ti and Do, then Te after the flat, and Ti again in the next word. (The flat sign `ix` has a pitch of its own too, so it appears in that list.)
 
-**Limit.** `g9` has no step under some clefs (see [the bug](#limits-and-bugs-found-while-checking)).
+**Limit.** Under some clefs, a few offset notes, such as `g9`, get a wrong pitch or none (see [the bug](#limits-and-bugs-found-while-checking)).
 
 **What Gregorio does instead.** It has no pitch output. The `dump` format, which is for debugging, prints each note as the letter of its staff position (`src/dump/dump.c:78-90`). Accidentals are tracked per line and staff position only to decide whether a soft accidental is shown (`tex/gregoriotex.lua:1175-1199`) and whether a custos needs one (`src/struct.c:1291-1336`).
 
@@ -861,8 +861,10 @@ How Gregorio reads exsurge's own syntax. `gregorio-feature-gap.md` §15 covers t
 
 These came up while rendering the examples. None of them is fixed here; each would be a change under `src/`.
 
-1. **`g9` has no pitch under some clefs, and an automatic custos announcing it breaks the whole SVG.** `createNoteFromData()` adds the offset to the staff position and then subtracts it again before looking up the pitch (`Gabc.ts:1842-1843`). In floating point, 4 + ⅓ − ⅓ comes out as 3.9999999999999996, which isn't a step (`Pitch.staffOffsetToStep()`, `Core.ts:347-352`). The cases found:
-   - Of all the pitches `a` to `m` with `0` or `9`, this happens only to `g9` (and `G9`), under the clefs `c1`, `c2`, `c4`, `f2` and `f3`. It doesn't happen under `c3`, `f1`, `f4`, `cb3`, `treble2` or `xp3`.
+1. **Some offset notes get a wrong pitch or none, and an automatic custos announcing one with no pitch breaks the whole SVG.** `createNoteFromData()` adds the offset to the staff position and then subtracts it again before looking up the pitch (`Gabc.ts:1842-1843`). In floating point, 4 + ⅓ − ⅓ comes out as 3.9999999999999996, which isn't a step (`Pitch.staffOffsetToStep()`, `Core.ts:347-352`). Every pitch `a` to `m` with `0` or `9` was compared with the same pitch without the digit, under 11 clefs:
+   - `g9` (and `G9`) gets no step under `c1`, `c2`, `c4`, `f2` and `f3`.
+   - The same rounding gives a wrong pitch in three cases: `g9` is Do under `f4`, `g9` loses the clef's flat under `cb3`, and `d9` comes out an octave low under `c1`.
+   - `c3`, `f1`, `treble2` and `xp3` are unaffected.
    - When a line break falls just before such a note, the automatic custos's position is `NaN` (`Signs.ts:55-65`). The `NaN` spreads to the height of the SVG, and nothing is drawn. Example: `(c4) a(f)b(g)c(h)d(g)e(f)f(e)g(f)h(g9)i(g0)j(g9)k(g0)l(g9)m(g0) (::)` at a width of 200, with `ctxt.setStaffHeight(48)`.
    - A fix would compute the pitch from the unrounded position: `gabcHeightToExsurgeHeight(data[0])`.
 2. **A `<br>` in a syllable with notes isn't given room** (§7). On the last system, the extra line falls outside the SVG.
