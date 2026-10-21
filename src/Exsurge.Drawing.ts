@@ -957,6 +957,16 @@ export class ChantContext {
    * Like the rest of the lyrics, it's read when the gabc is parsed.
    */
   lyricTie: LyricTie;
+  /**
+   * Gregorio's firstword, firstsyllable and firstsyllableinitial styles: the
+   * styles of the lyrics of the score's first word, of its first syllable
+   * (after any drop cap), and of that syllable's first letter.  Markup in the
+   * lyrics wins over them.  Each is empty, and so changes nothing, by default.
+   * They're applied by ChantScore.updateNotations().
+   */
+  firstWordStyle: CssProperties;
+  firstSyllableStyle: CssProperties;
+  firstSyllableInitialStyle: CssProperties;
 
   pixelRatio: number;
 
@@ -1148,6 +1158,9 @@ export class ChantContext {
     this.defaultLanguage = language.latin;
     this.italicMeansElision = true;
     this.lyricTie = "space";
+    this.firstWordStyle = {};
+    this.firstSyllableStyle = {};
+    this.firstSyllableInitialStyle = {};
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio =
@@ -3828,6 +3841,11 @@ export class Lyric extends TextElement {
   lyricIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
   lineWidth?: number;
+  /**
+   * the styles that setFirstWordStyles() gave the lyric: the first word's and
+   * first syllable's, then the first letter's
+   */
+  firstWordStyles?: SpanPropertyDict[];
 
   constructor(
     ctxt: ChantContext,
@@ -4116,6 +4134,79 @@ export class Lyric extends TextElement {
     this.centerStartIndex--; // lost a letter, so adjust centering accordingly
 
     return dropCap;
+  }
+
+  /**
+   * Gives the lyric the styles of the score's first word (part "word"), or of
+   * its first syllable ("syllable", which also styles the first letter after
+   * any drop cap), from ChantContext.firstWordStyle and so on, or takes them
+   * away (null).  Returns whether the lyric's spans changed.
+   */
+  setFirstWordStyles(ctxt: ChantContext, part: "syllable" | "word" | null) {
+    const hasProperties = (style: CssProperties) =>
+      !!style && Object.keys(style).length > 0;
+    let styles: CssProperties[] = [],
+      initialStyle: CssProperties | null = null;
+    if (part) {
+      styles = [ctxt.firstWordStyle];
+      if (part === "syllable") {
+        styles.push(ctxt.firstSyllableStyle);
+        initialStyle = ctxt.firstSyllableInitialStyle;
+      }
+      styles = styles.filter(hasProperties);
+      if (initialStyle && !hasProperties(initialStyle)) initialStyle = null;
+    }
+    const applied = this.firstWordStyles || [];
+    if (
+      applied.length === styles.length + 1 &&
+      styles.every((style, i) => applied[i] === style) &&
+      applied[styles.length] === initialStyle
+    )
+      return false;
+    if (!applied.length && !styles.length && !initialStyle) return false;
+
+    if (applied.length) {
+      // start again from the lyric as it was parsed (less its drop cap)
+      this.generateSpansFromText(
+        ctxt,
+        (ctxt.textStyles.lyric.prefix || "") + this.originalText
+      );
+      if (this.dropCap) {
+        this.spans[0].text = this.spans[0].text.slice(1);
+        this.text = this.text.slice(1);
+      }
+    }
+    this.firstWordStyles =
+      styles.length || initialStyle ? [...styles, initialStyle] : undefined;
+    if (!this.firstWordStyles) return true;
+
+    // the lyric's own markup goes last, so that it wins
+    let spans: TextSpan[] = [];
+    for (let span of this.spans) {
+      if (span === this.connectorSpan) continue;
+      let propertyArray = [...styles, ...span.propertyArray];
+      if (initialStyle && span.text) {
+        // the first letter gets a span of its own
+        const initial = Array.from(span.text)[0];
+        const initialSpan = span.clone();
+        initialSpan.text = initial;
+        initialSpan.propertyArray = [...styles, initialStyle, ...span.propertyArray];
+        spans.push(initialSpan);
+        initialStyle = null;
+        if (span.text.length === initial.length) continue;
+        span = span.clone();
+        span.text = span.text.slice(initial.length);
+        span.index += initial.length;
+        delete span.newLine;
+        delete span.wrappedSpace;
+      } else {
+        span = span.clone();
+      }
+      span.propertyArray = propertyArray;
+      spans.push(span);
+    }
+    this.spans = spans;
+    return true;
   }
 
   getCssClasses() {

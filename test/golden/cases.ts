@@ -477,6 +477,19 @@ export const featureCases: GoldenCase[] = [
     name: "lyric-tie",
     gabc: "(c4) Glo(f)ri(g)a~in(h) ex(g)cel(f)sis(g) De~o(h) <sp>~</sp>(g) (::)",
     setupContext: (ctxt) => (ctxt.lyricTie = "undertie")
+  },
+  {
+    // after the drop cap: the first word in small caps, its first syllable in
+    // bold and that syllable's first letter in red, with the lyric's own
+    // markup (the italics) kept
+    name: "first-syllable-styles",
+    useDropCap: true,
+    gabc: "(c4) Glo(f)<i>ri</i>(g)a(h) in(g) ex(f)cél(g)sis(h) (::)",
+    setupContext: (ctxt) => {
+      ctxt.firstWordStyle = { "font-variant": "small-caps" };
+      ctxt.firstSyllableStyle = { "font-weight": "bold" };
+      ctxt.firstSyllableInitialStyle = { fill: "#d00" };
+    }
   }
 ];
 

@@ -49,3 +49,65 @@ describe('Lyric ties', function() {
     assert(tied.origin.x < spaced.origin.x, `${tied.origin.x} < ${spaced.origin.x}`);
   });
 });
+
+describe('First word styles', function() {
+  function styled(gabc: string, useDropCap: boolean, setupContext?: (ctxt: Drawing.ChantContext) => void) {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+    if (setupContext) setupContext(ctxt);
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), useDropCap);
+    score.performLayout(ctxt);
+    var spans = score.notations
+      .filter((notation) => notation.hasLyrics())
+      .map((notation) => notation.lyrics[0].spans.map((span) => span.text + ':' + span.getCss()));
+    return { ctxt, score, spans };
+  }
+  var styles = (ctxt: Drawing.ChantContext) => {
+    ctxt.firstWordStyle = { 'font-variant': 'small-caps' };
+    ctxt.firstSyllableStyle = { 'font-weight': 'bold' };
+    ctxt.firstSyllableInitialStyle = { fill: '#d00' };
+  };
+
+  it('changes nothing by default', function() {
+    assert.deepEqual(styled('(c4) Glo(f)ri(g)a(h) in(g)', false).spans, [
+      ['Glo:'], ['ri:'], ['a:'], ['in:']
+    ]);
+  });
+
+  it('styles the first word, its first syllable and its first letter', function() {
+    assert.deepEqual(styled('(c4) Glo(f)<b>ri</b>(g)a(h) in(g)', false, styles).spans, [
+      ['G:font-variant: small-caps;font-weight: bold;fill: #d00;', 'lo:font-variant: small-caps;font-weight: bold;'],
+      ['ri:font-variant: small-caps;font-weight: bold;'],
+      ['a:font-variant: small-caps;'],
+      ['in:']
+    ]);
+  });
+
+  it('styles the first letter after the drop cap', function() {
+    var { score, spans } = styled('(c4) Glo(f)ri(g)a(h) in(g)', true, styles);
+    assert.equal(score.dropCap!.spans.map((span) => span.text + ':' + span.getCss()).join(), 'G:');
+    assert.deepEqual(spans[0], [
+      'l:font-variant: small-caps;font-weight: bold;fill: #d00;',
+      'o:font-variant: small-caps;font-weight: bold;'
+    ]);
+  });
+
+  it('moves the styles when the first word changes, and takes them away when they are emptied', function() {
+    var { ctxt, score } = styled('(c4) Glo(f)ri(g)a(h) in(g)', false, styles);
+    var gabc = '(c4) In(f) ex(g)';
+    Gabc.updateMappingsFromSource(ctxt, score.mappings, gabc);
+    score.updateNotations(ctxt);
+    var spans = () => score.notations.filter((notation) => notation.hasLyrics()).map((notation) => notation.lyrics[0].spans.map((span) => span.text + ':' + span.getCss()));
+    assert.deepEqual(spans(), [
+      ['I:font-variant: small-caps;font-weight: bold;fill: #d00;', 'n:font-variant: small-caps;font-weight: bold;'],
+      ['ex:']
+    ]);
+    ctxt.firstWordStyle = {};
+    ctxt.firstSyllableInitialStyle = {};
+    score.updateNotations(ctxt);
+    assert.deepEqual(spans(), [['In:font-weight: bold;'], ['ex:']]);
+    ctxt.firstSyllableStyle = {};
+    score.updateNotations(ctxt);
+    assert.deepEqual(spans(), [['In:'], ['ex:']]);
+  });
+});

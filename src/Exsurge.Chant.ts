@@ -734,6 +734,8 @@ export class ChantScore {
   insertionElement?: ChantNotationElement | null;
   /** the annotation and left text together, when they're merged */
   overrideTextLeft?: TextLeftRight | null;
+  /** the lyrics given the first word's styles (see updateFirstWordStyles()) */
+  firstWordLyrics?: Lyric[];
   svg?: SvgElementWithSource;
 
   // mappings is an array of ChantMappings.
@@ -903,6 +905,7 @@ export class ChantScore {
     // update drop cap
     if (this.useDropCap) this.recreateDropCap(ctxt);
     else this.dropCap = null;
+    this.updateFirstWordStyles(ctxt);
 
     this.needsLayout = true;
   }
@@ -920,6 +923,9 @@ export class ChantScore {
       ) {
         let notation = this.notations[i],
           lyrics = notation.lyrics[0];
+        // a new drop cap is taken from the lyric without the first word's styles
+        if (!this.useDropCap || !lyrics.dropCap)
+          lyrics.setFirstWordStyles(ctxt, null);
         if (this.useDropCap) {
           this.dropCap = lyrics.generateDropCap(ctxt);
         } else {
@@ -933,9 +939,40 @@ export class ChantScore {
           lyrics.generateSpansFromText(ctxt, lyrics.originalText);
         }
         notation.needsLayout = true;
+        this.updateFirstWordStyles(ctxt);
         return;
       }
     }
+  }
+
+  /**
+   * Gives the lyrics of the first word ctxt.firstWordStyle, and the first
+   * syllable (after any drop cap) ctxt.firstSyllableStyle and
+   * ctxt.firstSyllableInitialStyle, taking them from any lyrics that had them
+   * but are no longer the first word.
+   */
+  updateFirstWordStyles(ctxt: ChantContext) {
+    const lyrics: Lyric[] = [];
+    for (const notation of this.notations) {
+      const lyric = notation.hasLyrics() ? notation.lyrics[0] : null;
+      if (!lyric || !lyric.spans || !lyric.spans.length) continue;
+      lyrics.push(lyric);
+      // the first word ends with its last syllable (or a directive)
+      if (
+        lyric.lyricType !== LyricType.BeginningSyllable &&
+        lyric.lyricType !== LyricType.MiddleSyllable
+      )
+        break;
+    }
+    for (const lyric of this.firstWordLyrics || []) {
+      if (!lyrics.includes(lyric) && lyric.setFirstWordStyles(ctxt, null))
+        lyric.notation.needsLayout = true;
+    }
+    lyrics.forEach((lyric, i) => {
+      if (lyric.setFirstWordStyles(ctxt, i === 0 ? "syllable" : "word"))
+        lyric.notation.needsLayout = true;
+    });
+    this.firstWordLyrics = lyrics;
   }
 
   /**
