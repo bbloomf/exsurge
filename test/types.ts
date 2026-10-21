@@ -1,14 +1,15 @@
-// Checks src/index.d.ts against how exsurge is used.  It is only type-checked
-// (npm run test:types), never run.  Each @ts-expect-error marks a use that
-// the JS doesn't support, so it must stay a type error.
+// Checks the types of exsurge's source against how exsurge is used.  It is
+// only type-checked (npm run test:types), never run.  Each @ts-expect-error
+// marks a use that exsurge doesn't support, so it must stay a type error.
 import type { Font as FontkitFont } from "fontkit";
+import type { Font as OpenTypeFont } from "opentype.js";
 import {
   ChantContext,
   ChantScore,
   Gabc,
   GabcHeader,
-  ScoreWithTitles,
-  SvgTreeNode,
+  type ScoreWithTitles,
+  type SvgTreeNode,
   TextElement,
   TextSpan,
   TextTypes,
@@ -52,6 +53,8 @@ const styleTree: SvgTreeNode = ctxt.createStyleTree();
 ctxt.createStyleReact();
 declare const fontkitFont: FontkitFont;
 ctxt.setFont("Garamond", 16, {}, { Regular: fontkitFont });
+declare const openTypeFont: OpenTypeFont;
+ctxt.setFont("Garamond", 16, {}, { Regular: openTypeFont, Bold: fontkitFont });
 
 // ChantScore
 same<typeof score.forceLayout, boolean | undefined>(true);

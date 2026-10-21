@@ -1,0 +1,72 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 600, 122.935) [matrix=1,0,0,1,0,0]
+beginPath()
+moveTo(0, -43.75)
+lineTo(600, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,91.39500000000001]
+beginPath()
+moveTo(0, -31.25)
+lineTo(600, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,91.39500000000001]
+beginPath()
+moveTo(0, -18.75)
+lineTo(600, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,91.39500000000001]
+beginPath()
+moveTo(0, -6.25)
+lineTo(600, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,72.64500000000001]
+fillText("Ky", -10.339, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,91.39500000000001]
+fillText("Above", 0, -62.115, undefined) [font="italic 16px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,30.5939,66.39500000000001]
+fillText("ri", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,27.4689,91.39500000000001]
+fillText("-", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,39.6369,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,44.656400000000005,60.14500000000001]
+fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,41.531400000000005,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,61.843900000000005,66.39500000000001]
+fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,58.718900000000005,91.39500000000001]
+fillText("Also above", 0, -62.115, undefined) [font="italic 16px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,58.718900000000005,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,76.63270000000001,72.64500000000001]
+fillText("lé", -9.374199999999998, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,73.50770000000001,91.39500000000001]
+fillText("-", -9.374199999999998, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,90.19730000000001,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,90.6952,78.89500000000001]
+fillText("i", -0.23019999999999996, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,87.5702,91.39500000000001]
+fillText("-", -0.23019999999999996, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,94.2806,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,106.95280000000001,72.64500000000001]
+fillText("son.", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,103.82780000000001,91.39500000000001]
+fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,127.25280000000001,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,148.3528,72.64500000000001]
+fillText("Chri", -16.473399999999998, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,145.2278,91.39500000000001]
+fillText("Christ", 0, 27.10000000000001, undefined) [font="italic 12px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,145.2278,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,166.5112,66.39500000000001]
+fillText("ste", -11.6782, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,163.3862,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,183.6987,60.14500000000001]
+fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,180.5737,91.39500000000001]
+fillText("have mercy", 1.6769499999999873, 27.10000000000001, undefined) [font="italic 12px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,180.57369999999997,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,198.48749999999995,66.39500000000001]
+fillText("lé", -9.374199999999998, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,195.36249999999995,91.39500000000001]
+fillText("-", -9.374199999999998, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,212.05209999999997,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,212.54999999999998,72.64500000000001]
+fillText("i", -0.23019999999999996, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,209.42499999999998,91.39500000000001]
+fillText("-", -0.23019999999999996, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,216.13539999999998,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,228.80759999999998,78.89500000000001]
+fillText("son", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,225.68259999999998,91.39500000000001]
+fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,239.74509999999998,91.39500000000001]
+fill(Path2D(PodatusLowerShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,251.4826,72.64500000000001]
+fill(Path2D(PodatusUpperShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,254.6076,66.39500000000001]
+fillText("a", -1.1230000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,248.3576,91.39500000000001]
+fillText("note", 0, -62.115, undefined) [font="italic 16px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,248.35759999999996,91.39500000000001]
+fillRect(0, -25, 0.8, 9.756761363636363) [fillStyle="#000" matrix=1,0,0,1,265.5451,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,268.6701,66.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,274.9201,72.64500000000001]
+fillText("b", -1.3894000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,265.5451,91.39500000000001]
+fillText("al1", 0, -62.115, undefined) [font="italic 16px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,265.5451,91.39500000000001]
+fillText("al2", 0, -79.715, undefined) [font="italic 16px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,265.5451,91.39500000000001]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,292.1076,60.14500000000001]
+fillText("c", -1.6558000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,288.9826,91.39500000000001]
+fillText("One", 0, -62.115, undefined) [font="italic 16px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,288.9826,91.39500000000001]
+fillText("Two", 0, -79.715, undefined) [font="italic 16px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,288.9826,91.39500000000001]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,303.0451,91.39500000000001]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,303.0451,91.39500000000001]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,47.64500000000001]

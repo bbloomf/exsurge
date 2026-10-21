@@ -33,8 +33,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js">/* W3C Custom Elements */</script>
   <!-- <script type="text/javascript" src="../dist/exsurge.js"></script> -->
   <script type="text/javascript">window.require = s => s.replace(/^url\?[^!]*\!/,'');</script>
+  <!-- the ES module build: run npm run build:esm (or npm run build) first, and serve the repository -->
   <script type="module">
-    import * as exsurge from '../src/index.js'
+    import * as exsurge from '../dist/esm/index.js'
     window.exsurge = exsurge;
     /* testing exsurge */
     var ctxt = window.chantContext = new exsurge.ChantContext();

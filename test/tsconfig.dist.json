@@ -1,0 +1,10 @@
+{
+  // checks test/types.ts against the typings as they are published, which
+  // test/bundle.test.ts builds into test/.build
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": false,
+    "paths": { "exsurge": ["./.build/esm/index.d.ts"] }
+  },
+  "include": ["types.ts"]
+}
