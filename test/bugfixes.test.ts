@@ -215,9 +215,9 @@ describe('Staff position offsets', function() {
 
   it('gives the Chi-Rho clef chromatic pitches, with each line a minor third above the one below it', function() {
     var expected: [string, number][] = [
-      ['b', -9], ['d', -6], ['f', -3], ['f9', -2], ['g0', -2], ['g', -1], ['g9', -1], ['h0', -1],
-      ['h', 0], ['h9', 1], ['i0', 1], ['i', 2], ['i9', 2], ['j0', 2], ['j', 3], ['j9', 4],
-      ['k0', 4], ['k9', 5], ['l0', 5], ['l', 6], ['m0', 7], ['m', 8], ['m9', 8]
+      ['b', -9], ['d', -6], ['f', -3], ['f9', -2], ['g0', -2], ['g', -2], ['g9', -1], ['h0', -1],
+      ['h', 0], ['h9', 1], ['i0', 1], ['i', 1], ['i9', 2], ['j0', 2], ['j', 3], ['j9', 4],
+      ['k0', 4], ['k', 4], ['k9', 5], ['l0', 5], ['l', 6], ['m0', 7], ['m', 7], ['m9', 8]
     ];
     var notes = parseNotes('(xp3) ' + expected.map(function(e) { return '(' + e[0] + ')'; }).join(' '));
     assert.deepEqual(
@@ -226,6 +226,14 @@ describe('Staff position offsets', function() {
     );
     assert.deepEqual(notes[expected.findIndex(function(e) { return e[0] === 'i0'; })].pitch, new Core.Pitch(Core.Step.Du, 2));
     assert.deepEqual(notes[expected.findIndex(function(e) { return e[0] === 'g0'; })].pitch, new Core.Pitch(Core.Step.Te, 1));
+
+    // the middle of a space is never used: a note on a space without 0 or 9 is at its bottom
+    ['a', 'c', 'e', 'g', 'i', 'k', 'm'].forEach(function(space) {
+      var spaceNotes = parseNotes('(xp3) (' + space + ') (' + space + '0)');
+      assert.equal(spaceNotes[0].staffPositionOffset, -1 / 3, space);
+      assert.equal(spaceNotes[0].staffPosition, spaceNotes[1].staffPosition, space);
+      assert.deepEqual(spaceNotes[0].pitch, spaceNotes[1].pitch, space);
+    });
 
     // whichever line the clef is on, that line is Do
     ['xp1', 'xp2', 'xp3', 'xp4', 'xp-2'].forEach(function(clef) {

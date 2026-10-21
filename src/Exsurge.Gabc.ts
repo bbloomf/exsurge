@@ -2327,8 +2327,14 @@ export class Gabc {
    */
   static setStaffPositionAndOffset(note: Note | Signs.Custos, gabcAtom: string, clef: Clef) {
     const staffPosition = this.gabcHeightToExsurgeHeight(gabcAtom[0]);
-    note.staffPositionOffset =
-      clef instanceof ChiRhoClef ? this.getStaffPositionOffset(staffPosition, gabcAtom[1]) : 0;
+    note.staffPositionOffset = 0;
+    if (clef instanceof ChiRhoClef) {
+      let zeroOrNine = gabcAtom[1];
+      // the middle of a space is never used: a note on a space without a 9 is at the
+      // bottom of the space, as if it had a 0
+      if (staffPosition % 2 === 0 && zeroOrNine !== "9") zeroOrNine = "0";
+      note.staffPositionOffset = this.getStaffPositionOffset(staffPosition, zeroOrNine);
+    }
     note.staffPosition = staffPosition + note.staffPositionOffset;
   }
 }

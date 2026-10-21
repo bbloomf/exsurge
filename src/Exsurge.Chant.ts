@@ -111,7 +111,10 @@ export class Note extends ChantLayoutElement {
    * below the lowest line (gabc "c")
    */
   staffPosition: number;
-  /** a nudge up or down a third of a space (gabc 9 or 0 after a pitch, under a Chi-Rho clef) */
+  /**
+   * a nudge up or down a third of a space, under a Chi-Rho clef (gabc 9 or 0 after a pitch;
+   * a note on a space without a 9 is nudged down)
+   */
   staffPositionOffset?: number;
   liquescent: LiquescentType;
   shape: NoteShape;
@@ -458,15 +461,16 @@ export class ChiRhoClef extends Clef {
   // minor third above the one below it. A space holds the two half steps between its
   // lines, the lower at its bottom (gabc 0 after the space, or 9 after the line below)
   // and the upper at its top (9 after the space, or 0 after the line above), so going
-  // from a line to the space above it is a half step and a half.
+  // from a line to the space above it is a half step and a half. The middle of a space
+  // is never used: a note on a space with neither 0 nor 9 is at its bottom.
   pitchToStaffPosition(pitch: Pitch) {
     var halfSteps = (pitch.octave - this.octave) * 12 + pitch.step;
     return this.staffPosition + (halfSteps * 2) / 3;
   }
 
   staffPositionToPitch(staffPosition: number) {
-    // a note in the middle of a space, with no 0 or 9, is rounded up to the top of the space
-    var halfSteps = Math.round(((staffPosition - this.staffPosition) * 3) / 2);
+    // the middle of a space (where an accidental is) is rounded down to the bottom of the space
+    var halfSteps = Math.ceil(((staffPosition - this.staffPosition) * 3) / 2 - 0.5);
     var octaveOffset = Math.floor(halfSteps / 12);
 
     var step = halfSteps - octaveOffset * 12;

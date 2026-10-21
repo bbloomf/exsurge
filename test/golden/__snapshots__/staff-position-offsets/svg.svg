@@ -75,9 +75,9 @@
 <g class="ChantNotationElement Podatus" transform="translate(85.9668125,0)" >
 <use xlink:href="#PodatusLower" class=" note" source-index="30" element-index="5" id="note-6" x="3.125" y="-14.583333333333332" >
 </use>
-<rect x="5.45" y="-25" width="0.8" height="10.416666666666666" fill="#000" class="neumeLine" >
+<rect x="5.45" y="-22.916666666666664" width="0.8" height="8.33333333333333" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#PodatusUpper" class=" note" source-index="32" element-index="6" id="note-7" x="6.25" y="-25" >
+<use xlink:href="#PodatusUpper" class=" note" source-index="32" element-index="6" id="note-7" x="6.25" y="-22.916666666666664" >
 </use>
 </g>
 <g class="ChantNotationElement DoubleBar" transform="translate(341.61621875000003,0)" >
