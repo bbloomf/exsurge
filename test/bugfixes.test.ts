@@ -171,3 +171,62 @@ describe('Braces', function() {
     assert.equal(line.braces[0].bounds.right(), line.custos.bounds.right());
   });
 });
+
+describe('Staff position offsets', function() {
+  var clefs = ['c1', 'c2', 'c3', 'c4', 'f1', 'f2', 'f3', 'f4', 'cb3', 'treble2', 'xp3'];
+
+  it('gives a note nudged with 0 or 9 the pitch of the note it nudges, under every clef', function() {
+    clefs.forEach(function(clef) {
+      var letters = 'abcdefghijklm'.split('');
+      var gabc = '(' + clef + ') ' + letters.map(function(letter) {
+        return '(' + letter + ') (' + letter + '0) (' + letter + '9)';
+      }).join(' ');
+      var notes: Chant.Note[] = [];
+      Gabc.createMappingsFromSource(new Drawing.ChantContext(), gabc).forEach(function(mapping) {
+        mapping.notations.forEach(function(notation) {
+          if (notation.notes) notes.push(...notation.notes);
+        });
+      });
+      assert.equal(notes.length, letters.length * 3);
+      for (var i = 0; i < notes.length; i += 3) {
+        var pitch = notes[i].pitch!;
+        assert.equal(typeof pitch.step, 'number', clef + ' ' + notes[i].sourceGabc);
+        [notes[i + 1], notes[i + 2]].forEach(function(note) {
+          assert.deepEqual(
+            { step: note.pitch!.step, octave: note.pitch!.octave },
+            { step: pitch.step, octave: pitch.octave },
+            clef + ' ' + note.sourceGabc
+          );
+        });
+      }
+    });
+  });
+
+  it('gives a nudged note its pitch again when the mappings are updated', function() {
+    var ctxt = new Drawing.ChantContext();
+    var mappings = Gabc.createMappingsFromSource(ctxt, '(c3) a(g9) b(f)');
+    var note = mappings[1].notations[0].notes![0];
+    assert.equal(note.sourceGabc, 'g9');
+    assert.equal(note.pitch!.step, Core.Step.Ti);
+    Gabc.updateMappingsFromSource(ctxt, mappings, '(c4) a(g9) b(f)');
+    // the note is kept, with its pitch under the new clef
+    assert.equal(mappings[1].notations[0].notes![0], note);
+    assert.equal(note.pitch!.step, Core.Step.So);
+  });
+
+  it('places an automatic custos announcing g9 at a line break', function() {
+    // the custos used to get a NaN position, which made the whole svg NaN high
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setStaffHeight(48);
+    var gabc = '(c4) a(f)b(g)c(h)d(g)e(f)f(e)g(f)h(g9)i(g0)j(g9)k(g0)l(g9)m(g0) (::)';
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 200);
+    assert(score.lines.length > 1);
+    score.lines.forEach(function(line) {
+      if (line.custos) assert(Number.isFinite(line.custos.staffPosition), 'custos at ' + line.custos.staffPosition);
+    });
+    assert(Number.isFinite(score.bounds.height));
+    assert.doesNotMatch(score.createSvg(ctxt), /NaN/);
+  });
+});

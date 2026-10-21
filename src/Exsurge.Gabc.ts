@@ -563,8 +563,9 @@ export class Gabc {
               for (l = 0; l < curNotation.notes.length; ++l) {
                 let note = curNotation.notes[l];
                 note.sourceIndex += sourceIndexDiff;
+                // rounded, since subtracting the offset isn't always exact (see createNoteFromData())
                 note.pitch = ctxt.activeClef.staffPositionToPitch(
-                  note.staffPosition - (note.staffPositionOffset || 0)
+                  Math.round(note.staffPosition - (note.staffPositionOffset || 0))
                 );
                 if (note.braceEnd && note.braceEnd.automatic)
                   delete note.braceEnd;
@@ -1840,7 +1841,9 @@ export class Gabc {
     if (data[0] === data[0].toUpperCase()) note.shape = NoteShape.Inclinatum;
 
     this.setStaffPositionAndOffset(note, data);
-    note.pitch = clef.staffPositionToPitch(note.staffPosition - note.staffPositionOffset!);
+    // the pitch is that of the note's line or space, without its offset (subtracting
+    // the offset again isn't always exact, e.g. 4 + 1/3 - 1/3 is 3.9999999999999996)
+    note.pitch = clef.staffPositionToPitch(this.gabcHeightToExsurgeHeight(data[0]));
 
     var mark;
 
