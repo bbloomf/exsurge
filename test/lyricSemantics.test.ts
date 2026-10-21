@@ -236,3 +236,36 @@ describe('Above-lines text and translations', function() {
     assert(Math.abs(centered.lyric - centered.translation) < 1e-9, JSON.stringify(centered));
   });
 });
+
+describe('Clear', function() {
+  function layout(gabc: string, fontSize = 16) {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', fontSize, {}, { Regular: fakeFont(0.5) });
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 1000);
+    return score.notations;
+  }
+
+  it("keeps a lyric with <clear> from reaching back under the previous notes", function() {
+    var [, plain] = layout('(c4) e(hih) Christe(g)');
+    var [melisma, cleared] = layout('(c4) e(hih) <clear>Christe(g)');
+    // without it, the text starts under the melisma
+    assert(plain.lyrics[0].getLeft() < plain.bounds.x - 1);
+    assert(Math.abs(cleared.lyrics[0].getLeft() - melisma.bounds.right()) < 1e-9);
+  });
+
+  it("keeps the notes of a syllable with <clear> from starting before the previous lyric ends", function() {
+    // in small text, a note is wider than a letter, so it starts before its letter
+    var [first, plain] = layout('(c4) Bene(f)i(g)', 8);
+    assert(plain.bounds.x < first.lyrics[0].getRight() - 1);
+    var [first, cleared] = layout('(c4) Bene(f)<clear>i(g)', 8);
+    assert(Math.abs(cleared.bounds.x - first.lyrics[0].getRight()) < 1e-9);
+  });
+
+  it("changes nothing where the text is clear already", function() {
+    var plain = layout('(c4) Ky(f) ri(g)').map((notation) => notation.bounds.x);
+    var cleared = layout('(c4) Ky(f) <clear>ri(g)').map((notation) => notation.bounds.x);
+    assert.deepEqual(cleared, plain);
+  });
+});

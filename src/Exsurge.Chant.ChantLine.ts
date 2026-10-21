@@ -2333,6 +2333,30 @@ export class ChantLine extends ChantLayoutElement {
         : space.total * ctxt.condensingTolerance;
     }
 
+    // Gregorio's <clear>: a lyric's text may not start before the previous
+    // notation's notes end, nor its notation's notes before the previous
+    // lyric ends.  This is checked before the lyrics are spaced, so that
+    // their connectors are worked out where they'll be, and again after,
+    // in case they were brought together.
+    var clearShift = () => {
+      var shift = 0;
+      for (var lyric of curr.lyrics) {
+        if (!lyric.clear) continue;
+        shift = Math.max(shift, prev.bounds.right() - lyric.getLeft());
+        if (prevLyrics.length)
+          shift = Math.max(shift, LyricArray.getRight(prevLyrics) - curr.bounds.x);
+      }
+      return shift;
+    };
+    var cleared = curr.lyrics.some((lyric) => lyric.clear);
+    if (cleared) {
+      let shift = clearShift();
+      curr.bounds.x += shift;
+      space.total += shift;
+      // (condensing the space before it could bring it back)
+      space.condensable = 0;
+    }
+
     // if the previous notation has no lyrics, then we simply make sure the
     // current notation with lyrics is in the bounds of the line
     if (prevLyrics.length === 0) {
@@ -2515,6 +2539,7 @@ export class ChantLine extends ChantLayoutElement {
       hasShifted &&
       atLeastOneWithoutConnector
     );
+    if (cleared) curr.bounds.x += clearShift();
 
     for (i = Math.min(curr.lyrics.length, prevLyrics.length) - 1; i >= 0; i--) {
       let pLyrics = prevLyrics[i];

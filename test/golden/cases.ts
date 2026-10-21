@@ -528,6 +528,14 @@ export const featureCases: GoldenCase[] = [
       "(c4) Ky[Lord](f)ri(g)e(h) e[have mercy](g)lé(f)i(e)son.[on us](f) (,) " +
       "Chri[Christ, have mercy](f)ste(g) e(h)lé(g)i(f)son[/](e) (::)",
     setupContext: (ctxt) => (ctxt.translationCentering = "center")
+  },
+  {
+    // the same syllables without and with <clear>: with it, the text doesn't
+    // reach back under the notes before it
+    name: "lyric-clear",
+    gabc:
+      "(c4) Ky(fgfh) e(hih) Chri(g)ste(h) Ky(fgfh) e(hih) <clear>Chri(g)ste(h) (,) " +
+      "a(f) Sanctus(g) a(f) <clear>Sanctus(g) (::)"
   }
 ];
 
