@@ -57,11 +57,10 @@ export class Custos extends ChantNotationElement {
       var neume = ctxt.findNextNeume();
 
       if (neume) {
-        const note = neume.notes[0];
+        // (under a Chi-Rho clef, the pitch places a note nudged with 0 or 9)
         this.staffPosition = ctxt.activeClef.pitchToStaffPosition(
-          note.pitch!
-        ) + (note.staffPositionOffset || 0);
-        this.staffPositionOffset = note.staffPositionOffset;
+          neume.notes[0].pitch!
+        );
       }
 
       // in case there was a weird fa/do clef change, let's sanitize the staffPosition by making sure it is

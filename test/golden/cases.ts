@@ -90,7 +90,7 @@ export const featureCases: GoldenCase[] = [
   },
   {
     name: "staff-position-offsets",
-    gabc: "(c4) a(f0) b(f9) c(g0h9) d(e9f0g) e(f0+) (::)"
+    gabc: "(xp4) a(f0) b(f9) c(g0h9) d(e9f0g) e(f0+) (::)"
   },
   {
     name: "ledger-lines",
