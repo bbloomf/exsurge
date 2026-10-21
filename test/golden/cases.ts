@@ -363,6 +363,25 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(f) (^) b(g) (^0) c(h) (`0) d(g) (,0) e(f) (:?) f(g) (:') g(h) (;') h(g) (::') i(f) (,') j(g) (`') " +
       "k(h) (,_') l(g) (;3') m(f) (fg^hg:?f) (::)"
+  },
+  {
+    // the last [nocustos] is where the line breaks at this width
+    name: "line-break-custos-control",
+    width: 200,
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (z) e(g)lé(f)i(e)son.(f) (z+) Chri(f)ste(g) (z-) e(h)lé(i)i(h)son.(g) (Z) Ky(f)ri(g)e(h) (Z+) " +
+      "e(g)lé(f) (Z-) i(e)son.(f) (;) Ky(f)ri(g)e(h[nocustos]) (z) e(g)lé(f)i(e)son.(f) (,) Chri(f)ste(g) " +
+      "Chri(f)ste(g) e(h [nocustos])lé(i)i(h)son.(g) (::)"
+  },
+  {
+    name: "line-break-custos-manual",
+    width: 200,
+    setupContext: (ctxt: any) => {
+      ctxt.eolCustos = "manual";
+    },
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (z) e(g)lé(f)i(e)son.(f) (z+) Chri(f)ste(g) (Z) e(h)lé(i)i(h)son.(g) (Z+) " +
+      "Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) Chri(f)ste(g) e(h)lé(i)i(h)son.(g) (::)"
   }
 ];
 

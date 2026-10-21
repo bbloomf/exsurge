@@ -1236,7 +1236,8 @@ export class ChantLine extends ChantLayoutElement {
           next &&
           next.hasLyrics() &&
           (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-            next.lyrics[0].lyricType === LyricType.SingleSyllable)
+            next.lyrics[0].lyricType === LyricType.SingleSyllable) &&
+          (this.custos || this.wantsEolCustos(ctxt))
         ) {
           this.toJustify!.push(this.custos);
         }
@@ -1337,7 +1338,7 @@ export class ChantLine extends ChantLayoutElement {
           ctxt.staffInterval * ctxt.maxExtraSpaceInStaffIntervals;
     }
 
-    if (!this.custos) {
+    if (!this.custos && this.wantsEolCustos(ctxt)) {
       // create the automatic custos at the end of the line if there are neumes left in the notations
       for (
         i = this.notationsStartIndex + this.numNotationsOnLine;
@@ -1672,10 +1673,36 @@ export class ChantLine extends ChantLayoutElement {
       if (this.custos.hasLyrics()) {
         lastRightLyric = LyricArray.getRight(this.custos.lyrics);
       }
-    } else if (ctxt && lastIndex < notations.length) {
+    } else if (ctxt && lastIndex < notations.length && this.wantsEolCustos(ctxt)) {
       lastRightNeume += Glyphs.CustosLong.bounds.width * ctxt.glyphScaling;
     }
     return this.staffRight - Math.max(lastRightLyric, lastRightNeume);
+  }
+
+  /**
+   * whether the line, ending where it does now, gets an automatic custos: as
+   * the line break that ends it says (gabc z+ or z-), or else unless a
+   * [nocustos] is on the last note before the end of the line or
+   * ctxt.eolCustos is "manual"
+   */
+  wantsEolCustos(ctxt: ChantContext) {
+    var notations = this.score.notations;
+    var lastIndex = this.notationsStartIndex + this.numNotationsOnLine - 1;
+    var last = notations[lastIndex];
+    if (last && last.constructor === ChantLineBreak) {
+      if ((last as ChantLineBreak).custos === "force") return true;
+      if ((last as ChantLineBreak).custos === "none") return false;
+    }
+
+    for (var i = lastIndex; i >= this.notationsStartIndex; i--) {
+      if (notations[i].isNeume) {
+        var notes = notations[i].notes!;
+        if (notes[notes.length - 1].noCustos) return false;
+        break;
+      }
+    }
+
+    return ctxt.eolCustos !== "manual";
   }
 
   justifyElements(

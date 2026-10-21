@@ -935,6 +935,14 @@ export class ChantContext {
 
   condensingTolerance: number;
 
+  /**
+   * which lines end with a custos when the gabc doesn't put one there: "auto"
+   * (the default) for every line that has notes after it, or "manual" for
+   * only the line breaks that ask for one (gabc z+ or Z+), as with Gregorio's
+   * \greseteolcustos
+   */
+  eolCustos: "auto" | "manual";
+
   autoColor: boolean;
 
   /** gives each svg text element a font-size attribute in createSvg() */
@@ -1146,6 +1154,8 @@ export class ChantContext {
     // how much the default spacing can shrink. E.g., a value of 0.20 allows the layout
     // engine to separate two glyphs by only 80% of the normal inter-neume spacing value.
     this.condensingTolerance = 0.3;
+
+    this.eolCustos = "auto";
 
     // if auto color is true, then exsurge tries to automatically colorize
     // some elements of the chant (directives become rubric color, etc.)

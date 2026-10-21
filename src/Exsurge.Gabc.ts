@@ -132,7 +132,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z|Z|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\[nocustos\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -1557,7 +1557,7 @@ export class Gabc {
 
       if (atom === " " || atom[0] === "/")
         endsWithSpace = endsWithSpace || notes.length > 0;
-      else if (!__noteMarkRegex.test(atom)) endsWithSpace = false;
+      else if (atom !== "[nocustos]" && !__noteMarkRegex.test(atom)) endsWithSpace = false;
 
       // handle the clefs and dividers here
       switch (atom) {
@@ -1677,14 +1677,27 @@ export class Gabc {
           break;
 
         case "z":
-          addNotation(new ChantLineBreak(true));
-          break;
+        case "z+":
+        case "z-":
         case "Z":
-          addNotation(new ChantLineBreak(false));
+        case "Z+":
+        case "Z-":
+          addNotation(
+            new ChantLineBreak(
+              atom[0] === "z",
+              atom[1] === "+" ? "force" : atom[1] === "-" ? "none" : "auto"
+            )
+          );
           break;
         case "z0":
           addNotation(new Signs.Custos(true));
           break;
+        case "[nocustos]": {
+          // (after a space: it applies to the note before the space)
+          let note = lastNote();
+          if (note) note.noCustos = true;
+          break;
+        }
 
         // Gregorio's marks between notes, which are recorded on the notes
         // after or before them.  Brackets end a neume as ! does, and
@@ -2676,6 +2689,11 @@ export class Gabc {
     instruction: string,
     sourceIndexOffset: number
   ) {
+    if (instruction === "nocustos") {
+      note.noCustos = true;
+      return;
+    }
+
     var results = instruction.match(__bracketedCommandRegex);
     if (results === null) return;
     var cmd = results[1];
