@@ -503,6 +503,15 @@ export const featureCases: GoldenCase[] = [
     name: "language-church-slavonic",
     gabc: "(c4) Hos(f)po(g)di(h)ne,(g) po(f)mi(g)luj(h) ny.(g) (;) Smrt(f) vlk(g) Świę(h)ty(g) Bůh(f) (::)",
     setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.churchSlavonic)
+  },
+  {
+    // TeX that has no meaning outside TeX is left out of verbatim text,
+    // rather than printed; Gregorio's symbol commands, accents and escaped
+    // characters are drawn
+    name: "verbatim-unknown",
+    gabc:
+      "(c4) a<v>\\textit{b}</v>c(f) <v>\\hspace{1em}</v>d(g) <v>{\\bf e}</v>(h) <v>\\GreStar</v>(g) " +
+      "<v>\\'e\\&\\%</v>(f) <v>\\GreDagger{}</v>(g) <v>\\greextra{StarHeight}</v>(h) (::)"
   }
 ];
 

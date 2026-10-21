@@ -2778,6 +2778,19 @@ interface BreakMatch {
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
 
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
+// Gregorio's commands for the symbols in its greextra font (from its
+// gregoriotex-symbols.tex), by their names in lower case
+const __greextraCommands: { [command: string]: string } = {
+  grecross: "Cross",
+  grealtcross: "Cross.alt",
+  gredagger: "Dagger",
+  greheightstar: "StarHeight",
+  gresixstar: "StarSix",
+  grestar: "StarSix",
+  gothrbar: "RWithBarGoth",
+  gothvbar: "VWithBarGoth"
+};
+
 export class TextElement extends ChantLayoutElement {
   fontFamily: (ctxt: ChantContext) => string;
   fontSize: (ctxt: ChantContext) => number;
@@ -2899,7 +2912,11 @@ export class TextElement extends ChantLayoutElement {
     };
 
     var markupRegex = new RegExp(markupRegexSource, "gi");
-    var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
+    // in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
+    // {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped
+    // character, a command with its arguments, or a brace, which is left out
+    // unless it's one of the others
+    var vTagRegex = /\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?|\\'\{?([æœaeiouy])\}?|\\([a-z@]+)\*?((?:\s*(?:\[[^\]]*\]|\{(?:[^{}]|\{[^{}]*\})*\}))*)|\\([&%$#_{}])|[{}]/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
@@ -2946,19 +2963,25 @@ export class TextElement extends ChantLayoutElement {
             closeSpan(vTag.slice(lastIndex, vMatch.index), match.index + lastIndex + iOffset);
             iOffset = 3; // length of '<v>'
           }
-          let [, grecross, greextra, accent, diphthong] = vMatch;
+          let [, greextra, accent, diphthong, accentedVowel, command, args, escaped] = vMatch;
           let char = '';
           if (diphthong) {
             char = makeLigature(diphthong);
             if (accent) char = addAccent(char);
             closeSpan(char, match.index + vMatch.index + iOffset)
+          } else if (accentedVowel) {
+            closeSpan(addAccent(accentedVowel), match.index + vMatch.index + iOffset);
+          } else if (escaped) {
+            closeSpan(escaped, match.index + vMatch.index + iOffset);
           } else {
-            if (grecross) {
-              // grecross is just the command for the Cross:
-              // set up greextra so it will get handled with it below:
-              greextra = 'Cross';
-            }    
-            char = (greextraGlyphs as { [name: string]: string })[greextra];
+            if (command) {
+              // \greextra{Name}, or one of Gregorio's commands for a symbol
+              // (e.g. \grecross for the Cross); any other command is left out
+              greextra = /^greextra$/i.test(command)
+                ? (/\{([^{}]*)\}/.exec(args) || [])[1]
+                : __greextraCommands[command.toLowerCase()];
+            }
+            char = greextra && (greextraGlyphs as { [name: string]: string })[greextra];
             if (char) {
               closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
             }

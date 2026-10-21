@@ -183,3 +183,26 @@ describe('Vowel rules', function() {
     assert.deepEqual(centers('syllable'), [1.5, 1.5]);
   });
 });
+
+describe('Verbatim text', function() {
+  var spansOf = (text: string) =>
+    new Drawing.Lyric(new Drawing.ChantContext(), text, Drawing.LyricType.SingleSyllable).spans.map(
+      (span) => span.text + (span.mergedProperties['font-family'] === 'greextra' ? '@greextra' : '')
+    );
+
+  it('leaves out TeX commands that it has nothing to draw for, with their arguments', function() {
+    assert.deepEqual(spansOf('a<v>\\textit{b}</v>c'), ['a', 'c']);
+    assert.deepEqual(spansOf('<v>\\hspace{1em}</v>d'), ['d']);
+    assert.deepEqual(spansOf('<v>\\textbf[x]{a {b} c}</v>d'), ['d']);
+    assert.deepEqual(spansOf('<v>{\\bf e}</v>'), [' e']);
+  });
+
+  it("draws Gregorio's symbol commands, accents and escaped characters", function() {
+    var cross = spansOf('<v>\\grecross</v>')[0];
+    assert.match(cross, /@greextra$/);
+    assert.deepEqual(spansOf('<v>\\greextra{Cross}</v>'), [cross]);
+    assert.deepEqual(spansOf('<v>{greextra}{Cross}</v>'), [cross]);
+    assert.deepEqual(spansOf('<v>\\GreStar</v>'), spansOf('<v>\\greextra{StarSix}</v>'));
+    assert.deepEqual(spansOf("<v>\\'e{\\'\\ae}\\&\\%\\#\\_\\$</v>"), ['é', 'ǽ', '&', '%', '#', '_', '$']);
+  });
+});
