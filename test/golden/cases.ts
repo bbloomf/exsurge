@@ -536,6 +536,13 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) Ky(fgfh) e(hih) Chri(g)ste(h) Ky(fgfh) e(hih) <clear>Chri(g)ste(h) (,) " +
       "a(f) Sanctus(g) a(f) <clear>Sanctus(g) (::)"
+  },
+  {
+    // "son." only fits on the first line because its period may go past the
+    // end of the staff (and so past the width of the svg)
+    name: "lyric-protrusion",
+    width: 114,
+    gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
   }
 ];
 

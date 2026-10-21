@@ -1720,14 +1720,15 @@ export class ChantLine extends ChantLayoutElement {
       ? last.bounds.right() + last.calculatedTrailingSpace
       : 0;
     var lastLyrics = this.lastLyricsBeforeTextOnly || this.lastLyrics;
+    // (a lyric's protrusion may go past the end of the staff)
     var lastRightLyric = lastLyrics.length
-      ? LyricArray.getRight(lastLyrics)
+      ? LyricArray.getRight(lastLyrics, false, true)
       : 0;
 
     if (this.custos) {
       lastRightNeume += this.custos.bounds.width + this.custos.leadingSpace;
       if (this.custos.hasLyrics()) {
-        lastRightLyric = LyricArray.getRight(this.custos.lyrics);
+        lastRightLyric = LyricArray.getRight(this.custos.lyrics, false, true);
       }
     } else if (ctxt && lastIndex < notations.length && this.wantsEolCustos(ctxt)) {
       lastRightNeume += Glyphs.CustosLong.bounds.width * ctxt.glyphScaling;
@@ -2382,7 +2383,10 @@ export class ChantLine extends ChantLayoutElement {
           space.condensable,
           currLyric.getLeft() - minLeft
         );
-        maxRight = Math.max(maxRight, currLyric.getRight());
+        maxRight = Math.max(
+          maxRight,
+          currLyric.getRight() - (currLyric.protrusionWidth || 0)
+        );
       }
 
       if (
@@ -2555,7 +2559,7 @@ export class ChantLine extends ChantLayoutElement {
     if (
       curr.bounds.right() + curr.calculatedTrailingSpace <
         rightNotationBoundary + condensableSpaces.sum + space.condensable &&
-      LyricArray.getRight(curr.lyrics, true) <=
+      LyricArray.getRight(curr.lyrics, true, true) <=
         this.staffRight + condensableSpaces.sum + space.condensable
     ) {
       if (prev.isAccidental && !(prev as Accidental).hidden) {

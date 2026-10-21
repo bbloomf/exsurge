@@ -269,3 +269,44 @@ describe('Clear', function() {
     assert.deepEqual(cleared, plain);
   });
 });
+
+describe('Protrusion', function() {
+  function firstLine(gabc: string, width: number, setupContext?: (ctxt: Drawing.ChantContext) => void) {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+    if (setupContext) setupContext(ctxt);
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, width);
+    var line = score.lines[0];
+    var last = score.notations[line.notationsStartIndex + line.numNotationsOnLine - 1];
+    return { line, last, lyric: last.lyrics[0] };
+  }
+  var gabc = (pr: string) => `(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son${pr}.(f) Chri(f)ste(g) (::)`;
+
+  // the narrowest width that "son." fits at without protruding
+  var width = 100;
+  while (firstLine(gabc(''), width).lyric.text !== 'son.') width++;
+
+  it('lets the text after <pr> go past the end of the staff', function() {
+    // a little narrower, "son." doesn't fit
+    assert.equal(firstLine(gabc(''), width - 3).lyric.text, 'i');
+    var { line, lyric } = firstLine(gabc('<pr>'), width - 3);
+    assert.equal(lyric.text, 'son.');
+    // (the period is a character, 7.2, wide)
+    assert(Math.abs(lyric.protrusionWidth! - 7.2) < 1e-9);
+    assert(lyric.getRight() > line.staffRight);
+    assert(lyric.getRight() - lyric.protrusionWidth! <= line.staffRight + 1e-9);
+  });
+
+  it('lets only part of it protrude with a factor, or with defaultProtrusionFactor', function() {
+    var { lyric } = firstLine(gabc('<pr:0.5>'), width - 3);
+    assert.equal(lyric.text, 'son.');
+    assert(Math.abs(lyric.protrusionWidth! - 3.6) < 1e-9);
+    assert.equal(firstLine(gabc('<pr:0>'), width - 1).lyric.text, 'i');
+    var halfway = (ctxt: Drawing.ChantContext) => (ctxt.defaultProtrusionFactor = 0.5);
+    lyric = firstLine(gabc('<pr>'), width - 3, halfway).lyric;
+    assert.equal(lyric.text, 'son.');
+    assert(Math.abs(lyric.protrusionWidth! - 3.6) < 1e-9);
+  });
+});

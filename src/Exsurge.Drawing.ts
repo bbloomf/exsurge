@@ -984,6 +984,13 @@ export class ChantContext {
    * two either way.
    */
   translationCentering: "left" | "center";
+  /**
+   * How much of the text after a <pr> (with no factor of its own, as <pr:0.5>
+   * has) may go past the right end of the staff, from 0 to 1.  It's 1 by
+   * default, as in Gregorio (\gresetprotrusionfactor{default}).  Text past
+   * the end of the staff is outside the width the score is laid out at.
+   */
+  defaultProtrusionFactor: number;
 
   pixelRatio: number;
 
@@ -1180,6 +1187,7 @@ export class ChantContext {
     this.firstSyllableStyle = {};
     this.firstSyllableInitialStyle = {};
     this.translationCentering = "left";
+    this.defaultProtrusionFactor = 1;
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio =
@@ -3798,7 +3806,8 @@ export const LyricArray = {
     return x;
   },
 
-  getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean) {
+  /** (lessProtrusion leaves out how far each lyric may go past the end of the staff) */
+  getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean, lessProtrusion?: boolean) {
     if (lyricArray.length === 0) return NaN;
 
     var x = Number.MIN_VALUE;
@@ -3815,7 +3824,8 @@ export const LyricArray = {
             !l.preventConnector &&
             !l.needsConnector
               ? l.getConnectorWidth()
-              : 0)
+              : 0) -
+            (lessProtrusion ? l.protrusionWidth || 0 : 0)
         );
     }
 
@@ -3880,6 +3890,8 @@ export class Lyric extends TextElement {
   clear?: boolean;
   /** Gregorio's <pr>: how much of the lyric may go into the right margin */
   protrusion?: LyricProtrusion;
+  /** how far the lyric may go past the end of the staff, for its protrusion */
+  protrusionWidth?: number;
   /** which line of lyrics this is */
   lyricIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
@@ -4148,6 +4160,23 @@ export class Lyric extends TextElement {
 
     this.vowelSegmentWidth = vowelSegmentWidth;
 
+    // the width of the text after a <pr>, times how much of it may protrude
+    this.protrusionWidth = 0;
+    if (this.protrusion && this.protrusion.textIndex < this.text.length) {
+      let factor = this.protrusion.factor;
+      if (factor === undefined) factor = ctxt.defaultProtrusionFactor;
+      let start =
+        ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
+          ? // svgTextMeasurer still has the current lyric in it...
+            (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
+              0,
+              this.protrusion.textIndex
+            )
+          : this.measureSubstring(ctxt, this.protrusion.textIndex);
+      this.protrusionWidth =
+        Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
+    }
+
     this.bounds.x = -offset;
     this.bounds.y = 0;
 
@@ -4181,6 +4210,7 @@ export class Lyric extends TextElement {
     this.spans[0].text = this.spans[0].text.slice(1);
     this.text = this.text.slice(1);
     this.centerStartIndex--; // lost a letter, so adjust centering accordingly
+    if (this.protrusion && this.protrusion.textIndex > 0) this.protrusion.textIndex--;
 
     return dropCap;
   }
