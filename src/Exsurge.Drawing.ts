@@ -1964,9 +1964,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
   /** for a porrectus, the staff positions its notes are apart; otherwise 0 */
   porrectusNoteDiff!: number;
   align?: "left" | "right";
+  /** the glyph's size, relative to the other glyphs (set it before setGlyph()) */
+  scale: number;
 
   constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null) {
     super();
+
+    this.scale = 1;
 
     // setGlyph() sets the glyph just below
     this.glyph = null as unknown as Glyph;
@@ -2041,13 +2045,14 @@ export class GlyphVisualizer extends ChantLayoutElement {
       this.align = this.glyph.align;
     }
 
-    this.origin.x = this.glyph.origin.x * ctxt.glyphScaling;
-    this.origin.y = this.glyph.origin.y * ctxt.glyphScaling;
+    const glyphScaling = ctxt.glyphScaling * this.scale;
+    this.origin.x = this.glyph.origin.x * glyphScaling;
+    this.origin.y = this.glyph.origin.y * glyphScaling;
 
     this.bounds.x = 0;
     this.bounds.y = -this.origin.y;
-    this.bounds.width = this.glyph.bounds.width * ctxt.glyphScaling;
-    this.bounds.height = this.glyph.bounds.height * ctxt.glyphScaling;
+    this.bounds.width = this.glyph.bounds.width * glyphScaling;
+    this.bounds.height = this.glyph.bounds.height * glyphScaling;
   }
 
   setStaffPosition(ctxt: ChantContext, staffPosition: number) {
@@ -2062,8 +2067,8 @@ export class GlyphVisualizer extends ChantLayoutElement {
 
     var x = this.bounds.x + this.origin.x;
     var y = this.bounds.y + this.origin.y;
-    var scaleX = ctxt.glyphScaling;
-    var scaleY = ctxt.glyphScaling;
+    var scaleX = ctxt.glyphScaling * this.scale;
+    var scaleY = ctxt.glyphScaling * this.scale;
     if (porrectusNoteDiff) {
       scaleY /= ctxt.glyphMultiplier;
       y /= scaleY;
@@ -2129,6 +2134,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
     if (ctxt.scaleDefs === true) {
       result.x = this.bounds.x + this.origin.x;
       result.y = this.bounds.y + this.origin.y;
+      if (this.scale !== 1) {
+        result.transform = "scale(" + this.scale + ")";
+        result.x /= this.scale;
+        result.y /= this.scale;
+      }
       if (porrectusNoteDiff) {
         // result.transform = "scale(" + (porrectusNoteDiff / (porrectusNoteDiff + 1)) + ")";
         const scaleGlyph = 1 / ctxt.glyphMultiplier;
@@ -2136,12 +2146,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
         result.y /= scaleGlyph;
       }
     } else {
+      const glyphScaling = ctxt.glyphScaling * this.scale;
       const scaleGlyph = porrectusNoteDiff
-        ? ctxt.glyphScaling / ctxt.glyphMultiplier
-        : ctxt.glyphScaling;
-      result.x = (this.bounds.x + this.origin.x) / ctxt.glyphScaling;
+        ? glyphScaling / ctxt.glyphMultiplier
+        : glyphScaling;
+      result.x = (this.bounds.x + this.origin.x) / glyphScaling;
       result.y = (this.bounds.y + this.origin.y) / scaleGlyph;
-      result.transform = "scale(" + ctxt.glyphScaling + "," + scaleGlyph + ")";
+      result.transform = "scale(" + glyphScaling + "," + scaleGlyph + ")";
     }
     return result;
   }

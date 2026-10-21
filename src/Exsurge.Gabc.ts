@@ -2331,7 +2331,16 @@ export class Gabc {
                   GlyphCode.ReversedSemicircle
                 );
                 break;
-              // (6, 7 and 8 are Gregorio's musica ficta, which aren't drawn yet)
+              // Gregorio's musica ficta
+              case "6":
+                note.accent = new Markings.MusicaFicta(ctxt, note, GlyphCode.Flat);
+                break;
+              case "7":
+                note.accent = new Markings.MusicaFicta(ctxt, note, GlyphCode.Natural);
+                break;
+              case "8":
+                note.accent = new Markings.MusicaFicta(ctxt, note, GlyphCode.Sharp);
+                break;
               default:
             }
             i++;

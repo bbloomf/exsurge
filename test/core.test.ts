@@ -288,6 +288,9 @@ describe("Gregorio note tokens", function() {
     for (const note of notes.slice(-2)) {
       assert.strictEqual(note.shapeModifiers & Exsurge.NoteShapeModifiers.Cavum, 0, note.sourceGabc);
     }
+    // (item 1.6 draws them as musica ficta)
+    assert.ok(notes[notes.length - 1].accent instanceof Exsurge.MusicaFicta);
+    assert.deepStrictEqual(notes.slice(-2).map((note) => note.accent!.glyphCode), ["Flat", "Sharp"]);
   });
 });
 
