@@ -71,7 +71,7 @@ All four of the features this document was asked to start with are confirmed. ex
 
 - the treble clef;
 - the Chi-Rho clef;
-- notes offset within a space;
+- notes offset within a space, which are for use with the Chi-Rho clef only;
 - flags and beams like eighth notes.
 
 The table lists those four and the 18 others found. Gregorio has an equivalent for a few of them, written another way. A few other things that look like exsurge additions turned out to be in Gregorio after all, and are listed under [Checked, and in Gregorio after all](#checked-and-in-gregorio-after-all). The main one is the brace over a bar, `,_`, which exsurge calls a "carryover".
@@ -80,7 +80,7 @@ The table lists those four and the 18 others found. Gregorio has an equivalent f
 |---|---|---|---|---|---|
 | 1 | Treble clef | `(treble2)`, `(treble-2)` | Not in Gregorio | Gregorio reports errors and reads stray notes | `other-clefs` |
 | 2 | Chi-Rho clef | `(xp3)`, `(xp-3)` | Not in Gregorio | Gregorio reports errors and reads stray signs | `other-clefs` |
-| 3 | Notes offset within a space | `g0`, `g9`, `f9+` | Not in Gregorio | Only after a capital: `G0` | `staff-position-offsets` |
+| 3 | Notes offset within a space, with the Chi-Rho clef only | `(xp3) g0`, `g9`, `f9+` | Not in Gregorio | Only after a capital: `G0` | `staff-position-offsets` |
 | 4 | Stems, flags and beams on inclinata | `G\|`, `G\|\|`, `G\|F\|E\|` | Not in Gregorio | `\|` is Gregorio's NABC separator | `inclinata-with-stems` |
 | 5 | Oriscus orientation | `o<`, `o>`, `O<`, `O>` | Different syntax: `o1`, `o0` | Gregorio reads `<` and `>` as liquescence | `single-notes` |
 | 6 | Several lyric lines | `Ky\|Chri(f)` | Not in Gregorio | `\|` is a literal character to Gregorio | `multiple-lyric-lines` |
@@ -158,6 +158,7 @@ Given `(treble2)`, Gregorio's lexer reports `t` and `2` as unrecognised characte
 - **Lines.** `xp1` to `xp5`, and `xp-1` to `xp-5` for the sans-serif form.
 - **Pitches.** A Chi-Rho clef gives notes the pitches that a C clef on the same line would. Under both `(xp3)` and `(c3)`, `h` is Do and `g` is Ti. The code marks this with a `TODO` (`Chant.ts:457-481`).
 - **Line breaks.** It is drawn again at the start of each line, like any clef.
+- **Offsets.** The `0` and `9` offsets ([§3](#3-notes-offset-within-a-space-0-and-9)) are meant for use with this clef only.
 
 **What Gregorio does instead.** It has no such clef or glyph:
 
@@ -175,14 +176,16 @@ Given `(xp3)`, Gregorio reads `x` as a flat sign (`notes.l:1297`) and `p` as a n
 
 **What it does.** A `0` or `9` straight after the pitch letter moves the note a little down or up. Each space between two lines then has a lower and an upper position as well as the middle one.
 
-![Three positions in one space (g0, g, g9); f9 is the same as g0, and h0 as g9; then a pes with offsets](exsurge-features-not-in-gregorio/staff-position-offsets.svg)
+**Use it only with the Chi-Rho clef.** The offsets are meant for staffs with a Chi-Rho clef ([§2](#2-the-chi-rho-clef)), and shouldn't be used under a C, F or treble clef. exsurge doesn't enforce this: it reads the digits under any clef, without a warning.
+
+![A Chi-Rho clef, then three positions in one space (g0, g, g9); f9 is the same as g0, and h0 as g9; then a pes with offsets](exsurge-features-not-in-gregorio/staff-position-offsets.svg)
 
 **How it works.** Staff positions count in steps, and a step is half the distance between two lines. How far the note moves depends on where it is:
 
 - A note in a **space** moves ⅓ step: `g0` goes ⅓ step down from the middle of the space, and `g9` ⅓ step up.
 - A note on a **line** moves ⅔ step, into the space beside it: `f9` lands exactly where `g0` does, and `h0` where `g9` does.
 
-So, with a `c4` clef, the space between the second line (`f`) and the third (`h`) has three positions:
+So, under `(xp3)`, the space between the second line (`f`) and the third (`h`) has three positions:
 
 | GABC | Staff position | Where |
 |---|---|---|
@@ -197,14 +200,15 @@ The upper and lower positions are each a sixth of the line spacing from the midd
 **How to use it.** The example above:
 
 ```
-(c4) g0(g0) g(g) g9(g9) (,) f9(f9) g0(g0) (,) h0(h0) g9(g9) (,) e9f0g(e9f0g) (::)
+(xp3) g0(g0) g(g) g9(g9) (,) f9(f9) g0(g0) (,) h0(h0) g9(g9) (,) e9f0g(e9f0g) (::)
 ```
 
+- **Clef.** `xp1` to `xp5`, or the sans-serif `xp-1` to `xp-5`. Prefer `xp3` or `xp5`: on lines 1, 2 and 4, some offset notes get a wrong pitch or none (see the pitch bullet below).
 - **Where the digit goes.** It must come straight after the pitch letter. In `fv0` the `0` is ignored. `f.0`, `f_0` and `f'0` keep their Gregorio meaning: a mora, episema or ictus below the note. An initio debilis is fine: `-f0g`.
 - **In neumes.** It works on any note of any neume: `(g0h9)` is a pes, and `(h9g0)` a clivis.
 - **Custodes.** `f9+` puts a custos at the offset position. An automatic custos at the end of a line copies the offset of the note it announces (`Signs.ts:55-65`).
 - **Outside the staff.** It works on ledger-line notes too: `a0`, `l9`, `m9`.
-- **Pitch.** The note keeps the pitch of its letter: `f9` is still Fa with a `c4` clef. Only the drawing moves. (But see [the bug](#limits-and-bugs-found-while-checking): under some clefs a few offset notes, such as `g9`, get a wrong pitch or none.)
+- **Pitch.** The note keeps the pitch of its letter: under `(xp3)`, `f9` is still La, as under `(c3)`. Only the drawing moves. (But see [the bug](#limits-and-bugs-found-while-checking): under `xp1`, `xp2` and `xp4`, `g9` gets no pitch, and under `xp1`, `d9` is an octave low.)
 - **Capitals.** `G9` moves an inclinatum up, but `G0` collides with Gregorio (below).
 
 **What Gregorio does instead.** Nothing like it:
@@ -214,7 +218,7 @@ The upper and lower positions are each a sixth of the line spacing from the midd
 - A custos must be a pitch letter followed directly by `+` (`notes.l:1158`), so in `f9+` both the `9` and the `+` are errors.
 - No GregorioTeX command moves a single note. The `\grechangedim` dimensions named "shift" or "raise" move signs, braces and text, not notes (`tex/gregoriotex-gsp-default.tex:167-205`, `:313-428`). TeX given with `[nv:]` is written after the glyph, so it can't move it (`gtex-write.c:3107-3111`).
 
-**Collision.** After a capital letter, Gregorio reads `0`, `1` and `2` as the way the inclinatum leans: `G0` leans down, `G1` up, and `G2` is upright (`notes.l:1414-1417`). exsurge reads `G0` as a nudge down. `gregorio-feature-gap.md` §15 proposes nudging only lowercase pitches and custodes.
+**Collision.** After a capital letter, Gregorio reads `0`, `1` and `2` as the way the inclinatum leans: `G0` leans down, `G1` up, and `G2` is upright (`notes.l:1414-1417`). exsurge reads `G0` as a nudge down. Used only with the Chi-Rho clef, as intended, an offset never appears in a score that Gregorio can read, because Gregorio has no Chi-Rho clef. But exsurge reads the digit under any clef, so a Gregorio score with `G0` under a C or F clef is drawn wrongly. `gregorio-feature-gap.md` §15 proposes nudging only lowercase pitches and custodes. Reading the digits only on Chi-Rho staffs would also remove the collision.
 
 ## 4. Stems, flags and beams on inclinata: `|`
 
@@ -757,7 +761,7 @@ score.notes.filter((n) => n.pitch).map((n) => n.pitch.toInt());
 
 With `(c4) a(defghij) b(ixi) c(i) (::)`, the notes are Re, Mi, Fa, So, La, Ti and Do, then Te after the flat, and Ti again in the next word. (The flat sign `ix` has a pitch of its own too, so it appears in that list.)
 
-**Limit.** Under some clefs, a few offset notes, such as `g9`, get a wrong pitch or none (see [the bug](#limits-and-bugs-found-while-checking)).
+**Limit.** Under some clefs, including the Chi-Rho clef on lines 1, 2 and 4, a few offset notes, such as `g9`, get a wrong pitch or none (see [the bug](#limits-and-bugs-found-while-checking)).
 
 **What Gregorio does instead.** It has no pitch output. The `dump` format, which is for debugging, prints each note as the letter of its staff position (`src/dump/dump.c:78-90`). Accidentals are tracked per line and staff position only to decide whether a soft accidental is shown (`tex/gregoriotex.lua:1175-1199`) and whether a custos needs one (`src/struct.c:1291-1336`).
 
@@ -861,11 +865,12 @@ How Gregorio reads exsurge's own syntax. `gregorio-feature-gap.md` §15 covers t
 
 These came up while rendering the examples. None of them is fixed here; each would be a change under `src/`.
 
-1. **Some offset notes get a wrong pitch or none, and an automatic custos announcing one with no pitch breaks the whole SVG.** `createNoteFromData()` adds the offset to the staff position and then subtracts it again before looking up the pitch (`Gabc.ts:1842-1843`). In floating point, 4 + ⅓ − ⅓ comes out as 3.9999999999999996, which isn't a step (`Pitch.staffOffsetToStep()`, `Core.ts:347-352`). Every pitch `a` to `m` with `0` or `9` was compared with the same pitch without the digit, under 11 clefs:
+1. **Some offset notes get a wrong pitch or none, and an automatic custos announcing one with no pitch breaks the whole SVG.** `createNoteFromData()` adds the offset to the staff position and then subtracts it again before looking up the pitch (`Gabc.ts:1842-1843`). In floating point, 4 + ⅓ − ⅓ comes out as 3.9999999999999996, which isn't a step (`Pitch.staffOffsetToStep()`, `Core.ts:347-352`). Every pitch `a` to `m` with `0` or `9` was compared with the same pitch without the digit, under 11 clefs and then under each of the ten Chi-Rho clefs:
    - `g9` (and `G9`) gets no step under `c1`, `c2`, `c4`, `f2` and `f3`.
    - The same rounding gives a wrong pitch in three cases: `g9` is Do under `f4`, `g9` loses the clef's flat under `cb3`, and `d9` comes out an octave low under `c1`.
-   - `c3`, `f1`, `treble2` and `xp3` are unaffected.
-   - When a line break falls just before such a note, the automatic custos's position is `NaN` (`Signs.ts:55-65`). The `NaN` spreads to the height of the SVG, and nothing is drawn. Example: `(c4) a(f)b(g)c(h)d(g)e(f)f(e)g(f)h(g9)i(g0)j(g9)k(g0)l(g9)m(g0) (::)` at a width of 200, with `ctxt.setStaffHeight(48)`.
+   - `c3`, `f1` and `treble2` are unaffected.
+   - The Chi-Rho clef, the only one the offsets are meant for (§3), is affected on three of its five lines. `g9` gets no step under `xp1`, `xp2` and `xp4`, and `d9` comes out an octave low under `xp1`. The sans-serif `xp-1`, `xp-2` and `xp-4` behave the same way. `xp3` and `xp5` are unaffected.
+   - When a line break falls just before such a note, the automatic custos's position is `NaN` (`Signs.ts:55-65`). The `NaN` spreads to the height of the SVG, and nothing is drawn. Example: `(xp4) a(f)b(g)c(h)d(g)e(f)f(e)g(f)h(g9)i(g0)j(g9)k(g0)l(g9)m(g0) (::)` at a width of 220, with `ctxt.setStaffHeight(48)`. With `(c4)` in place of `(xp4)`, a width of 200 does it.
    - A fix would compute the pitch from the unrounded position: `gabcHeightToExsurgeHeight(data[0])`.
 2. **A `<br>` in a syllable with notes isn't given room** (§7). On the last system, the extra line falls outside the SVG.
 3. **Text-only syllables can overlap on the extra lines** (§10). When one is longer than a line, the next ones are drawn over its second line, as in the golden case `extra-text-only-lines`.
@@ -890,6 +895,6 @@ The SVGs in [`exsurge-features-not-in-gregorio/`](exsurge-features-not-in-gregor
 import * as E from "../src/index";
 import { render } from "../test/golden/harness";
 
-const { score, outputs } = await render(E, "(c4) a(G|) b(G|F|E|) c(g0) d(g9) (::)", { width: 400 }, ["svg"]);
+const { score, outputs } = await render(E, "(xp3) a(G|) b(G|F|E|) c(g0) d(g9) (::)", { width: 400 }, ["svg"]);
 console.log(score.notations.map((n: any) => [n.constructor.name, n.notes?.map((x: any) => [x.staffPosition, x.inclinataFlags])]));
 ```

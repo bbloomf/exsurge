@@ -348,7 +348,7 @@ These collisions decide how to fix several gaps without breaking existing exsurg
 ## 16. What exsurge has that Gregorio lacks
 
 - Several lyric lines per syllable, for verses: `Ky|Chri|Ky(f)` (`Gabc.ts:887-888`; golden case `multiple-lyric-lines`).
-- Nudging a note ⅓ step down or up with `f0`/`f9` (`Gabc.ts:2290-2307`).
+- Nudging a note ⅓ step down or up with `f0`/`f9` (`Gabc.ts:2290-2307`), meant for use with the Chi-Rho clef only.
 - Stems on inclinata, `G|FE` (`Gabc.ts:1947`).
 - Treble and Chi-Rho clefs, `treble2`, `treble-2`, `xp3` (`Chant.ts:396`, `:444`).
 - Oriscus orientation as `o<`/`o>`.
