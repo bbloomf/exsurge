@@ -352,3 +352,48 @@ describe("Gregorio $ escapes", function() {
     ));
   });
 });
+
+describe("Gregorio NABC", function() {
+  const nabcOf = (notations: Exsurge.ChantNotationElement[]) =>
+    notations.map((notation) => notation.nabc && notation.nabc.join("/"));
+
+  it("keeps the gabc and puts the NABC on the first notation of the gabc before it", function() {
+    const notations = parseNotations(
+      "nabc-lines: 1;\n%%\n(c3) FAc(e|talsi8)tus(ei|pe) ad(fg/hggf|peclhgpi|hg|cl)ve(g$|h) a(fg|pe||vi) b(|vi)"
+    );
+    assert.deepStrictEqual(
+      notations.map((notation) => (notation.notes ? notation.notes.map((note) => note.sourceGabc).join("") : notation.constructor.name)),
+      ["e", "ei", "fg/", "hg", "gf", "hg", "gh", "fg", "TextOnly"]
+    );
+    assert.deepStrictEqual(nabcOf(notations), ["talsi8", "pe", "peclhgpi", undefined, undefined, "cl", undefined, "pevi", "vi"]);
+    // the gabc after the NABC is a new neume, as after a /
+    assert.strictEqual(notations[4].allowLineBreakBeforeNext, true);
+    assert.deepStrictEqual(lyricTexts(notations), ["FAc", "tus", "ad", "ve", "a", "b"]);
+  });
+
+  it("takes the lines of NABC in turn", function() {
+    const notations = parseNotations("nabc-lines: 2;\n%%\n(c3) a(g||ta) b(g|vi|pe|h|cl) d(ixi|vi)");
+    assert.deepStrictEqual(notations.map((notation) => notation.nabc), [["", "ta"], ["vi", "pe"], ["cl"], ["vi"], undefined]);
+    assert.strictEqual(notations[3].isAccidental, true);
+  });
+
+  it("keeps | as the stem of an inclinatum without the nabc-lines header", function() {
+    const notations = parseNotations("(c4) a(G|FE) b(g|vi)");
+    assert.strictEqual(notations[0].notes![0].inclinataFlags, 1);
+    assert.strictEqual(notations.filter((notation) => notation.nabc).length, 0);
+    // (g|v is a virga with a stem, as it was)
+    assert.strictEqual(notesOfAll(notations).length, 5);
+  });
+
+  it("parses every word anew when nabc-lines changes", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const mappings = Exsurge.Gabc.createMappingsFromSource(ctxt, "(c3) a(g|vi) b(h)");
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, mappings, "nabc-lines: 1;\n%%\n(c3) a(g|vi) b(h)");
+    assert.strictEqual(ctxt.nabcLines, 1);
+    assert.deepStrictEqual(mappings[1].notations[0].nabc, ["vi"]);
+  });
+});
+
+function notesOfAll(notations: Exsurge.ChantNotationElement[]) {
+  return notations.flatMap((notation) => notation.notes || []);
+}

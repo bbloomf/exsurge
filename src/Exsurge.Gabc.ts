@@ -378,6 +378,7 @@ export class Gabc {
   // be...
   static createMappingsFromSource(ctxt: ChantContext, gabcSource: string) {
     var headerLength = GabcHeader.getLength(gabcSource);
+    ctxt.nabcLines = this.getNabcLines(gabcSource, headerLength);
     gabcSource = gabcSource.slice(headerLength);
     var words = this.splitWords(gabcSource);
 
@@ -401,6 +402,51 @@ export class Gabc {
       ].trailingSpace = 0;
 
     return mappings;
+  }
+
+  /** the number of lines of NABC that a gabc file's header gives (nabc-lines) */
+  static getNabcLines(gabc: string, headerLength = GabcHeader.getLength(gabc)) {
+    if (!headerLength) return 0;
+    let nabcLines = parseInt(new GabcHeader(gabc.slice(0, headerLength))["nabc-lines"]!, 10);
+    return nabcLines > 0 ? nabcLines : 0;
+  }
+
+  /**
+   * Splits a syllable's notes into gabc and Gregorio's NABC, when there are
+   * nabcLines lines of NABC.  As in Gregorio, the parts between the |s take
+   * turns: gabc, then the NABC of each line, then gabc again.  Returns the
+   * notes with the NABC and the |s masked (keeping their length), but with a
+   * / at a | between two parts of gabc, which Gregorio makes separate
+   * elements, and each part of gabc that has NABC, by where it starts in the
+   * notes, and where it put the /s.  The NABC of a part of gabc that's empty
+   * goes with the part before it.
+   */
+  static splitNabc(data: string, nabcLines: number) {
+    let gabc = "";
+    let cuts: number[] = [];
+    let parts: { index: number; nabc: string[] }[] = [];
+    let part: { index: number; nabc: string[] } | null = null;
+    let lastGabc = "";
+    let index = 0;
+    data.split("|").forEach((snippet, i) => {
+      let state = i % (nabcLines + 1);
+      if (state === 0) {
+        if (i > 0 && lastGabc.trim() && snippet.trim()) {
+          cuts.push(gabc.length);
+          gabc += "/";
+        } else if (i > 0) gabc += __commentMask;
+        if (snippet.trim() || !part) parts.push((part = { index, nabc: [] }));
+        if (snippet.trim()) lastGabc = snippet;
+        gabc += snippet;
+      } else {
+        gabc += __commentMask.repeat(snippet.length + 1);
+        part!.nabc[state - 1] = (part!.nabc[state - 1] || "") + snippet;
+      }
+      index += snippet.length + 1;
+    });
+    // (a voice that was skipped with || has an empty string)
+    for (let p of parts) for (let v = 0; v < p.nabc.length; v++) p.nabc[v] = p.nabc[v] || "";
+    return { gabc, cuts, parts: parts.filter((p) => p.nabc.length > 0) };
   }
 
   // A simple general purpose diff algorithm adapted here for comparing
@@ -557,7 +603,13 @@ export class Gabc {
     oldInsertionIndex: number | null = null
   ): number {
     var headerLength = GabcHeader.getLength(newGabcSource);
+    var nabcLines = this.getNabcLines(newGabcSource, headerLength);
     newGabcSource = newGabcSource.slice(headerLength);
+    if (nabcLines !== ctxt.nabcLines) {
+      // a | means something else now, so every word is parsed anew
+      ctxt.nabcLines = nabcLines;
+      mappings.splice(0);
+    }
     // always remove the last old mapping since it's spacing/trailingSpace is handled specially
     mappings.pop();
 
@@ -919,12 +971,37 @@ export class Gabc {
         resetAccidentals = true;
       }
 
+      var notationsSourceIndex = sourceIndex + match.index + match[1].length + 1;
+      // Gregorio's NABC, which is kept on the notations (see splitNabc())
+      var nabc =
+        ctxt.nabcLines > 0 && notationData && notationData.includes("|")
+          ? this.splitNabc(notationData, ctxt.nabcLines)
+          : null;
       var items = this.parseNotations(
         ctxt,
-        notationData,
-        sourceIndex + match.index + match[1].length + 1,
+        nabc ? (isEmptyWord(nabc.gabc) ? "" : nabc.gabc) : notationData,
+        notationsSourceIndex,
         insertionIndex
       );
+      if (nabc) {
+        for (let part of nabc.parts) {
+          // the first notation of the part, or the last one before it
+          let partIndex = notationsSourceIndex + part.index;
+          let notation =
+            items.find((item) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex!) >= partIndex) ||
+            items[items.length - 1];
+          if (!notation) continue;
+          let notationNabc = (notation.nabc = notation.nabc || []);
+          part.nabc.forEach((line, v) => (notationNabc[v] = (notationNabc[v] || "") + line));
+        }
+        // a / that splitNabc() put in isn't in the source of the note before it
+        let notes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
+        for (let cut of nabc.cuts) {
+          let noteBefore = notes.filter((note) => note.sourceIndex - notationsSourceIndex < cut).pop();
+          if (noteBefore && noteBefore.sourceGabc.endsWith("/"))
+            noteBefore.sourceGabc = noteBefore.sourceGabc.slice(0, -1);
+        }
+      }
 
       if (items.length === 0) continue;
       setAreaBoundaries(items, areas);

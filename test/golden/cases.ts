@@ -324,6 +324,13 @@ export const featureCases: GoldenCase[] = [
     name: "dollar-escapes",
     gabc:
       "(c4) a$(b$)(f) c$$d(g) e$<b>f(h) g$~h(g) i$[j$](f) k$|l(g) m$-(f) n(g) o$%p(g) q$*r*(f[cs:x$]y]) (::)"
+  },
+  {
+    // the NABC isn't drawn yet, but no notes are made of it
+    name: "nabc-separated",
+    gabc:
+      "nabc-lines: 1;\n%%\n(c3) FAc(e|talsi8)tus(ei|pe) est(i|vi) re(i|vihh)pén(i|vihi)te(e.|tahglsi9) " +
+      "so(kjki|pfhhlsl2lsc2)nus(i.|ta) (,) ad(fg/hggf|peclhgpi|hg|cl)ve(i|ta)ni(ij|pe) a(fg|pe||vi) b(|vi) (::)"
   }
 ];
 

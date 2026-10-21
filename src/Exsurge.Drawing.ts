@@ -847,6 +847,14 @@ export class ChantContext {
   useExtraTextOnly: boolean;
   /** prefix for the id of each note's svg element; defaults to "note-" */
   noteIdPrefix: string;
+  /**
+   * The number of lines of Gregorio's NABC (St. Gall or Laon neumes) in the
+   * gabc, from its nabc-lines header, which Gabc.createMappingsFromSource()
+   * and updateMappingsFromSource() set.  When it's more than 0, a | in the
+   * notes separates gabc from NABC rather than adding a stem to an
+   * inclinatum.
+   */
+  nabcLines: number;
 
   minLedgerSeparation: number;
   minSpaceAboveStaff: number;
@@ -1146,6 +1154,7 @@ export class ChantContext {
     this.useExtraTextOnly = true;
 
     this.noteIdPrefix = 'note-';
+    this.nabcLines = 0;
 
     this.insertFontsInDoc();
     this.setMergeAnnotationWithTextLeft(true);
@@ -4477,6 +4486,12 @@ export class ChantNotationElement extends ChantLayoutElement {
   cssClass?: string;
   /** whether a Gregorio euouae area (<eu>…</eu> in the lyrics) starts or ends at this notation */
   euouae?: AreaBoundary;
+  /**
+   * Gregorio's NABC for the gabc that starts with this notation, a string
+   * for each line (nabc[0] above the staff, nabc[1] below it), which isn't
+   * drawn yet
+   */
+  nabc?: string[];
   /**
    * whether a Gregorio no-line-break area (<nlba>…</nlba>, in the lyrics or
    * in the notes) starts or ends at this notation
