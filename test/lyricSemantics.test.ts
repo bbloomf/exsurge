@@ -3,9 +3,12 @@ import assert from "node:assert";
 import * as Chant from "../src/Exsurge.Chant.js";
 import * as Drawing from "../src/Exsurge.Drawing.js";
 import { Gabc } from "../src/Exsurge.Gabc.js";
+import { fakeFont } from "./helpers/fonts";
 
 function lyricsOf(gabc: string, setupContext?: (ctxt: Drawing.ChantContext) => void) {
   var ctxt = new Drawing.ChantContext();
+  // every character is half an em wide
+  ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
   if (setupContext) setupContext(ctxt);
   var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
   score.performLayout(ctxt);
@@ -26,5 +29,23 @@ describe('Elisions', function() {
     // an elision still elides
     lyrics = lyricsOf('(c4) ri<e>a</e>(f) in(g)', (ctxt) => (ctxt.italicMeansElision = false));
     assert.deepEqual(lyrics.map((lyric) => !!lyric.elidesToNext), [true, false]);
+  });
+});
+
+describe('Lyric ties', function() {
+  it('makes a ~ a space by default, and otherwise the tie that ctxt.lyricTie names', function() {
+    var gabc = '(c4) De~us(f) <sp>~</sp>(g)';
+    assert.deepEqual(lyricsOf(gabc).map((lyric) => lyric.text), ['De us', '∼']);
+    var ties = { space: ' ', undertie: '‿', overtie: '⁀', doubletie: '⁐' } as const;
+    for (const [tie, text] of Object.entries(ties)) {
+      var lyrics = lyricsOf(gabc, (ctxt) => (ctxt.lyricTie = tie as keyof typeof ties));
+      assert.deepEqual(lyrics.map((lyric) => lyric.text), ['De' + text + 'us', '∼'], tie);
+    }
+  });
+
+  it('centers a syllable with a tie on its first vowel, rather than after the space', function() {
+    var [spaced] = lyricsOf('(c4) De~us(f)');
+    var [tied] = lyricsOf('(c4) De~us(f)', (ctxt) => (ctxt.lyricTie = 'undertie'));
+    assert(tied.origin.x < spaced.origin.x, `${tied.origin.x} < ${spaced.origin.x}`);
   });
 });

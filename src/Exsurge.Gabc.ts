@@ -43,7 +43,8 @@ import {
   DefaultTrailingSpace,
   GlyphCode,
   Annotation,
-  Annotations
+  Annotations,
+  LyricTieText
 } from "./Exsurge.Drawing.js";
 import { language as languages, type Language } from "./Exsurge.Text.js";
 import {
@@ -1255,9 +1256,11 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
+      // a ~ is a lyric tie (except in a special character, e.g. <sp>~</sp>)
+      var lyricTie = LyricTieText[ctxt.lyricTie] || " ";
       var lyricText = match[1].replace(__commentMaskRegex, "").replace(
         /(^|<\/sp>)([\s\S]*?)($|<sp>)/g,
-        (_, pre, main, post) => `${pre}${main.replace(/~/g, " ")}${post}`
+        (_, pre, main, post) => `${pre}${main.replace(/~/g, lyricTie)}${post}`
       );
       var alText: AboveLinesText[] = [];
       var translationText: TranslationText[] = [];

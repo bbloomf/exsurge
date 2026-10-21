@@ -798,6 +798,18 @@ export type ClefVisibility = "visible" | "invisible" | "phantom";
 /** how the number of a mode is written (see ChantContext.modeNumberSystem) */
 export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
 
+/** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
+export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
+
+/** the text that a ~ in the lyrics becomes, for each LyricTie */
+export const LyricTieText: { [tie in LyricTie]: string } = {
+  space: " ",
+  undertie: "‿",
+  overtie: "⁀",
+  // (U+2050 close up, an overtie above an undertie)
+  doubletie: "⁐"
+};
+
 /** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
 export type MakeDef = (() => void) & {
   /** the def as an svg tree */
@@ -937,6 +949,14 @@ export class ChantContext {
    * Defaults to true.
    */
   italicMeansElision: boolean;
+  /**
+   * What a ~ in the lyrics becomes.  "space" (the default) is a space that
+   * doesn't break the syllable, so the syllable is centered on the text after
+   * it.  "undertie", "overtie" and "doubletie" are Gregorio's lyric ties,
+   * which join the words, so the syllable is centered on its first vowel.
+   * Like the rest of the lyrics, it's read when the gabc is parsed.
+   */
+  lyricTie: LyricTie;
 
   pixelRatio: number;
 
@@ -1127,6 +1147,7 @@ export class ChantContext {
 
     this.defaultLanguage = language.latin;
     this.italicMeansElision = true;
+    this.lyricTie = "space";
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio =

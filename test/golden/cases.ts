@@ -471,6 +471,12 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) <e>A</e>ve(f) ma(g)ri<e>a</e>(h) <e>et</e>(g) qu<e>e</e>(f) mon(g)str<e>a</e> te(h) " +
       "s<e>a</e>n(g)ctum(f) (::)"
+  },
+  {
+    // a ~ drawn as an undertie, centered on the syllable's first vowel
+    name: "lyric-tie",
+    gabc: "(c4) Glo(f)ri(g)a~in(h) ex(g)cel(f)sis(g) De~o(h) <sp>~</sp>(g) (::)",
+    setupContext: (ctxt) => (ctxt.lyricTie = "undertie")
   }
 ];
 
