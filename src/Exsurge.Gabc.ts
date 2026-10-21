@@ -115,9 +115,39 @@ const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
 const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * multiplier;
 
-const regexHeaderEnd = /(?:^|\n)%%\s?\n/;
-const regexHeaderLine = /^([\w-_.]+):\s*((?:[^;\r\n]|;[ \t])*)(?:;|$)/i;
+// the line that ends the header: two or more %s, as Gregorio allows
+const regexHeaderEnd = /(?:^|\n)%%+[ \t\r]*(?:\n|$)/;
+const regexHeaderEndLine = /^%%+\s*$/;
+// a header line, "name: value;".  The value ends at a ; or ;; with nothing
+// but spaces after it.  A line without that ending is a value on its own (as
+// it always was in exsurge), unless the lines after it end the value, as
+// Gregorio's multi-line values do ("name: first line⏎second line;;")
+const regexHeaderLine = /^([\w-_.]+):\s*(.*?)(;;?[ \t]*)?$/i;
+// a line that ends a multi-line value
+const regexHeaderValueEnd = /^(.*?);;?[ \t]*$/;
+// lines that can't be part of a multi-line value: another header, a comment
+// or the end of the header
+const regexHeaderNotValue = /^(?:[\w-_.]+:|[%#])/i;
 const regexHeaderComment = /^%.*/;
+
+// the lines of a value that goes on over the lines after lines[start], and
+// the index of the line that ends it, or null if those lines don't end it
+const multiLineHeaderValue = (lines: string[], start: number) => {
+  let values: string[] = [];
+  for (let i = start + 1; i < lines.length; ++i) {
+    if (regexHeaderNotValue.test(lines[i])) break;
+    let match = regexHeaderValueEnd.exec(lines[i]);
+    if (match) return { values: [...values, match[1]], end: i };
+    values.push(lines[i]);
+  }
+  return null;
+};
+
+// a header field's lines, with a multi-line value ending in ;; as Gregorio's do
+const headerLines = (key: string, value: string) =>
+  value.includes("\n")
+    ? `${key}: ${value};;`.split("\n")
+    : [`${key}: ${value};`];
 interface GabcHeaderMembers {
   /** the text of the header, through the %% line */
   original: string;
@@ -177,18 +207,24 @@ const GabcHeaderClass = class GabcHeader {
           var key = match[1].replace(/-([a-z])/g, function(a: string, letter: string) {
             return letter.toUpperCase();
           });
+          var value = match[2];
+          var multiLine = match[3] ? null : multiLineHeaderValue(lines, i);
+          if (multiLine) {
+            value = [value, ...multiLine.values].join("\n");
+            i = multiLine.end;
+          }
           if (this[match[1]]) {
             var arrayName = match[1] + "Array";
             if (!this[arrayName]) {
               this[arrayName] = [this[match[1]]];
             }
-            this[arrayName].push(match[2]);
+            this[arrayName].push(value);
           } else {
-            this[match[1]] = match[2];
+            this[match[1]] = value;
           }
           if (key !== match[1]) this[key] = this[match[1]];
         } else if ((match = regexHeaderComment.exec(line))) {
-          if (line !== "%%") {
+          if (!regexHeaderEndLine.test(line)) {
             match = regexHeaderLine.exec(line.slice(1));
             if (match) {
               let key = match[1].replace(/-([a-z])/g, function(a: string, letter: string) {
@@ -221,10 +257,10 @@ const GabcHeaderClass = class GabcHeader {
       var array = this[key + "Array"];
       if (array) {
         for (var i = 0; i < array.length; ++i) {
-          result.push(key + ": " + array[i] + ";");
+          result.push(...headerLines(key, array[i]));
         }
       } else {
-        result.push(key + ": " + this[key] + ";");
+        result.push(...headerLines(key, this[key]));
       }
     }
     for (let key in this.cValues) {
