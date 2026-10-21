@@ -827,6 +827,14 @@ export class ChantContext {
   textAfterSpecialChar: string;
   /** what each of "℣", "℟", "*" and "+" is shown as */
   specialCharMap: { [char: string]: string };
+  /**
+   * What each of Gregorio's special characters, <sp>…</sp>, is shown as, by
+   * the text between the tags, for the specials that exsurge doesn't draw
+   * itself (it draws the ligatures and accented vowels, A/, R/, V/ and ~).
+   * A special shown as "*" or "+" is drawn as a lyric's asterisk or plus
+   * would be, and one that isn't here is shown as its text.
+   */
+  specials: { [special: string]: string };
   asteriskProperties: CssProperties;
   plusProperties: CssProperties;
   fontStyleDictionary: {
@@ -983,6 +991,20 @@ export class ChantContext {
       "+": "+",
       "*": "*"
     };
+    this.specials = {
+      "*": "*",
+      "+": "†",
+      // a zero-width hyphen
+      "-": "",
+      "\\": "\\",
+      "&": "&",
+      "#": "#",
+      "_": "_",
+      "%": "%",
+      ot: "⁀",
+      ut: "‿",
+      dt: "⁀‿"
+    };
     this.plusProperties = {};
     this.asteriskProperties = {};
     this.specialCharText = (char: string) => this.specialCharMap[char] || char;
@@ -994,6 +1016,7 @@ export class ChantContext {
       ul: { "text-decoration": "underline" },
       c: { fill: this.rubricColor, class: 'rubric' },
       sc: { "font-variant": "small-caps" },
+      tt: { "font-family": "monospace" },
       v: {},
       e: { "font-style": "italic", "font-size": "90%" }
     };
@@ -1207,7 +1230,7 @@ export class ChantContext {
    * document.fonts fires loadingdone, and at the start of a ChantScore layout
    * once a font has been added to or removed from document.fonts; call this
    * after changing fontStyleDictionary, specialCharProperties,
-   * asteriskProperties or plusProperties directly once text has been created,
+   * asteriskProperties, plusProperties or specials directly once text has been created,
    * or after any other change to the fonts that text is measured in (such as
    * replacing a face in document.fonts with another, which leaves its size
    * the same).
@@ -2746,7 +2769,7 @@ export class TextElement extends ChantLayoutElement {
 
     };
 
-    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
+    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/gi;
     var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
@@ -2771,7 +2794,8 @@ export class TextElement extends ChantLayoutElement {
         family,
         fill,
         cssClass,
-        enclosedText
+        enclosedText,
+        special
       ] = match;
       specialChar = specialChar || specialChar2 || specialChar3;
       // non-matching symbols first
@@ -2848,6 +2872,17 @@ export class TextElement extends ChantLayoutElement {
           match.index,
           ctxt.specialCharProperties
         );
+      } else if (special !== undefined) {
+        // the rest of Gregorio's specials
+        closeCurrentSpan();
+        let specialText = Object.prototype.hasOwnProperty.call(ctxt.specials, special)
+          ? ctxt.specials[special]
+          : special;
+        if (specialText === "*")
+          closeSpan(ctxt.specialCharText("*") || "*", match.index, ctxt.asteriskProperties);
+        else if (specialText === "+")
+          closeSpan(ctxt.specialCharText("+") || "+", match.index, ctxt.plusProperties);
+        else closeSpan(specialText, match.index);
       } else {
         // otherwise we're dealing with matching markup delimeters
         if (markupSymbol === "*") {

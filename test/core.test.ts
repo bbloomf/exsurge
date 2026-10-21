@@ -200,3 +200,34 @@ describe("Gregorio lyric controls", function() {
     assert.strictEqual(notations.length, 5);
   });
 });
+
+describe("Gregorio special characters", function() {
+  const text = (ctxt: Exsurge.ChantContext, lyric: string) => new Exsurge.Lyric(ctxt, lyric).text;
+
+  it("shows Gregorio's default specials, and an unknown one as its text", function() {
+    const ctxt = new Exsurge.ChantContext();
+    assert.strictEqual(text(ctxt, "De<sp>ut</sp>us"), "De‿us");
+    assert.strictEqual(text(ctxt, "De<sp>ot</sp>us"), "De⁀us");
+    assert.strictEqual(text(ctxt, "ex<sp>-</sp>cel"), "excel");
+    assert.strictEqual(text(ctxt, "<sp>+</sp>"), "†");
+    assert.strictEqual(text(ctxt, "<sp>\\</sp><sp>&</sp><sp>#</sp><sp>_</sp><sp>%</sp>"), "\\&#_%");
+    assert.strictEqual(text(ctxt, "a<sp>unknown</sp>b"), "aunknownb");
+    // the specials exsurge draws itself are as they were
+    assert.strictEqual(text(ctxt, "<sp>'ae</sp><sp>OE</sp><sp>~</sp>"), "ǽŒ∼");
+  });
+
+  it("takes the specials from ctxt.specials", function() {
+    const ctxt = new Exsurge.ChantContext();
+    ctxt.specials.ut = "_";
+    ctxt.specials.new = "N";
+    delete ctxt.specials["-"];
+    assert.strictEqual(text(ctxt, "De<sp>ut</sp>us <sp>new</sp> ex<sp>-</sp>cel"), "De_us N ex-cel");
+  });
+
+  it("styles <tt> in monospace", function() {
+    const lyric = new Exsurge.Lyric(new Exsurge.ChantContext(), "a<tt>b</tt>c");
+    assert.strictEqual(lyric.text, "abc");
+    assert.deepStrictEqual(lyric.spans[1].activeTags, ["tt"]);
+    assert.strictEqual(lyric.spans[1].mergedProperties["font-family"], "monospace");
+  });
+});

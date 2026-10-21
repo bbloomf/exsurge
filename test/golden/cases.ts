@@ -295,6 +295,14 @@ export const featureCases: GoldenCase[] = [
       "(c4) Gló(ehg)ri(hi)a(i) Pa(i)tri.(i) (:) <eu>E(i) u(i!jwk) o(i) u(h) a(hhh) e</eu>(fe..) (::) " +
       "<eu>E(i) u(i) o(i) u(h) a(hhh) e(fe..)</eu> (::) <nlba>Ky(f)ri(g)e.(h)</nlba> Chri(g)ste(f) " +
       "<nlba>e</nlba>(g) <clear>e(g)lé(f)i(g)son<pr>.(f) son<pr:0.5>;(g) a<clear/>b<pr/>c(h) (::)"
+  },
+  {
+    // Gregorio's default specials, an unknown one shown as its text, and <tt>
+    name: "gregorio-special-characters",
+    gabc:
+      "(c4) <tt>tt</tt>(f) a<sp>*</sp>(g) b<sp>+</sp>(h) ex<sp>-</sp>cel(g) <sp>\\</sp>(f) <sp>&</sp>(g) <sp>#</sp>(h) " +
+      "<sp>_</sp>(g) <sp>%</sp>(f) De<sp>ut</sp>us(g) De<sp>ot</sp>us(h) De<sp>dt</sp>us(g) <sp>unknown</sp>(f) " +
+      "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   }
 ];
 
