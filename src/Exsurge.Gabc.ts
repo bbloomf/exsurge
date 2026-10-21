@@ -112,7 +112,7 @@ var __lyricClearRegex = /<\s*clear\s*\/?\s*>/g;
 var __lyricProtrusionRegex = /<\s*pr\s*(?::\s*(\d*\.?\d+|\d+\.)\s*)?\/?\s*>/g;
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -1516,6 +1516,24 @@ export class Gabc {
                 line,
                 2,
                 new Signs.Accidental(line - 1, Signs.AccidentalType.Flat)
+              ))
+            );
+          }
+          break;
+        case "fb1":
+        case "fb2":
+        case "fb3":
+        case "fb4":
+        case "fb5":
+          {
+            // the flat is on the B above the F, or, when that's above a
+            // four-line staff, the B below (as Gregorio puts it)
+            const line = 2 * parseInt(atom[2], 10) - 1;
+            addNotation(
+              (ctxt.activeClef = new FaClef(
+                line,
+                2,
+                new Signs.Accidental(line <= 3 ? line + 3 : line - 4, Signs.AccidentalType.Flat)
               ))
             );
           }

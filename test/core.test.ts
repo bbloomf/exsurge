@@ -400,3 +400,20 @@ describe("Gregorio NABC", function() {
 function notesOfAll(notations: Exsurge.ChantNotationElement[]) {
   return notations.flatMap((notation) => notation.notes || []);
 }
+
+describe("Gregorio flat F clefs", function() {
+  it("reads fb1 to fb5 as F clefs with a flat on the B", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const notations = Exsurge.Gabc.createMappingsFromSource(ctxt, "(fb1) (fb2) (fb3) (fb4) (fb5) a(h)").flatMap(
+      (mapping) => mapping.notations
+    );
+    const clefs = notations.filter((notation) => notation.isClef) as Exsurge.Clef[];
+    assert.ok(clefs.every((clef) => clef instanceof Exsurge.FaClef));
+    assert.deepStrictEqual(
+      clefs.map((clef) => [clef.staffPosition, clef.defaultAccidental!.staffPosition]),
+      [[1, 4], [3, 6], [5, 1], [7, 3], [9, 5]]
+    );
+    // h is the B below the F on line 5, flattened
+    assert.strictEqual(notations[notations.length - 1].notes![0].pitch!.step, Exsurge.Step.Te);
+  });
+});

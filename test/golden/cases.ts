@@ -336,6 +336,11 @@ export const featureCases: GoldenCase[] = [
     // small accidentals above the staff, or above a note that's higher
     name: "musica-ficta",
     gabc: "(c4) a(gr6) b(hr7) c(fr8) d(gv_r7) e(lr6) f(gr1) g(fgr6h) h(gr3) i(cr8) (::)"
+  },
+  {
+    // the flat on the B above the F on lines 1 and 2, and below it on lines 3 to 5
+    name: "flat-fa-clefs",
+    gabc: "(fb3) a(ghd) b(dfd) (fb4) c(egf) (fb2) d(ihi) (fb1) e(gfg) (fb5) f(hgh) (f3) g(d) (::)"
   }
 ];
 
