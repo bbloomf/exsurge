@@ -132,7 +132,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -1548,9 +1548,11 @@ export class Gabc {
       var atom = match[0];
       var bar = match[__notationsRegex_group_bar];
 
-      let barWithCarryover = !!bar && bar.endsWith('_');
-      if (barWithCarryover) {
-        atom = atom.slice(0, -1);
+      // a bar can be followed by _ (a brace carrying the melody over it) and ' (a vertical episema)
+      let barSigns = bar ? /['_]*$/.exec(bar)![0] : "";
+      let barWithCarryover = barSigns.includes("_");
+      if (barSigns) {
+        atom = atom.slice(0, -barSigns.length);
       }
 
       if (atom === " " || atom[0] === "/")
@@ -1560,10 +1562,16 @@ export class Gabc {
       // handle the clefs and dividers here
       switch (atom) {
         case ",":
-          addNotation(new Signs.QuarterBar(barWithCarryover));
+        case ",0":
+          addNotation(new Signs.QuarterBar(barWithCarryover, atom === ",0"));
           break;
         case "`":
-          addNotation(new Signs.Virgula(barWithCarryover));
+        case "`0":
+          addNotation(new Signs.Virgula(barWithCarryover, atom === "`0"));
+          break;
+        case "^":
+        case "^0":
+          addNotation(new Signs.DivisioMinimis(barWithCarryover, atom === "^0"));
           break;
         case ";":
           addNotation(new Signs.HalfBar(barWithCarryover));
@@ -1587,12 +1595,13 @@ export class Gabc {
           addNotation(new Signs.DominicanBar(parseInt(atom[1], 10)));
           break;
         case ":":
-          addNotation(new Signs.FullBar(barWithCarryover));
+        case ":?":
+          addNotation(new Signs.FullBar(barWithCarryover, atom === ":?"));
           break;
         case "::":
           addNotation(new Signs.DoubleBar());
           break;
-        // other gregorio dividers are not supported yet
+        // the parenthesized bars (`? ,? and ,0?) are not supported yet
 
         case "c1":
         case "c2":
@@ -1833,6 +1842,9 @@ export class Gabc {
           }
           break;
       }
+
+      if (barSigns.includes("'"))
+        (notations[notations.length - 1] as Signs.Divider).hasVerticalEpisema = true;
     }
 
     // finish up any remaining notes we have left

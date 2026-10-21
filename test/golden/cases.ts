@@ -355,6 +355,14 @@ export const featureCases: GoldenCase[] = [
     // rather than standing on the last (k is a torculus resupinus)
     name: "porrectus-wide",
     gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
+  },
+
+  // Gregorio: Phase 2
+  {
+    name: "bar-variants",
+    gabc:
+      "(c4) a(f) (^) b(g) (^0) c(h) (`0) d(g) (,0) e(f) (:?) f(g) (:') g(h) (;') h(g) (::') i(f) (,') j(g) (`') " +
+      "k(h) (,_') l(g) (;3') m(f) (fg^hg:?f) (::)"
   }
 ];
 
