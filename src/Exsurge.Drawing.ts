@@ -2794,7 +2794,6 @@ interface BreakMatch {
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
 
-/** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 // Gregorio's commands for the symbols in its greextra font (from its
 // gregoriotex-symbols.tex), by their names in lower case
 const __greextraCommands: { [command: string]: string } = {
@@ -2808,6 +2807,7 @@ const __greextraCommands: { [command: string]: string } = {
   gothvbar: "VWithBarGoth"
 };
 
+/** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
   fontFamily: (ctxt: ChantContext) => string;
   fontSize: (ctxt: ChantContext) => number;
