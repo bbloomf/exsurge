@@ -56,7 +56,7 @@
         <text source-index=32 x=0.8353999999999999 y=28.85200000000001 style={} source=<Lyric sourceIndex=32> className="lyric" textAnchor="start" source-gabc="e">
           <tspan source-index=0 style={} className=undefined>
             "e"
-        <text source-index=34 x=0.8353999999999999 y=44.69200000000001 style={} source=<Lyric sourceIndex=34> className="lyric" textAnchor="start" source-gabc="e">
+        <text source-index=35 x=0.8353999999999999 y=44.69200000000001 style={} source=<Lyric sourceIndex=35> className="lyric" textAnchor="start" source-gabc="e">
           <tspan source-index=0 style={} className=undefined>
             "e"
           <tspan source-index=0 style={} className=undefined>

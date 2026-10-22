@@ -50,6 +50,7 @@ import {
   NoteShapeModifiers,
   type InclinatumLeaning,
   ChantMapping,
+  type MarksForNext,
   ChantScore,
   ChantDocument,
   Clef,
@@ -63,7 +64,7 @@ import {
 import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
-import { escapeChar, restoreEscapes, unescapeText } from "./gabcEscapes.js";
+import { escapeChar, escapedCharSource, restoreEscapes } from "./gabcEscapes.js";
 import type {
   AreaBoundary,
   ChantContext,
@@ -102,15 +103,33 @@ var __commentMask = "\uFDD0";
 // (a syllable starts after any spaces or masked comments)
 var __syllablesRegex = /(?=[^\s\uFDD0])((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
+// a $ escape (see gabcEscapes.ts)
+var __escapeSource = "\\$(" + escapedCharSource + ")";
+var __escapeRegex = new RegExp(__escapeSource, "g");
+// a comment: a % to the end of its line, unless it starts exsurge's %small
+// caps%, which another % closes later on the line, before notes on the line
+var __commentSource = "%(?![^%\\s][^%\\n]*%[^\\n%(]*\\()[^\\n]*\\n?";
 // Gregorio's comments and $ escapes in the notation section (see maskGabc()
-// below), and the text where a % isn't a comment
-var __commentRegex = /<sp>[^<]*?<\/sp>|<v>[\s\S]*?<\/v>|\$([\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S])|%[^%\s][^%\n]*%|(%[^\n]*\n?)/g;
+// below): the text in <sp> and <v>, where they're neither, a $ escape, notes
+// (where Gregorio has no comments) and the comment right after them, and a
+// comment at the start of a line or after a space
+var __commentRegex = new RegExp(
+  "<sp>[^<]*?<\\/sp>|<v>[\\s\\S]*?<\\/v>|" +
+    __escapeSource +
+    "|(\\((?:\\$[\\s\\S]|[^)$])*\\)?)(" + __commentSource + ")?" +
+    "|(^|[ \\t\\r\\n])(" + __commentSource + ")",
+  "gm"
+);
 var __commentMaskRegex = /\uFDD0/g;
 // Gregorio's syllable controls, which aren't printed: the euouae and
 // no-line-break areas, <clear> and <pr> (with spaces where Gregorio allows them)
 var __lyricAreaTagRegex = /<(\/)?(eu|nlba)>/g;
 var __lyricClearRegex = /<\s*clear\s*\/?\s*>/g;
 var __lyricProtrusionRegex = /<\s*pr\s*(?::\s*(\d*\.?\d+|\d+\.)\s*)?\/?\s*>/g;
+// those controls at the start of a lyric
+var __leadingControlsRegex = new RegExp(
+  "^(?:" + [__lyricAreaTagRegex, __lyricClearRegex, __lyricProtrusionRegex].map((regex) => regex.source).join("|") + ")*"
+);
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
 var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
@@ -135,9 +154,25 @@ const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
 const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * multiplier;
 
-// the line that ends the header: two or more %s, as Gregorio allows
-const regexHeaderEnd = /(?:^|\n)%%+[ \t\r]*(?:\n|$)/;
+// the line that ends the header: two or more %s, as Gregorio allows, and the
+// blank lines after it, which Gregorio also takes
+const regexHeaderEnd = /(?:^|\n)(%%+)[ \t\r]*(\n|$)(?:[ \t\r]*\n)*/g;
 const regexHeaderEndLine = /^%%+\s*$/;
+// the start of a header: a field, after any blank lines and comments
+const regexHeaderStart = /^(?:[ \t\r]*(?:[%#][^\n]*)?\n)*[\w-_.]+:/;
+
+// the end of gabc's header, if it has one.  gabc without a header can have
+// comment lines of %s in it, so only a line of just %% ends a header unless
+// the gabc starts with a header field.
+const findHeaderEnd = (gabc: string) => {
+  regexHeaderEnd.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = regexHeaderEnd.exec(gabc))) {
+    if ((match[1] === "%%" && match[2]) || regexHeaderStart.test(gabc)) break;
+  }
+  regexHeaderEnd.lastIndex = 0;
+  return match;
+};
 // a header line, "name: value;".  The value ends at a ; or ;; with nothing
 // but spaces after it.  A line without that ending is a value on its own (as
 // it always was in exsurge), unless the lines after it end the value, as
@@ -204,7 +239,7 @@ const GabcHeaderClass = class GabcHeader {
   original: string;
 
   static getLength(gabc: string) {
-    let match = gabc.match(regexHeaderEnd);
+    let match = findHeaderEnd(gabc);
     return match ? match.index! + match[0].length : 0;
   }
 
@@ -213,7 +248,7 @@ const GabcHeaderClass = class GabcHeader {
     this.comments = [];
     this.cValues = {};
     this.original = "";
-    let match = text.match(regexHeaderEnd);
+    let match = findHeaderEnd(text);
     if (match) {
       let txtHeader = (this.original = text.slice(
         0,
@@ -306,28 +341,72 @@ export const GabcHeader = GabcHeaderClass as unknown as GabcHeaderConstructor;
  * line, which also takes the line break away.  Each character becomes a
  * noncharacter (U+FDD0), so that the source keeps its length (and the source
  * indices stay where they were), and the parser skips it as it does a space
- * between syllables, though without ending a word or a neume.  A % that
- * another % closes later on its line is exsurge's %small caps% markup
- * instead (when no space follows it), and a % in <sp>…</sp> or <v>…</v>, or
- * escaped as $%, isn't a comment.
+ * between syllables, though without ending a word or a neume.  A comment
+ * starts at the start of a line, or after a space or the notes.  A % that
+ * another % closes later on its line, before notes, is exsurge's %small caps%
+ * markup instead (when no space follows it), and a % elsewhere, in the notes,
+ * in <sp>…</sp> or <v>…</v>, or escaped as $%, isn't a comment.
  *
  * Also replaces Gregorio's $ escapes outside <sp> and <v> with characters
  * that mean nothing to the parser (see gabcEscapes.ts), also keeping the
  * length.
  */
 var maskGabc = (gabc: string) =>
-  gabc.replace(__commentRegex, (match, escaped, comment) =>
-    escaped ? escapeChar(escaped) : comment ? __commentMask.repeat(comment.length) : match
+  gabc.replace(
+    __commentRegex,
+    (match, escaped, notes, notesComment = "", before, comment) =>
+      escaped
+        ? escapeChar(escaped)
+        : notes
+        ? notes.replace(__escapeRegex, (escape: string, char: string) => escapeChar(char)) +
+          __commentMask.repeat(notesComment.length)
+        : comment
+        ? before + __commentMask.repeat(comment.length)
+        : match
   );
 
 // whether a gabc word is only spaces and comments
-var isEmptyWord = (word: string) => word.replace(__commentMaskRegex, "").trim() === "";
+var isEmptyWord = (word: string) => maskGabc(word).replace(__commentMaskRegex, "").trim() === "";
 
 var elementCountForNotations = (items: ChantNotationElement[]) =>
   items.reduce((sum, item) => sum + (item.notes ? item.notes.length : 1), 0);
 
 /** the Gregorio areas that a syllable's lyrics start or end */
 type SyllableAreas = { euouae?: AreaBoundary; noLineBreak?: AreaBoundary };
+
+// whether there are any areas in areas
+var hasAreas = (areas: SyllableAreas) => !!(areas.euouae || areas.noLineBreak);
+
+// the areas in both a and b
+var mergeAreas = (a: SyllableAreas, b: SyllableAreas) => {
+  let areas: SyllableAreas = { ...a };
+  for (let name of ["euouae", "noLineBreak"] as const) if (b[name]) areas[name] = { ...a[name], ...b[name] };
+  return areas;
+};
+
+// no marks for the next word
+var noMarksForNext: MarksForNext = { noteMarks: [], areas: {} };
+
+// whether marks has any marks
+var hasMarks = (marks: MarksForNext) => marks.noteMarks.length > 0 || hasAreas(marks.areas);
+
+// the areas that Gregorio's closing tags after the last word's notes end, which end at its last notation
+var endTrailingAreas = (mappings: ChantMapping[], areas: SyllableAreas) => {
+  let notations = mappings.length ? mappings[mappings.length - 1].notations : [];
+  if (!notations.length) return;
+  setAreaBoundaries(notations, {
+    euouae: areas.euouae && areas.euouae.end ? { end: true } : undefined,
+    noLineBreak: areas.noLineBreak && areas.noLineBreak.end ? { end: true } : undefined
+  });
+};
+
+// what Gregorio's <nlba> in the notes marks on the note, or other notation, after it
+var markNoLineBreakStart = (element: { noLineBreak?: AreaBoundary }) =>
+  (element.noLineBreak = { ...element.noLineBreak, start: true });
+
+// the NABC for one notation of two of Gregorio's elements, the second after a space ("/")
+var joinNabc = (first: string | undefined, second: string) =>
+  first && second ? first + "/" + second : (first || "") + second;
 
 // marks the start of an area on the first of a syllable's notations and its end on the last
 var setAreaBoundaries = (items: ChantNotationElement[], areas: SyllableAreas) => {
@@ -358,8 +437,10 @@ var readSyllableControls = (text: string, areas: SyllableAreas) => {
 };
 
 // the index in a lyric's text of what was at index in the text it was made from
-var lyricTextIndex = (ctxt: ChantContext, lyric: Lyric, index: number) => {
-  index += (ctxt.textStyles.lyric.prefix || "").length;
+var lyricTextIndex = (ctxt: ChantContext, lyric: Lyric, text: string, index: number) => {
+  // (the spans' indices are in the text after the style's prefix, with each
+  // run of spaces made one, as generateSpansFromText() makes it)
+  index = ((ctxt.textStyles.lyric.prefix || "") + text.slice(0, index)).replace(/\s+/g, " ").length;
   let textIndex = 0;
   for (let span of lyric.spans) {
     if (index < span.index + span.text.length)
@@ -372,6 +453,8 @@ var lyricTextIndex = (ctxt: ChantContext, lyric: Lyric, index: number) => {
 export class Gabc {
   /** a brace given a length rather than an end, which the next note ends */
   static needToEndBrace?: Markings.BracePoint;
+  /** what the gabc parsed last leaves for the next notes and syllable (see createMappingFromWord()) */
+  static marksForNext: MarksForNext = noMarksForNext;
 
   // takes gabc source code (without the header info) and returns an array
   // of ChantMappings describing the chant. A chant score can then be created
@@ -388,10 +471,12 @@ export class Gabc {
     // the default clef is shared, so forget any accidental the last chant left on it
     ctxt.activeClef.resetAccidentals();
     // an automatic brace left open at the end of the last chant parsed doesn't
-    // carry over into this one
+    // carry over into this one, nor do Gregorio's marks for the next notes
     delete this.needToEndBrace;
+    this.marksForNext = noMarksForNext;
 
     var mappings = this.createMappingsFromWords(ctxt, words);
+    endTrailingAreas(mappings, this.marksForNext.areas);
 
     // always set the last notation to have a trailingSpace of 0. This makes layout for the last chant line simpler
     if (
@@ -419,8 +504,9 @@ export class Gabc {
    * notes with the NABC and the |s masked (keeping their length), but with a
    * / at a | between two parts of gabc, which Gregorio makes separate
    * elements, and each part of gabc that has NABC, by where it starts in the
-   * notes, and where it put the /s.  The NABC of a part of gabc that's empty
-   * goes with the part before it.
+   * notes, and where it put the /s.  The NABC of a part of gabc that's empty,
+   * which Gregorio gives an element of its own, goes with the part before it,
+   * after a / (a space in NABC).
    */
   static splitNabc(data: string, nabcLines: number) {
     let gabc = "";
@@ -441,7 +527,7 @@ export class Gabc {
         gabc += snippet;
       } else {
         gabc += __commentMask.repeat(snippet.length + 1);
-        part!.nabc[state - 1] = (part!.nabc[state - 1] || "") + snippet;
+        part!.nabc[state - 1] = joinNabc(part!.nabc[state - 1], snippet);
       }
       index += snippet.length + 1;
     });
@@ -660,6 +746,7 @@ export class Gabc {
     // the default clef is shared, so forget any accidental the last chant left on it
     ctxt.activeClef.resetAccidentals();
     delete this.needToEndBrace;
+    this.marksForNext = noMarksForNext;
 
     // apply the results to the mappings, marking notations that need to be processed
     var lastTranslationNeumes: ChantNotationElement[] = [];
@@ -668,7 +755,8 @@ export class Gabc {
       // (the words kept or added, or the mappings deleted, of which only the number is used)
       var resultValues = results[i][1] as string[];
 
-      if (index > 0)
+      // (after insertions, sourceIndex is already past them and the empty words among them)
+      if (index > 0 && (i === 0 || results[i - 1][0] !== "+"))
         sourceIndex =
           mappings[index - 1].sourceIndex +
           mappings[index - 1].source.length +
@@ -718,9 +806,12 @@ export class Gabc {
           }
           if (
             parsedUnderChiRho.get(mapping) !==
-            ctxt.activeClef instanceof ChiRhoClef
+              ctxt.activeClef instanceof ChiRhoClef ||
+            hasMarks(this.marksForNext) ||
+            mapping.followsMarks
           ) {
-            // the kind of clef has changed, and with it whether 0 and 9 nudge the notes
+            // the kind of clef has changed, and with it whether 0 and 9 nudge the notes,
+            // or the word before leaves (or left) Gregorio's marks on this one's
             mapping = this.createMappingFromWord(
               ctxt,
               resultValues[j],
@@ -812,6 +903,7 @@ export class Gabc {
               }
             }
           }
+          this.marksForNext = mapping.marksForNext || noMarksForNext;
         }
       } else if (resultCode === "-") {
         // delete elements that no longer exist, but first notify all
@@ -827,6 +919,7 @@ export class Gabc {
             sourceIndex += wordLength;
             continue;
           }
+          let marksBefore = this.marksForNext;
           mapping = this.createMappingFromWord(
             ctxt,
             resultValues[j],
@@ -845,6 +938,7 @@ export class Gabc {
             let elementCount = elementCountForNotations(mapping.notations);
             if (insertionIndex < elementCount) {
               // re-do the first mapping, because it was broken up incorrectly, due to the presence of the initial clef
+              this.marksForNext = marksBefore;
               mapping = this.createMappingFromWord(
                 ctxt,
                 resultValues[j],
@@ -868,6 +962,7 @@ export class Gabc {
         }
       }
     }
+    endTrailingAreas(mappings, this.marksForNext.areas);
 
     // always set the last notation to have a trailingSpace of 0. This makes layout for the last chant line simpler
     if (
@@ -922,17 +1017,32 @@ export class Gabc {
     var matches: RegExpExecArray[] = [];
     var notations: ChantNotationElement[] = [];
     var currSyllable = 0;
-    // (a word from splitWords() is masked already, and masking it again changes nothing)
-    word = maskGabc(word);
+    // (the word is parsed with Gregorio's comments and escapes masked)
+    var maskedWord = maskGabc(word);
     // whether the accidentals were reset since the last notation parsed
     var resetAccidentals = false;
+    // Gregorio's marks that the word before left for this one's notes and
+    // first syllable, which parseNotations() and the syllables below take
+    // from marksForNext, and leave the rest of for the next word
+    var followsMarks = hasMarks(this.marksForNext);
+    var mappingOf = () => {
+      this.marksForNext = {
+        ...this.marksForNext,
+        areas: mergeAreas(this.marksForNext.areas, trailingAreas)
+      };
+      let mapping = new ChantMapping(word, notations, sourceIndex);
+      if (hasMarks(this.marksForNext)) mapping.marksForNext = this.marksForNext;
+      if (followsMarks) mapping.followsMarks = true;
+      return mapping;
+    };
 
     var syllableMatch: RegExpExecArray | null;
-    while ((syllableMatch = __syllablesRegex.exec(word))) matches.push(syllableMatch);
+    while ((syllableMatch = __syllablesRegex.exec(maskedWord))) matches.push(syllableMatch);
 
     // Gregorio's controls after the word's last notes, with no notes of their
-    // own, like the closing tags that splitWords() leaves with the word they
-    // end ("son.(f)</nlba> Chri(f)"), belong to its last notation
+    // own, like the closing tags that splitWords() leaves with the word before
+    // them ("son.(f)</nlba> Chri(f)"), go on the next syllable, as in
+    // Gregorio, where they're its text
     var trailingAreas: SyllableAreas = {};
     var lastMatch = matches[matches.length - 1];
     if (
@@ -993,18 +1103,26 @@ export class Gabc {
             items[items.length - 1];
           if (!notation) continue;
           let notationNabc = (notation.nabc = notation.nabc || []);
-          part.nabc.forEach((line, v) => (notationNabc[v] = (notationNabc[v] || "") + line));
+          part.nabc.forEach((line, v) => (notationNabc[v] = joinNabc(notationNabc[v], line)));
         }
         // a / that splitNabc() put in isn't in the source of the note before it
+        // (unless the source has a / there too)
         let notes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
         for (let cut of nabc.cuts) {
           let noteBefore = notes.filter((note) => note.sourceIndex - notationsSourceIndex < cut).pop();
-          if (noteBefore && noteBefore.sourceGabc.endsWith("/"))
+          if (
+            noteBefore &&
+            noteBefore.sourceGabc.endsWith("/") &&
+            notationData[noteBefore.sourceIndex - notationsSourceIndex + noteBefore.sourceGabc.length - 1] !== "/"
+          )
             noteBefore.sourceGabc = noteBefore.sourceGabc.slice(0, -1);
         }
       }
 
       if (items.length === 0) continue;
+      // (and the areas that the word before left for its next syllable)
+      setAreaBoundaries(items, this.marksForNext.areas);
+      this.marksForNext = { ...this.marksForNext, areas: {} };
       setAreaBoundaries(items, areas);
       // so that updateMappingsFromSource can reset them at the same point
       if (resetAccidentals) {
@@ -1061,11 +1179,11 @@ export class Gabc {
         indexOffset += m[0].length;
         __altTranslationRegex.exec(undefined as unknown as string);
       }
-      lyricText = lyricText.replace(__lyricAreaTagRegex, "");
+      // (Gregorio's controls alone aren't a lyric; createSyllableLyrics() takes them out of one)
+      if (readSyllableControls(lyricText, {}) === "") lyricText = "";
       if (lyricText === "" && alText.length === 0) continue;
 
-      if (notationWithLyrics === null)
-        return new ChantMapping(word, notations, sourceIndex);
+      if (notationWithLyrics === null) return mappingOf();
 
       if (alText.length) notationWithLyrics.alText = alText;
 
@@ -1115,9 +1233,7 @@ export class Gabc {
       notationWithLyrics.lyrics = lyrics;
     }
 
-    if (notations.length) setAreaBoundaries(notations, trailingAreas);
-
-    return new ChantMapping(word, notations, sourceIndex);
+    return mappingOf();
   }
 
   // returns an array of lyrics (an array because each syllable can have multiple lyrics)
@@ -1146,11 +1262,14 @@ export class Gabc {
         }
       }
 
-      // Gregorio's <clear> and <pr>, which aren't printed (only the first <pr> counts, as in Gregorio)
-      var controlsLength = lyricText.length;
+      // Gregorio's controls, which aren't printed: <eu> and <nlba> (which
+      // createMappingFromWord() read), <clear> and <pr> (only the first <pr>
+      // counts, as in Gregorio).  The lyric's source starts after any at its start.
+      var lyricSourceIndex = sourceIndex + __leadingControlsRegex.exec(lyricText)![0].length;
       var clear = false;
       var protrusion: LyricProtrusion | undefined;
       lyricText = lyricText
+        .replace(__lyricAreaTagRegex, "")
         .replace(__lyricClearRegex, () => {
           clear = true;
           return "";
@@ -1160,7 +1279,6 @@ export class Gabc {
             protrusion = { factor: factor ? parseFloat(factor) : undefined, textIndex: index };
           return "";
         });
-      controlsLength -= lyricText.length;
 
       // gabc allows lyrics to indicate the centering part of the text by
       // using braces to indicate how to center the lyric. So a lyric can
@@ -1223,7 +1341,7 @@ export class Gabc {
         proposedLyricType,
         notation,
         notations,
-        sourceIndex
+        lyricSourceIndex
       );
 
       if (centerStartIndex >= 0) {
@@ -1264,12 +1382,12 @@ export class Gabc {
 
       if (clear) lyric.clear = true;
       if (protrusion) {
-        protrusion.textIndex = lyricTextIndex(ctxt, lyric, protrusion.textIndex);
+        protrusion.textIndex = lyricTextIndex(ctxt, lyric, lyricText, protrusion.textIndex);
         lyric.protrusion = protrusion;
       }
 
       lyric.lyricIndex = lyrics.push(lyric) - 1;
-      sourceIndex += lyricText.length + controlsLength + 1;
+      sourceIndex += lyricTexts[i].length + 1;
     }
     notation.lyrics = lyrics;
     return lyrics;
@@ -1349,8 +1467,11 @@ export class Gabc {
     var trailingSpace: TrailingSpace = DefaultTrailingSpace;
     // whether the data so far ends with a / or a space after a neume
     var endsWithSpace = false;
-    // what Gregorio's [[, <nlba> and @[ (and a </nlba> before any note) mark on the next note
-    var nextNoteMarks: ((note: Note) => void)[] = [];
+    // what Gregorio's [[, <nlba> and @[ (and a </nlba> before any note) mark on
+    // the next note, starting with those that the notes before left (see
+    // createMappingFromWord()); any left at the end are left for the next notes
+    var nextNoteMarks = this.marksForNext.noteMarks.slice();
+    this.marksForNext = { ...this.marksForNext, noteMarks: [] };
     // the space before the next note, where a mark between notes ends the neume
     var spaceBeforeNextNote: TrailingSpace | null = null;
 
@@ -1407,6 +1528,12 @@ export class Gabc {
           notation.trailingSpace = TrailingSpaceForAccidental;
         } else if (notation.resetsAccidentals)
           ctxt.activeClef.resetAccidentals();
+
+        // a no-line-break area that starts before a notation that isn't a note starts at it
+        if (nextNoteMarks.includes(markNoLineBreakStart)) {
+          markNoLineBreakStart(notation);
+          nextNoteMarks = nextNoteMarks.filter((mark) => mark !== markNoLineBreakStart);
+        }
 
         notations.push(notation);
       }
@@ -1565,7 +1692,7 @@ export class Gabc {
           break;
         }
         case "<nlba>":
-          nextNoteMarks.push((note) => (note.noLineBreak = { ...note.noLineBreak, start: true }));
+          nextNoteMarks.push(markNoLineBreakStart);
           spaceBeforeNextNote = TrailingSpaceMultiple(1);
           break;
         case "</nlba>": {
@@ -1671,6 +1798,8 @@ export class Gabc {
               match[__notationsRegex_group_insideBraces],
               sourceIndex + 1
             );
+            nextNoteMarks.push(...this.marksForNext.noteMarks);
+            this.marksForNext = { ...this.marksForNext, noteMarks: [] };
             // Set the width of these notations to 0
             bracketedNotations.forEach(neume => {
               neume.hasNoWidth = true;
@@ -1708,6 +1837,7 @@ export class Gabc {
 
     // finish up any remaining notes we have left
     addNotation(null);
+    this.marksForNext = { ...this.marksForNext, noteMarks: nextNoteMarks };
 
     // a no-line-break area that starts or ends in the notes starts or ends at their notation
     for (let notation of notations) {
@@ -2609,20 +2739,28 @@ export class Gabc {
   // in a string of "me(f.) (,) ma(fff)num(d!ewf) tu(fgF'E)am,(f.)" would return
   // an array of four strings: ["me(f.)", "(,)", "ma(fff)num(d!ewf)", "tu(fgF'E)am,(f.)"]
   //
-  // Gregorio's comments and escapes are masked (see maskGabc()), so a word can
-  // go on after a comment at the end of a line, and "$)" doesn't end one.
+  // The words are found in a copy with Gregorio's comments and escapes masked
+  // (see maskGabc()), so a word can go on after a comment at the end of a
+  // line, and "$)" doesn't end one, but they're the source's own text.
   static splitWords(gabcNotations: string) {
     // split the notations on whitespace boundaries, as long as the space
     // immediately follows a set of parentheses. Prior to doing that, we replace
     // all whitespace with spaces, which prevents tabs and newlines from ending
     // up in the notation data.
     // Gregorio's closing </eu> and </nlba> tags can come between the
-    // parentheses and the space, and stay with the word they end.
-    gabcNotations = maskGabc(gabcNotations)
+    // parentheses and the space, and stay with the word before them.
+    var words: string[] = [];
+    var start = 0;
+    maskGabc(gabcNotations)
       // .trim()
       // .replace(/\s/g, " ")
-      .replace(/\)((?:<\/(?:eu|nlba)>)*)\s(?=[^\)]*(?:\(|$))/g, ")$1\n");
-    return gabcNotations.split(/\n/g);
+      .replace(/\)((?:<\/(?:eu|nlba)>)*)\s(?=[^\)]*(?:\(|$))/g, ")$1\n")
+      .split(/\n/g)
+      .forEach((maskedWord) => {
+        words.push(gabcNotations.substr(start, maskedWord.length));
+        start += maskedWord.length + 1;
+      });
+    return words;
   }
 
   static parseSource(gabcSource: string) {
@@ -2645,23 +2783,23 @@ export class Gabc {
   static parseWord(gabcWord: string) {
     var syllables = [] as unknown as ParsedSyllable[] & { wordLength: number };
     var matches: RegExpExecArray[] = [];
-    // (a word from splitWords() is masked already, and masking it again changes nothing)
-    gabcWord = maskGabc(gabcWord);
+    // (the syllables are found with Gregorio's comments and escapes masked, but
+    // their text is the word's own)
+    var maskedWord = maskGabc(gabcWord);
 
     syllables.wordLength = gabcWord.length;
 
     var syllableMatch: RegExpExecArray | null;
-    while ((syllableMatch = __syllablesRegex.exec(gabcWord))) matches.push(syllableMatch);
+    while ((syllableMatch = __syllablesRegex.exec(maskedWord))) matches.push(syllableMatch);
 
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
-      var lyrics = match[1]
-        .replace(__commentMaskRegex, "")
-        .trim()
-        .split("|")
-        .map(unescapeText);
-      var notations = match[2] && unescapeText(match[2].replace(__commentMaskRegex, ""));
+      var lyrics = gabcWord.substr(match.index, match[1].length).trim().split("|");
+      var notations =
+        match[2] === undefined
+          ? match[2]
+          : gabcWord.substr(match.index + match[1].length + 1, match[2].length);
 
       syllables.push({
         notations: notations,

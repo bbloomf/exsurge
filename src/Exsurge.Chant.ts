@@ -573,6 +573,16 @@ export class ChantLineBreak extends ChantNotationElement {
   }
 }
 
+/**
+ * Gregorio's marks after the last notes of a gabc word ([[, <nlba> or @[),
+ * which go on the next note, and its controls after its last notes (such as
+ * </nlba>), which go on the next syllable's notations
+ */
+export interface MarksForNext {
+  noteMarks: ((note: Note) => void)[];
+  areas: { euouae?: AreaBoundary; noLineBreak?: AreaBoundary };
+}
+
 // a chant mapping is a lightweight format independent way of
 // tracking how a chant language (e.g., gabc) has been
 // mapped to exsurge notations.
@@ -580,6 +590,10 @@ export class ChantMapping {
   source: string;
   notations: ChantNotationElement[];
   sourceIndex: number;
+  /** what the gabc word leaves for the next one's notes and syllable */
+  marksForNext?: MarksForNext;
+  /** whether the word before left marks on this one's notes or syllable */
+  followsMarks?: boolean;
 
   // source can be any object type. in the case of gabc, source is a text
   // string that maps to a gabc word (e.g.: "no(g)bis(fg)").

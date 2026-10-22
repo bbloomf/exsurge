@@ -30,7 +30,7 @@ import {
 import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
 import { language, type IgnoredRange, type Language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
-import { restoreEscapes, unescapeChar } from "./gabcEscapes.js";
+import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
 import { makeLigature } from "./makeLigature.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
@@ -2669,6 +2669,10 @@ interface BreakMatch {
   forced?: boolean;
 }
 
+// the markup in a TextElement's text (see generateSpansFromText()), and the
+// characters that Gregorio's $ escaped (see gabcEscapes.ts)
+const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
+
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
   fontFamily: (ctxt: ChantContext) => string;
@@ -2790,7 +2794,7 @@ export class TextElement extends ChantLayoutElement {
 
     };
 
-    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>|\uFDD1([\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S])/gi;
+    var markupRegex = new RegExp(markupRegexSource, "gi");
     var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
@@ -2897,7 +2901,7 @@ export class TextElement extends ChantLayoutElement {
       } else if (escaped) {
         // a character that Gregorio's $ escaped (see gabcEscapes.ts)
         closeCurrentSpan();
-        closeSpan(unescapeChar(escaped), match.index);
+        closeSpan(unescapeText(escaped), match.index);
       } else if (special !== undefined) {
         // the rest of Gregorio's specials
         closeCurrentSpan();

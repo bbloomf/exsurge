@@ -70,11 +70,13 @@ function serializeMappings(mappings: ChantMapping[]): any[] {
         notation.trailingSpace,
         notation.isAccidental ? notation.pitch.toInt() : null,
         (notation.notes || []).map(function(note: any) {
-          return [note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape];
+          return [note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape, note.bracketStart];
         }),
         (notation.lyrics || []).map(function(lyric: any) {
           return [lyric.text, lyric.sourceIndex, lyric.lyricType];
-        })
+        }),
+        notation.noLineBreak,
+        notation.euouae
       ];
     })];
   });
@@ -140,7 +142,15 @@ var edits = [
   ['adds a Gregorio comment', kyrie, kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf) % a comment (f)\n')],
   ['comments out a word', kyrie, kyrie.replace(' om(f)nes(g) ', ' % om(f)nes(g)\n ')],
   ['edits a word after a comment', kyrie.replace('Lau(f)', '% x\nLau(f)'), kyrie.replace('Lau(f)', '% x\nLau(g)')],
-  ['adds a comment between syllables', kyrie, kyrie.replace('e(fg)lé(f)', 'e(fg)%c\nlé(f)')]
+  ['adds a comment between syllables', kyrie, kyrie.replace('e(fg)lé(f)', 'e(fg)%c\nlé(f)')],
+  ['edits a word after a blank line', kyrie.replace(' Lau(f)', '\n\nLau(f)'), kyrie.replace(' Lau(f)', '\n\nLau(f)').replace('gen(h)tes', 'gen(i)tes')],
+  ['edits a word after a comment and a blank line', kyrie.replace('Lau(f)', '% x\n\nLau(f)'), kyrie.replace('Lau(f)', '% x\n\nLau(f)').replace('gen(h)tes', 'gen(i)tes')],
+  ['adds <nlba> after a word\'s last notes', kyrie, kyrie.replace('Chri(h)ste(gf)', 'Chri(h)ste(gf<nlba>)')],
+  ['takes away <nlba> after a word\'s last notes', kyrie.replace('Chri(h)ste(gf)', 'Chri(h)ste(gf<nlba>)'), kyrie],
+  ['adds [[ after a word\'s last notes', kyrie, kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)')],
+  ['edits the word after [[', kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)'), kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)').replace('Do(h)', 'Do(i)')],
+  ['adds a closing tag after a word', kyrie, kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> ')],
+  ['edits the word before a closing tag', kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> '), kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(ghf)</nlba> ')]
 ];
 
 describe('Gabc diff', function() {

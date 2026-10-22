@@ -72,6 +72,15 @@ describe("GabcHeader", function() {
     assert.strictEqual(GabcHeader.getLength("(c4) a(f) % a comment\n(g)"), 0);
   });
 
+  it("doesn't end a header at a comment line of %s in gabc without one", function() {
+    assert.strictEqual(GabcHeader.getLength("(c4) A(f) B(g)\n%%%%%%%%\n% verse 2\nC(h) D(i)"), 0);
+    assert.strictEqual(GabcHeader.getLength("% a comment\nname: Kyrie;\n%%%%\n(c4) a(f)"), "% a comment\nname: Kyrie;\n%%%%\n".length);
+  });
+
+  it("takes the blank lines after the end of the header, as Gregorio does", function() {
+    assert.strictEqual(GabcHeader.getLength("name: x;\n%%\n\n \n(c4) a(f)"), "name: x;\n%%\n\n \n".length);
+  });
+
   it("writes multi-line values back with ;;", function() {
     const text = "name: one;\ncommentary: first line\nsecond line;;\n% a comment\nmode: 8;\n%%\n";
     const header = new GabcHeader(text);
