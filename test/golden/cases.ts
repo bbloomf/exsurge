@@ -326,7 +326,7 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // no notes are lost or made up; the brackets, fusion and parentheses
-    // are read but not drawn yet (i is a linea and j a pes quadratum)
+    // are read but not drawn yet (i is a linea, j a pes quadratum and o a bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -618,6 +618,12 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(f[ob:0;0.5cm]g) b(g[ub:1;0.3in]h) c(f[ocb:1;10pt]gh) d(h[ocba:0;1,5em]g) e(f[ob:1;6mm]g) " +
       "f(f[ob:1;\\gre@dimen]g) (::)"
+  },
+  {
+    // Gregorio reads VV and VVV as vv and vvv (b-e): a bivirga or trivirga of
+    // virgas that aren't reversed, unlike a lone V (a)
+    name: "virga-reversa-repeated",
+    gabc: "(c4) a(gV) b(gVV) c(gvv) d(gVVV) e(gvvv) f(gVV_) g(dVV) h(gVV.) (::)"
   }
 ];
 

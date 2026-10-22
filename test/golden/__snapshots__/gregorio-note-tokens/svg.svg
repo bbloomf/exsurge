@@ -250,19 +250,23 @@
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="150" element-index="38" id="note-36" x="3.125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement Virga" transform="translate(420.501125,0)" >
+<g class="ChantNotationElement Bivirga" transform="translate(420.501125,0)" >
 <text source-index="153" x="1.1954" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >o</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="155" element-index="39" id="note-37" x="3.125" y="-25" >
 </use>
-<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+<rect x="5.45" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="157" element-index="40" id="note-38" x="11.7" y="-25" >
+</use>
+<rect x="14.024999999999999" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<g class="ChantNotationElement DoubleBar" transform="translate(434.563625,0)" >
-<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="161" element-index="40" source="[object Object]" >
+<g class="ChantNotationElement DoubleBar" transform="translate(443.138625,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="161" element-index="41" source="[object Object]" >
 </rect>
-<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="161" element-index="40" source="[object Object]" >
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="161" element-index="41" source="[object Object]" >
 </rect>
 </g>
 </g>

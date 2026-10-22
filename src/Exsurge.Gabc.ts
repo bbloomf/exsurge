@@ -2904,6 +2904,23 @@ export class Gabc {
           break;
         
         case "V":
+          if (data[i - 1] === "V") {
+            // gabc VV and VVV, which Gregorio reads as vv and vvv: a bivirga
+            // or trivirga of virgas that aren't reversed
+            // (gabc-glyphs-determination.c), so create a new note
+            note.shapeModifiers &= ~NoteShapeModifiers.Reverse;
+            let newNote = new Note();
+            newNote.sourceIndex = sourceIndex + i;
+            newNote.sourceGabc = "V";
+            newNote.staffPosition = note.staffPosition;
+            newNote.pitch = note.pitch;
+            notes.push(note);
+            note = newNote;
+            episemaNoteIndex++; // since a new note was added, increase the index here
+            note.shape = NoteShape.Virga;
+            break;
+          }
+
           note.shape = NoteShape.Virga;
           note.shapeModifiers |= NoteShapeModifiers.Reverse;
           break;
