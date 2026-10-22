@@ -360,8 +360,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the fusion is read but not drawn yet (i
-    // is a linea, j a pes quadratum and o a bivirga)
+    // no notes are lost or made up; the automatic fusion is read but not
+    // drawn yet (i is a linea, j a pes quadratum and o a bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -781,6 +781,26 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(g_) b(g_[oh:m]) c(g_[oh:l]) d(g_[oh:h]) e(h_[oh:l]) f(h_[oh:+1mm]) g(h_[oh:m-0.5mm]) h(g_0[uh:l]) " +
       "i(h_0[uh:m]) j(g_0[uh:oh]) (::) k(e_[oh:{]f_) l(g_ h_[oh}]) m(g_) n([oh:h{]f_ g_ e_[oh}]) o([uh:{]h_0 j_0) p(f_0[uh}]) (::)"
+  },
+
+  // Gregorio: Phase 8
+  {
+    // Gregorio's neume fusion with @ (a-c are Gabc.tex's examples): the glyphs
+    // either side of an @ are joined, by a line where they're more than a step
+    // apart (e, f, i, j), and a flexus joined to a higher note is a
+    // porrectus's stroke (a, h).  A pes or porrectus can only end the shape (g,
+    // l, q), and a fused oriscus scapus has no stem (p).  Where Gregorio doesn't
+    // join them, the glyph after the @ follows with no space: a quilisma (a, r),
+    // a flexus after inclinata (c), a pes after a higher note (u, but not m's
+    // pes quassus), a torculus (s).  The glyphs either side of the @ are
+    // Gregorio's, so t's second j isn't in a distropha.  Then episemata, morae
+    // and ictus on fused shapes, and ledger lines
+    name: "fusion-manual",
+    gabc:
+      "(c4) a(h@iw@ji@j@ih~) b(d@eo@fd) c(IJ@kh) d(g@h@g@h@g) e(e@g@e) f(g@ih) g(e@gfg) h(hg@hg) " +
+      "i(gV@e) j(g@iv) k(h@gv) l(h@fg~) m(h@fog) n(gO@h) o(gO@f) p(f@gO@h) q(gw@hi) r(g@hw) s(g@hih) " +
+      "t(jj@h) u(h@fg) (:) v(g_@h_@g_) w(e_@gfg_) x(h_@iw@j_i_@j@ih~) y(g_@ih) z(hg_@h'g) A(e@g@e__) " +
+      "B(g.@h@g.) C(g@h.@g@h.) D(f.@hgh.) E(g'@h@g') F(gV'@e.) G(b@d@b) H(l@j@l) (::)"
   }
 ];
 
