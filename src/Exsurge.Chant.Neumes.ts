@@ -198,6 +198,23 @@ class NeumeBuilder {
     return this;
   }
 
+  // adds an oriscus with the glyph given (OriscusAsc or OriscusDes).  an
+  // oriscus scapus (gabc O) also gets a stem down on its left, like a virga
+  // reversa's, as in Gregorio's OriscusScapus glyphs.  (where an oriscus
+  // scapus is joined to the lower note before it, the line joining them is
+  // its stem, so it's added with noteAt() instead)
+  oriscusAt(note: Note, glyph: GlyphCode, withLineTo = true) {
+    this.noteAt(note, glyph, withLineTo);
+
+    if (note.shapeModifiers & NoteShapeModifiers.Stemmed) {
+      var line = new VirgaLineVisualizer(this.ctxt, note);
+      line.bounds.x = note.bounds.x;
+      this.neume.addVisualizer(line);
+    }
+
+    return this;
+  }
+
   advanceBy(x: number) {
     this.lastNote = null;
     this.lineIsHanging = false;
@@ -262,7 +279,7 @@ class NeumeBuilder {
 
   withClivisUpper(upper: Note, lower?: Note | null, glyph: GlyphCode = GlyphCode.PunctumQuadratum) {
     if (upper.shape === NoteShape.Oriscus)
-      this.noteAt(upper, GlyphCode.OriscusDes, false);
+      this.oriscusAt(upper, GlyphCode.OriscusDes, false);
     else {
       if (lower) {
         this.lineFrom(lower);
@@ -903,46 +920,82 @@ export class Oriscus extends Neume {
 
     if (note.liquescent !== LiquescentType.None) {
       glyph = GlyphCode.OriscusLiquescent;
-    } else {
-      if (note.shapeModifiers & NoteShapeModifiers.Ascending)
-        glyph = GlyphCode.OriscusAsc;
-      else if (note.shapeModifiers & NoteShapeModifiers.Descending)
-        glyph = GlyphCode.OriscusDes;
-      else {
-        // by default we take the descending form, unless we can figure out by a lookahead here
-        glyph = GlyphCode.OriscusDes;
+    } else glyph = Oriscus.getLastNoteGlyphCode(ctxt, note);
 
-        // try to find a neume following this one
-        var neume = ctxt.findNextNeume();
-
-        if (neume) {
-          var nextNoteStaffPosition = ctxt.activeClef.pitchToStaffPosition(
-            neume.notes[0].pitch!
-          );
-
-          if (nextNoteStaffPosition > note.staffPosition)
-            glyph = GlyphCode.OriscusAsc;
-        }
-      }
-    }
-
-    this.build(ctxt).noteAt(note, glyph);
+    this.build(ctxt).oriscusAt(note, glyph);
 
     this.finishLayout(ctxt);
   }
 
   resetDependencies() {
-    // a single oriscus tries to automatically use the right direction
-    // based on the following neumes. if we don't have a manually designated
-    // direction, then we reset our layout so that we can try to guess it
-    // at next layout phase.
-    if (
-      this.notes[0].shapeModifiers & NoteShapeModifiers.Ascending ||
-      this.notes[0].shapeModifiers & NoteShapeModifiers.Descending
-    )
-      return;
+    if (Oriscus.pointsToNextNeume(this.notes[0])) this.needsLayout = true;
+  }
 
-    this.needsLayout = true;
+  // the glyph for an oriscus that ends its neume: OriscusAsc or OriscusDes,
+  // as gabc o< or o> designates, or else pointing to the neume after it
+  static getLastNoteGlyphCode(ctxt: ChantContext, note: Note) {
+    if (note.shapeModifiers & NoteShapeModifiers.Ascending)
+      return GlyphCode.OriscusAsc;
+    else if (note.shapeModifiers & NoteShapeModifiers.Descending)
+      return GlyphCode.OriscusDes;
+
+    // by default we take the descending form, unless we can figure out by a lookahead here
+    var glyph: GlyphCode = GlyphCode.OriscusDes;
+
+    // try to find a neume following this one
+    var neume = ctxt.findNextNeume();
+
+    if (neume) {
+      var nextNoteStaffPosition = ctxt.activeClef.pitchToStaffPosition(
+        neume.notes[0].pitch!
+      );
+
+      if (nextNoteStaffPosition > note.staffPosition)
+        glyph = GlyphCode.OriscusAsc;
+    }
+
+    return glyph;
+  }
+
+  // an oriscus at the end of its neume tries to automatically use the right
+  // direction based on the following neumes. if we don't have a manually
+  // designated direction, then its neume resets its layout so that we can
+  // try to guess it at next layout phase.
+  static pointsToNextNeume(note: Note) {
+    return !(
+      note.shapeModifiers & NoteShapeModifiers.Ascending ||
+      note.shapeModifiers & NoteShapeModifiers.Descending
+    );
+  }
+}
+
+/*
+ * PesOriscus
+ *
+ * A punctum and an oriscus scapus above it (gabc egO), joined by a line, which
+ * is the oriscus's stem (Gregorio's pes ascendens or descendens oriscus). The
+ * oriscus points the way a lone oriscus does.
+ */
+export class PesOriscus extends Neume {
+  positionMarkings() {
+    this.positionPodatusMarkings(this.notes[0], this.notes[1]);
+  }
+
+  performLayout(ctxt: ChantContext) {
+    super.performLayout(ctxt);
+
+    var lower = this.notes[0];
+    var upper = this.notes[1];
+
+    this.build(ctxt)
+      .noteAt(lower, GlyphCode.PunctumQuadratum)
+      .noteAt(upper, Oriscus.getLastNoteGlyphCode(ctxt, upper));
+
+    this.finishLayout(ctxt);
+  }
+
+  resetDependencies() {
+    if (Oriscus.pointsToNextNeume(this.notes[1])) this.needsLayout = true;
   }
 }
 

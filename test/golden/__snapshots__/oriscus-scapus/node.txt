@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="79.25666666666666" viewBox="0 0 600 79.25666666666666" source=<ChantScore>>
+  <g>
+    <defs>
+      <g id="OriscusDes" class="glyph" transform="scale(0.0625)">
+        <path d="M-50 30.844v-106.25c0 11.458 3.125 20.052 9.375 25.78 3.125 3.126 7.813 4.69 14.063 4.688 4.687 0 13.41-3.255 26.17-9.765 12.762-6.51 21.746-9.766 26.954-9.766 6.25 0 10.938 1.303 14.063 3.907C46.875-55.874 50-47.02 50-34V72.25c0-11.98-3.125-20.833-9.375-26.563C37.5 42.563 32.812 41 26.562 41 21.875 41 13.023 44.385 0 51.156c-4.167 2.604-8.594 4.948-13.28 7.032-4.69 2.083-9.116 3.124-13.283 3.124-6.25 0-10.937-1.302-14.062-3.906C-46.875 52.198-50 43.344-50 30.844z">
+      <g id="OriscusAsc" class="glyph" transform="scale(0.0625)">
+        <path d="M50 30.25c0 12.5-3.125 21.354-9.375 26.562-3.125 2.605-7.813 3.907-14.063 3.907-3.125 0-5.99-.522-8.593-1.564-2.605-1.04-5.6-2.474-8.986-4.297C5.6 53.035 2.734 51.603.39 50.56c-2.343-1.04-5.338-2.474-8.984-4.296-3.646-1.823-6.77-3.256-9.375-4.297-2.603-1.043-5.468-1.564-8.593-1.564-6.25 0-10.937 1.563-14.062 4.688C-46.875 50.824-50 59.677-50 71.656v-106.25c0-13.02 3.125-21.875 9.375-26.562 3.125-2.604 7.813-3.906 14.063-3.907 3.125 0 5.99.52 8.593 1.563 2.605 1.042 5.73 2.474 9.376 4.297 3.646 1.823 6.51 2.995 8.594 3.516l10.938 5.468c6.25 3.126 11.458 4.69 15.624 4.69 6.25 0 10.938-1.564 14.063-4.69C46.875-55.426 50-64.02 50-76V30.25z">
+      <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)">
+        <path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z">
+      <g id="DoClef" class="glyph" transform="scale(0.0625)">
+        <path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z">
+      <style>
+        "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
+    <g class="Titles" source=<Titles>>
+    <g class="chantLine" transform="translate(0,58.75)" element-index="0" source=<ChantLine elementIndex=0>>
+      <g class="staffLines">
+        <line key="-7" x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-5" x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-3" x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-1" x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine">
+      <g class="ChantNotationElement DoClef" transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" source=<DoClef sourceIndex=1 elementIndex=-1>>
+      <g class="ChantNotationElement Oriscus" transform="translate(14.0625,0)" source=<Oriscus>>
+        <text source-index="5" x="-1.1230000000000002" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=5>>
+          <tspan source-index="0" style="">
+            "a"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-25" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0>>
+          <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine">
+      <g class="ChantNotationElement Oriscus" transform="translate(31.25,0)" source=<Oriscus>>
+        <text source-index="11" x="-1.3894000000000002" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=11>>
+          <tspan source-index="0" style="">
+            "b"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusAsc" class=" note" source-index="13" element-index="1" id="note-2" x="3.125" y="-18.75" source=<Note sourceIndex=13 elementIndex=1 noteIndex=1>>
+          <rect x="0" y="-18.75" width="0.8" height="16.875" fill="#000" class="neumeLine">
+      <g class="ChantNotationElement Clivis" transform="translate(48.4375,0)" source=<Clivis>>
+        <text source-index="17" x="-1.6558000000000002" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=17>>
+          <tspan source-index="0" style="">
+            "c"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="19" element-index="2" id="note-3" x="3.125" y="-25" source=<Note sourceIndex=19 elementIndex=2 noteIndex=2>>
+          <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="21" element-index="3" id="note-4" x="9.375" y="-18.75" source=<Note sourceIndex=21 elementIndex=3 noteIndex=3>>
+      <g class="ChantNotationElement Clivis" transform="translate(71.875,0)" source=<Clivis>>
+        <text source-index="24" x="1.1018" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=24>>
+          <tspan source-index="0" style="">
+            "d"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="26" element-index="4" id="note-5" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=26 elementIndex=4 noteIndex=4>>
+          <rect x="0" y="-31.25" width="0.8" height="16.875" fill="#000" class="neumeLine">
+          <rect x="5.45" y="-31.25" width="0.8" height="18.75" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="28" element-index="5" id="note-6" x="8.575" y="-12.5" source=<Note sourceIndex=28 elementIndex=5 noteIndex=5>>
+      <g class="ChantNotationElement PesQuassus" transform="translate(94.5125,0)" source=<PesQuassus>>
+        <text source-index="31" x="0.8353999999999999" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=31>>
+          <tspan source-index="0" style="">
+            "e"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusAsc" class=" note" source-index="33" element-index="6" id="note-7" x="3.125" y="-18.75" source=<Note sourceIndex=33 elementIndex=6 noteIndex=6>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="35" element-index="7" id="note-8" x="9.375" y="-25" source=<Note sourceIndex=35 elementIndex=7 noteIndex=7>>
+          <rect x="11.7" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine">
+      <g class="ChantNotationElement PesOriscus" transform="translate(117.95,0)" source=<PesOriscus>>
+        <text source-index="38" x="0.569" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=38>>
+          <tspan source-index="0" style="">
+            "f"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="40" element-index="8" id="note-9" x="3.125" y="-18.75" source=<Note sourceIndex=40 elementIndex=8 noteIndex=8>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="41" element-index="9" id="note-10" x="9.375" y="-25" source=<Note sourceIndex=41 elementIndex=9 noteIndex=9>>
+      <g class="ChantNotationElement PesOriscus" transform="translate(141.3875,0)" source=<PesOriscus>>
+        <text source-index="45" x="0.3026" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=45>>
+          <tspan source-index="0" style="">
+            "g"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="47" element-index="10" id="note-11" x="3.125" y="-6.25" source=<Note sourceIndex=47 elementIndex=10 noteIndex=10>>
+          <rect x="5.45" y="-25" width="0.8" height="18.75" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="48" element-index="11" id="note-12" x="8.575" y="-25" source=<Note sourceIndex=48 elementIndex=11 noteIndex=11>>
+      <g class="ChantNotationElement PesOriscus" transform="translate(164.02499999999998,0)" source=<PesOriscus>>
+        <text source-index="52" x="0.03620000000000001" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=52>>
+          <tspan source-index="0" style="">
+            "h"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="54" element-index="12" id="note-13" x="3.125" y="-12.5" source=<Note sourceIndex=54 elementIndex=12 noteIndex=12>>
+          <rect x="5.45" y="-25" width="0.8" height="12.5" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="56" element-index="13" id="note-14" x="8.575" y="-25" source=<Note sourceIndex=56 elementIndex=13 noteIndex=13>>
+          <rect x="0" y="-2.5833333333333344" width="6.25" height="1" fill="#000" class="horizontalEpisema">
+          <rect x="5.45" y="-36.4501875" width="6.25" height="1" fill="#000" class="horizontalEpisema">
+      <g class="ChantNotationElement Salicus" transform="translate(186.66249999999997,0)" source=<Salicus>>
+        <text source-index="61" x="-0.23019999999999996" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=61>>
+          <tspan source-index="0" style="">
+            "i"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="63" element-index="14" id="note-15" x="3.125" y="-12.5" source=<Note sourceIndex=63 elementIndex=14 noteIndex=14>>
+          <rect x="5.45" y="-25" width="0.8" height="12.5" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusAsc" class=" note" source-index="64" element-index="15" id="note-16" x="8.575" y="-25" source=<Note sourceIndex=64 elementIndex=15 noteIndex=15>>
+          <rect x="10.899999999999999" y="-37.5" width="0.8" height="12.5" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="66" element-index="16" id="note-17" x="14.024999999999999" y="-37.5" source=<Note sourceIndex=66 elementIndex=16 noteIndex=16>>
+          <rect x="16.349999999999998" y="-37.5" width="0.8" height="11.25" fill="#000" class="neumeLine">
+      <g class="ChantNotationElement SalicusFlexus" transform="translate(214.74999999999997,0)" source=<SalicusFlexus>>
+        <text source-index="69" x="-0.49659999999999993" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=69>>
+          <tspan source-index="0" style="">
+            "j"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="71" element-index="17" id="note-18" x="3.125" y="-12.5" source=<Note sourceIndex=71 elementIndex=17 noteIndex=17>>
+          <rect x="5.45" y="-25" width="0.8" height="12.5" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusAsc" class=" note" source-index="72" element-index="18" id="note-19" x="8.575" y="-25" source=<Note sourceIndex=72 elementIndex=18 noteIndex=18>>
+          <rect x="10.899999999999999" y="-37.5" width="0.8" height="12.5" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="74" element-index="19" id="note-20" x="14.024999999999999" y="-37.5" source=<Note sourceIndex=74 elementIndex=19 noteIndex=19>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="75" element-index="20" id="note-21" x="20.275" y="-31.249999999999996" source=<Note sourceIndex=75 elementIndex=20 noteIndex=20>>
+      <g class="ChantNotationElement Punctum" transform="translate(249.08749999999998,0)" source=<Punctum>>
+        <text source-index="78" x="-0.7629999999999999" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=78>>
+          <tspan source-index="0" style="">
+            "k"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="80" element-index="21" id="note-22" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=80 elementIndex=21 noteIndex=21>>
+      <g class="ChantNotationElement Oriscus" transform="translate(258.4625,0)" source=<Oriscus>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="81" element-index="22" id="note-23" x="3.125" y="-25" source=<Note sourceIndex=81 elementIndex=22 noteIndex=22>>
+          <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine">
+      <g class="ChantNotationElement Oriscus" transform="translate(275.65,0)" source=<Oriscus>>
+        <text source-index="85" x="-1.0293999999999999" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=85>>
+          <tspan source-index="0" style="">
+            "l"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusAsc" class=" note" source-index="87" element-index="23" id="note-24" x="3.125" y="-25" source=<Note sourceIndex=87 elementIndex=23 noteIndex=23>>
+          <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine">
+      <g class="ChantNotationElement Oriscus" transform="translate(292.8375,0)" source=<Oriscus>>
+        <text source-index="92" x="-1.2957999999999998" y="15.178666666666665" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=92>>
+          <tspan source-index="0" style="">
+            "m"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#OriscusDes" class=" note" source-index="94" element-index="24" id="note-25" x="3.125" y="-25" source=<Note sourceIndex=94 elementIndex=24 noteIndex=24>>
+          <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine">
+      <g class="ChantNotationElement DoubleBar" transform="translate(306.9,0)" source=<DoubleBar sourceIndex=100 elementIndex=25>>
+        <g class="Notations">
+          <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="100" element-index="25" source=<DoubleBar sourceIndex=100 elementIndex=25>>
+          <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="100" element-index="25" source=<DoubleBar sourceIndex=100 elementIndex=25>>

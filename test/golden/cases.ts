@@ -554,6 +554,16 @@ export const featureCases: GoldenCase[] = [
     name: "lyric-protrusion",
     width: 114,
     gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
+  },
+
+  // Gregorio: Phase 5
+  {
+    // an oriscus scapus has a stem down on its left, unless it's joined to a
+    // lower punctum before it (f-h, and the salicus i-j); as in Gregorio, a
+    // pes quassus (e) has no stem, and k's g after a higher note isn't joined
+    name: "oriscus-scapus",
+    gabc:
+      "(c4) a(gO) b(fO) c(gOf) d(hOe) e(fOg) f(fgO) g(dgO) h(e_gO_) i(egOi) j(egOih) k(hgO) l(gO<) m(gO>) (::)"
   }
 ];
 

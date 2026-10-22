@@ -2238,6 +2238,15 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote, notesRemaining) {
+        // an oriscus scapus is joined to the lower punctum before it, as in Gregorio
+        if (
+          currNote.shape === NoteShape.Oriscus &&
+          currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
+          currNote.staffPosition > prevNote.staffPosition &&
+          prevNote.liquescent === LiquescentType.None
+        )
+          return pesOriscusState;
+
         if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
           var neume = new Neumes.Punctum();
           var state = createNeume(neume, false);
@@ -2314,6 +2323,20 @@ export class Gabc {
         )
           neume.trailingSpace = 0;
         return state;
+      }
+    };
+
+    var pesOriscusState: NeumeState = {
+      neume: function() {
+        return new Neumes.PesOriscus();
+      },
+      handle: function(currNote, prevNote) {
+        if (
+          currNote.shape === NoteShape.Default &&
+          currNote.staffPosition > prevNote.staffPosition
+        )
+          return salicusState;
+        else return createNeume(new Neumes.PesOriscus(), false);
       }
     };
 
@@ -2402,7 +2425,10 @@ export class Gabc {
         return new Neumes.Salicus();
       },
       handle: function(currNote, prevNote) {
-        if (currNote.staffPosition < prevNote.staffPosition)
+        if (
+          currNote.shape === NoteShape.Default &&
+          currNote.staffPosition < prevNote.staffPosition
+        )
           return salicusFlexusState;
         else return createNeume(new Neumes.Salicus(), false);
       }
