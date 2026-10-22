@@ -114,20 +114,24 @@ export class Divider extends ChantNotationElement {
   hasCarryover: boolean;
   /** whether the divider has a vertical episema under the staff (gabc ') */
   hasVerticalEpisema: boolean;
+  /** whether the divider is a space higher, on or above the ledger line above the staff (gabc `0, ,0 and ^0) */
+  high: boolean;
 
-  constructor(withCarryover = false) {
+  constructor(withCarryover = false, high = false) {
     super();
 
     this.isDivider = true;
     this.hasCarryover = withCarryover || false;
     this.hasVerticalEpisema = false;
+    this.high = high;
     this.resetsAccidentals = true;
   }
 
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     if (this.hasCarryover) {
-      const top = ctxt.staffLineCount * 2;
+      // (above a high divider too)
+      const top = ctxt.staffLineCount * 2 + (this.high ? 2 : 0);
       const y = ctxt.calculateHeightFromStaffPosition(top);
       this.addVisualizer(new RoundBraceVisualizer(ctxt, -ctxt.staffInterval * 1.5, ctxt.staffInterval * 1.5, y, true));
     }
@@ -154,14 +158,6 @@ export class Divider extends ChantNotationElement {
  * QuarterBar
  */
 export class QuarterBar extends Divider {
-  /** whether the bar is a space higher, through the ledger line above the staff (gabc ,0) */
-  high: boolean;
-
-  constructor(withCarryover = false, high = false) {
-    super(withCarryover);
-    this.high = high;
-  }
-
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     const top = ctxt.staffLineCount * 2 + (this.high ? 2 : 0);
@@ -176,14 +172,6 @@ export class QuarterBar extends Divider {
  * DivisioMinimis, Gregorio's eighth bar: a short stroke just above the staff
  */
 export class DivisioMinimis extends Divider {
-  /** whether the bar is a space higher, above the ledger line above the staff (gabc ^0) */
-  high: boolean;
-
-  constructor(withCarryover = false, high = false) {
-    super(withCarryover);
-    this.high = high;
-  }
-
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     // (the top line, or the ledger line above it)
@@ -435,7 +423,7 @@ export class Virgula extends Divider {
 
   /** @param high whether it is on the ledger line above the staff (gabc `0) */
   constructor(withCarryover = false, high = false) {
-    super(withCarryover);
+    super(withCarryover, high);
 
     // unlike other dividers a virgula does not reset accidentals
     this.resetsAccidentals = false;

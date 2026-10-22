@@ -897,9 +897,10 @@ export class ChantLine extends ChantLayoutElement {
       newElementStart++;
       this.notationsStartIndex++;
 
-      // a line break just after the clef has already ended the line before
-      // (see clefLineBreak)
-      if (width > 0 && notations[newElementStart] && notations[newElementStart].constructor === ChantLineBreak) {
+      // the line break just after the clef may have ended the line before
+      // already (see clefLineBreak)
+      let previousLine = this.score.lines && this.score.lines[this.score.lines.length - 1];
+      if (previousLine && previousLine.clefLineBreak && previousLine.clefLineBreak === notations[newElementStart]) {
         newElementStart++;
         this.notationsStartIndex++;
       }
@@ -947,13 +948,16 @@ export class ChantLine extends ChantLayoutElement {
 
       // as in Gregorio, a clef just before a line break only goes at the start
       // of the next line, and the custos at the end of this line is worked out
-      // from the clef that is in effect on it
+      // from the clef that is in effect on it.  (Not when the clef or the line
+      // break has text, which neither line would then draw.)
       if (
         width > 0 &&
         curr.isClef &&
+        !curr.hasLyrics() &&
         this.numNotationsOnLine > 0 &&
         i + 1 < lastNotationIndex &&
-        notations[i + 1].constructor === ChantLineBreak
+        notations[i + 1].constructor === ChantLineBreak &&
+        !notations[i + 1].hasLyrics()
       ) {
         this.clefLineBreak = notations[i + 1] as ChantLineBreak;
         this.justify =
@@ -1733,17 +1737,23 @@ export class ChantLine extends ChantLayoutElement {
    * keeps the score's notation at index on the same line as the one after it
    */
   keepsInArea(index: number) {
-    var notations = this.score.notations;
-    for (const area of ["noLineBreak", "euouae"] as const) {
-      // (the line can break after the end of an area)
-      if (notations[index][area] && notations[index][area]!.end) continue;
-      for (var k = index; k >= 0; k--) {
-        var boundary = notations[k][area];
-        if (boundary && boundary.end && k < index) break;
-        if (boundary && boundary.start) return true;
-      }
+    var score = this.score;
+    if (!score.keptInAreas) {
+      // (worked out once for each layout of the score)
+      var inside = { noLineBreak: false, euouae: false };
+      score.keptInAreas = score.notations.map((notation) => {
+        var kept = false;
+        for (const area of ["noLineBreak", "euouae"] as const) {
+          var boundary = notation[area];
+          if (boundary && boundary.start) inside[area] = true;
+          // (the line can break after the end of an area)
+          if (inside[area] && !(boundary && boundary.end)) kept = true;
+          if (boundary && boundary.end) inside[area] = false;
+        }
+        return kept;
+      });
     }
-    return false;
+    return score.keptInAreas[index];
   }
 
   /**
@@ -1767,6 +1777,13 @@ export class ChantLine extends ChantLayoutElement {
       if (next.isClef || next.constructor === ChantLineBreak) continue;
       if (next.euouae && next.euouae.start) return false;
       break;
+    }
+    // and after a [nocustos] before the next note
+    for (k = lastIndex + 1; k < notations.length; k++) {
+      if (notations[k].isNeume) {
+        if (notations[k].notes![0].noCustosBefore) return false;
+        break;
+      }
     }
 
     for (var i = lastIndex; i >= this.notationsStartIndex; i--) {
@@ -2260,7 +2277,9 @@ export class ChantLine extends ChantLayoutElement {
     ) {
       // We transfer over the trailing space from the previous neume if the current neume is text only,
       // so that the text only neume has a better chance at not needing a connector.
-      curr.calculatedTrailingSpace = prev.calculatedTrailingSpace;
+      // (A backspace moves the text only neume back instead, as it would any other.)
+      if (hasBackspace(ctxt, prev)) curr.bounds.x += prev.calculatedTrailingSpace;
+      curr.calculatedTrailingSpace = hasBackspace(ctxt, prev) ? 0 : prev.calculatedTrailingSpace;
       if (curr.hasLyrics())
         curr.calculatedTrailingSpace -= curr.lyrics[0].bounds.width;
       if (curr.constructor === TextOnly && (curr as TextOnly).lyrics.length === 1) {

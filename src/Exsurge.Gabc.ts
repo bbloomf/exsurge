@@ -1469,7 +1469,7 @@ export class Gabc {
     var notations: ChantNotationElement[] = [];
     var notes: Note[] = [];
     var trailingSpace: TrailingSpace = DefaultTrailingSpace;
-    // whether the data so far ends with a / or a space after a neume
+    // whether the data so far ends with a / or a space after a neume that the line can break at
     var endsWithSpace = false;
     // what Gregorio's [[, <nlba> and @[ (and a </nlba> before any note) mark on
     // the next note, starting with those that the notes before left (see
@@ -1498,6 +1498,9 @@ export class Gabc {
     // ends the neume before a space (/0, /!, /, //, /[n] or a space), which
     // the line can break at only if it is breakable
     var addSpace = (atom: string, space: TrailingSpaceFunction, breakable: boolean) => {
+      // (a space at the very end that the line can't break at, such as /0
+      // or a backspace, still keeps the neume with the next syllable's)
+      endsWithSpace = breakable && (endsWithSpace || notes.length > 0);
       let prevNotation = notations[notations.length - 1];
       if (
         !notes.length &&
@@ -1580,9 +1583,9 @@ export class Gabc {
         atom = atom.slice(0, -barSigns.length);
       }
 
-      if (atom === " " || atom[0] === "/")
-        endsWithSpace = endsWithSpace || notes.length > 0;
-      else if (atom !== "[nocustos]" && !__noteMarkRegex.test(atom)) endsWithSpace = false;
+      // (addSpace() sets it for a space)
+      if (atom !== " " && atom[0] !== "/" && atom !== "[nocustos]" && !__noteMarkRegex.test(atom))
+        endsWithSpace = false;
 
       // handle the clefs and dividers here
       switch (atom) {
@@ -1718,9 +1721,11 @@ export class Gabc {
           addNotation(new Signs.Custos(true));
           break;
         case "[nocustos]": {
-          // (after a space: it applies to the note before the space)
+          // (after a space: it applies to the note before the space, and with
+          // no note before it, to a line break before the next note)
           let note = lastNote();
           if (note) note.noCustos = true;
+          else nextNoteMarks.push((note) => (note.noCustosBefore = true));
           break;
         }
 

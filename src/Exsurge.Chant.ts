@@ -138,6 +138,11 @@ export class Note extends ChantLayoutElement {
   inclinataFlags?: number;
   /** leaves out the custos of a line that breaks after the note (gabc [nocustos]) */
   noCustos?: boolean;
+  /**
+   * leaves out the custos of a line that breaks before the note, after a
+   * [nocustos] with no note before it in its notes
+   */
+  noCustosBefore?: boolean;
 
   // Gregorio's notation that's read but not drawn yet (see
   // docs/gregorio-feature-gap.md, Phase 1)
@@ -662,6 +667,12 @@ export class ChantScore {
    */
   notes: Array<Note | ChantNotationElement>;
   notations!: ChantNotationElement[];
+  /**
+   * for each notation, whether a Gregorio no-line-break or euouae area keeps
+   * it with the next one; worked out by ChantLine.keepsInArea() during
+   * layoutChantLines()
+   */
+  keptInAreas?: boolean[] | null;
   staffLineCount: number;
   titles?: Titles;
   startingClef: Clef;
@@ -1075,6 +1086,7 @@ export class ChantScore {
     finishedCallback?: (score: ChantScore) => void
   ) {
     this.lines = [];
+    this.keptInAreas = null;
     ctxt.noticeFontChanges();
 
     if (ctxt.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
