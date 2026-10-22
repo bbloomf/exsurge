@@ -144,12 +144,13 @@ var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[)$/;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
 
-// a clef with a second clef after it, as in c1@c4 or c3@fb2.  The groups are:
+// a clef with a second clef after it, as in c1@c4 or c3@fb2 (the clefs of
+// __notationsRegex).  The groups are:
 //  1. the first clef
 //  2. c or f, the second clef's type
 //  3. b if the second clef has a flat
 //  4. the line of the second clef
-var __secondClefRegex = /^([^[@]+)@([cf])(b?)([1-5])$/;
+var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])$/;
 
 // for the brace string inside of [ and ] in notation data
 // the capturing groups are:
@@ -397,11 +398,11 @@ export interface ApplyHeaderOptions {
   mode?: boolean;
   /** staff-lines, as the score's staffLineCount */
   staffLines?: boolean;
-  /** language, as ctxt.defaultLanguage */
+  /** language, as the language of the score's lyrics */
   language?: boolean;
   /**
    * the headers that Gregorio no longer reads: initial-style, as the score's
-   * useDropCap, and centering-scheme, as ctxt.defaultLanguage
+   * useDropCap, and centering-scheme, as the language of the score's lyrics
    */
   legacy?: boolean;
 }
@@ -427,6 +428,10 @@ const __languagesByCenteringScheme: { [scheme: string]: Language } = {
   latine: languages.latin,
   english: languages.english
 };
+
+// the annotations that Gabc.applyHeader() made, which it replaces when it's
+// called again
+const __headerAnnotations = new WeakSet<Annotation | Annotations>();
 
 const __romanModeNumbers = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"];
 
@@ -609,23 +614,27 @@ export class Gabc {
 
   /**
    * Applies the settings in a gabc header to a score, as Gregorio does.
-   * exsurge doesn't otherwise read them, so call this after making the score
-   * and before laying it out.
+   * exsurge doesn't otherwise read them, so call this after making the score,
+   * and again after updating its mappings (so that new lyrics get the
+   * header's language, and changes to the header take effect).  The score
+   * is then laid out again where it needs to be.
    *
    * - annotation: the first two, one line each, as the score's annotation.
    * - mode, mode-modifier and mode-differentia, if there is no annotation
    *   header: one line, as the score's annotation (see modeText()).
    * - staff-lines: 2 to 5, as the score's staffLineCount.
-   * - language: Latin, English or Spanish, by name or ISO 639 code, as
-   *   ctxt.defaultLanguage.  A language that exsurge doesn't have leaves it
-   *   as it is.
+   * - language: Latin, English or Spanish, by name or ISO 639 code, as the
+   *   language of the score's lyrics, so that ctxt.defaultLanguage stays as
+   *   it is for other scores.  A language that exsurge doesn't have leaves
+   *   them as they are.
    * - with options.legacy, the headers that Gregorio no longer reads:
    *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
-   *   useDropCap, and centering-scheme (latine or english) as
-   *   ctxt.defaultLanguage, in place of the language header.
+   *   useDropCap, and centering-scheme (latine or english) as the language
+   *   of the score's lyrics, in place of the language header.
    *
-   * A score that already has an annotation keeps it, and gets no mode line,
-   * as in Gregorio, where an annotation set in TeX wins over the header.
+   * A score that already has an annotation that this didn't make keeps it,
+   * and gets no mode line, as in Gregorio, where an annotation set in TeX
+   * wins over the header.
    */
   static applyHeader(
     score: ChantScore,
@@ -637,10 +646,11 @@ export class Gabc {
       .map(headerText)
       .filter((text) => text)
       .slice(0, 2);
-    if (!score.annotation) {
+    if (!score.annotation || __headerAnnotations.has(score.annotation)) {
+      var annotation: Annotation | Annotations | null = null;
       if (annotations.length) {
         if (options.annotation !== false)
-          score.annotation =
+          annotation =
             annotations.length === 1
               ? new Annotation(ctxt, annotations[0])
               : new Annotations(ctxt, ...annotations);
@@ -651,28 +661,52 @@ export class Gabc {
           headerText(header["mode-modifier"]),
           headerText(header["mode-differentia"])
         );
-        if (mode) score.annotation = new Annotation(ctxt, mode);
+        if (mode) annotation = new Annotation(ctxt, mode);
       }
+      if (annotation) __headerAnnotations.add(annotation);
+      score.annotation = annotation;
     }
 
     var staffLineCount = parseInt(headerText(header["staff-lines"]), 10);
-    if (options.staffLines !== false && staffLineCount >= 2 && staffLineCount <= 5)
+    if (
+      options.staffLines !== false &&
+      staffLineCount >= 2 &&
+      staffLineCount <= 5 &&
+      staffLineCount !== score.staffLineCount
+    ) {
       score.staffLineCount = staffLineCount;
+      // everything on the staff is laid out for its number of lines
+      for (let notation of score.notations) notation.needsLayout = true;
+    }
 
-    var language = __languagesByName[headerText(header.language).toLowerCase()];
-    if (options.language !== false && language) ctxt.defaultLanguage = language;
+    var language =
+      (options.language !== false &&
+        __languagesByName[headerText(header.language).toLowerCase()]) ||
+      null;
+    if (options.legacy)
+      language =
+        __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()] ||
+        language;
+    if (language) {
+      for (let notation of score.notations) {
+        for (let lyric of notation.lyrics) {
+          if (lyric && lyric.language !== language) {
+            lyric.language = language;
+            notation.needsLayout = true;
+          }
+        }
+      }
+    }
 
     if (options.legacy) {
-      var centeringLanguage =
-        __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()];
-      if (centeringLanguage) ctxt.defaultLanguage = centeringLanguage;
-
       var initialStyle = headerText(header["initial-style"]);
       if (/^[012]$/.test(initialStyle)) {
         score.useDropCap = initialStyle !== "0";
         score.recreateDropCap(ctxt);
       }
     }
+
+    score.needsLayout = true;
   }
 
   /**
@@ -1742,7 +1776,9 @@ export class Gabc {
 
       // a second clef goes on the clef before it, which is parsed below
       var secondClefMatch = __secondClefRegex.exec(atom);
-      secondClef = secondClefMatch && this.createSecondClef(secondClefMatch);
+      secondClef =
+        secondClefMatch &&
+        this.createClef(secondClefMatch[2], parseInt(secondClefMatch[4], 10), !!secondClefMatch[3]);
       if (secondClefMatch) atom = secondClefMatch[1];
 
       // a bar can be followed by _ (a brace carrying the melody over it) and ' (a vertical episema)
@@ -1843,34 +1879,12 @@ export class Gabc {
         case "cb3":
         case "cb4":
         case "cb5":
-          {
-            const line = 2 * parseInt(atom[2], 10) - 1;
-            addNotation(
-              (ctxt.activeClef = new DoClef(
-                line,
-                2,
-                new Signs.Accidental(line - 1, Signs.AccidentalType.Flat)
-              ))
-            );
-          }
-          break;
         case "fb1":
         case "fb2":
         case "fb3":
         case "fb4":
         case "fb5":
-          {
-            // the flat is on the B above the F, or, when that's above a
-            // four-line staff, the B below (as Gregorio puts it)
-            const line = 2 * parseInt(atom[2], 10) - 1;
-            addNotation(
-              (ctxt.activeClef = new FaClef(
-                line,
-                2,
-                new Signs.Accidental(line <= 3 ? line + 3 : line - 4, Signs.AccidentalType.Flat)
-              ))
-            );
-          }
+          addNotation((ctxt.activeClef = this.createClef(atom[0], parseInt(atom[2], 10), true)));
           break;
 
         case "z":
@@ -2083,23 +2097,27 @@ export class Gabc {
     return notations;
   }
 
-  // the second clef of a pair, from a match of __secondClefRegex
-  static createSecondClef(match: RegExpExecArray): Clef {
-    var line = parseInt(match[4], 10);
+  // a do (c) or fa (f) clef on a line from 1 to 5, with or without a flat
+  static createClef(type: string, line: number, flat: boolean): Clef {
     var staffPosition = 2 * line - 1;
-    var isDoClef = match[2] === "c";
-    // the flat is on the ti nearest the clef: just below a do clef, and above
-    // a fa clef on the first two lines but below one on the others, as
-    // Gregorio puts it (clef_flat_height in gregoriotex-write.c)
-    var flat = match[3]
-      ? new Signs.Accidental(
-          staffPosition + (isDoClef ? -1 : line <= 2 ? 3 : -4),
-          Signs.AccidentalType.Flat
-        )
-      : null;
-    return isDoClef
-      ? new DoClef(staffPosition, 2, flat)
-      : new FaClef(staffPosition, 2, flat);
+    if (type === "c")
+      return new DoClef(
+        staffPosition,
+        2,
+        flat ? new Signs.Accidental(staffPosition - 1, Signs.AccidentalType.Flat) : null
+      );
+    // the flat is on the B above the F, or, when that's above a
+    // four-line staff, the B below (as Gregorio puts it)
+    return new FaClef(
+      staffPosition,
+      2,
+      flat
+        ? new Signs.Accidental(
+            staffPosition <= 3 ? staffPosition + 3 : staffPosition - 4,
+            Signs.AccidentalType.Flat
+          )
+        : null
+    );
   }
 
   static createNeumesFromNotes(

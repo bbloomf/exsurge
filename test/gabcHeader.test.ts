@@ -112,6 +112,11 @@ describe("Gabc.applyHeader", function() {
     return { ctxt, score };
   }
 
+  // the language of each of the score's lyrics (null for the context's)
+  function lyricLanguages(score: ChantScore) {
+    return score.notations.flatMap((notation) => notation.lyrics.map((lyric) => lyric.language));
+  }
+
   // the text of each line of the score's annotation
   function annotationLines(score: ChantScore) {
     const annotation = score.annotation;
@@ -126,6 +131,7 @@ describe("Gabc.applyHeader", function() {
     assert.strictEqual(score.annotation, null);
     assert.strictEqual(score.staffLineCount, 4);
     assert.strictEqual(ctxt.defaultLanguage, language.latin);
+    assert.deepStrictEqual(lyricLanguages(score), [null, null, null]);
   });
 
   it("changes nothing for a header without its settings", function() {
@@ -133,6 +139,7 @@ describe("Gabc.applyHeader", function() {
     assert.strictEqual(s.annotation, null);
     assert.strictEqual(s.staffLineCount, 4);
     assert.strictEqual(ctxt.defaultLanguage, language.latin);
+    assert.deepStrictEqual(lyricLanguages(s), [null, null, null]);
     assert.strictEqual(s.useDropCap, true);
   });
 
@@ -185,6 +192,33 @@ describe("Gabc.applyHeader", function() {
     }
   });
 
+  it("replaces the annotation that it made when it is called again", function() {
+    const ctxt = new ChantContext();
+    const gabc = (header: string) => header + "%%\n" + chant;
+    const s = new ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc("annotation: Ant.;\n")), true);
+    Gabc.applyHeader(s, ctxt, new GabcHeader(gabc("annotation: Ant.;\n")));
+    Gabc.applyHeader(s, ctxt, new GabcHeader(gabc("annotation: Intr.;\n")));
+    assert.deepStrictEqual(annotationLines(s), ["Intr."]);
+    Gabc.applyHeader(s, ctxt, new GabcHeader(gabc("mode: 8;\n")));
+    assert.deepStrictEqual(annotationLines(s), ["VIII"]);
+    Gabc.applyHeader(s, ctxt, new GabcHeader(gabc("name: Kyrie;\n")));
+    assert.strictEqual(s.annotation, null);
+  });
+
+  it("has the score laid out again for the settings it changes", function() {
+    const ctxt = new ChantContext();
+    const gabc = "staff-lines: 5;\nlanguage: English;\n%%\n" + chant;
+    const s = new ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), true);
+    s.performLayout(ctxt);
+    assert.strictEqual(s.needsLayout, false);
+    assert(s.notations.every((notation) => !notation.needsLayout));
+    Gabc.applyHeader(s, ctxt, new GabcHeader(gabc));
+    assert.strictEqual(s.needsLayout, true);
+    assert(s.notations.every((notation) => notation.needsLayout));
+    s.performLayout(ctxt);
+    assert.strictEqual(ctxt.staffLineCount, 5);
+  });
+
   it("writes the mode as Gregorio does", function() {
     const ctxt = new ChantContext();
     // the examples in Gregorio's GABC reference (doc/Gabc.tex)
@@ -223,7 +257,7 @@ describe("Gabc.applyHeader", function() {
     }
   });
 
-  it("sets the language by name or ISO 639 code", function() {
+  it("sets the language of the score's lyrics by name or ISO 639 code", function() {
     const languages: [string, Language][] = [
       ["English", language.english],
       ["english", language.english],
@@ -235,16 +269,17 @@ describe("Gabc.applyHeader", function() {
       ["la", language.latin]
     ];
     for (const [name, expected] of languages) {
-      // (starting from another language)
-      const other = expected === language.latin ? language.english : language.latin;
-      const { ctxt } = score(`language: ${name};\n`, {}, (ctxt) => (ctxt.defaultLanguage = other));
-      assert.strictEqual(ctxt.defaultLanguage, expected, name);
+      const { ctxt, score: s } = score(`language: ${name};\n`);
+      assert.deepStrictEqual(lyricLanguages(s), [expected, expected, expected], name);
+      // (which leaves the context's language for other scores)
+      assert.strictEqual(ctxt.defaultLanguage, language.latin, name);
     }
   });
 
   it("leaves the language as it is for one that exsurge doesn't have", function() {
-    const { ctxt } = score("language: Polish;\n", {}, (ctxt) => (ctxt.defaultLanguage = language.english));
-    assert.strictEqual(ctxt.defaultLanguage, language.english);
+    const { ctxt, score: s } = score("language: Polish;\n");
+    assert.deepStrictEqual(lyricLanguages(s), [null, null, null]);
+    assert.strictEqual(ctxt.defaultLanguage, language.latin);
   });
 
   it("applies only the settings that the options don't turn off", function() {
@@ -253,6 +288,7 @@ describe("Gabc.applyHeader", function() {
     assert.strictEqual(s.annotation, null);
     assert.strictEqual(s.staffLineCount, 4);
     assert.strictEqual(ctxt.defaultLanguage, language.latin);
+    assert.deepStrictEqual(lyricLanguages(s), [null, null, null]);
     // without the annotation, the mode isn't written either if there is an annotation header
     assert.strictEqual(score("annotation: Ant.;\nmode: 8;\n", { annotation: false }).score.annotation, null);
     assert.strictEqual(score("mode: 8;\n", { mode: false }).score.annotation, null);
@@ -260,15 +296,21 @@ describe("Gabc.applyHeader", function() {
 
   it("applies initial-style and centering-scheme only with options.legacy", function() {
     const header = "initial-style: 0;\ncentering-scheme: english;\nlanguage: Latin;\n";
-    const { ctxt, score: s } = score(header);
+    const { score: s } = score(header);
     assert.strictEqual(s.useDropCap, true);
     assert(s.dropCap);
-    assert.strictEqual(ctxt.defaultLanguage, language.latin);
+    assert.deepStrictEqual(lyricLanguages(s), [language.latin, language.latin, language.latin]);
 
     const legacy = score(header, { legacy: true });
     assert.strictEqual(legacy.score.useDropCap, false);
     assert.strictEqual(legacy.score.dropCap, null);
-    assert.strictEqual(legacy.ctxt.defaultLanguage, language.english);
+    assert.deepStrictEqual(lyricLanguages(legacy.score), [language.english, language.english, language.english]);
+    // the first lyric gets back the letter that the drop cap took
+    const first = legacy.score.notations[0].lyrics[0];
+    assert.strictEqual(first.text, "Ky");
+    assert.strictEqual(first.sourceGabc, "Ky");
+    // (counted from the end of the header)
+    assert.strictEqual(first.sourceIndex, "(c4) ".length);
 
     const ctxt1 = new ChantContext();
     const gabc = "initial-style: 1;\n%%\n" + chant;
@@ -277,7 +319,7 @@ describe("Gabc.applyHeader", function() {
     assert.strictEqual(withoutDropCap.useDropCap, true);
     assert(withoutDropCap.dropCap);
 
-    const latine = score("centering-scheme: latine;\n", { legacy: true }, (ctxt) => (ctxt.defaultLanguage = language.english));
-    assert.strictEqual(latine.ctxt.defaultLanguage, language.latin);
+    const latine = score("centering-scheme: latine;\nlanguage: English;\n", { legacy: true });
+    assert.deepStrictEqual(lyricLanguages(latine.score), [language.latin, language.latin, language.latin]);
   });
 });

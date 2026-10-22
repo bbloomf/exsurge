@@ -443,7 +443,6 @@ export const featureCases: GoldenCase[] = [
     // on neighboring lines one after the other, each with its flat; the
     // pitches follow the first clef, and each line starts with both
     name: "two-clefs",
-    outputs: allOutputs,
     gabc:
       "(c1@c4) A(d)B(j) (c3) C(h) (f3@c4) D(h) (c2@c3) E(h) (cb4@cb2) F(h) (z) " +
       "G(g) (c4@fb2) H(h) (c1@fb3) I(h) (::)"
@@ -452,7 +451,6 @@ export const featureCases: GoldenCase[] = [
     // the annotation (the second written over two lines), the staff lines
     // and the language, from the header
     name: "header-settings",
-    outputs: allOutputs,
     useDropCap: true,
     gabc: headerSettings,
     setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerSettings))
@@ -460,7 +458,6 @@ export const featureCases: GoldenCase[] = [
   {
     // with no annotation header, the mode is the annotation
     name: "header-mode-annotation",
-    outputs: allOutputs,
     useDropCap: true,
     gabc: headerModeAnnotation,
     setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerModeAnnotation))

@@ -15,11 +15,11 @@ var font = {
 // two lines, each starting with a pair of clefs, and a change of clef in the second
 var gabc = "(c1@c4) A(d)B(j) (z) C(h) (f3) D(h) (::)";
 
-function layout(clefVisibility?: Drawing.ClefVisibility) {
+function layout(clefVisibility?: Drawing.ClefVisibility, source = gabc) {
   var ctxt = new Drawing.ChantContext();
   ctxt.setFont('serif', 16, {}, { Regular: font });
   if (clefVisibility) ctxt.clefVisibility = clefVisibility;
-  var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
+  var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, source), false);
   score.performLayout(ctxt);
   score.layoutChantLines(ctxt, 600);
   return { ctxt: ctxt, score: score };
@@ -74,5 +74,43 @@ describe('ChantContext.clefVisibility', function() {
     var svg = score.createSvg(ctxt);
     assert.equal(svg.match(/<use[^>]*#DoClef"/g), null);
     assert.equal(svg.match(/<use[^>]*#FaClef"/g)!.length, 1);
+  });
+
+  it('draws a change of clef at the start of a line', function() {
+    (['invisible', 'phantom'] as Drawing.ClefVisibility[]).forEach(function(clefVisibility) {
+      var { score } = layout(clefVisibility, "(c4) A(f) (z) (f3) B(h) (::)");
+      assert.deepEqual(startingClefGlyphs(score), [[], ['FaClef']], clefVisibility);
+    });
+  });
+});
+
+describe('Two clefs (c1@c4)', function() {
+  // the clefs of a score's notations
+  function clefs(source: string) {
+    var ctxt = new Drawing.ChantContext();
+    var mappings = Gabc.createMappingsFromSource(ctxt, source);
+    return mappings.flatMap(function(mapping) { return mapping.notations; })
+      .filter(function(notation) { return notation.isClef; }) as Chant.Clef[];
+  }
+
+  it('reads the second clef, with its flat, onto the first', function() {
+    var [first, pair] = clefs("(c4) a(f) (cb3@fb3) b(g)");
+    assert.equal(first.secondClef, undefined);
+    assert.equal(pair.sourceGabc, "cb3@fb3");
+    assert(pair instanceof Chant.DoClef);
+    assert(pair.secondClef instanceof Chant.FaClef);
+    // each flat as on a clef by itself
+    var [doClef, faClef] = clefs("(cb3) a(f) (fb3) b(g)");
+    assert.equal(pair.defaultAccidental!.staffPosition, doClef.defaultAccidental!.staffPosition);
+    assert.equal(pair.secondClef!.staffPosition, faClef.staffPosition);
+    assert.equal(pair.secondClef!.defaultAccidental!.staffPosition, faClef.defaultAccidental!.staffPosition);
+  });
+
+  it('gives each copy of a clef its own second clef', function() {
+    var [pair] = clefs("(c1@c4) a(f)");
+    var copy = pair.clone();
+    assert(copy.secondClef instanceof Chant.DoClef);
+    assert.notEqual(copy.secondClef, pair.secondClef);
+    assert.equal(copy.secondClef!.staffPosition, pair.secondClef!.staffPosition);
   });
 });

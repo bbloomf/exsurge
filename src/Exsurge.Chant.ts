@@ -372,7 +372,8 @@ export class Clef extends ChantNotationElement {
     );
     clone.small = this.small;
     clone.sans = this.sans;
-    clone.secondClef = this.secondClef;
+    // (a copy, since laying a clef out lays its second clef out too)
+    clone.secondClef = this.secondClef && this.secondClef.clone();
     clone.sourceGabc = this.sourceGabc;
     clone.sourceIndex = this.sourceIndex;
     clone.elementIndex = this.elementIndex;
@@ -922,6 +923,12 @@ export class ChantScore {
         if (this.useDropCap) {
           this.dropCap = lyrics.generateDropCap(ctxt);
         } else {
+          // give the lyric back the letter that its drop cap took
+          if (lyrics.dropCap) {
+            lyrics.sourceIndex -= lyrics.dropCap.sourceGabc!.length;
+            lyrics.sourceGabc = lyrics.dropCap.sourceGabc + lyrics.sourceGabc!;
+            lyrics.centerStartIndex++;
+          }
           lyrics.dropCap = null;
           lyrics.generateSpansFromText(ctxt, lyrics.originalText);
         }

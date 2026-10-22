@@ -892,7 +892,8 @@ export class ChantLine extends ChantLayoutElement {
     // set up the clef...
     // if the first notation on the line is a starting clef, then we treat it a little differently...
     // the clef becomes this line's starting clef and we skip over the clef in the notations array
-    if (notations.length && notations[newElementStart].isClef) {
+    var startsWithClefChange = !!(notations.length && notations[newElementStart].isClef);
+    if (startsWithClefChange) {
       ctxt.activeClef = notations[newElementStart] as Clef;
       newElementStart++;
       this.notationsStartIndex++;
@@ -909,7 +910,8 @@ export class ChantLine extends ChantLayoutElement {
     // make a copy for this line to use at the beginning
     this.startingClef = ctxt.activeClef.clone();
     this.startingClef.performLayout(ctxt);
-    if (ctxt.clefVisibility !== "visible") this.startingClef.hide(ctxt);
+    // (a change of clef is drawn even when the clefs at the start of lines aren't)
+    if (ctxt.clefVisibility !== "visible" && !startsWithClefChange) this.startingClef.hide(ctxt);
     this.startingClef.bounds.x = this.staffLeft;
 
     var curr: ChantNotationElement = this.startingClef;
