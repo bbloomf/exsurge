@@ -2837,6 +2837,8 @@ interface TextLine {
   end: number;
   /** the index in the element's text where the line starts */
   textStart: number;
+  /** how far right the line is moved, where the lines are right aligned */
+  xOffset: number;
 }
 
 // the markup in a TextElement's text (see generateSpansFromText()), and the
@@ -3407,7 +3409,7 @@ export class TextElement extends ChantLayoutElement {
     this.spans.forEach((span, i) => {
       if (!i || span.newLine) {
         if (span.newLine === true) textIndex += (span.wrappedSpace || " ").length;
-        lines.push({ start: index, end: index, textStart: textIndex });
+        lines.push({ start: index, end: index, textStart: textIndex, xOffset: span.xOffset || 0 });
       }
       index += span.text.length;
       textIndex += span.text.length;
@@ -4151,13 +4153,14 @@ export class Lyric extends TextElement {
     // the line that an index of this.text is on
     var lineAt = (index: number) =>
       lines.reduce((result, line) => (line.textStart <= index ? line : result));
-    // the x of an index of the spans' text, from the start of its line
+    // the x of an index of the spans' text, on its line as it's drawn
     var measure = (line: TextLine, index: number) =>
-      index <= line.start
+      line.xOffset +
+      (index <= line.start
         ? 0
         : svgText
         ? svgText.getSubStringLength(line.start, index - line.start)
-        : this.measureSubstring(ctxt, index, false, true);
+        : this.measureSubstring(ctxt, index, false, true));
     // the x of the start and the end of length characters of this.text from
     // index, on the line that they start on (and so that they end on, at the
     // latest)
@@ -4272,12 +4275,14 @@ export class Lyric extends TextElement {
       let factor = this.protrusion.factor;
       if (factor === undefined) factor = ctxt.defaultProtrusionFactor;
       // the right of the text before it: where it starts on its line, unless
-      // a line before that is wider
+      // a line before that ends further right.  (The width is measured from
+      // the left of the line that's moved right the least.)
       let line = lineAt(protrusionIndex);
-      let start = Math.max(
-        measureOnLine(protrusionIndex, 0)[0],
-        ...lines.slice(0, lines.indexOf(line)).map((before) => measure(before, before.end))
-      );
+      let start =
+        Math.max(
+          measureOnLine(protrusionIndex, 0)[0],
+          ...lines.slice(0, lines.indexOf(line)).map((before) => measure(before, before.end))
+        ) - Math.min(...lines.map((each) => each.xOffset));
       this.protrusionWidth =
         Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
     }

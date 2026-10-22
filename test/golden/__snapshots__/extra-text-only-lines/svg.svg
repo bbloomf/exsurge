@@ -62,10 +62,10 @@
 <rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="21" element-index="3" source="[object Object]" >
 </rect>
 </g>
-<g class="ChantNotationElement TextOnly" transform="translate(223.9364,0)" >
-<text source-index="24" x="-172.00799999999998" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
-<tspan source-index="0" style="xOffset: 30.286;" x="-141.72199999999998" >Here is a very long run of text only</tspan>
-<tspan source-index="0" style="xOffset: 66.18519999999998;newLine: true;" dy="1.1em" x="-105.8228" >syllables that will not fit</tspan>
+<g class="ChantNotationElement TextOnly" transform="translate(290.1216,0)" >
+<text source-index="24" x="-238.1932" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="xOffset: 30.286;" x="-207.9072" >Here is a very long run of text only</tspan>
+<tspan source-index="0" style="xOffset: 66.18519999999998;newLine: true;" dy="1.1em" x="-172.008" >syllables that will not fit</tspan>
 </text>
 <use xlink:href="#None" class="" source-index="89" element-index="4" x="0" y="0" >
 </use>

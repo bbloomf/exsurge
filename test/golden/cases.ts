@@ -957,6 +957,12 @@ export const svgMeasuredCases: GoldenCase[] = [
     strategy: "svg"
   },
   {
+    ...featureCases.find((c) => c.name === "extra-text-only-lines")!,
+    name: "svg-measured-extra-text-only-lines",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
     ...settingCases.find((c) => c.name === "titles-aligned-and-wrapped")!,
     name: "svg-measured-titles",
     outputs: ["svg", "node"],
