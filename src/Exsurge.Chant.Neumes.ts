@@ -279,7 +279,7 @@ class NeumeBuilder {
 
   withClivisUpper(upper: Note, lower?: Note | null, glyph: GlyphCode = GlyphCode.PunctumQuadratum) {
     if (upper.shape === NoteShape.Oriscus)
-      this.oriscusAt(upper, GlyphCode.OriscusDes, false);
+      this.oriscusAt(upper, Oriscus.getGlyphCode(upper, false), false);
     else {
       if (lower) {
         this.lineFrom(lower);
@@ -931,30 +931,39 @@ export class Oriscus extends Neume {
     if (Oriscus.pointsToNextNeume(this.notes[0])) this.needsLayout = true;
   }
 
-  // the glyph for an oriscus that ends its neume: OriscusAsc or OriscusDes,
-  // as gabc o< or o> designates, or else pointing to the neume after it
-  static getLastNoteGlyphCode(ctxt: ChantContext, note: Note) {
+  // OriscusAsc or OriscusDes: as gabc o1 or o0 (or o< or o>) designates, or
+  // else pointing up if the note it points to is higher
+  static getGlyphCode(note: Note, pointsToHigherNote: boolean) {
     if (note.shapeModifiers & NoteShapeModifiers.Ascending)
       return GlyphCode.OriscusAsc;
     else if (note.shapeModifiers & NoteShapeModifiers.Descending)
       return GlyphCode.OriscusDes;
+    else if (pointsToHigherNote) return GlyphCode.OriscusAsc;
+    else return GlyphCode.OriscusDes;
+  }
 
-    // by default we take the descending form, unless we can figure out by a lookahead here
-    var glyph: GlyphCode = GlyphCode.OriscusDes;
+  // the glyph for an oriscus that ends its neume, which points, as in
+  // Gregorio, to the first note after it that isn't at the unison, however
+  // many neumes on, or down if there's none
+  static getLastNoteGlyphCode(ctxt: ChantContext, note: Note) {
+    var staffPosition = ctxt.activeClef.pitchToStaffPosition(note.pitch!);
 
-    // try to find a neume following this one
-    var neume = ctxt.findNextNeume();
+    for (var i = ctxt.currNotationIndex + 1; i < ctxt.notations!.length; i++) {
+      var notation = ctxt.notations![i];
 
-    if (neume) {
-      var nextNoteStaffPosition = ctxt.activeClef.pitchToStaffPosition(
-        neume.notes[0].pitch!
-      );
+      if (!notation.isNeume || notation.hasNoWidth) continue;
 
-      if (nextNoteStaffPosition > note.staffPosition)
-        glyph = GlyphCode.OriscusAsc;
+      for (var nextNote of notation.notes!) {
+        var nextStaffPosition = ctxt.activeClef.pitchToStaffPosition(
+          nextNote.pitch!
+        );
+
+        if (nextStaffPosition !== staffPosition)
+          return Oriscus.getGlyphCode(note, nextStaffPosition > staffPosition);
+      }
     }
 
-    return glyph;
+    return Oriscus.getGlyphCode(note, false);
   }
 
   // an oriscus at the end of its neume tries to automatically use the right
@@ -1014,7 +1023,8 @@ export class PesQuassus extends Neume {
     var lowerStaffPos = lower.staffPosition;
     var upperStaffPos = upper.staffPosition;
 
-    if (lower.shape === NoteShape.Oriscus) lowerGlyph = GlyphCode.OriscusAsc;
+    if (lower.shape === NoteShape.Oriscus)
+      lowerGlyph = Oriscus.getGlyphCode(lower, true);
     else lowerGlyph = GlyphCode.PunctumQuadratum;
 
     var builder = this.build(ctxt).noteAt(lower, lowerGlyph);

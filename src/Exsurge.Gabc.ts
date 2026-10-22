@@ -2299,14 +2299,12 @@ export class Gabc {
         return new Neumes.Oriscus();
       },
       handle: function(currNote, prevNote) {
+        // (the oriscus points to the note after it, unless gabc designates its direction)
         if (currNote.shape === NoteShape.Default) {
-          if (currNote.staffPosition > prevNote.staffPosition) {
-            prevNote.shapeModifiers |= NoteShapeModifiers.Ascending;
+          if (currNote.staffPosition > prevNote.staffPosition)
             return createNeume(new Neumes.PesQuassus(), true);
-          } else if (currNote.staffPosition < prevNote.staffPosition) {
-            prevNote.shapeModifiers |= NoteShapeModifiers.Descending;
+          else if (currNote.staffPosition < prevNote.staffPosition)
             return createNeume(new Neumes.Clivis(), true);
-          }
         }
         // stand alone oriscus
         var neume = new Neumes.Oriscus(),
@@ -2884,12 +2882,14 @@ export class Gabc {
           note.linea = true;
           break;
 
+        // an oriscus's direction: Gregorio's 1 (up) and 0 (down), or
+        // exsurge's own < and >
         case "o":
           note.shape = NoteShape.Oriscus;
-          if (haveLookahead && lookahead === "<") {
+          if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
             note.shapeModifiers |= NoteShapeModifiers.Ascending;
             i++;
-          } else if (haveLookahead && lookahead === ">") {
+          } else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
             note.shapeModifiers |= NoteShapeModifiers.Descending;
             i++;
           }
@@ -2897,11 +2897,11 @@ export class Gabc {
 
         case "O":
           note.shape = NoteShape.Oriscus;
-          if (haveLookahead && lookahead === "<") {
+          if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
             note.shapeModifiers |=
               NoteShapeModifiers.Ascending | NoteShapeModifiers.Stemmed;
             i++;
-          } else if (haveLookahead && lookahead === ">") {
+          } else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
             note.shapeModifiers |=
               NoteShapeModifiers.Descending | NoteShapeModifiers.Stemmed;
             i++;

@@ -564,6 +564,16 @@ export const featureCases: GoldenCase[] = [
     name: "oriscus-scapus",
     gabc:
       "(c4) a(gO) b(fO) c(gOf) d(hOe) e(fOg) f(fgO) g(dgO) h(e_gO_) i(egOi) j(egOih) k(hgO) l(gO<) m(gO>) (::)"
+  },
+  {
+    // an oriscus points to the first note after it that isn't at the unison,
+    // even in a later syllable (a, b, i, l), and down if there's none (n); o1
+    // and o0 (and exsurge's o< and o>) point it up or down, even in a clivis
+    // (e, g) or a pes quassus (f, h)
+    name: "oriscus-orientation",
+    gabc:
+      "(c4) a(gogh) b(go)(g)(f) c(go1)(f) d(go0)(h) e(go1f) f(fo0g) g(gO1f) h(fO0g) i(gogoh) " +
+      "j(go<)(f) k(go>)(h) l(egO)(g)(h) m(egO0)(h) n(go) (::)"
   }
 ];
 

@@ -78,7 +78,7 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,305.037
 fillRect(5.45, -18.75, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,301.9128053501868,58.75]
 fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,308.2878053501868,35.3125]
 fillText("n", -1.5621999999999998, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,301.9128053501868,58.75]
-fill(Path2D(OriscusDes[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,323.1178102939422,40]
+fill(Path2D(OriscusAsc[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,323.1178102939422,40]
 fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,326.3678102939422,35.3125]
 fillText("o", 1.1954, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,319.9928102939422,58.75]
 fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,341.0728152376977,40]
