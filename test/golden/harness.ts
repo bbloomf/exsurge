@@ -452,7 +452,8 @@ export function createRecordingCanvas(withBoundingBox = true) {
     closePath: path("closePath"),
     moveTo: path("moveTo"),
     lineTo: path("lineTo"),
-    bezierCurveTo: path("bezierCurveTo")
+    bezierCurveTo: path("bezierCurveTo"),
+    quadraticCurveTo: path("quadraticCurveTo")
   });
   return canvasCtxt;
 }
