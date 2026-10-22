@@ -366,6 +366,12 @@ export const featureCases: GoldenCase[] = [
       "(c4) a(fgr) b(frg) c(fhr) d(frh) e(gfr) f(grf) g(fhrg) h(gvr) i(gor) j(gor~) k(gwr) l(fwrh) m(Gr) " +
       "n(hGrFr) o(hGF~r) p(hgrh) q(hrgh) r(hfrh) s(ifri) t(jfrj) u(hgrhg) v(fr~) w(fgr~) x(gfr~) y(fgr<) " +
       "z(gfr>) A(-frh) B(gorh) C(fsrsr) D(fr0g) E(fgr_) F(hgr'h) (::)"
+  },
+  {
+    // a quilisma quadratum is a quilisma, and a higher note in its pes goes
+    // beside it, joined by a line, rather than above it (n is a quilisma pes)
+    name: "quilisma-quadratum",
+    gabc: "(c4) a(gWh) b(gWi) c(gWj) d(gWk) e(gWh<) f(gWh>) g(gWh~) h(gW) i(gWhg) j(-gWh) k(gWrh) l(gW_h_) m(gW.h.) n(gwh) (::)"
   }
 ];
 

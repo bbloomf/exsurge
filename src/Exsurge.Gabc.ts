@@ -2547,10 +2547,14 @@ export class Gabc {
           note.shape = NoteShape.Quilisma;
           break;
 
-        // Gregorio's shapes that are read but not drawn yet
+        // Gregorio's quilisma quadratum: a quilisma, which a higher note
+        // follows as in a pes quadratum
         case "W":
+          note.shape = NoteShape.Quilisma;
           note.quilismaQuadratum = true;
           break;
+
+        // Gregorio's shapes that are read but not drawn yet
         case "q":
           note.quadratum = true;
           break;

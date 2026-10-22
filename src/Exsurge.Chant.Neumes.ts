@@ -258,6 +258,18 @@ class NeumeBuilder {
     // allow a quilisma pes
     if (lowerNote.shape === NoteShape.Quilisma) lowerGlyph = GlyphCode.Quilisma;
 
+    // a quilisma quadratum's pes (as Gregorio's QuilismaPesQuadratum): the
+    // upper note beside the quilisma rather than above it, joined to it by a
+    // line where they don't touch (a deminutus stays as it is, as Gregorio
+    // has no square pes deminutus)
+    if (lowerNote.quilismaQuadratum && !(upperNote.liquescent & LiquescentType.Small)) {
+      if (upperNote.liquescent & LiquescentType.Ascending)
+        upperGlyph = GlyphCode.PunctumQuadratumAscLiquescent;
+      else if (upperNote.liquescent & LiquescentType.Descending)
+        upperGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
+      else upperGlyph = GlyphCode.PunctumQuadratum;
+    }
+
     this.noteAt(lowerNote, lowerGlyph).noteAt(upperNote, upperGlyph);
 
     // make sure we don't have lines connected to the podatus

@@ -158,7 +158,10 @@ export class Note extends ChantLayoutElement {
   linea?: boolean;
   /** the first note of a pes quadratum (gabc q) */
   quadratum?: boolean;
-  /** a quilisma quadratum (gabc W), drawn as a punctum for now */
+  /**
+   * a quilisma quadratum (gabc W): a quilisma, with a higher note in its pes
+   * beside it, joined by a stem, rather than above it
+   */
   quilismaQuadratum?: boolean;
   /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
   leaning?: InclinatumLeaning;
