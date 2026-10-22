@@ -2668,6 +2668,9 @@ export interface TextSpanProperties {
 const __parseNewLine = (newLine: number | boolean | undefined) =>
   parseInt(newLine as unknown as string);
 
+// the distance from one line of a text element to the next, in ems
+const __lineSpacing = 1.1;
+
 /** a run of text in one style */
 export class TextSpan {
   text: string;
@@ -3238,6 +3241,7 @@ export class TextElement extends ChantLayoutElement {
     var subStringLength = 0;
     var numLines = 1;
     var fontSize = this.fontSize(ctxt) * (this.resize || 1);
+    var lineHeight = __lineSpacing * fontSize;
     var bbox = new Rect(0, 0, 0, 0);
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i],
@@ -3262,7 +3266,7 @@ export class TextElement extends ChantLayoutElement {
           bbox.union(
             new Rect(
               width - left,
-              fontSize * (numLines - 1) - metrics.actualBoundingBoxAscent,
+              lineHeight * (numLines - 1) - metrics.actualBoundingBoxAscent,
               metrics.width + left,
               metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent
             )
@@ -3272,7 +3276,12 @@ export class TextElement extends ChantLayoutElement {
           }
         } else {
           bbox.union(
-            new Rect(width, fontSize * (numLines - 2), (metrics as TextMetrics).width, fontSize)
+            new Rect(
+              width,
+              lineHeight * (numLines - 1) - fontSize,
+              (metrics as TextMetrics).width,
+              fontSize
+            )
           );
         }
         width += metrics.width;
@@ -3280,7 +3289,7 @@ export class TextElement extends ChantLayoutElement {
         strategy === TextMeasuringStrategy.OpenTypeJS &&
         ctxt.fontDictionary
       ) {
-        // get the bounding box for the substring, placing it at x = width, y = fontSize * (numLines - 1)
+        // get the bounding box for the substring, placing it at x = width, y = lineHeight * (numLines - 1)
         const properties = span.mergedProperties;
         let font = ctxt.getFontForProperties(
           properties,
@@ -3291,7 +3300,7 @@ export class TextElement extends ChantLayoutElement {
         if (/%$/.test(properties["font-size"])) {
           spanFontSize *= fontSize / 100;
         }
-        const y = fontSize * (numLines - 1);
+        const y = lineHeight * (numLines - 1);
         if ('getPath' in font) {
           // opentype.js
           const measured = ctxt.measureOpenTypeText(
@@ -3342,7 +3351,7 @@ export class TextElement extends ChantLayoutElement {
         bbox.union(
           new Rect(
             width + subBbox.x,
-            fontSize * (numLines - 1) + subBbox.y,
+            lineHeight * (numLines - 1) + subBbox.y,
             subBbox.width,
             subBbox.height
           )
@@ -3647,8 +3656,7 @@ export class TextElement extends ChantLayoutElement {
       translateHeight = 0,
       extraStyleProperties = this.getExtraStyleProperties(ctxt),
       font: string | null = null;
-    // the same 1.1em as each new line's dy in the svg
-    var lineHeight = 1.1 * this.fontSize(ctxt) * (this.resize || 1);
+    var lineHeight = __lineSpacing * this.fontSize(ctxt) * (this.resize || 1);
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
@@ -3703,7 +3711,7 @@ export class TextElement extends ChantLayoutElement {
 
     if (span.newLine) {
       var xOffset = span.xOffset || 0;
-      options.dy = 1.1 * (__parseNewLine(span.newLine) || 1) + "em";
+      options.dy = __lineSpacing * (__parseNewLine(span.newLine) || 1) + "em";
       options.x = this.bounds.x + xOffset;
     } else if (span.xOffset) {
       options.x = this.bounds.x + span.xOffset;

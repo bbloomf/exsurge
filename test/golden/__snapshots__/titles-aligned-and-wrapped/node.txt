@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="260" height="342.42522222222226" viewBox="0 0 260 342.42522222222226" source=<ChantScore>>
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="260" height="349.0918888888889" viewBox="0 0 260 349.0918888888889" source=<ChantScore>>
   <g>
     <defs>
       <g id="Mora" class="glyph" transform="scale(0.0625)">
@@ -31,7 +31,7 @@
           "A supertitle long enough that it"
         <tspan source-index="0" style="newLine: true;" dy="1.1em" x="0">
           "has to wrap onto more lines"
-      <text x="260" y="76.51555555555555" class="title" text-anchor="end" style="" source=<Title>>
+      <text x="260" y="78.38222222222223" class="title" text-anchor="end" style="" source=<Title>>
         <tspan source-index="0" style="">
           "Ad te "
         <tspan source-index="9" style="font-style: italic;">
@@ -46,13 +46,13 @@
           "confído"
         <tspan source-index="65" style="">
           " non erubéscam"
-      <text x="130" y="157.88888888888889" class="subtitle" text-anchor="middle" style="" source=<Subtitle>>
+      <text x="130" y="164.55555555555557" class="subtitle" text-anchor="middle" style="" source=<Subtitle>>
         <tspan source-index="0" style="">
           "Subtitle"
-      <text x="260" y="173.9742222222222" class="textRight textLeftRight" text-anchor="end" style="" source=<TextLeftRight>>
+      <text x="260" y="180.6408888888889" class="textRight textLeftRight" text-anchor="end" style="" source=<TextLeftRight>>
         <tspan source-index="0" style="">
           "Right"
-    <g class="chantLine" transform="translate(0,237.6202222222222)" element-index="0" source=<ChantLine elementIndex=0>>
+    <g class="chantLine" transform="translate(0,244.28688888888888)" element-index="0" source=<ChantLine elementIndex=0>>
       <g class="staffLines">
         <line key="-7" x1="0" y1="-43.75" x2="260" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-5" x1="0" y1="-31.25" x2="260" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
@@ -164,7 +164,7 @@
       <g class="ChantNotationElement Custos" transform="translate(257.265625,0)" source=<Custos>>
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#CustosShort" class="" x="0" y="-12.5" source=<Custos>>
-    <g class="chantLine" transform="translate(0,324.0852222222222)" element-index="1" source=<ChantLine elementIndex=1>>
+    <g class="chantLine" transform="translate(0,330.75188888888886)" element-index="1" source=<ChantLine elementIndex=1>>
       <g class="staffLines">
         <line key="-7" x1="0" y1="-43.75" x2="260" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-5" x1="0" y1="-31.25" x2="260" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">

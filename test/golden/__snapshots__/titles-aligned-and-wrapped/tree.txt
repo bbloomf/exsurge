@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=260 height=342.42522222222226 viewBox="0 0 260 342.42522222222226" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=260 height=349.0918888888889 viewBox="0 0 260 349.0918888888889" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
   <g>
     <defs>
       <g id="Mora" transform="scale(0.0625)" className="glyph">
@@ -31,7 +31,7 @@
           "A supertitle long enough that it"
         <tspan source-index=0 style={newLine: true} dy="1.1em" x=0 className=undefined>
           "has to wrap onto more lines"
-      <text source-index=undefined x=260 y=76.51555555555555 style={} source=<Title> className="title" textAnchor="end" source-gabc="Ad te <i>levávi</i> ánimam<br>meam Deus meus <i>in te confído</i> non erubéscam">
+      <text source-index=undefined x=260 y=78.38222222222223 style={} source=<Title> className="title" textAnchor="end" source-gabc="Ad te <i>levávi</i> ánimam<br>meam Deus meus <i>in te confído</i> non erubéscam">
         <tspan source-index=0 style={} className=undefined>
           "Ad te "
         <tspan source-index=9 style={fontStyle: "italic"} className=undefined>
@@ -46,13 +46,13 @@
           "confído"
         <tspan source-index=65 style={} className=undefined>
           " non erubéscam"
-      <text source-index=undefined x=130 y=157.88888888888889 style={} source=<Subtitle> className="subtitle" textAnchor="middle" source-gabc="Subtitle">
+      <text source-index=undefined x=130 y=164.55555555555557 style={} source=<Subtitle> className="subtitle" textAnchor="middle" source-gabc="Subtitle">
         <tspan source-index=0 style={} className=undefined>
           "Subtitle"
-      <text source-index=undefined x=260 y=173.9742222222222 style={} source=<TextLeftRight> className="textRight textLeftRight" textAnchor="end" source-gabc="Right">
+      <text source-index=undefined x=260 y=180.6408888888889 style={} source=<TextLeftRight> className="textRight textLeftRight" textAnchor="end" source-gabc="Right">
         <tspan source-index=0 style={} className=undefined>
           "Right"
-    <g transform="translate(0,237.6202222222222)" element-index=0 className="chantLine">
+    <g transform="translate(0,244.28688888888888)" element-index=0 className="chantLine">
       <g className="staffLines">
         <line key=-7 x1=0 y1=-43.75 x2=260 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-5 x1=0 y1=-31.25 x2=260 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
@@ -164,7 +164,7 @@
       <g transform="translate(257.265625,0)" source=<Custos> className="ChantNotationElement Custos">
         <g className="Notations">
           <use source-index=undefined element-index=undefined x=0 y=-12.5 source=<Custos> className="" xlinkHref="#CustosShort">
-    <g transform="translate(0,324.0852222222222)" element-index=1 className="chantLine">
+    <g transform="translate(0,330.75188888888886)" element-index=1 className="chantLine">
       <g className="staffLines">
         <line key=-7 x1=0 y1=-43.75 x2=260 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-5 x1=0 y1=-31.25 x2=260 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
