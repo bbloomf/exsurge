@@ -133,13 +133,20 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
 var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[)$/;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
+
+// a clef with a second clef after it, as in c1@c4 or c3@fb2.  The groups are:
+//  1. the first clef
+//  2. c or f, the second clef's type
+//  3. b if the second clef has a flat
+//  4. the line of the second clef
+var __secondClefRegex = /^([^[@]+)@([cf])(b?)([1-5])$/;
 
 // for the brace string inside of [ and ] in notation data
 // the capturing groups are:
@@ -1540,6 +1547,7 @@ export class Gabc {
         notation.sourceGabc = match![0];
         if (notation.isClef) {
           ctxt.activeClef = notation as Clef;
+          if (secondClef) (notation as Clef).secondClef = secondClef;
           if (
             prevNotation &&
             (prevNotation.trailingSpace as TrailingSpaceFunction).isDefault &&
@@ -1569,12 +1577,19 @@ export class Gabc {
 
     var regex = new RegExp(__notationsRegex);
     var match: RegExpExecArray | null;
+    // the second clef of the clef being parsed (gabc c1@c4)
+    var secondClef: Clef | null;
 
     while ((match = regex.exec(data))) {
       sourceIndex = baseSourceIndex + match.index;
       sourceLength = match[0].length;
       var atom = match[0];
       var bar = match[__notationsRegex_group_bar];
+
+      // a second clef goes on the clef before it, which is parsed below
+      var secondClefMatch = __secondClefRegex.exec(atom);
+      secondClef = secondClefMatch && this.createSecondClef(secondClefMatch);
+      if (secondClefMatch) atom = secondClefMatch[1];
 
       // a bar can be followed by _ (a brace carrying the melody over it) and ' (a vertical episema)
       let barSigns = bar ? /['_]*$/.exec(bar)![0] : "";
@@ -1912,6 +1927,25 @@ export class Gabc {
     }
 
     return notations;
+  }
+
+  // the second clef of a pair, from a match of __secondClefRegex
+  static createSecondClef(match: RegExpExecArray): Clef {
+    var line = parseInt(match[4], 10);
+    var staffPosition = 2 * line - 1;
+    var isDoClef = match[2] === "c";
+    // the flat is on the ti nearest the clef: just below a do clef, and above
+    // a fa clef on the first two lines but below one on the others, as
+    // Gregorio puts it (clef_flat_height in gregoriotex-write.c)
+    var flat = match[3]
+      ? new Signs.Accidental(
+          staffPosition + (isDoClef ? -1 : line <= 2 ? 3 : -4),
+          Signs.AccidentalType.Flat
+        )
+      : null;
+    return isDoClef
+      ? new DoClef(staffPosition, 2, flat)
+      : new FaClef(staffPosition, 2, flat);
   }
 
   static createNeumesFromNotes(

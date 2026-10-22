@@ -281,6 +281,11 @@ export class Clef extends ChantNotationElement {
   sans?: boolean;
   /** the clef that this clef (at the start of a line) is a copy of */
   model?: Clef;
+  /**
+   * the second clef of a pair (gabc c1@c4), which is drawn with this one;
+   * the pitches follow this one
+   */
+  secondClef?: Clef;
 
   constructor(staffPosition: number, octave: number, defaultAccidental: Accidental | null = null) {
     super();
@@ -319,7 +324,28 @@ export class Clef extends ChantNotationElement {
       this.addVisualizer(accidentalGlyph);
     }
 
+    if (this.secondClef) this.addSecondClef(ctxt);
+
     super.finishLayout(ctxt);
+  }
+
+  // adds the glyphs of the second clef, placed as Gregorio places them
+  // (gre@boxclef in gregoriotex-signs.tex): clefs two or more lines apart
+  // start at the same x, and clefs on the same or neighboring lines go one
+  // after the other
+  private addSecondClef(ctxt: ChantContext) {
+    var secondClef = this.secondClef!;
+    secondClef.performLayout(ctxt);
+    ctxt.activeClef = this;
+
+    var x =
+      Math.abs(secondClef.staffPosition - this.staffPosition) > 2
+        ? 0
+        : this.bounds.right() + ctxt.intraNeumeSpacing;
+    for (var visualizer of secondClef.visualizers) {
+      visualizer.bounds.x += x;
+      this.addVisualizer(visualizer);
+    }
   }
 
   static default(): Clef {
@@ -339,6 +365,7 @@ export class Clef extends ChantNotationElement {
     );
     clone.small = this.small;
     clone.sans = this.sans;
+    clone.secondClef = this.secondClef;
     clone.sourceGabc = this.sourceGabc;
     clone.sourceIndex = this.sourceIndex;
     clone.elementIndex = this.elementIndex;

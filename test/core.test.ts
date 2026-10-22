@@ -311,8 +311,9 @@ describe("Gregorio note tokens", function() {
     assert.deepStrictEqual(notes.map((note) => !!note.fused), [false, true, true, false, false, false, true, false]);
     assert.deepStrictEqual(notes[3].autoFusion, { start: true });
     assert.deepStrictEqual(notes[5].autoFusion, { end: true });
-    // the @ between two clefs isn't a fusion
-    assert.deepStrictEqual(sources(notations).slice(-2), ["c1", "c4"]);
+    // the @ between two clefs isn't a fusion: c1@c4 is one clef, with a second clef
+    assert.deepStrictEqual(sources(notations).slice(-2), ["@hg", "c1@c4"]);
+    assert.ok((notations[notations.length - 1] as Exsurge.Clef).secondClef instanceof Exsurge.DoClef);
   });
 
   it("records =, q, W and parenthesized accidentals, and r6 to r8 aren't cavum", function() {

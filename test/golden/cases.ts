@@ -425,6 +425,18 @@ export const featureCases: GoldenCase[] = [
     name: "euouae",
     width: 200,
     gabc: "(c4) Gló(ehg)ri(hi)a(i) Pa(i)tri.(i) (:) Ky(f)ri(g)e(h) <eu>E(i) u(i!jwk) o(i) u(h) a(hhh) e(fe..)</eu> (::)"
+  },
+
+  // Gregorio: Phase 3
+  {
+    // clefs two lines or more apart are drawn one over the other, and clefs
+    // on neighboring lines one after the other, each with its flat; the
+    // pitches follow the first clef, and each line starts with both
+    name: "two-clefs",
+    outputs: allOutputs,
+    gabc:
+      "(c1@c4) A(d)B(j) (c3) C(h) (f3@c4) D(h) (c2@c3) E(h) (cb4@cb2) F(h) (z) " +
+      "G(g) (c4@fb2) H(h) (c1@fb3) I(h) (::)"
   }
 ];
 
