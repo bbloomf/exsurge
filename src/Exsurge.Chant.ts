@@ -158,12 +158,13 @@ export class Note extends ChantLayoutElement {
    */
   noCustosBefore?: boolean;
 
+  /** Gregorio's square brackets (gabc [[) start at the note (see Neume.layoutBrackets()) */
+  bracketStart?: boolean;
+  /** Gregorio's square brackets (gabc ]]) end at the note */
+  bracketEnd?: boolean;
+
   // Gregorio's notation read since Phase 1 of docs/gregorio-feature-gap.md,
   // not all of it drawn yet
-  /** a bracket (gabc [[) starts at the note */
-  bracketStart?: boolean;
-  /** a bracket (gabc ]]) ends at the note */
-  bracketEnd?: boolean;
   /**
    * whether a no-line-break area (<nlba>…</nlba> in the notes) starts at
    * the note after <nlba> or ends at the note before </nlba>.  The note's

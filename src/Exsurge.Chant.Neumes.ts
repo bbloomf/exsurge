@@ -38,6 +38,7 @@ import {
   type ChantContext
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
+import { NoteBracket } from "./Exsurge.Chant.Markings.js";
 
 /** a ledger line that a neume needs, from one of its notes to another */
 export interface NeumeLedgerLine {
@@ -574,6 +575,7 @@ export class Neume extends ChantNotationElement {
   }
 
   finishLayout(ctxt: ChantContext) {
+    var bracketWidth = this.layoutBrackets(ctxt);
     this.ledgerLines = this.requiresLedgerLine(ctxt);
 
     // allow subclasses an opportunity to position their own markings...
@@ -616,10 +618,93 @@ export class Neume extends ChantNotationElement {
       // markings rather than note level markings
     }
 
-    this.origin.x = this.notes[0].origin.x;
+    this.origin.x = this.notes[0].origin.x + bracketWidth;
     this.origin.y = this.notes[0].origin.y;
 
     super.finishLayout(ctxt);
+  }
+
+  // Gregorio's brackets (gabc [[ and ]]): one at the left of the first note
+  // if it starts brackets, which moves the notes to the right to make room for
+  // it, and one at the right of the last note if it ends them.  Returns the
+  // width of the one at the left, if any.
+  layoutBrackets(ctxt: ChantContext) {
+    var first = this.notes[0],
+      last = this.notes[this.notes.length - 1];
+    var leftRange = first.bracketStart ? this.bracketRange(ctxt, first, 1) : null;
+    var rightRange = last.bracketEnd ? this.bracketRange(ctxt, last, -1) : null;
+    var bracket,
+      width = 0;
+
+    if (leftRange) {
+      bracket = new NoteBracket(ctxt, false, leftRange.low, leftRange.high);
+      width = bracket.bounds.width;
+      for (var i = 0; i < this.visualizers.length; i++) this.visualizers[i].bounds.x += width;
+      this.bounds.x += width;
+      this.addVisualizer(bracket);
+    }
+
+    if (rightRange) {
+      bracket = new NoteBracket(ctxt, true, rightRange.low, rightRange.high);
+      bracket.bounds.x = this.bounds.right();
+      this.addVisualizer(bracket);
+    }
+
+    return width;
+  }
+
+  // the lowest and highest staff positions of the notes in the brackets that
+  // note starts (direction 1) or ends (direction -1), which can go on into
+  // other neumes, or null if the brackets aren't closed.  As in Gregorio, a [[
+  // inside brackets is ignored.
+  bracketRange(ctxt: ChantContext, note: Note, direction: 1 | -1) {
+    var notations: ChantNotationElement[] = ctxt.notations || [];
+    var index =
+      notations[ctxt.currNotationIndex] === this ? ctxt.currNotationIndex : notations.indexOf(this);
+    if (index < 0) {
+      notations = [this];
+      index = 0;
+    }
+
+    // calls visit with each note after (or before) note, until it returns true
+    var visitNotes = (direction: 1 | -1, visit: (n: Note) => boolean | undefined | void) => {
+      for (var i = index; i >= 0 && i < notations.length; i += direction) {
+        var notes = notations[i].notes || [];
+        var j = i === index ? notes.indexOf(note) + direction : direction > 0 ? 0 : notes.length - 1;
+        for (; j >= 0 && j < notes.length; j += direction) if (visit(notes[j])) return;
+      }
+    };
+
+    var notes = [note];
+    var closed = false;
+    if (direction > 0) {
+      // (a [[ after another, with no ]] between them, is inside its brackets)
+      var nested = false;
+      visitNotes(-1, (n) => {
+        nested = !!n.bracketStart && !n.bracketEnd;
+        return n.bracketStart || n.bracketEnd;
+      });
+      if (nested) return null;
+      closed = !!note.bracketEnd;
+      if (!closed)
+        visitNotes(1, (n) => {
+          notes.push(n);
+          return (closed = !!n.bracketEnd);
+        });
+    } else {
+      // back to the first [[ since the brackets before
+      visitNotes(-1, (n) => {
+        if (n.bracketEnd) return true;
+        notes.push(n);
+      });
+      var start = notes.map((n) => !!n.bracketStart).lastIndexOf(true);
+      closed = start >= 0;
+      notes = notes.slice(0, start + 1);
+    }
+    if (!closed) return null;
+
+    var staffPositions = notes.map((n) => n.staffPosition);
+    return { low: Math.min(...staffPositions), high: Math.max(...staffPositions) };
   }
 
   requiresLedgerLine(ctxt: ChantContext) {

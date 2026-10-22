@@ -355,8 +355,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the brackets and fusion are read but
-    // not drawn yet (i is a linea, j a pes quadratum and o a bivirga)
+    // no notes are lost or made up; the fusion is read but not drawn yet (i
+    // is a linea, j a pes quadratum and o a bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -724,6 +724,18 @@ export const featureCases: GoldenCase[] = [
     // flexus (b) and a torculus resupinus (c, d)
     name: "porrectus-fifth",
     gabc: "(c4) a(kfk) b(kfkh) c(dkfk) d(dkfkh) e(kfrk) f(kfk~) g(kfk<) h(lglj) i(kf'k) j(k_f_k) (::)"
+  },
+
+  // Gregorio: Phase 7
+  {
+    // a bracket at each side of the notes in it, from below the lowest to
+    // above the highest, with a short, normal or long top as Gregorio picks
+    // it; brackets can span syllables, and empty brackets and a [[ inside
+    // brackets are ignored
+    name: "note-brackets",
+    gabc:
+      "(c4) a([[gh]]) b(f[[gh]]i) c([[g]]) d([[fh]]) e([[fg]]) f([[eg]]) g([[eh]]) h([[ce]]) i([[jk]]) " +
+      "j(e[[ghg]]f) ad([[ef) te(g]]) k(f[[]]g) l(g[[h[[i]]) (::)"
   }
 ];
 

@@ -448,6 +448,106 @@ export class Mora extends GlyphVisualizer {
   }
 }
 
+/*
+ * NoteBracket
+ *
+ * One of Gregorio's square brackets around notes (gabc [[ and ]]): a line at
+ * the left or right of the notes with a hook at each end, from below the
+ * lowest note in the brackets to above the highest.  The lengths are those
+ * of GregorioTeX's bracket glyphs (\GreBracket), in staff intervals: its
+ * step is 157.5 font units, and its bracketupshift and bracketdownshift are
+ * 0.03cm and 0.04cm at its default staff size, where a step is 0.1436cm.
+ */
+export class NoteBracket extends ChantLayoutElement {
+  isRight: boolean;
+  /** the width of the line and hooks */
+  lineWeight: number;
+
+  constructor(ctxt: ChantContext, isRight: boolean, lowStaffPosition: number, highStaffPosition: number) {
+    super();
+
+    this.isRight = isRight;
+    this.lineWeight = ctxt.neumeLineWeight;
+
+    let low = Math.round(lowStaffPosition),
+      high = Math.round(highStaffPosition);
+    let isOnLine = (staffPosition: number) => Math.abs(staffPosition) % 2 === 1;
+    let isBelowStaff = (staffPosition: number) => staffPosition <= 0;
+    let isAboveStaff = (staffPosition: number) => staffPosition >= 2 * ctxt.staffLineCount;
+
+    // Gregorio picks a short, normal or long top so that the ends don't fall on staff lines
+    let top = 1.556;
+    if (!isBelowStaff(low) && !isOnLine(low)) {
+      if (!isAboveStaff(high) && !isOnLine(high)) top = 2.056;
+    } else if (isAboveStaff(high) || isOnLine(high)) {
+      top = 1.056;
+    }
+    // and raises it a little from a low note on a staff line or below the
+    // staff, or lowers it from one in a space
+    let lowIsOnStaffLine = isOnLine(low) && !isBelowStaff(low) && !isAboveStaff(low);
+    let shift = lowIsOnStaffLine || isBelowStaff(low) ? 0.209 : -0.279;
+
+    let y0 = ctxt.calculateHeightFromStaffPosition(high + top + shift);
+    let y1 = ctxt.calculateHeightFromStaffPosition(low - 1.444 + shift);
+
+    this.bounds.x = 0;
+    this.bounds.y = y0;
+    this.bounds.width = (83 / 157.5) * ctxt.staffInterval;
+    this.bounds.height = y1 - y0;
+
+    this.origin.x = 0;
+    this.origin.y = 0;
+  }
+
+  // the outline, from the top of the line clockwise for a left bracket
+  getPoints() {
+    let { x, y, width, height } = this.bounds;
+    let w = this.lineWeight;
+    let points = [
+      [0, 0],
+      [width, 0],
+      [width, w],
+      [w, w],
+      [w, height - w],
+      [width, height - w],
+      [width, height],
+      [0, height]
+    ];
+    return points.map(([px, py]) => [x + (this.isRight ? width - px : px), y + py]);
+  }
+
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
+    var points = this.getPoints();
+
+    canvasCtxt.fillStyle = ctxt.neumeLineColor;
+    canvasCtxt.beginPath();
+    canvasCtxt.moveTo(points[0][0], points[0][1]);
+    for (var i = 1; i < points.length; i++) canvasCtxt.lineTo(points[i][0], points[i][1]);
+    canvasCtxt.closePath();
+    canvasCtxt.fill();
+  }
+
+  getSvgProps(ctxt: ChantContext) {
+    return {
+      d: "M " + this.getPoints().map(([x, y]) => x.toFixed(2) + " " + y.toFixed(2)).join(" L ") + " Z",
+      fill: ctxt.neumeLineColor,
+      class: "bracket"
+    };
+  }
+
+  createSvgNode(ctxt: ChantContext) {
+    return QuickSvg.createNode("path", this.getSvgProps(ctxt));
+  }
+  createSvgTree(ctxt: ChantContext) {
+    return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
+  }
+
+  createSvgFragment(ctxt: ChantContext) {
+    return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
+  }
+}
+
 // indicates the shape of the brace
 export const BraceShape = {
   RoundBrace: 0,

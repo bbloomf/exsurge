@@ -535,6 +535,9 @@ var endTrailingAreas = (mappings: ChantMapping[], areas: SyllableAreas) => {
   });
 };
 
+// what Gregorio's [[ marks on the note after it
+var markBracketStart = (note: Note) => (note.bracketStart = true);
+
 // what Gregorio's <nlba> in the notes marks on the note, or other notation, after it
 var markNoLineBreakStart = (element: { noLineBreak?: AreaBoundary }) =>
   (element.noLineBreak = { ...element.noLineBreak, start: true });
@@ -2071,12 +2074,15 @@ export class Gabc {
         // no-line-break areas as / does, as they end Gregorio's glyphs and
         // elements, so that their marks are where neumes start or end.
         case "[[":
-          nextNoteMarks.push((note) => (note.bracketStart = true));
+          nextNoteMarks.push(markBracketStart);
           if (spaceBeforeNextNote === null) spaceBeforeNextNote = 0;
           break;
         case "]]": {
+          // (brackets with no notes in them aren't drawn, as in Gregorio)
           let note = lastNote();
-          if (note) note.bracketEnd = true;
+          if (nextNoteMarks.includes(markBracketStart))
+            nextNoteMarks = nextNoteMarks.filter((mark) => mark !== markBracketStart);
+          else if (note) note.bracketEnd = true;
           if (spaceBeforeNextNote === null) spaceBeforeNextNote = 0;
           break;
         }
