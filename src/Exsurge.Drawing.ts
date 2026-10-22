@@ -3647,17 +3647,16 @@ export class TextElement extends ChantLayoutElement {
       translateHeight = 0,
       extraStyleProperties = this.getExtraStyleProperties(ctxt),
       font: string | null = null;
+    // the same 1.1em as each new line's dy in the svg
+    var lineHeight = 1.1 * this.fontSize(ctxt) * (this.resize || 1);
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
       if (span.newLine) {
         let count = __parseNewLine(span.newLine) || 1;
-        canvasCtxt.translate(
-          translateWidth + xOffset,
-          this.fontSize(ctxt) * count
-        );
+        canvasCtxt.translate(translateWidth + xOffset, lineHeight * count);
         translateWidth = -xOffset;
-        translateHeight -= this.fontSize(ctxt) * count;
+        translateHeight -= lineHeight * count;
       } else if (xOffset) {
         canvasCtxt.translate(translateWidth + xOffset, 0);
         translateWidth = -xOffset;
