@@ -65,6 +65,7 @@ beginPath()
 moveTo(178.125, -0)
 bezierCurveTo(179.16666666666666, 9.375, 183.33333333333334, 9.375, 184.375, -0)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,22.736312499999997]
 fill(Path2D(PodatusLowerShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,47.7363125]
 fill(Path2D(PodatusUpperShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,20.3125,41.4863125]
 fillText("a", -1.1230000000000002, 26.137, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,66.4863125]
@@ -98,4 +99,3 @@ fill(Path2D(PodatusUpper[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,184.375
 fillText("h", 0.03620000000000001, 26.137, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,178.125,66.4863125]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,192.1875,66.4863125]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,192.1875,66.4863125]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,22.736312499999997]

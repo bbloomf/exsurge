@@ -20,7 +20,7 @@ beginPath()
 moveTo(14.0625, -50)
 bezierCurveTo(16.88909375, -59.375, 28.19546875, -59.375, 31.0220625, -50)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,59.375]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15.625]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,34.375]
 fillText("a", -1.1230000000000002, 9.988000000000007, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,59.375]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,1.7763568394002505e-15,15.625]
 fill(Path2D(CustosLong[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,28.125,28.125]

@@ -518,14 +518,14 @@ export class ChantLine extends ChantLayoutElement {
         this.score.annotation.draw(ctxt);
     }
 
+    this.startingClef.draw(ctxt);
+
     // The ending custos is drawn separately, even when it is an explicit notation.
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
 
     for (i = this.notationsStartIndex; i < lastIndex; i++)
       if (notations[i] !== this.custos) notations[i].draw(ctxt);
-
-    this.startingClef.draw(ctxt);
 
     if (this.custos) this.custos.draw(ctxt);
 
