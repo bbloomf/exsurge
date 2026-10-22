@@ -1,7 +1,7 @@
-// Gregorio's neume fusion, gabc @ (docs/gregorio-feature-gap.md, Phase 8).
-// Each expected split is Gregorio's: the glyphs that gregorio (b63f074) writes
-// for the same notes, such as PunctumOneUp, a punctum fused to a note a step
-// higher.
+// Gregorio's neume fusion, gabc @ and @[…] (docs/gregorio-feature-gap.md,
+// Phase 8).  Each expected split is Gregorio's: the glyphs that gregorio
+// (b63f074) writes for the same notes, such as PunctumOneUp, a punctum fused
+// to a note a step higher.
 
 import assert from "node:assert";
 import { describe, it } from "vitest";
@@ -77,6 +77,28 @@ describe("Gregorio's neume fusion", function() {
     // and without the @, as usual
     assert.strictEqual(fusion("hg"), "Clivis");
     assert.strictEqual(fusion("g@g"), "punctum punctum@");
+  });
+
+  it("splits the notes in @[…] as Gregorio does", function() {
+    const cases: [string, string][] = [
+      ["@[hiwjijih~]", "punctum punctum@ flexus@+1 punctum@+1 flexus@-1"],
+      ["@[deofd]", "punctum punctum@+1 flexus@+1"],
+      ["@[IJkh]", "PunctaInclinata + flexus@"],
+      ["@[ghghg]", "punctum flexus@+1 flexus@+1"],
+      ["@[ghiji]", "punctum punctum@+1 punctum@+1 flexus@+1"],
+      ["@[hgfe]", "punctum punctum@-1 flexus@-1"],
+      ["@[gh~ij]", "pes pes@"],
+      ["@[gwhg]", "punctum flexus@+1"],
+      ["@[gogh]", "punctum pes@"],
+      ["@[fhvg]", "punctum virga@+2 punctum@"],
+      ["@[fgOgjV~]", "punctum punctum@+1 pes@"],
+      // a glyph on its own isn't fused, unless there's an @ before it
+      ["@[hgh]", "Porrectus"],
+      ["@[gh]@[ij]", "Podatus | Podatus"],
+      ["@[gh]@[@ij]", "pes pes@"],
+      ["@[fg!hg]", "Podatus + flexus@"]
+    ];
+    for (const [notes, expected] of cases) assert.strictEqual(fusion(notes), expected, notes);
   });
 
   it("gives a fused neume that isn't joined no space before it, and no line break", function() {

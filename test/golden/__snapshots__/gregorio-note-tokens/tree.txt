@@ -111,7 +111,7 @@
           <use source-index=84 element-index=20 id="note-21" x=34.5215 y=-43.75 source=<Note sourceIndex=84 elementIndex=20 noteIndex=20> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="@j">
           <use source-index=86 element-index=21 id="note-22" x=40.7715 y=-37.5 source=<Note sourceIndex=86 elementIndex=21 noteIndex=21> className=" note" xlinkHref="#BeginningDesLiquescent" source-gabc="@i">
           <use source-index=88 element-index=22 id="note-23" x=43.8965 y=-31.25 source=<Note sourceIndex=88 elementIndex=22 noteIndex=22> className=" note" xlinkHref="#TerminatingDesLiquescent" source-gabc="h~">
-      <g transform="translate(218.0086031746032,0)" source=<Torculus> className="ChantNotationElement Torculus">
+      <g transform="translate(218.0086031746032,0)" source=<FusedNeume> className="ChantNotationElement FusedNeume">
         <text source-index=92 x=0.3026 y=13.012000000000008 style={} source=<Lyric sourceIndex=92> className="lyric" textAnchor="start" source-gabc="g">
           <tspan source-index=0 style={} className=undefined>
             "g"

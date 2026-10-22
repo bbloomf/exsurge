@@ -360,8 +360,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the automatic fusion is read but not
-    // drawn yet (i is a linea, j a pes quadratum and o a bivirga)
+    // no notes are lost or made up (i is a linea, j a pes quadratum and o a
+    // bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -801,6 +801,22 @@ export const featureCases: GoldenCase[] = [
       "i(gV@e) j(g@iv) k(h@gv) l(h@fg~) m(h@fog) n(gO@h) o(gO@f) p(f@gO@h) q(gw@hi) r(g@hw) s(g@hih) " +
       "t(jj@h) u(h@fg) (:) v(g_@h_@g_) w(e_@gfg_) x(h_@iw@j_i_@j@ih~) y(g_@ih) z(hg_@h'g) A(e@g@e__) " +
       "B(g.@h@g.) C(g@h.@g@h.) D(f.@hgh.) E(g'@h@g') F(gV'@e.) G(b@d@b) H(l@j@l) (::)"
+  },
+  {
+    // Gregorio's automatic fusion, @[…] (a-c are Gabc.tex's examples, drawn as
+    // in fusion-manual), which splits the notes as Gregorio does: a flexus
+    // before a higher note is a porrectus's stroke (d, k), and the last two
+    // notes are a pes or flexus, or the last three a porrectus (g, which is
+    // drawn as usual).  An oriscus, quilisma or virga starts a glyph, and a
+    // virga or a liquescent ends one (h, n, o); other notes make their neumes
+    // as usual (c's inclinata, l's virga reversa).  The glyphs after the first
+    // are fused, and the first only with an @ (p-r), even after a ! or a space
+    // in the @[…] (s, t)
+    name: "fusion-automatic",
+    gabc:
+      "(c4) a(@[hiwjijih~]) b(@[deofd]) c(@[IJkh]) d(@[ghghg]) e(@[ghiji]) f(@[hgfe]) g(@[hgh]) " +
+      "h(@[gh~ij]) i(@[gwhg]) j(@[gogh]) k(@[hghg]) l(@[gVhg]) m(@[gOhg]) n(@[fhvg]) o(@[fgOgjV~]) " +
+      "p(f@[ghg]f) q(@[gh]@[ij]) r(@[gh]@[@ij]) s(@[fg!hg]) t(@[fg hg]) (::)"
   },
   {
     // an @ before a flexus or porrectus leaves out its stem, even where it

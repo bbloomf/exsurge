@@ -111,7 +111,7 @@
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="84" element-index="20" id="note-21" x="34.5215" y="-43.75" source=<Note sourceIndex=84 elementIndex=20 noteIndex=20>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#BeginningDesLiquescent" class=" note" source-index="86" element-index="21" id="note-22" x="40.7715" y="-37.5" source=<Note sourceIndex=86 elementIndex=21 noteIndex=21>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#TerminatingDesLiquescent" class=" note" source-index="88" element-index="22" id="note-23" x="43.8965" y="-31.25" source=<Note sourceIndex=88 elementIndex=22 noteIndex=22>>
-      <g class="ChantNotationElement Torculus" transform="translate(218.0086031746032,0)" source=<Torculus>>
+      <g class="ChantNotationElement FusedNeume" transform="translate(218.0086031746032,0)" source=<FusedNeume>>
         <text source-index="92" x="0.3026" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=92>>
           <tspan source-index="0" style="">
             "g"

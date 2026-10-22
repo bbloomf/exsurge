@@ -139,6 +139,31 @@ var fusedGlyphOfNeume = (neume: Neumes.Neume, fused: boolean): Neumes.FusedGlyph
   return { kind, notes: neume.notes, fused };
 };
 
+// the notes that Gregorio fuses in @[…]: puncta (but not lineae), oriscus
+// notes, quilismata and virgae (but not virgae reversae)
+var isAutoFusible = (note: Note) => {
+  switch (note.shape) {
+    case NoteShape.Default:
+      return !isLinea(note);
+    case NoteShape.Oriscus:
+    case NoteShape.Quilisma:
+      return true;
+    case NoteShape.Virga:
+      return !(note.shapeModifiers & NoteShapeModifiers.Reverse);
+    default:
+      return false;
+  }
+};
+
+// whether a note in @[…] starts a new fused glyph rather than continuing one:
+// all but a punctum do, as does an @ or an initio debilis
+var startsAutoFusedGlyph = (note: Note) =>
+  !!note.fused ||
+  note.shape !== NoteShape.Default ||
+  !!note.quadratum ||
+  !!note.quilismaQuadratum ||
+  !!(note.liquescent & LiquescentType.InitioDebilis);
+
 // a liquescent other than an initio debilis, which ends a fused glyph
 var isTailLiquescent = (note: Note) => !!(note.liquescent & ~LiquescentType.InitioDebilis);
 
@@ -287,6 +312,54 @@ var nextGregorioGlyph = (
     porrectus: Neumes.FusedGlyphKind.Porrectus
   };
   return { length: end - index, kind: kinds[type] };
+};
+
+// Gregorio's split of the notes of a fused glyph in @[…] into the glyphs it
+// fuses (close_fusion_glyph() in gabc-glyphs-determination.c): a pes or
+// flexus of the last two notes, a porrectus of the last three, a flexus
+// before a higher note (which it draws as a porrectus's stroke), and single
+// notes.  The first glyph is fused if fused is, and the others are.
+// previousInterval is the interval up to the first note from a note before it
+// that Gregorio counts (a virga reversa or stropha), or else 0.
+var splitFusion = (notes: Note[], fused: boolean, previousInterval: number) => {
+  var pieces: FusionPiece[] = [];
+  var add = (kind: Neumes.FusedGlyphKind, glyphNotes: Note[]) => {
+    var glyphFused = fused || pieces.length > 0;
+    pieces.push({ glyph: { kind, notes: glyphNotes, fused: glyphFused }, fused: glyphFused });
+  };
+  var interval = (i: number) => gabcStaffPosition(notes[i + 1]) - gabcStaffPosition(notes[i]);
+
+  for (var i = 0; i < notes.length; ) {
+    if (i === notes.length - 1) {
+      add(
+        notes[i].shape === NoteShape.Virga ? Neumes.FusedGlyphKind.Virga : Neumes.FusedGlyphKind.Punctum,
+        [notes[i]]
+      );
+      break;
+    }
+
+    var shift = interval(i);
+    if (shift !== 0 && i + 1 === notes.length - 1) {
+      add(shift < 0 ? Neumes.FusedGlyphKind.Flexus : Neumes.FusedGlyphKind.Pes, notes.slice(i));
+      break;
+    }
+    // (with two notes left, a flexus would have ended the notes above)
+    if (previousInterval >= 0 && shift < 0 && interval(i + 1) > 0) {
+      if (i + 2 === notes.length - 1) {
+        add(Neumes.FusedGlyphKind.Porrectus, notes.slice(i));
+        break;
+      }
+      add(Neumes.FusedGlyphKind.Flexus, notes.slice(i, i + 2));
+      previousInterval = interval(i + 1);
+      i += 2;
+      continue;
+    }
+
+    add(Neumes.FusedGlyphKind.Punctum, [notes[i]]);
+    previousInterval = shift;
+    i++;
+  }
+  return pieces;
 };
 
 // gives the last of a syllable's neumes the space after it
@@ -2066,6 +2139,9 @@ export class Gabc {
     this.marksForNext = { ...this.marksForNext, noteMarks: [] };
     // the space before the next note, where a mark between notes ends the neume
     var spaceBeforeNextNote: TrailingSpace | null = null;
+    // the notes in Gregorio's automatic fusions (@[…]), which end with the notes
+    var autoFused = new Set<Note>();
+    var autoFusing = false;
 
     // the last note before a mark, if any (the marks after it are recorded on it)
     var lastNote = () => {
@@ -2111,8 +2187,8 @@ export class Gabc {
       // first, if we have any notes left over, we create a neume out of them
       if (notes.length > 0) {
         // create neume(s)
-        var neumes = notes.some((note) => note.fused)
-          ? this.createFusedNeumes(ctxt, notes, trailingSpace)
+        var neumes = notes.some((note) => note.fused || autoFused.has(note))
+          ? this.createFusedNeumes(ctxt, notes, trailingSpace, autoFused)
           : this.createNeumesFromNotes(ctxt, notes, trailingSpace);
         for (var i = 0; i < neumes.length; i++) notations.push(neumes[i]);
 
@@ -2354,6 +2430,7 @@ export class Gabc {
         case "]": {
           let note = lastNote();
           if (note) note.autoFusion = { ...note.autoFusion, end: true };
+          autoFusing = false;
           break;
         }
 
@@ -2485,6 +2562,10 @@ export class Gabc {
             );
             for (let mark of nextNoteMarks) mark(notes[firstNewNote]);
             nextNoteMarks = [];
+            if (notes[firstNewNote].autoFusion && notes[firstNewNote].autoFusion.start)
+              autoFusing = true;
+            if (autoFusing)
+              for (let i = firstNewNote; i < notes.length; i++) autoFused.add(notes[i]);
             --insertionIndex!;
           }
           break;
@@ -3006,14 +3087,23 @@ export class Gabc {
     return neumes;
   }
 
-  // makes neumes of notes that Gregorio fuses (gabc @ before a note), as
-  // createNeumesFromNotes() makes them of other notes.  Gregorio's glyphs end
-  // at each @, which fuses the glyph after it to the glyph before.  Glyphs
-  // that Gregorio fuses (see fusedGlyphOfNeume()), fused one to the next, make
-  // a FusedNeume, and a fused glyph of another kind (a torculus, say) is a
-  // neume of its own, right after the neume before it with no space.
-  static createFusedNeumes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace) {
+  // makes neumes of notes that Gregorio fuses (gabc @ before a note, and
+  // @[…]), as createNeumesFromNotes() makes them of other notes.  Gregorio's
+  // glyphs end at each @, which fuses the glyph after it to the glyph before,
+  // and at each end of @[…], in which it splits the notes into glyphs and
+  // fuses each to the one before.  Glyphs that Gregorio fuses (see
+  // fusedGlyphOfNeume()), fused one to the next, make a FusedNeume, and a
+  // fused glyph of another kind (a torculus, say) is a neume of its own, right
+  // after the neume before it with no space.
+  static createFusedNeumes(
+    ctxt: ChantContext,
+    notes: Note[],
+    finalTrailingSpace: TrailingSpace,
+    autoFused: Set<Note>
+  ) {
     var pieces: FusionPiece[] = [];
+    // (the first note of @[…] isn't fused, unless there's an @ before it)
+    var startsArea = (note: Note) => !!(note.autoFusion && note.autoFusion.start);
 
     // the neumes that the state machine makes of some notes; the first is
     // fused to the piece before if fused is
@@ -3024,9 +3114,9 @@ export class Gabc {
       });
     };
 
-    // the notes between two @s, or an @ and the end: the glyphs next to the
-    // @s are Gregorio's (see nextGregorioGlyph()), and the notes between them
-    // make neumes as usual
+    // the notes outside @[…] between two @s, or an @ and the end: the glyphs
+    // next to the @s are Gregorio's (see nextGregorioGlyph()), and the notes
+    // between them make neumes as usual
     var addSegment = (segment: Note[], fusedAfter: boolean) => {
       var glyphs: { start: number; length: number; kind?: Neumes.FusedGlyphKind; fused: boolean }[] = [];
       for (var i = 0, fused = !!segment[0].fused && !isNeverFused(segment[0]); i < segment.length; ) {
@@ -3066,15 +3156,96 @@ export class Gabc {
       glyphs.slice(last).forEach(addGlyph);
     };
 
-    // the notes, split at each @
-    for (var segmentStart = 0; segmentStart < notes.length; ) {
-      var segmentEnd = segmentStart + 1;
-      while (segmentEnd < notes.length && !notes[segmentEnd].fused) segmentEnd++;
-      addSegment(
-        notes.slice(segmentStart, segmentEnd),
-        segmentEnd < notes.length && !isNeverFused(notes[segmentEnd])
-      );
-      segmentStart = segmentEnd;
+    // Gregorio's glyphs in @[…] (gabc_det_glyphs_from_notes() with
+    // autofuse): the notes it fuses make fused glyphs, which splitFusion()
+    // splits.  An oriscus, quilisma or virga starts one, as does a punctum
+    // after other notes, and a virga or a liquescent (of any shape) ends one.
+    // The other notes make neumes, fused to the glyph before if it ended
+    // with its last note.
+    var addAutoFused = (areaNotes: Note[]) => {
+      var fusing: Note[] = [];
+      var fusingIsFused = false;
+      var others: Note[] = [];
+      var othersAreFused = false;
+      var endedWithNote = false;
+      // (Gregorio makes a stropha or virga reversa before a punctum the first
+      // note of its fused glyph, as a glyph of its own, which splitFusion()
+      // counts in the intervals)
+      var fusingInterval = 0;
+      var endFusing = () => {
+        if (fusing.length) pieces.push(...splitFusion(fusing, fusingIsFused, fusingInterval));
+        fusing = [];
+      };
+      var endOthers = () => {
+        if (others.length) addNeumes(others, othersAreFused);
+        others = [];
+      };
+
+      areaNotes.forEach((note) => {
+        if (
+          fusing.length &&
+          isTailLiquescent(note) &&
+          !note.fused &&
+          !(note.liquescent & LiquescentType.InitioDebilis)
+        ) {
+          fusing.push(note);
+          endFusing();
+          endedWithNote = true;
+        } else if (isAutoFusible(note)) {
+          var previous = others[others.length - 1];
+          endOthers();
+          if (startsAutoFusedGlyph(note)) endFusing();
+          if (!fusing.length) {
+            fusingIsFused =
+              !!note.fused || (!startsArea(note) && !(note.liquescent & LiquescentType.InitioDebilis));
+            fusingInterval =
+              previous &&
+              !startsAutoFusedGlyph(note) &&
+              (previous.shape === NoteShape.Stropha || previous.shape === NoteShape.Virga)
+                ? gabcStaffPosition(note) - gabcStaffPosition(previous)
+                : 0;
+          }
+          fusing.push(note);
+          endedWithNote = isTailLiquescent(note) || note.shape === NoteShape.Virga;
+          if (endedWithNote) endFusing();
+        } else {
+          endFusing();
+          if (note.fused) endOthers();
+          if (!others.length)
+            othersAreFused =
+              (!!note.fused || (!startsArea(note) && endedWithNote)) && !isNeverFused(note);
+          others.push(note);
+          endedWithNote = false;
+        }
+      });
+      endFusing();
+      endOthers();
+    };
+
+    // the notes in each @[…], and the notes outside them split at each @
+    for (var start = 0; start < notes.length; ) {
+      var inArea = autoFused.has(notes[start]);
+      var end = start + 1;
+      while (
+        end < notes.length &&
+        autoFused.has(notes[end]) === inArea &&
+        !(inArea && startsArea(notes[end]))
+      )
+        end++;
+
+      if (inArea) addAutoFused(notes.slice(start, end));
+      else {
+        for (var segmentStart = start; segmentStart < end; ) {
+          var segmentEnd = segmentStart + 1;
+          while (segmentEnd < end && !notes[segmentEnd].fused) segmentEnd++;
+          addSegment(
+            notes.slice(segmentStart, segmentEnd),
+            segmentEnd < notes.length && !!notes[segmentEnd].fused && !isNeverFused(notes[segmentEnd])
+          );
+          segmentStart = segmentEnd;
+        }
+      }
+      start = end;
     }
 
     // the neumes: each run of glyphs fused one to the next makes a

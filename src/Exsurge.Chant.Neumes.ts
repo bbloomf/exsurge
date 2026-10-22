@@ -1029,7 +1029,7 @@ export class Distropha extends Neume {
   }
 }
 
-/** the glyphs that Gregorio fuses (gabc @) into a FusedNeume */
+/** the glyphs that Gregorio fuses (gabc @ and @[…]) into a FusedNeume */
 export const FusedGlyphKind = {
   /** one note: a punctum, oriscus, oriscus scapus or quilisma, or a liquescent */
   Punctum: "punctum",
@@ -1062,7 +1062,7 @@ function gabcStaffPosition(note: Note) {
 /*
  * FusedNeume
  *
- * Gregorio's neume fusion (gabc @): glyphs drawn one after another
+ * Gregorio's neume fusion (gabc @ and @[…]): glyphs drawn one after another
  * with no space between them, each joined to the one before it where Gregorio
  * joins them.  Joined notes more than a step apart get a line between them,
  * and a flexus joined to a higher note after it is drawn as a porrectus's
