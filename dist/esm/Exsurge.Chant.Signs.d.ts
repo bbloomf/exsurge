@@ -22,16 +22,27 @@ export declare class Divider extends ChantNotationElement {
     isDivider: true;
     /** whether a brace above the divider carries the melody over it (gabc _) */
     hasCarryover: boolean;
-    constructor(withCarryover?: boolean);
+    /** whether the divider has a vertical episema under the staff (gabc ') */
+    hasVerticalEpisema: boolean;
+    /** whether the divider is a space higher, on or above the ledger line above the staff (gabc `0, ,0 and ^0) */
+    high: boolean;
+    constructor(withCarryover?: boolean, high?: boolean);
     performLayout(ctxt: ChantContext): void;
+    finishLayout(ctxt: ChantContext): void;
 }
 export declare class QuarterBar extends Divider {
+    performLayout(ctxt: ChantContext): void;
+}
+export declare class DivisioMinimis extends Divider {
     performLayout(ctxt: ChantContext): void;
 }
 export declare class HalfBar extends Divider {
     performLayout(ctxt: ChantContext): void;
 }
 export declare class FullBar extends Divider {
+    /** whether the bar is dotted (gabc :?) */
+    dotted: boolean;
+    constructor(withCarryover?: boolean, dotted?: boolean);
     performLayout(ctxt: ChantContext): void;
 }
 export declare class InsertionCursor extends Divider {
@@ -58,6 +69,8 @@ export declare class Accidental extends ChantNotationElement {
     /** a soft accidental (gabc X, Y or ##) is only printed if it changes the accidental in effect */
     soft: boolean;
     hidden: boolean;
+    /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn without its parentheses for now */
+    parenthesized?: boolean;
     pitch?: Pitch;
     constructor(staffPosition: number, accidentalType: AccidentalType, soft?: boolean);
     performLayout(ctxt: ChantContext): void;
@@ -68,7 +81,8 @@ export declare class Accidental extends ChantNotationElement {
 }
 export declare class Virgula extends Divider {
     staffPosition: number;
-    constructor(withCarryover?: boolean);
+    /** @param high whether it is on the ledger line above the staff (gabc `0) */
+    constructor(withCarryover?: boolean, high?: boolean);
     performLayout(ctxt: ChantContext): void;
 }
 //# sourceMappingURL=Exsurge.Chant.Signs.d.ts.map

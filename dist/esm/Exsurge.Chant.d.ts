@@ -1,11 +1,11 @@
 import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import { Pitch, Rect } from "./Exsurge.Core.js";
-import { Annotation, ChantLayoutElement, ChantNotationElement, GlyphCode, GlyphVisualizer, TextLeftRight } from "./Exsurge.Drawing.js";
+import { Annotation, ChantLayoutElement, ChantNotationElement, GlyphCode, GlyphVisualizer, Lyric, TextLeftRight } from "./Exsurge.Drawing.js";
 import { Titles } from "./Exsurge.Titles.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
 import type { Accent, BracePoint, HorizontalEpisema, Ictus, Mora } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
-import type { AboveLinesText, Annotations, ChantContext, ChoralSign, DropCap, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
+import type { AboveLinesText, Annotations, AreaBoundary, ChantContext, ChoralSign, DropCap, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
 export declare const LiquescentType: {
     readonly None: 0;
     readonly Large: number;
@@ -29,6 +29,8 @@ export declare const NoteShape: {
     readonly Oriscus: 5;
 };
 export type NoteShape = (typeof NoteShape)[keyof typeof NoteShape];
+/** which way Gregorio's punctum inclinatum leans (gabc G0, G1 and G2) */
+export type InclinatumLeaning = "descending" | "ascending" | "unison";
 export declare const NoteShapeModifiers: {
     readonly None: 0;
     readonly Ascending: number;
@@ -51,7 +53,10 @@ export declare class Note extends ChantLayoutElement {
      * below the lowest line (gabc "c")
      */
     staffPosition: number;
-    /** a nudge up or down a third of a space (gabc 9 or 0 after a pitch) */
+    /**
+     * a nudge up or down a third of a space, under a Chi-Rho clef (gabc 9 or 0 after a pitch;
+     * a note on a space without a 9 is nudged down)
+     */
     staffPositionOffset?: number;
     liquescent: LiquescentType;
     shape: NoteShape;
@@ -69,6 +74,36 @@ export declare class Note extends ChantLayoutElement {
     alText?: AboveLinesText;
     /** the number of stems of a punctum inclinatum (gabc |) */
     inclinataFlags?: number;
+    /** leaves out the custos of a line that breaks after the note (gabc [nocustos]) */
+    noCustos?: boolean;
+    /**
+     * leaves out the custos of a line that breaks before the note, after a
+     * [nocustos] with no note before it in its notes
+     */
+    noCustosBefore?: boolean;
+    /** a bracket (gabc [[) starts at the note */
+    bracketStart?: boolean;
+    /** a bracket (gabc ]]) ends at the note */
+    bracketEnd?: boolean;
+    /**
+     * whether a no-line-break area (<nlba>…</nlba> in the notes) starts at
+     * the note after <nlba> or ends at the note before </nlba>.  The note's
+     * notation has the same mark in its noLineBreak, and gabc's
+     * neume ends at the tag, as it does at a /.
+     */
+    noLineBreak?: AreaBoundary;
+    /** the note is fused to the note before it, or, first in its neume, drawn without a stem (gabc @ before the pitch) */
+    fused?: boolean;
+    /** whether an automatic fusion (gabc @[…]) starts or ends at the note */
+    autoFusion?: AreaBoundary;
+    /** a linea (gabc =), drawn as a punctum for now */
+    linea?: boolean;
+    /** the first note of a pes quadratum (gabc q) */
+    quadratum?: boolean;
+    /** a quilisma quadratum (gabc W), drawn as a punctum for now */
+    quilismaQuadratum?: boolean;
+    /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
+    leaning?: InclinatumLeaning;
     /** where the note is in the gabc source */
     sourceIndex: number;
     sourceGabc: string;
@@ -102,11 +137,18 @@ export declare class Clef extends ChantNotationElement {
     sans?: boolean;
     /** the clef that this clef (at the start of a line) is a copy of */
     model?: Clef;
+    /**
+     * the second clef of a pair (gabc c1@c4), which is drawn with this one;
+     * the pitches follow this one
+     */
+    secondClef?: Clef;
     constructor(staffPosition: number, octave: number, defaultAccidental?: Accidental | null);
     resetAccidentals(): void;
     pitchToStaffPosition(pitch: Pitch): number;
     performLayout(ctxt: ChantContext): void;
     finishLayout(ctxt: ChantContext): void;
+    hide(ctxt: ChantContext): void;
+    private addSecondClef;
     static default(): Clef;
     clone(): Clef;
 }
@@ -138,17 +180,40 @@ export declare class TextOnly extends ChantNotationElement {
     constructor(sourceIndex: number, sourceLength: number);
     performLayout(ctxt: ChantContext): void;
 }
+/**
+ * whether a line break ends its line with a custos: "auto" if
+ * ChantContext.eolCustos says so (gabc z or Z), "force" to always (z+ or Z+)
+ * or "none" to never (z- or Z-)
+ */
+export type LineBreakCustos = "auto" | "force" | "none";
 export declare class ChantLineBreak extends ChantNotationElement {
     /** whether to justify the line that it ends */
     justify?: boolean;
-    constructor(justify?: boolean);
+    custos: LineBreakCustos;
+    constructor(justify?: boolean, custos?: LineBreakCustos);
     performLayout(ctxt: ChantContext): void;
     clone(): ChantLineBreak;
+}
+/**
+ * Gregorio's marks after the last notes of a gabc word ([[, <nlba> or @[),
+ * which go on the next note, and its controls after its last notes (such as
+ * </nlba>), which go on the next syllable's notations
+ */
+export interface MarksForNext {
+    noteMarks: ((note: Note) => void)[];
+    areas: {
+        euouae?: AreaBoundary;
+        noLineBreak?: AreaBoundary;
+    };
 }
 export declare class ChantMapping {
     source: string;
     notations: ChantNotationElement[];
     sourceIndex: number;
+    /** what the gabc word leaves for the next one's notes and syllable */
+    marksForNext?: MarksForNext;
+    /** whether the word before left marks on this one's notes or syllable */
+    followsMarks?: boolean;
     constructor(source: string, notations: ChantNotationElement[], sourceIndex: number);
 }
 export interface ElementSelection {
@@ -187,6 +252,12 @@ export declare class ChantScore {
      */
     notes: Array<Note | ChantNotationElement>;
     notations: ChantNotationElement[];
+    /**
+     * for each notation, whether a Gregorio no-line-break or euouae area keeps
+     * it with the next one; worked out by ChantLine.keepsInArea() during
+     * layoutChantLines()
+     */
+    keptInAreas?: boolean[] | null;
     staffLineCount: number;
     titles?: Titles;
     startingClef: Clef;
@@ -213,6 +284,8 @@ export declare class ChantScore {
     insertionElement?: ChantNotationElement | null;
     /** the annotation and left text together, when they're merged */
     overrideTextLeft?: TextLeftRight | null;
+    /** the lyrics given the first word's styles (see updateFirstWordStyles()) */
+    firstWordLyrics?: Lyric[];
     svg?: SvgElementWithSource;
     constructor(ctxt?: ChantContext, mappings?: ChantMapping[], useDropCap?: boolean);
     /**
@@ -225,6 +298,13 @@ export declare class ChantScore {
     updateSelection(selection?: Selection): void;
     updateNotations(ctxt: ChantContext): void;
     recreateDropCap(ctxt: ChantContext): void;
+    /**
+     * Gives the lyrics of the first word ctxt.firstWordStyle, and the first
+     * syllable (after any drop cap) ctxt.firstSyllableStyle and
+     * ctxt.firstSyllableInitialStyle, taking them from any lyrics that had them
+     * but are no longer the first word.
+     */
+    updateFirstWordStyles(ctxt: ChantContext): void;
     /**
      * Shared layout initialization method for performLayout() and performLayoutAsync()
      * @param  {ChantContext} ctxt

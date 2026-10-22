@@ -1,3 +1,4 @@
+import { ChantLineBreak } from "./Exsurge.Chant.js";
 import { BracePoint } from "./Exsurge.Chant.Markings.js";
 import { Custos } from "./Exsurge.Chant.Signs.js";
 import { Rect } from "./Exsurge.Core.js";
@@ -37,6 +38,12 @@ export declare class ChantLine extends ChantLayoutElement {
     /** a copy of the clef in effect at the start of the line */
     startingClef: Clef;
     custos: Custos | null;
+    /**
+     * the line break that ends the line when a clef comes just before it: the
+     * clef goes at the start of the next line instead, and the line break is
+     * left out of both lines
+     */
+    clefLineBreak: ChantLineBreak | null;
     justify: boolean | undefined;
     ledgerLines: LedgerLine[];
     braces: Array<RoundBraceVisualizer | CurlyBraceVisualizer>;
@@ -92,6 +99,18 @@ export declare class ChantLine extends ChantLayoutElement {
     alignHiddenAccidentals(): void;
     findNeumesToJustify(prevLyrics: Lyric[]): ChantNotationElement | null;
     getWhitespaceOnRight(ctxt?: ChantContext): number;
+    /**
+     * whether a Gregorio no-line-break or euouae area (gabc <nlba> or <eu>)
+     * keeps the score's notation at index on the same line as the one after it
+     */
+    keepsInArea(index: number): boolean;
+    /**
+     * whether the line, ending where it does now, gets an automatic custos: as
+     * the line break that ends it says (gabc z+ or z-), or else unless a
+     * euouae area (gabc <eu>) starts the next line, a [nocustos] is on the last
+     * note before the end of the line or ctxt.eolCustos is "manual"
+     */
+    wantsEolCustos(ctxt: ChantContext): boolean;
     justifyElements(ctxt: ChantContext, doJustify: boolean | undefined, condensableSpaces: CondensableSpaces): void;
     handleEndBrace(ctxt: ChantContext, note: BraceNote & {
         braceEnd?: BracePoint;

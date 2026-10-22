@@ -37,6 +37,23 @@ export class Accent extends GlyphVisualizer {
         this.setStaffPosition(ctxt, Math.max(this.note.staffPosition + 1, 2 * ctxt.staffLineCount));
     }
 }
+/**
+ * Gregorio's musica ficta (gabc r6, r7 and r8): a small flat, natural or
+ * sharp above the staff, or above the note if it's higher, as an accent is
+ */
+export class MusicaFicta extends Accent {
+    constructor(ctxt, note, glyphCode) {
+        super(ctxt, note, glyphCode);
+        this.scale = 0.75;
+        this.setGlyph(ctxt, glyphCode);
+    }
+    performLayout(ctxt) {
+        // centered on the note, with its bottom where an accent's is
+        this.bounds.x = this.note.bounds.x + (this.note.bounds.width - this.bounds.width) / 2;
+        this.bounds.y =
+            ctxt.calculateHeightFromStaffPosition(Math.max(this.note.staffPosition + 1, 2 * ctxt.staffLineCount)) - this.bounds.height;
+    }
+}
 // for positioning markings on notes
 export const HorizontalEpisemaAlignment = {
     Default: 0,

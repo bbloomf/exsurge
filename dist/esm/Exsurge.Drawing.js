@@ -26,6 +26,7 @@ import { getCssForProperties, Point, Rect } from "./Exsurge.Core.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import { language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
+import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
 import { makeLigature } from "./makeLigature.js";
 function getFontFilenameForProperties(properties = {}, url = "{}") {
@@ -427,6 +428,17 @@ export const TextMeasuringStrategy = {
     /** also used for fontkit */
     OpenTypeJS: 2
 };
+/**
+ * the special character (in ChantContext.specials) that a ~ in the lyrics
+ * becomes, for each LyricTie but "space", as Gregorio draws its lyric ties
+ * with the macros of <sp>ut</sp>, <sp>ot</sp> and <sp>dt</sp>
+ */
+export const LyricTieSpecials = {
+    space: null,
+    undertie: "ut",
+    overtie: "ot",
+    doubletie: "dt"
+};
 /*
  * ChantContext
  */
@@ -468,6 +480,20 @@ export class ChantContext {
             "+": "+",
             "*": "*"
         };
+        this.specials = {
+            "*": "*",
+            "+": "†",
+            // a zero-width hyphen
+            "-": "",
+            "\\": "\\",
+            "&": "&",
+            "#": "#",
+            "_": "_",
+            "%": "%",
+            ot: "⁀",
+            ut: "‿",
+            dt: "⁀‿"
+        };
         this.plusProperties = {};
         this.asteriskProperties = {};
         this.specialCharText = (char) => this.specialCharMap[char] || char;
@@ -478,6 +504,7 @@ export class ChantContext {
             ul: { "text-decoration": "underline" },
             c: { fill: this.rubricColor, class: 'rubric' },
             sc: { "font-variant": "small-caps" },
+            tt: { "font-family": "monospace" },
             v: {},
             e: { "font-style": "italic", "font-size": "90%" }
         };
@@ -512,7 +539,17 @@ export class ChantContext {
         // page theme needs to set this rather than style the paths from a
         // stylesheet.
         this.negativeFillColor = "#fff";
+        this.clefVisibility = "visible";
+        this.modeNumberSystem = "roman-majuscule";
         this.defaultLanguage = language.latin;
+        this.lyricCentering = "vowel";
+        this.italicMeansElision = true;
+        this.lyricTie = "space";
+        this.firstWordStyle = {};
+        this.firstSyllableStyle = {};
+        this.firstSyllableInitialStyle = {};
+        this.translationCentering = "left";
+        this.defaultProtrusionFactor = 1;
         // calculate the pixel ratio for drawing to a canvas
         this.pixelRatio =
             typeof window === 'undefined'
@@ -548,6 +585,8 @@ export class ChantContext {
         this.accidentalSpaceMultiplier = 2;
         // space added between puncta of different words, in multiples of this.intraNeumeSpacing
         this.interVerbalMultiplier = 1;
+        // the width of each space between neumes, in multiples of this.intraNeumeSpacing
+        this.neumeSpaceMultipliers = { "/0": 0.5, "/!": 1, "/": 1, "//": 2, " ": 2 };
         this.drawGuides = false;
         this.drawDebuggingBounds = true;
         // we keep track of where we are in processing notations, so that
@@ -571,11 +610,13 @@ export class ChantContext {
         // how much the default spacing can shrink. E.g., a value of 0.20 allows the layout
         // engine to separate two glyphs by only 80% of the normal inter-neume spacing value.
         this.condensingTolerance = 0.3;
+        this.eolCustos = "auto";
         // if auto color is true, then exsurge tries to automatically colorize
         // some elements of the chant (directives become rubric color, etc.)
         this.autoColor = true;
         this.useExtraTextOnly = true;
         this.noteIdPrefix = 'note-';
+        this.nabcLines = 0;
         this.insertFontsInDoc();
         this.setMergeAnnotationWithTextLeft(true);
     }
@@ -641,7 +682,7 @@ export class ChantContext {
      * document.fonts fires loadingdone, and at the start of a ChantScore layout
      * once a font has been added to or removed from document.fonts; call this
      * after changing fontStyleDictionary, specialCharProperties,
-     * asteriskProperties or plusProperties directly once text has been created,
+     * asteriskProperties, plusProperties or specials directly once text has been created,
      * or after any other change to the fonts that text is measured in (such as
      * replacing a face in document.fonts with another, which leaves its size
      * the same).
@@ -1179,6 +1220,7 @@ export class LineaVisualizer extends ChantLayoutElement {
 export class GlyphVisualizer extends ChantLayoutElement {
     constructor(ctxt, glyphCode) {
         super();
+        this.scale = 1;
         // setGlyph() sets the glyph just below
         this.glyph = null;
         this.setGlyph(ctxt, glyphCode);
@@ -1222,12 +1264,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
             }
             this.align = this.glyph.align;
         }
-        this.origin.x = this.glyph.origin.x * ctxt.glyphScaling;
-        this.origin.y = this.glyph.origin.y * ctxt.glyphScaling;
+        const glyphScaling = ctxt.glyphScaling * this.scale;
+        this.origin.x = this.glyph.origin.x * glyphScaling;
+        this.origin.y = this.glyph.origin.y * glyphScaling;
         this.bounds.x = 0;
         this.bounds.y = -this.origin.y;
-        this.bounds.width = this.glyph.bounds.width * ctxt.glyphScaling;
-        this.bounds.height = this.glyph.bounds.height * ctxt.glyphScaling;
+        this.bounds.width = this.glyph.bounds.width * glyphScaling;
+        this.bounds.height = this.glyph.bounds.height * glyphScaling;
     }
     setStaffPosition(ctxt, staffPosition) {
         this.bounds.y =
@@ -1238,12 +1281,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
         const porrectusNoteDiff = this.porrectusNoteDiff;
         var x = this.bounds.x + this.origin.x;
         var y = this.bounds.y + this.origin.y;
-        var scaleX = ctxt.glyphScaling;
-        var scaleY = ctxt.glyphScaling;
-        if (porrectusNoteDiff) {
+        var scaleX = ctxt.glyphScaling * this.scale;
+        var scaleY = ctxt.glyphScaling * this.scale;
+        // a porrectus is drawn taller by 1 / glyphMultiplier.  (unlike the svg's
+        // x and y, which are in the glyph's scaled units, the translation here
+        // comes before the scaling, so y isn't divided by it)
+        if (porrectusNoteDiff)
             scaleY /= ctxt.glyphMultiplier;
-            y /= scaleY;
-        }
         canvasCtxt.translate(x, y);
         canvasCtxt.scale(scaleX, scaleY);
         for (var i = 0; i < this.glyph.paths.length; i++) {
@@ -1302,6 +1346,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
         if (ctxt.scaleDefs === true) {
             result.x = this.bounds.x + this.origin.x;
             result.y = this.bounds.y + this.origin.y;
+            if (this.scale !== 1) {
+                result.transform = "scale(" + this.scale + ")";
+                result.x /= this.scale;
+                result.y /= this.scale;
+            }
             if (porrectusNoteDiff) {
                 // result.transform = "scale(" + (porrectusNoteDiff / (porrectusNoteDiff + 1)) + ")";
                 const scaleGlyph = 1 / ctxt.glyphMultiplier;
@@ -1310,12 +1359,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
             }
         }
         else {
+            const glyphScaling = ctxt.glyphScaling * this.scale;
             const scaleGlyph = porrectusNoteDiff
-                ? ctxt.glyphScaling / ctxt.glyphMultiplier
-                : ctxt.glyphScaling;
-            result.x = (this.bounds.x + this.origin.x) / ctxt.glyphScaling;
+                ? glyphScaling / ctxt.glyphMultiplier
+                : glyphScaling;
+            result.x = (this.bounds.x + this.origin.x) / glyphScaling;
             result.y = (this.bounds.y + this.origin.y) / scaleGlyph;
-            result.transform = "scale(" + ctxt.glyphScaling + "," + scaleGlyph + ")";
+            result.transform = "scale(" + glyphScaling + "," + scaleGlyph + ")";
         }
         return result;
     }
@@ -1662,6 +1712,24 @@ var __subsForTspans = {
     "<": "&lt;",
     ">": "&gt;"
 };
+// the markup in a TextElement's text (see generateSpansFromText()), and the
+// characters that Gregorio's $ escaped (see gabcEscapes.ts)
+const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
+// Gregorio's commands for the symbols in its greextra font (from its
+// gregoriotex-symbols.tex), by their names in lower case
+const __greextraCommands = {
+    grecross: "Cross",
+    grealtcross: "Cross.alt",
+    gredagger: "Dagger",
+    greheightstar: "StarHeight",
+    gresixstar: "StarSix",
+    grestar: "StarSix",
+    gothrbar: "RWithBarGoth",
+    gothvbar: "VWithBarGoth"
+};
+// TeX commands whose arguments aren't text to show: spacing, colors and
+// labels, and Gregorio's own commands
+const __texCommandsWithoutText = /^(?:gre|[hv]space$|[hv]skip$|kern$|rule$|[hv]?phantom$|color$|label$|(?:set|addto)length$)/i;
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
     constructor(ctxt, text, fontFamily, fontSize, textAnchor, sourceIndex, sourceGabc, 
@@ -1679,7 +1747,7 @@ export class TextElement extends ChantLayoutElement {
         this.fontSize = fontSize;
         this.textAnchor = textAnchor;
         this.sourceIndex = sourceIndex;
-        this.sourceGabc = sourceGabc;
+        this.sourceGabc = sourceGabc === undefined ? sourceGabc : restoreEscapes(sourceGabc);
         this.dominantBaseline = "baseline"; // default placement
         if (textType)
             this.textType = textType;
@@ -1730,13 +1798,17 @@ export class TextElement extends ChantLayoutElement {
                 newLineInNextSpan = 0;
             }
         };
-        var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
-        var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
+        var markupRegex = new RegExp(markupRegexSource, "gi");
+        // in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
+        // {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped
+        // character, a command with its arguments, or a brace, which is left out
+        // unless it's one of the others (a command's {arguments} may be read again)
+        var vTagRegex = /\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?|\\'\{?([æœaeiouy])\}?|\\([a-z@]+)\*?((?:\s*(?:\[[^\]]*\]|\{(?:[^{}]|\{[^{}]*\})*\}))*)|\\([&%$#_{}])|[{}]/gi;
         var match = null;
         var openedAsterisk = false;
         var closeCurrentSpan = () => closeSpan(text.substring(spanStartIndex, match.index), spanStartIndex);
         while ((match = markupRegex.exec(text))) {
-            var [, newLine, vTag, asterisk, plus, tilde, accent, vowelLigature, specialChar, specialChar2, specialChar3, markupSymbol, closingTag, tagName, family, fill, cssClass, enclosedText] = match;
+            var [, newLine, vTag, asterisk, plus, tilde, accent, vowelLigature, specialChar, specialChar2, specialChar3, markupSymbol, closingTag, tagName, family, fill, cssClass, enclosedText, special, escaped] = match;
             specialChar = specialChar || specialChar2 || specialChar3;
             // non-matching symbols first
             if (newLine) {
@@ -1757,7 +1829,7 @@ export class TextElement extends ChantLayoutElement {
                         closeSpan(vTag.slice(lastIndex, vMatch.index), match.index + lastIndex + iOffset);
                         iOffset = 3; // length of '<v>'
                     }
-                    let [, grecross, greextra, accent, diphthong] = vMatch;
+                    let [, greextra, accent, diphthong, accentedVowel, command, args, escaped] = vMatch;
                     let char = '';
                     if (diphthong) {
                         char = makeLigature(diphthong);
@@ -1765,13 +1837,28 @@ export class TextElement extends ChantLayoutElement {
                             char = addAccent(char);
                         closeSpan(char, match.index + vMatch.index + iOffset);
                     }
+                    else if (accentedVowel) {
+                        closeSpan(addAccent(accentedVowel), match.index + vMatch.index + iOffset);
+                    }
+                    else if (escaped) {
+                        closeSpan(escaped, match.index + vMatch.index + iOffset);
+                    }
                     else {
-                        if (grecross) {
-                            // grecross is just the command for the Cross:
-                            // set up greextra so it will get handled with it below:
-                            greextra = 'Cross';
+                        if (command) {
+                            // \greextra{Name}, or one of Gregorio's commands for a symbol
+                            // (e.g. \grecross for the Cross)
+                            greextra = /^greextra$/i.test(command)
+                                ? (/\{([^{}]*)\}/.exec(args) || [])[1]
+                                : __greextraCommands[command.toLowerCase()];
+                            // any other command is left out, but the text of its {arguments}
+                            // is read again (e.g. the x of \textit{x}), unless it has none
+                            let braceIndex = args.indexOf("{");
+                            if (!greextra &&
+                                braceIndex >= 0 &&
+                                !__texCommandsWithoutText.test(command))
+                                vTagRegex.lastIndex -= args.length - braceIndex;
                         }
-                        char = greextraGlyphs[greextra];
+                        char = greextra && greextraGlyphs[greextra];
                         if (char) {
                             closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' });
                         }
@@ -1817,6 +1904,24 @@ export class TextElement extends ChantLayoutElement {
                     ctxt.specialCharText(specialChar) +
                     ctxt.textAfterSpecialChar, match.index, ctxt.specialCharProperties);
             }
+            else if (escaped) {
+                // a character that Gregorio's $ escaped (see gabcEscapes.ts)
+                closeCurrentSpan();
+                closeSpan(unescapeText(escaped), match.index);
+            }
+            else if (special !== undefined) {
+                // the rest of Gregorio's specials
+                closeCurrentSpan();
+                let specialText = Object.prototype.hasOwnProperty.call(ctxt.specials, special)
+                    ? ctxt.specials[special]
+                    : special;
+                if (specialText === "*")
+                    closeSpan(ctxt.specialCharText("*") || "*", match.index, ctxt.asteriskProperties);
+                else if (specialText === "+")
+                    closeSpan(ctxt.specialCharText("+") || "+", match.index, ctxt.plusProperties);
+                else
+                    closeSpan(specialText, match.index);
+            }
             else {
                 // otherwise we're dealing with matching markup delimeters
                 if (markupSymbol === "*") {
@@ -1842,11 +1947,13 @@ export class TextElement extends ChantLayoutElement {
                 }
                 if (markupStack.length > 0 &&
                     markupStack[markupStack.length - 1].tagName === tagName) {
-                    if (closingTag) {
-                        // group close
-                        closeCurrentSpan();
+                    // (a tag opened again inside itself, e.g. <i> in a translation,
+                    // which is already in italics, changes nothing, but the text
+                    // before it is kept)
+                    closeCurrentSpan();
+                    // group close
+                    if (closingTag)
                         markupStack.pop();
-                    }
                 }
                 else if (markupStack.filter(filterFrames).length > 0) {
                     // trying to open a recursive group (or forgot to close a previous group)
@@ -2394,7 +2501,8 @@ export const LyricArray = {
         }
         return x;
     },
-    getRight: function (lyricArray, presumeConnectorNeeded) {
+    /** (lessProtrusion leaves out how far each lyric may go past the end of the staff) */
+    getRight: function (lyricArray, presumeConnectorNeeded, lessProtrusion) {
         if (lyricArray.length === 0)
             return NaN;
         var x = Number.MIN_VALUE;
@@ -2409,7 +2517,8 @@ export const LyricArray = {
                         !l.preventConnector &&
                         !l.needsConnector
                         ? l.getConnectorWidth()
-                        : 0));
+                        : 0) -
+                    (lessProtrusion ? l.protrusionWidth || 0 : 0));
         }
         return x;
     },
@@ -2574,25 +2683,39 @@ export class Lyric extends TextElement {
                         .match(/[a-záéíóúýäëïöüÿàèìòùỳāēīōūȳăĕĭŏŭ]/i)) {
                     startIndex = 0;
                 }
-                // find indices of e tags to ignore when finding vowel segment:
-                var ignore = [];
+                // elisions (<e> tags) count as consonants when finding the vowel
+                // segment, so one at the start is skipped and any later one ignored:
+                var textStartIndex = startIndex;
+                var elisions = [];
                 let index = 0;
-                let indexOffset = startIndex;
                 for (var span of this.spans) {
                     let endIndex = index + span.text.length;
-                    if (span.activeTags.includes('e')) {
+                    if (span.activeTags.includes('e') && endIndex > startIndex) {
                         if (index <= startIndex) {
                             startIndex = endIndex;
                         }
                         else {
-                            ignore.push({ index: index - indexOffset, endIndex: endIndex - indexOffset });
+                            elisions.push({ index, endIndex });
                         }
                     }
                     index = endIndex;
                 }
+                // (findVowelSegment counts the ranges from startIndex)
+                var ignore = elisions.map((range) => ({
+                    index: range.index - startIndex,
+                    endIndex: range.endIndex - startIndex
+                }));
                 // Non-directive elements are lined up to the chant notation based on vowel segments,
-                var result = activeLanguage.findVowelSegment(this.text, startIndex, ignore);
+                // or (as ctxt.lyricCentering says) on the whole syllable or its first letter
+                var result = ctxt.lyricCentering === "syllable"
+                    ? { found: true, startIndex: 0, length: this.text.length }
+                    : ctxt.lyricCentering === "firstletter"
+                        ? { found: true, startIndex: 0, length: Array.from(this.text)[0].length }
+                        : activeLanguage.findVowelSegment(this.text, startIndex, ignore);
                 if (result.found !== true) {
+                    // with no vowel, center on the syllable's letters, elisions and all
+                    // (as Gregorio centers a syllable with no vowel as a whole)
+                    startIndex = textStartIndex;
                     var match = this.text.slice(startIndex).match(/[a-z]+/i);
                     if (match) {
                         result.startIndex = startIndex + match.index;
@@ -2617,6 +2740,26 @@ export class Lyric extends TextElement {
             }
         }
         this.vowelSegmentWidth = vowelSegmentWidth;
+        // the width of the text after a <pr>, times how much of it may protrude,
+        // unless a connector would follow it (which Gregorio doesn't protrude)
+        this.protrusionWidth = 0;
+        // (the drop cap took the first letter of the text that the index counts in)
+        let protrusionIndex = this.protrusion
+            ? Math.max(0, this.protrusion.textIndex - (this.dropCap ? 1 : 0))
+            : 0;
+        if (this.protrusion &&
+            protrusionIndex < this.text.length &&
+            !(this.allowsConnector() && !this.preventConnector)) {
+            let factor = this.protrusion.factor;
+            if (factor === undefined)
+                factor = ctxt.defaultProtrusionFactor;
+            let start = ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
+                ? // svgTextMeasurer still has the current lyric in it...
+                    ctxt.svgTextMeasurer.firstChild.getSubStringLength(0, protrusionIndex)
+                : this.measureSubstring(ctxt, protrusionIndex);
+            this.protrusionWidth =
+                Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
+        }
         this.bounds.x = -offset;
         this.bounds.y = 0;
         this.origin.x = offset;
@@ -2646,6 +2789,79 @@ export class Lyric extends TextElement {
         this.text = this.text.slice(1);
         this.centerStartIndex--; // lost a letter, so adjust centering accordingly
         return dropCap;
+    }
+    /**
+     * Gives the lyric the styles of the score's first word (part "word"), or of
+     * its first syllable ("syllable", which also styles the first letter after
+     * any drop cap), from ChantContext.firstWordStyle and so on, or takes them
+     * away (null).  Returns whether the lyric's spans changed.
+     */
+    setFirstWordStyles(ctxt, part) {
+        const hasProperties = (style) => !!style && Object.keys(style).length > 0;
+        let styles = [], initialStyle = null;
+        if (part) {
+            styles = [ctxt.firstWordStyle];
+            if (part === "syllable") {
+                styles.push(ctxt.firstSyllableStyle);
+                initialStyle = ctxt.firstSyllableInitialStyle;
+            }
+            styles = styles.filter(hasProperties);
+            if (initialStyle && !hasProperties(initialStyle))
+                initialStyle = null;
+        }
+        const applied = this.firstWordStyles || [];
+        if (applied.length === styles.length + 1 &&
+            styles.every((style, i) => applied[i] === style) &&
+            applied[styles.length] === initialStyle)
+            return false;
+        if (!applied.length && !styles.length && !initialStyle)
+            return false;
+        if (applied.length) {
+            // start again from the lyric as it was parsed (less its drop cap), which
+            // was before it had a drop cap, so without its empty spans
+            const dropCap = this.dropCap;
+            this.dropCap = null;
+            this.generateSpansFromText(ctxt, (ctxt.textStyles.lyric.prefix || "") + this.originalText);
+            this.dropCap = dropCap;
+            if (this.dropCap) {
+                this.spans[0].text = this.spans[0].text.slice(1);
+                this.text = this.text.slice(1);
+            }
+        }
+        this.firstWordStyles =
+            styles.length || initialStyle ? [...styles, initialStyle] : undefined;
+        if (!this.firstWordStyles)
+            return true;
+        // the lyric's own markup goes last, so that it wins
+        let spans = [];
+        for (let span of this.spans) {
+            if (span === this.connectorSpan)
+                continue;
+            let propertyArray = [...styles, ...span.propertyArray];
+            if (initialStyle && span.text) {
+                // the first letter gets a span of its own
+                const initial = Array.from(span.text)[0];
+                const initialSpan = span.clone();
+                initialSpan.text = initial;
+                initialSpan.propertyArray = [...styles, initialStyle, ...span.propertyArray];
+                spans.push(initialSpan);
+                initialStyle = null;
+                if (span.text.length === initial.length)
+                    continue;
+                span = span.clone();
+                span.text = span.text.slice(initial.length);
+                span.index += initial.length;
+                delete span.newLine;
+                delete span.wrappedSpace;
+            }
+            else {
+                span = span.clone();
+            }
+            span.propertyArray = propertyArray;
+            spans.push(span);
+        }
+        this.spans = spans;
+        return true;
     }
     getCssClasses() {
         var classes = this.lyricType === LyricType.Directive ? "directive " : "";

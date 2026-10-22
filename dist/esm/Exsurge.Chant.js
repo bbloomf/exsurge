@@ -172,7 +172,32 @@ export class Clef extends ChantNotationElement {
                 this.visualizers[0].bounds.right() + ctxt.intraNeumeSpacing;
             this.addVisualizer(accidentalGlyph);
         }
+        if (this.secondClef)
+            this.addSecondClef(ctxt);
         super.finishLayout(ctxt);
+    }
+    // takes the glyphs away after a layout, for ctxt.clefVisibility: an
+    // invisible clef has no width, and a phantom one keeps its width
+    hide(ctxt) {
+        this.visualizers = [];
+        if (ctxt.clefVisibility === "invisible")
+            this.bounds.width = 0;
+    }
+    // adds the glyphs of the second clef, placed as Gregorio places them
+    // (gre@boxclef in gregoriotex-signs.tex): clefs two or more lines apart
+    // start at the same x, and clefs on the same or neighboring lines go one
+    // after the other
+    addSecondClef(ctxt) {
+        var secondClef = this.secondClef;
+        secondClef.performLayout(ctxt);
+        ctxt.activeClef = this;
+        var x = Math.abs(secondClef.staffPosition - this.staffPosition) > 2
+            ? 0
+            : this.bounds.right() + ctxt.intraNeumeSpacing;
+        for (var visualizer of secondClef.visualizers) {
+            visualizer.bounds.x += x;
+            this.addVisualizer(visualizer);
+        }
     }
     static default() {
         return __defaultDoClef;
@@ -183,6 +208,8 @@ export class Clef extends ChantNotationElement {
         let clone = new this.constructor(this.staffPosition, this.octave, this.defaultAccidental);
         clone.small = this.small;
         clone.sans = this.sans;
+        // (a copy, since laying a clef out lays its second clef out too)
+        clone.secondClef = this.secondClef && this.secondClef.clone();
         clone.sourceGabc = this.sourceGabc;
         clone.sourceIndex = this.sourceIndex;
         clone.elementIndex = this.elementIndex;
@@ -282,18 +309,21 @@ export class ChiRhoClef extends Clef {
         this.leadingSpace = 0;
         this.sans = sans;
     }
-    // TODO: actually handle this correctly?
+    // the pitches of a Chi-Rho clef are chromatic: its line is Do, and each line is a
+    // minor third above the one below it. A space holds the two half steps between its
+    // lines, the lower at its bottom (gabc 0 after the space, or 9 after the line below)
+    // and the upper at its top (9 after the space, or 0 after the line above), so going
+    // from a line to the space above it is a half step and a half. The middle of a space
+    // is never used: a note on a space with neither 0 nor 9 is at its bottom.
     pitchToStaffPosition(pitch) {
-        return ((pitch.octave - this.octave) * 7 +
-            this.staffPosition +
-            Pitch.stepToStaffOffset(pitch.step) -
-            Pitch.stepToStaffOffset(Step.Do));
+        var halfSteps = (pitch.octave - this.octave) * 12 + pitch.step;
+        return this.staffPosition + (halfSteps * 2) / 3;
     }
-    // TODO: actually handle this correctly?
     staffPositionToPitch(staffPosition) {
-        var offset = staffPosition - this.staffPosition;
-        var octaveOffset = Math.floor(offset / 7);
-        var step = Pitch.staffOffsetToStep(offset);
+        // the middle of a space (where an accidental is) is rounded down to the bottom of the space
+        var halfSteps = Math.ceil(((staffPosition - this.staffPosition) * 3) / 2 - 0.5);
+        var octaveOffset = Math.floor(halfSteps / 12);
+        var step = halfSteps - octaveOffset * 12;
         if (this.activeAccidental &&
             this.activeAccidental.staffPosition === staffPosition)
             step += this.activeAccidental.accidentalType;
@@ -328,10 +358,11 @@ export class TextOnly extends ChantNotationElement {
     }
 }
 export class ChantLineBreak extends ChantNotationElement {
-    constructor(justify) {
+    constructor(justify, custos = "auto") {
         super();
         this.calculatedTrailingSpace = this.trailingSpace = 0;
         this.justify = justify;
+        this.custos = custos;
     }
     performLayout(ctxt) {
         // reset the bounds before doing a layout
@@ -340,6 +371,7 @@ export class ChantLineBreak extends ChantNotationElement {
     clone() {
         var lb = new ChantLineBreak();
         lb.justify = this.justify;
+        lb.custos = this.custos;
         return lb;
     }
 }
@@ -516,6 +548,7 @@ export class ChantScore {
             this.recreateDropCap(ctxt);
         else
             this.dropCap = null;
+        this.updateFirstWordStyles(ctxt);
         this.needsLayout = true;
     }
     recreateDropCap(ctxt) {
@@ -527,17 +560,55 @@ export class ChantScore {
                 this.notations[i].lyrics[0].spans &&
                 this.notations[i].lyrics[0].spans.length) {
                 let notation = this.notations[i], lyrics = notation.lyrics[0];
+                // a new drop cap is taken from the lyric without the first word's styles
+                if (!this.useDropCap || !lyrics.dropCap)
+                    lyrics.setFirstWordStyles(ctxt, null);
                 if (this.useDropCap) {
                     this.dropCap = lyrics.generateDropCap(ctxt);
                 }
                 else {
+                    // give the lyric back the letter that its drop cap took
+                    if (lyrics.dropCap) {
+                        lyrics.sourceIndex -= lyrics.dropCap.sourceGabc.length;
+                        lyrics.sourceGabc = lyrics.dropCap.sourceGabc + lyrics.sourceGabc;
+                        lyrics.centerStartIndex++;
+                    }
                     lyrics.dropCap = null;
                     lyrics.generateSpansFromText(ctxt, lyrics.originalText);
                 }
                 notation.needsLayout = true;
+                this.updateFirstWordStyles(ctxt);
                 return;
             }
         }
+    }
+    /**
+     * Gives the lyrics of the first word ctxt.firstWordStyle, and the first
+     * syllable (after any drop cap) ctxt.firstSyllableStyle and
+     * ctxt.firstSyllableInitialStyle, taking them from any lyrics that had them
+     * but are no longer the first word.
+     */
+    updateFirstWordStyles(ctxt) {
+        const lyrics = [];
+        for (const notation of this.notations) {
+            const lyric = notation.hasLyrics() ? notation.lyrics[0] : null;
+            if (!lyric || !lyric.spans || !lyric.spans.length)
+                continue;
+            lyrics.push(lyric);
+            // the first word ends with its last syllable (or a directive)
+            if (lyric.lyricType !== LyricType.BeginningSyllable &&
+                lyric.lyricType !== LyricType.MiddleSyllable)
+                break;
+        }
+        for (const lyric of this.firstWordLyrics || []) {
+            if (!lyrics.includes(lyric) && lyric.setFirstWordStyles(ctxt, null))
+                lyric.notation.needsLayout = true;
+        }
+        lyrics.forEach((lyric, i) => {
+            if (lyric.setFirstWordStyles(ctxt, i === 0 ? "syllable" : "word"))
+                lyric.notation.needsLayout = true;
+        });
+        this.firstWordLyrics = lyrics;
     }
     /**
      * Shared layout initialization method for performLayout() and performLayoutAsync()
@@ -699,6 +770,7 @@ export class ChantScore {
     }
     layoutChantLines(ctxt, width, finishedCallback) {
         this.lines = [];
+        this.keptInAreas = null;
         ctxt.noticeFontChanges();
         if (ctxt.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
             let annotation = this.annotation, annotationSpans = annotation.annotations
@@ -730,7 +802,8 @@ export class ChantScore {
         var firstLine = this.lines[0];
         this.bounds.x = 0;
         this.bounds.y = 0;
-        this.bounds.width = firstLine.bounds.width;
+        // (a line is wider than the first when a lyric protrudes past its staff)
+        this.bounds.width = Math.max(...this.lines.map((line) => line.bounds.width));
         this.bounds.height = y - spaceBetweenSystems;
         this.pages = [this];
         if (this.selection) {
