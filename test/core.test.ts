@@ -600,3 +600,23 @@ describe("Gregorio bars, line breaks and spacing codes", function() {
     );
   });
 });
+
+describe("Gregorio brace lengths", function() {
+  it("draws a brace given a length in any TeX unit, and reads the length in staff intervals", function() {
+    const braces = parseNotations(
+      "(c4) a(f[ob:1;6mm]g) b(f[ub:1;0.3in]g) c(f[ocb:1;10pt]g) d(f[ob:0;1,5cm]g) e(f[ob:0;-2em]g) " +
+        "f(f[ob:0;267750sp]g) g(f[ob:0;\\gre@dimen]g) h(f[ob:0;]g)"
+    ).flatMap((notation) => (notation.notes || []).map((note) => note.braceStart));
+    // (a staff interval at Gregorio's default staff size is 267750sp)
+    const expected = [4.178554198372262, 5.306763831932773, 2.44765639589169, 10.446385495930656, -4.89531279178338, 1];
+    expected.forEach((length, i) => {
+      const brace = braces[i * 2]!;
+      assert.ok(brace.automatic);
+      assert.ok(Math.abs(brace.length! - length) < 1e-9, `${brace.length} should be ${length}`);
+    });
+    // a length that isn't one exsurge can read still draws the brace, and an empty one doesn't
+    assert.ok(braces[12]!.automatic);
+    assert.strictEqual(braces[12]!.length, undefined);
+    assert.strictEqual(braces[14], undefined);
+  });
+});

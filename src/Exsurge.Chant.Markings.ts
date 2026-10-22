@@ -470,6 +470,12 @@ export class BracePoint extends ChantLayoutElement {
   attachment: BraceAttachment;
   /** whether the brace was given a length (rather than an end), so the next note ends it */
   automatic?: boolean;
+  /**
+   * the length the brace was given (gabc [ob:0;6mm] and the like), in staff
+   * intervals at Gregorio's default staff size, if it's a TeX length that
+   * exsurge can read.  The brace still ends at the next note.
+   */
+  length?: number;
   /** the index of the notation that the brace starts at */
   notationIndex?: number;
 

@@ -159,8 +159,39 @@ var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])
 //  2. b, cb, or cba, to indicate the brace type
 //  3. 0 or 1 to indicate the attachment point
 //  4. { or } to indicate opening/closing (this group will be null if the metric version is used)
-//  5. a float indicating the millimeter length of the brace (not supported yet)
-var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;(\d*(?:\.\d+)?)mm)/;
+//  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
+var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
+// a TeX length: a number (with TeX's . or , for the decimal point) and a unit
+var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*([a-z]{2})\s*$/;
+// TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
+var __texUnits: { [unit: string]: number } = {
+  sp: 1,
+  pt: 65536,
+  bp: (65536 * 72.27) / 72,
+  pc: 65536 * 12,
+  in: 65536 * 72.27,
+  cm: (65536 * 72.27) / 2.54,
+  mm: (65536 * 72.27) / 25.4,
+  dd: (65536 * 1238) / 1157,
+  cc: (65536 * 12 * 1238) / 1157,
+  em: 65536 * 10,
+  ex: 65536 * 4.30554
+};
+// a staff interval (from a line to the next space) in scaled points at
+// Gregorio's default staff size, \gre@factor 17: half the distance between
+// lines, (\gre@dimen@interstafflinedistancebase + \gre@dimen@stafflinethicknessbase) * 17
+var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
+
+// a TeX length in staff intervals at Gregorio's default staff size, or
+// undefined if it isn't a length exsurge can read (TeX can take a macro)
+function texLengthToStaffIntervals(length: string) {
+  var results = length.match(__texLengthRegex);
+  if (!results || !__texUnits.hasOwnProperty(results[2])) return undefined;
+  return (
+    (Number(results[1].replace(",", ".")) * __texUnits[results[2]]) /
+    __gregorioStaffIntervalInSp
+  );
+}
 
 const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
@@ -3084,6 +3115,7 @@ export class Gabc {
     // just have the next note end a brace that uses length;
     if (results[5]) {
       note.braceStart!.automatic = true;
+      note.braceStart!.length = texLengthToStaffIntervals(results[5]);
       this.needToEndBrace = note.braceStart;
     }
   }

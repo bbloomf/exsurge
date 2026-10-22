@@ -610,6 +610,14 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(dv) b(dv[ll:1]) c(dv[ll:0]) d(dv[ll:0][ll:1]) e(c_0) f(c_0[ll:1]) g(dc_0[ll:1]) h(k_) " +
       "i(k_[hl:1]) j(dO[ll:0]) k(dO) (::)"
+  },
+  {
+    // a brace given a length in any TeX unit is drawn, as one in mm (e) is:
+    // to the next note
+    name: "brace-units",
+    gabc:
+      "(c4) a(f[ob:0;0.5cm]g) b(g[ub:1;0.3in]h) c(f[ocb:1;10pt]gh) d(h[ocba:0;1,5em]g) e(f[ob:1;6mm]g) " +
+      "f(f[ob:1;\\gre@dimen]g) (::)"
   }
 ];
 
