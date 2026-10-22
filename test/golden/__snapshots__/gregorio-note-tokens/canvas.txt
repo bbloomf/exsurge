@@ -43,7 +43,7 @@ fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px F
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,153.125,27.500000000000004]
 fillText("f", 0.569, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,150,58.75]
 fill(Path2D(Quilisma[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,159.375,21.25]
-fill(Path2D(Porrectus1[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,165.625,-641.25]
+fill(Path2D(Porrectus1[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,165.625,15]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,184.5215,15]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,190.7715,21.25]
 fill(Path2D(PunctumQuadratumLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,204.834,27.500000000000004]

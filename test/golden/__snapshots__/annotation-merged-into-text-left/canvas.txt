@@ -25,7 +25,7 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875
 fillText("KY", -7.8622, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,72.358]
 fillText("-", -7.8622, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,27.1665,72.358]
 fillRect(0, -25, 0.8, 9.756761363636363) [fillStyle="#000" matrix=1,0,0,1,29.974499999999995,72.358]
-fill(Path2D(Porrectus1[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,33.09949999999999,-327.642]
+fill(Path2D(Porrectus1[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,33.09949999999999,47.358000000000004]
 fill(Path2D(PodatusUpperShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,48.870999999999995,47.358000000000004]
 fillText("ri", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,29.974499999999995,72.358]
 fillText("-", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,42.1425,72.358]

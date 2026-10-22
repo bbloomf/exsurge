@@ -2069,10 +2069,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
     var y = this.bounds.y + this.origin.y;
     var scaleX = ctxt.glyphScaling * this.scale;
     var scaleY = ctxt.glyphScaling * this.scale;
-    if (porrectusNoteDiff) {
-      scaleY /= ctxt.glyphMultiplier;
-      y /= scaleY;
-    }
+    // a porrectus is drawn taller by 1 / glyphMultiplier.  (unlike the svg's
+    // x and y, which are in the glyph's scaled units, the translation here
+    // comes before the scaling, so y isn't divided by it)
+    if (porrectusNoteDiff) scaleY /= ctxt.glyphMultiplier;
     canvasCtxt.translate(x, y);
     canvasCtxt.scale(scaleX, scaleY);
 
