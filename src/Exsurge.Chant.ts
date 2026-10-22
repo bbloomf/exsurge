@@ -136,6 +136,20 @@ export class Note extends ChantLayoutElement {
   alText?: AboveLinesText;
   /** the number of stems of a punctum inclinatum (gabc |) */
   inclinataFlags?: number;
+  /**
+   * Gregorio's shape hints for the neume the note ends (gabc [shape:…]), as
+   * a list separated by commas.  The one there is, stroke, draws a clivis as
+   * the stroke a porrectus starts with.
+   */
+  shapeHint?: string;
+  /**
+   * Gregorio's ledger-line hint below the note (gabc [ll:1] or [ll:0]):
+   * whether to draw its virga stem and place its episemata as if there were
+   * a ledger line below it, whatever ledger lines there are
+   */
+  lowLedgerLine?: boolean;
+  /** the same above the note (gabc [hl:1] or [hl:0]), for its episemata */
+  highLedgerLine?: boolean;
   /** leaves out the custos of a line that breaks after the note (gabc [nocustos]) */
   noCustos?: boolean;
   /**
@@ -144,8 +158,8 @@ export class Note extends ChantLayoutElement {
    */
   noCustosBefore?: boolean;
 
-  // Gregorio's notation that's read but not drawn yet (see
-  // docs/gregorio-feature-gap.md, Phase 1)
+  // Gregorio's notation read since Phase 1 of docs/gregorio-feature-gap.md,
+  // not all of it drawn yet
   /** a bracket (gabc [[) starts at the note */
   bracketStart?: boolean;
   /** a bracket (gabc ]]) ends at the note */
@@ -169,20 +183,6 @@ export class Note extends ChantLayoutElement {
   quilismaQuadratum?: boolean;
   /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
   leaning?: InclinatumLeaning;
-  /**
-   * Gregorio's shape hints for the neume the note ends (gabc [shape:…]), as
-   * a list separated by commas.  The one there is, stroke, draws a clivis as
-   * the stroke a porrectus starts with.
-   */
-  shapeHint?: string;
-  /**
-   * Gregorio's ledger-line hints (gabc [ll:1] or [ll:0], and [hl:1] or
-   * [hl:0]): whether to draw the note's virga stem and place its episemata
-   * as if there were a ledger line below (or above) it, or as if there
-   * weren't, whatever ledger lines there are
-   */
-  lowLedgerLine?: boolean;
-  highLedgerLine?: boolean;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;

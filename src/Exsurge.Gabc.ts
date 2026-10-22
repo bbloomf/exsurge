@@ -2633,8 +2633,8 @@ export class Gabc {
       // a new neume, as in Gregorio
       if ((currNote.linea || currNote.quadratum) && state !== unknownState)
         state = createNeume(state.neume(), false);
-      // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
       else
+        // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
         state = state.handle(
           currNote,
           prevNote!,
