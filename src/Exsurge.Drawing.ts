@@ -747,8 +747,9 @@ export interface TextStyle {
   color?: string;
   /**
    * The distance from one line to the next, in ems: between the lines of a
-   * text with line breaks in it, and, for lyrics, translations and above
-   * lines text, between the lines that ChantLine lays them out on.
+   * text with line breaks in it; for lyrics, translations and above lines
+   * text, between the lines that ChantLine lays them out on; and, for
+   * annotations, between the annotations of an Annotations.
    * Defaults to 1.1
    */
   lineHeight?: number;
@@ -4709,7 +4710,11 @@ export class Annotation extends TextElement {
 }
 
 export class Annotations extends ChantLayoutElement {
-  lineHeight: number;
+  /**
+   * the distance from one annotation to the next, in ems, if it's not the
+   * annotation text style's lineHeight
+   */
+  lineHeight?: number;
   annotations: Annotation[];
   padding: number;
 
@@ -4719,7 +4724,6 @@ export class Annotations extends ChantLayoutElement {
   constructor(ctxt: ChantContext, ...texts: string[]) {
     super();
 
-    this.lineHeight = 1.1;
     this.annotations = texts.map(function (text, i) {
       return new Annotation(ctxt, text, i);
     });
@@ -4758,7 +4762,7 @@ export class Annotations extends ChantLayoutElement {
       annotation.bounds.y += y;
       this.bounds.height = annotation.bounds.bottom();
       this.origin.y = this.origin.y || annotation.origin.y;
-      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * this.lineHeight;
+      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * (this.lineHeight || annotation.lineSpacing(ctxt));
     }
   }
 

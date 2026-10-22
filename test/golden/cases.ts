@@ -799,6 +799,15 @@ export const settingCases: GoldenCase[] = [
     setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br>ánimam meam")
   },
   {
+    // annotations are as far apart as the annotation text style's line height
+    name: "annotation-line-height",
+    outputs: allOutputs,
+    gabc: kyrie,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.textStyles.annotation.lineHeight = 1.6),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.", "VIII", "g"))
+  },
+  {
     name: "special-character-settings",
     gabc: featureCases.find((c) => c.name === "special-characters")!.gabc,
     setupContext: (ctxt) => {
