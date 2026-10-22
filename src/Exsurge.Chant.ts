@@ -161,7 +161,7 @@ export class Note extends ChantLayoutElement {
   fused?: boolean;
   /** whether an automatic fusion (gabc @[…]) starts or ends at the note */
   autoFusion?: AreaBoundary;
-  /** a linea (gabc =), drawn as a punctum for now */
+  /** a linea (gabc =), a flat bar between two lines, a neume of its own */
   linea?: boolean;
   /** the first note of a pes quadratum (gabc q) */
   quadratum?: boolean;

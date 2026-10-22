@@ -2222,7 +2222,9 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote) {
-        if (currNote.shape === NoteShape.Virga) return virgaState;
+        // a linea (gabc =) is a neume of its own, whatever its shape
+        if (currNote.linea) return createNeume(new Neumes.Punctum(), true);
+        else if (currNote.shape === NoteShape.Virga) return virgaState;
         else if (currNote.shape === NoteShape.Stropha) return apostrophaState;
         else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
         else if (currNote.shape === NoteShape.Inclinatum)
@@ -2596,8 +2598,9 @@ export class Gabc {
       var prevNote = currNoteIndex > 0 ? notes[currNoteIndex - 1] : null;
       var currNote = notes[currNoteIndex];
 
-      // the lower note of a pes quadratum (gabc q) starts a new neume, as in Gregorio
-      if (currNote.quadratum && state !== unknownState)
+      // a linea (gabc =) and the lower note of a pes quadratum (gabc q) start
+      // a new neume, as in Gregorio
+      if ((currNote.linea || currNote.quadratum) && state !== unknownState)
         state = createNeume(state.neume(), false);
       // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
       else

@@ -112,7 +112,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
     var y = 0,
       step;
     var minDistanceAway = ctxt.staffInterval * 0.25; // min distance from neume
-    var glyphCode = this.note.glyphVisualizer!.glyphCode;
+    // (a linea's note has no glyph, as a porrectus's second note hasn't, but its bounds are its bar's)
+    var glyphCode = this.note.linea ? GlyphCode.PunctumQuadratum : this.note.glyphVisualizer!.glyphCode;
     var ledgerLine: { staffPosition?: number } = this.note.neume!.ledgerLines[0] || {};
     var punctumInclinatumShorten = false;
 
@@ -279,7 +280,8 @@ export class Ictus extends GlyphVisualizer {
   }
 
   performLayout(ctxt: ChantContext) {
-    var glyphCode = this.note.glyphVisualizer!.glyphCode;
+    // (a linea's note has no glyph, as a porrectus's second note hasn't, but its bounds are its bar's)
+    var glyphCode = this.note.linea ? GlyphCode.PunctumQuadratum : this.note.glyphVisualizer!.glyphCode;
     // we have to place the ictus further from the note in some cases to avoid a collision with an episema on the same note:
     var positionHint = this.positionHint || MarkingPositionHint.Below;
     var staffPosition =

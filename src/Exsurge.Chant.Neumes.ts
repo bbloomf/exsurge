@@ -215,6 +215,32 @@ class NeumeBuilder {
     return this;
   }
 
+  // adds a linea (gabc =), a flat bar between two lines, as Gregorio's Linea
+  // glyph is.  the note itself has no glyph, but it has the bar's bounds,
+  // which its markings go by
+  lineaAt(note: Note) {
+    note.setGlyph(this.ctxt, GlyphCode.None);
+
+    var linea = new LineaVisualizer(this.ctxt, note, true);
+    linea.bounds.x = this.x;
+    this.neume.addVisualizer(linea);
+
+    note.bounds.x = linea.bounds.x + linea.origin.x;
+    note.bounds.y = linea.bounds.y + linea.bar!.y;
+    note.bounds.width = linea.bounds.width - linea.origin.x * 2;
+    note.bounds.height = linea.bar!.height;
+    // (as noteAt() does for the lines around a punctum, from the left of the lines)
+    note.origin.x = linea.origin.x + note.bounds.width / 2;
+    note.origin.y = note.bounds.height / 2;
+    this.neume.addVisualizer(note);
+
+    this.x += linea.bounds.width;
+    this.lastNote = note;
+    this.lineIsHanging = false;
+
+    return this;
+  }
+
   advanceBy(x: number) {
     this.lastNote = null;
     this.lineIsHanging = false;
@@ -1232,6 +1258,12 @@ export class Punctum extends Neume {
 
     var note = this.notes[0];
     var glyph: GlyphCode = GlyphCode.PunctumQuadratum;
+
+    if (note.linea) {
+      this.build(ctxt).lineaAt(note);
+      this.finishLayout(ctxt);
+      return;
+    }
 
     // determine the glyph to use
     if (note.liquescent !== LiquescentType.None) {

@@ -325,8 +325,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the brackets, fusion, linea and
-    // parentheses are read but not drawn yet (j is a pes quadratum)
+    // no notes are lost or made up; the brackets, fusion and parentheses
+    // are read but not drawn yet (i is a linea and j a pes quadratum)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -583,6 +583,13 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(fqg) b(gqh) c(fqh) d(eqi) e(-fqg) f(-fqh) g(fqg<) h(fqg~) i(gfqh) j(fqgh) k(gqf) l(gqfg) " +
       "m(fqgv) n(f_qg_) o(f.qg.) p(efqg) (::)"
+  },
+  {
+    // a linea is a flat bar between two lines, and a neume of its own (c),
+    // whatever shape it's given (d); its markings go by the bar; i is a
+    // punctum between lines (gabc R), to compare
+    name: "linea",
+    gabc: "(c4) a(g=) b(f=) c(fg=h) d(gv=) e(g=_) f(f=_0) g(g=.) h(g=') i(gR) j(b=) k(l=) (::)"
   }
 ];
 
