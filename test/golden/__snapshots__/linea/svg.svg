@@ -1,0 +1,238 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="94.23359375000001" viewBox="0 0 600 94.23359375000001" >
+<g >
+<defs >
+<g id="Mora" class="glyph" transform="scale(0.0625)" >
+<path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z" >
+</path>
+</g>
+<g id="VerticalEpisemaAbove" class="glyph" transform="scale(0.0625)" >
+<path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z" >
+</path>
+</g>
+<g id="Linea" class="glyph" transform="scale(0.0625)" >
+<g >
+</g>
+</g>
+<g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="VerticalEpisemaBelow" class="glyph" transform="scale(0.0625)" >
+<path d="M-8 56c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z" >
+</path>
+</g>
+<g id="DoClef" class="glyph" transform="scale(0.0625)" >
+<path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,61.071796875000004)" element-index="0" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<line x1="278.9875" y1="6.25" x2="303.38125" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="303.38125" y1="-56.25" x2="327.77500000000003" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
+<text source-index="5" x="4.0520000000000005" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<g >
+<rect x="0" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="7" element-index="0" id="note-1" x="0.8" y="-27.893078125" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(41.6,0)" >
+<text source-index="11" x="3.7856000000000005" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >b</tspan>
+</text>
+<g >
+<rect x="0" y="-23.571796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-23.571796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-21.643078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="13" element-index="1" id="note-2" x="0.8" y="-21.643078125" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(69.1375,0)" >
+<text source-index="17" x="-1.6558000000000002" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >c</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="19" element-index="2" id="note-3" x="3.125" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(78.5125,0)" >
+<g >
+<rect x="0" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="20" element-index="3" id="note-4" x="0.8" y="-27.893078125" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(102.92500000000001,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="22" element-index="4" id="note-5" x="3.125" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(120.11250000000001,0)" >
+<text source-index="25" x="6.276800000000001" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >d</tspan>
+</text>
+<g >
+<rect x="0" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="27" element-index="5" id="note-6" x="0.8" y="-27.893078125" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(147.65,0)" >
+<text source-index="32" x="6.010400000000001" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >e</tspan>
+</text>
+<g >
+<rect x="0" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="34" element-index="6" id="note-7" x="0.8" y="-27.893078125" >
+</use>
+<rect x="0.8" y="-35.916666666666664" width="15.000000000000002" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(175.1875,0)" >
+<text source-index="39" x="5.744000000000001" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >f</tspan>
+</text>
+<g >
+<rect x="0" y="-23.571796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-23.571796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-21.643078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="41" element-index="7" id="note-8" x="0.8" y="-21.643078125" >
+</use>
+<rect x="0.8" y="-12.334710937499999" width="15.000000000000002" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(202.725,0)" >
+<text source-index="47" x="5.477600000000001" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >g</tspan>
+</text>
+<g >
+<rect x="0" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="49" element-index="8" id="note-9" x="0.8" y="-27.893078125" >
+</use>
+<use xlink:href="#Mora" class="" x="15.925000000000004" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(232.5875,0)" >
+<text source-index="54" x="5.211200000000001" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >h</tspan>
+</text>
+<g >
+<rect x="0" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-29.821796875" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="56" element-index="9" id="note-10" x="0.8" y="-27.893078125" >
+</use>
+<use xlink:href="#VerticalEpisemaBelow" class="" x="8.3" y="-16.875" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(260.125,0)" >
+<text source-index="61" x="1.7698" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >i</tspan>
+</text>
+<g >
+<rect x="0" y="-28.806625" width="0.8" height="7.714874999999999" fill="#000" class="neumeLine" >
+</rect>
+<rect x="9.45" y="-28.806625" width="0.8" height="7.714874999999999" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="63" element-index="10" id="note-11" x="5.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(281.3125,0)" >
+<text source-index="67" x="4.678400000000001" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >j</tspan>
+</text>
+<g >
+<rect x="0" y="1.4282031249999998" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="1.4282031249999998" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="3.356921875" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="69" element-index="11" id="note-12" x="0.8" y="3.356921875" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(308.85,0)" >
+<text source-index="73" x="4.412000000000001" y="27.833796875000004" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >k</tspan>
+</text>
+<g >
+<rect x="0" y="-61.071796875000004" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="15.8" y="-61.071796875000004" width="0.8" height="9.64359375" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0.8" y="-59.143078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<use xlink:href="#Linea" class=" note" source-index="75" element-index="12" id="note-13" x="0.8" y="-59.143078125" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(333.26250000000005,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="80" element-index="13" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="80" element-index="13" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>

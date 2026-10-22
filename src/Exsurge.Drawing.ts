@@ -389,6 +389,7 @@ export type NeumeSpaceCode = "/0" | "/!" | "/" | "//" | " ";
 
 export const GlyphCode = {
   None: "None",
+  Linea: "Linea",
 
   AcuteAccent: "AcuteAccent",
   GraveAccent: "GraveAccent",
@@ -1967,7 +1968,14 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition);
     var y1;
 
-    if (Math.abs(staffPosition % 2) === 0) y1 = y0 + ctxt.staffInterval * 1.8;
+    // a note on a space has a shorter stem than one on a line, as does one on
+    // the bottom line with Gregorio's [ll:0] (as if there's no ledger line
+    // below it, where its stem would end)
+    if (
+      Math.abs(staffPosition % 2) === 0 ||
+      (staffPosition === 1 && note.lowLedgerLine === false)
+    )
+      y1 = y0 + ctxt.staffInterval * 1.8;
     else y1 = y0 + ctxt.staffInterval * 2.7;
 
     this.bounds.x = 0;
@@ -2015,10 +2023,41 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
 }
 
 export class LineaVisualizer extends ChantLayoutElement {
-  constructor(ctxt: ChantContext, note: Note) {
+  /**
+   * the flat bar between the lines of a linea (gabc =), from the top of the
+   * lines, or null for the lines around a punctum (gabc R)
+   */
+  bar: { y: number; height: number } | null;
+
+  /** @param bar whether it's a linea (gabc =), a flat bar between the lines, rather than lines around the note */
+  constructor(ctxt: ChantContext, note: Note, bar = false) {
     super();
 
     var staffPosition = note.staffPosition;
+
+    if (bar) {
+      // Gregorio's Linea glyph: a bar three quarters as tall as a punctum and
+      // 2.4 times as wide, between lines that stand a quarter of a punctum's
+      // height above and below it
+      var punctumHeight = Glyphs.PunctumQuadratum.bounds.height * ctxt.glyphScaling;
+      var barHeight = punctumHeight * 0.75;
+      var overhang = punctumHeight / 4;
+
+      this.bar = { y: overhang, height: barHeight };
+      this.bounds.x = 0;
+      this.bounds.y =
+        ctxt.calculateHeightFromStaffPosition(staffPosition) - barHeight / 2 - overhang;
+      this.bounds.width =
+        Glyphs.PunctumQuadratum.bounds.width * ctxt.glyphScaling * 2.4 +
+        ctxt.neumeLineWeight * 2;
+      this.bounds.height = barHeight + overhang * 2;
+
+      this.origin.x = ctxt.neumeLineWeight;
+      this.origin.y = 0;
+      return;
+    }
+
+    this.bar = null;
 
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition) - note.origin.y;
     var y1 = y0 + note.bounds.height;
@@ -2032,54 +2071,61 @@ export class LineaVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
+  // the rectangles to fill: the line on each side, and the bar if there is one
+  getRects(ctxt: ChantContext) {
+    var rects = [
+      this.bounds.x,
+      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
+    ].map((x) => ({
+      x,
+      y: this.bounds.y,
+      width: ctxt.neumeLineWeight,
+      height: this.bounds.height
+    }));
+
+    if (this.bar)
+      rects.push({
+        x: this.bounds.x + ctxt.neumeLineWeight,
+        y: this.bounds.y + this.bar.y,
+        width: this.bounds.width - ctxt.neumeLineWeight * 2,
+        height: this.bar.height
+      });
+
+    return rects;
+  }
+
   draw(ctxt: ChantContext) {
     var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.fillStyle = ctxt.neumeLineColor;
-    canvasCtxt.fillRect(
-      this.bounds.x,
-      this.bounds.y,
-      ctxt.neumeLineWeight,
-      this.bounds.height
-    );
-    canvasCtxt.fillRect(
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight,
-      this.bounds.y,
-      ctxt.neumeLineWeight,
-      this.bounds.height
-    );
+    for (var rect of this.getRects(ctxt))
+      canvasCtxt.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
-  getSvgProps(ctxt: ChantContext, x: number) {
+  getSvgProps(ctxt: ChantContext, rect: { x: number; y: number; width: number; height: number }) {
     return {
-      x,
-      y: this.bounds.y,
-      width: ctxt.neumeLineWeight,
-      height: this.bounds.height,
+      ...rect,
       fill: ctxt.neumeLineColor,
       class: "neumeLine"
     };
   }
 
   createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("g", null, [
-      this.bounds.x,
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-    ].map(x => QuickSvg.createNode("rect", this.getSvgProps(ctxt, x))));
+    return QuickSvg.createNode("g", null, this.getRects(ctxt).map(
+      (rect) => QuickSvg.createNode("rect", this.getSvgProps(ctxt, rect))
+    ));
   }
 
   createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("g", {}, ...[
-      this.bounds.x,
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-    ].map(x => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, x))));
+    return QuickSvg.createSvgTree("g", {}, ...this.getRects(ctxt).map(
+      (rect) => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, rect))
+    ));
   }
 
   createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("g", null, [
-      this.bounds.x,
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-    ].map(x => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, x))).join(''));
+    return QuickSvg.createFragment("g", null, this.getRects(ctxt).map(
+      (rect) => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, rect))
+    ).join(''));
   }
 }
 

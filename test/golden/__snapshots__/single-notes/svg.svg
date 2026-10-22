@@ -165,6 +165,8 @@
 </text>
 <use xlink:href="#OriscusDes" class=" note" source-index="66" element-index="15" id="note-16" x="3.125" y="-18.75" >
 </use>
+<rect x="0" y="-18.75" width="0.8" height="16.875" fill="#000" class="neumeLine" >
+</rect>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(264.9137067307692,0)" >
 <text source-index="70" x="-0.7629999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
@@ -261,6 +263,8 @@
 </text>
 <use xlink:href="#OriscusAsc" class=" note" source-index="140" element-index="27" id="note-28" x="3.125" y="-18.75" >
 </use>
+<rect x="0" y="-18.75" width="0.8" height="16.875" fill="#000" class="neumeLine" >
+</rect>
 </g>
 <g class="ChantNotationElement Oriscus" transform="translate(515.9945048076922,0)" >
 <text source-index="145" x="-0.9357999999999995" y="14.887" class="lyric" text-anchor="start" style="" >
@@ -268,6 +272,8 @@
 </text>
 <use xlink:href="#OriscusDes" class=" note" source-index="147" element-index="28" id="note-29" x="3.125" y="-18.75" >
 </use>
+<rect x="0" y="-18.75" width="0.8" height="16.875" fill="#000" class="neumeLine" >
+</rect>
 </g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(536.2512379807692,0)" >
 <text source-index="152" x="-1.2021999999999995" y="14.887" class="lyric" text-anchor="start" style="" >
