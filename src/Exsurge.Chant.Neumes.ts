@@ -65,15 +65,15 @@ function porrectusGlyph(start: Note, end: Note): GlyphCode {
 // the glyph for the note after a porrectus's stroke from start down to end:
 // glyph itself, unless the stroke has no glyph and is drawn as puncta, which
 // the note follows, rather than standing on the last as a podatus's upper
-// note does, where it would hit the line between them
+// note does, where it would hit the line between them.  (A deminutus keeps
+// its small punctum at the end of the last, as in a pes deminutus, which
+// clears the line.)
 function glyphAfterPorrectus(start: Note, end: Note, glyph: GlyphCode): GlyphCode {
   if (porrectusGlyph(start, end) !== GlyphCode.None) return glyph;
   switch (glyph) {
     case GlyphCode.PodatusUpper:
     case GlyphCode.PodatusUpperShort:
       return GlyphCode.PunctumQuadratum;
-    case GlyphCode.TerminatingAscLiquescent:
-      return GlyphCode.PunctumQuadratumAscLiquescent;
     default:
       return glyph;
   }
