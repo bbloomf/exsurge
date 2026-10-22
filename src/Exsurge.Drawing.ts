@@ -429,6 +429,9 @@ export const GlyphCode = {
   PunctumQuadratumAscLiquescent: "PunctumQuadratumAscLiquescent",
   PunctumQuadratumDesLiquescent: "PunctumQuadratumDesLiquescent",
   PunctumInclinatum: "PunctumInclinatum",
+  PunctumInclinatumAscendens: "PunctumInclinatumAscendens",
+  PunctumInclinatumDescendens: "PunctumInclinatumDescendens",
+  PunctumInclinatumAuctus: "PunctumInclinatumAuctus",
   PunctumInclinatumLiquescent: "PunctumInclinatumLiquescent",
   Quilisma: "Quilisma",
 
@@ -459,6 +462,9 @@ export const GlyphCode = {
   PunctumQuadratumAscLiquescentCavum: "PunctumQuadratumAscLiquescentCavum",
   PunctumQuadratumDesLiquescentCavum: "PunctumQuadratumDesLiquescentCavum",
   PunctumInclinatumCavum: "PunctumInclinatumCavum",
+  PunctumInclinatumAscendensCavum: "PunctumInclinatumAscendensCavum",
+  PunctumInclinatumDescendensCavum: "PunctumInclinatumDescendensCavum",
+  PunctumInclinatumAuctusCavum: "PunctumInclinatumAuctusCavum",
   PunctumInclinatumLiquescentCavum: "PunctumInclinatumLiquescentCavum",
   QuilismaCavum: "QuilismaCavum",
   StrophaCavum: "StrophaCavum",
@@ -487,6 +493,9 @@ export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } =
   [GlyphCode.PunctumQuadratumAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum,
   [GlyphCode.PunctumQuadratumDesLiquescent]: GlyphCode.PunctumQuadratumDesLiquescentCavum,
   [GlyphCode.PunctumInclinatum]: GlyphCode.PunctumInclinatumCavum,
+  [GlyphCode.PunctumInclinatumAscendens]: GlyphCode.PunctumInclinatumAscendensCavum,
+  [GlyphCode.PunctumInclinatumDescendens]: GlyphCode.PunctumInclinatumDescendensCavum,
+  [GlyphCode.PunctumInclinatumAuctus]: GlyphCode.PunctumInclinatumAuctusCavum,
   [GlyphCode.PunctumInclinatumLiquescent]: GlyphCode.PunctumInclinatumLiquescentCavum,
   [GlyphCode.Quilisma]: GlyphCode.QuilismaCavum,
   [GlyphCode.Stropha]: GlyphCode.StrophaCavum,
@@ -915,6 +924,13 @@ export class ChantContext {
 
   glyphPunctumWidth: number;
   glyphPunctumHeight: number;
+  /**
+   * Whether puncta inclinata lean as Gregorio's do: as their gabc says (G0
+   * descending, G1 ascending, G2 upright), or else the way the notes around
+   * them go (see Note.automaticLeaning).  Off by default, which draws every
+   * inclinatum upright.
+   */
+  inclinatumLeaning: boolean;
 
   // set by setGlyphScaling() (and so by setStaffHeight()):
   glyphMultiplier!: number;
@@ -1102,6 +1118,7 @@ export class ChantContext {
     // everything depends on the scale of the punctum
     this.glyphPunctumWidth = Glyphs.PunctumQuadratum.bounds.width;
     this.glyphPunctumHeight = Glyphs.PunctumQuadratum.bounds.height;
+    this.inclinatumLeaning = false;
 
     // max space to add between notations when justifying, in multiples of this.staffInterval
     this.maxExtraSpaceInStaffIntervals = 0.5;

@@ -514,3 +514,63 @@ describe("Gregorio inclinatum digits", function() {
     assert.strictEqual(custos.staffPositionOffset, -2 / 3);
   });
 });
+
+describe("Gregorio inclinatum leaning", function() {
+  const leanings = (gabc: string) =>
+    parseNotations(gabc)
+      .flatMap((notation) => notation.notes || [])
+      .filter((note) => note.shape === Exsurge.NoteShape.Inclinatum)
+      .map((note) => [note.sourceGabc, note.automaticLeaning]);
+
+  it("leans a run of inclinata the way the line goes, counting the steps into and out of it", function() {
+    assert.deepStrictEqual(leanings("(c4) a(hGFE) b(GHI) c(fG) d(hG) e(iGHG) f(GFh)"), [
+      ["G", "descending"],
+      ["F", "descending"],
+      ["E", "descending"],
+      ["G", "ascending"],
+      ["H", "ascending"],
+      ["I", "ascending"],
+      ["G", "ascending"],
+      ["G", "descending"],
+      ["G", "descending"],
+      ["H", "descending"],
+      ["G", "descending"],
+      // a step down and a step up, which leave it leaning down
+      ["G", "descending"],
+      ["F", "descending"]
+    ]);
+  });
+
+  it("keeps inclinata at one pitch upright, and one alone without a step into it", function() {
+    assert.deepStrictEqual(leanings("(c4) a(GG) b(gG) c(G)"), [
+      ["G", "unison"],
+      ["G", "unison"],
+      ["G", "unison"],
+      ["G", "unison"]
+    ]);
+  });
+
+  it("gives a run the leaning of an inclinatum in it that has one, or descending for a liquescent", function() {
+    assert.deepStrictEqual(leanings("(c4) a(fG1HI) b(fGH0) c(fGH~) d(fGH<)"), [
+      ["G1", undefined],
+      ["H", "ascending"],
+      ["I", "ascending"],
+      ["G", "descending"],
+      ["H0", undefined],
+      ["G", "descending"],
+      ["H~", undefined],
+      ["G", "descending"],
+      ["H<", undefined]
+    ]);
+  });
+
+  it("starts again at each syllable and after other notes", function() {
+    assert.deepStrictEqual(leanings("(c4) a(hG) b(G) c(GFgG)"), [
+      ["G", "descending"],
+      ["G", "unison"],
+      ["G", "descending"],
+      ["F", "descending"],
+      ["G", "unison"]
+    ]);
+  });
+});

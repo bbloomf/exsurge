@@ -163,8 +163,17 @@ export class Note extends ChantLayoutElement {
    * beside it, joined by a stem, rather than above it
    */
   quilismaQuadratum?: boolean;
-  /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
+  /**
+   * the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn when
+   * ChantContext.inclinatumLeaning is set
+   */
   leaning?: InclinatumLeaning;
+  /**
+   * the leaning that Gregorio gives a punctum inclinatum without one, from
+   * the notes around it in its syllable (see Gabc.setAutomaticLeanings()),
+   * drawn when ChantContext.inclinatumLeaning is set
+   */
+  automaticLeaning?: InclinatumLeaning;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;

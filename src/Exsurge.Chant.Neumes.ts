@@ -68,6 +68,21 @@ function withCavum(note: Note, glyph: GlyphCode): GlyphCode {
   return (note.shapeModifiers & NoteShapeModifiers.Cavum && CavumGlyphCode[glyph]) || glyph;
 }
 
+// a punctum inclinatum's glyph: an auctus for gabc G< or G>, and otherwise
+// leaning as its leaning says when ctxt.inclinatumLeaning is set, or upright
+function inclinatumGlyph(ctxt: ChantContext, note: Note): GlyphCode {
+  if (note.liquescent & (LiquescentType.Ascending | LiquescentType.Descending))
+    return GlyphCode.PunctumInclinatumAuctus;
+  switch (ctxt.inclinatumLeaning && (note.leaning || note.automaticLeaning)) {
+    case "ascending":
+      return GlyphCode.PunctumInclinatumAscendens;
+    case "descending":
+      return GlyphCode.PunctumInclinatumDescendens;
+    default:
+      return GlyphCode.PunctumInclinatum;
+  }
+}
+
 // the glyph for the note after a porrectus's stroke from start down to end:
 // glyph itself, unless the stroke has no glyph and is drawn as puncta, which
 // the note follows, rather than standing on the last as a podatus's upper
@@ -343,7 +358,7 @@ class NeumeBuilder {
         note.setGlyph(this.ctxt, withCavum(note, GlyphCode.Stropha));
       // fixme: some climaci in the new chant books end with a punctum quadratum
       // (see, for example, the antiphon "Sancta Maria" for October 7).
-      else note.setGlyph(this.ctxt, withCavum(note, GlyphCode.PunctumInclinatum));
+      else note.setGlyph(this.ctxt, withCavum(note, inclinatumGlyph(this.ctxt, note)));
 
       staffPosition = note.staffPosition;
 

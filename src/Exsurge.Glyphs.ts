@@ -840,6 +840,68 @@ export const Glyphs: { [name: string]: Glyph } = {
     },
     align: "left"
   },
+  // PunctumInclinatum leaning to the right, as in an ascending line (turned 6° clockwise)
+  PunctumInclinatumAscendens: {
+    paths: [
+      {
+        type: "positive",
+        data: "M7.921-75.365L49.726 5.226-7.84 74.589-49.726-5.226z"
+      }
+    ],
+    bounds: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 150.78
+    },
+    origin: {
+      x: 50,
+      y: 75.78
+    },
+    align: "left"
+  },
+  // PunctumInclinatum leaning to the left, as in a descending line (turned 6° anticlockwise)
+  PunctumInclinatumDescendens: {
+    paths: [
+      {
+        type: "positive",
+        data: "M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z"
+      }
+    ],
+    bounds: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 150.78
+    },
+    origin: {
+      x: 50,
+      y: 75.78
+    },
+    align: "left"
+  },
+  // the top half of PunctumInclinatum, and the tail of Stropha below it, a
+  // quarter longer
+  PunctumInclinatumAuctus: {
+    paths: [
+      {
+        type: "positive",
+        data:
+          "M0-75.78L50 0 34.812 34.18C18.666 69.338-.084 90.495-21.438 97.655c4.687-4.556 7.03-10.741 7.03-18.554 0-11.066-4.947-25.715-14.843-43.944L-50 0z"
+      }
+    ],
+    bounds: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 173.435
+    },
+    origin: {
+      x: 50,
+      y: 75.78
+    },
+    align: "left"
+  },
   PunctumInclinatumLiquescent: {
     paths: [
       {
@@ -1056,6 +1118,12 @@ const cavumHoles: { [glyph: string]: string } = {
     "M-31.8-57.367l-.129 77.425c-.001.331.661-.025.991-.046 .998-.065 1.994-.158 2.994-.206 2.498-.119 5.002-.108 7.501-.019 7.834.278 15.626 1.377 23.295 2.969 6.688 1.389 13.336 3.089 19.782 5.361 2.045.72 4.069 1.499 6.066 2.342 .766.323 1.517.7 2.292 1.002 .29.113.887.605.888.293l.12-68.482c.003-1.962-6.113-7.271-7.719-8.4-9.253-6.502-22.76-8.58-33.698-10.524-5.578-.992-11.223-1.694-16.89-1.869-1.667-.051-3.337-.087-4.997.086-.166.017-.496-.099-.496.068z",
   PunctumInclinatum:
     "M0-43.096l-28.33 42.991 28.191 42.447 28.469-42.447z",
+  PunctumInclinatumAscendens:
+    "M4.474-42.823l-32.681 39.866 23.782 45.126 32.606-39.237z",
+  PunctumInclinatumDescendens:
+    "M-4.526-42.819l-23.674 45.682 32.479 39.248 23.88-45.192z",
+  PunctumInclinatumAuctus:
+    "M0-43.096l-28.667 43.448 15.294 26.326c3.914 6.737 7.207 14.007 10.061 21.249 1.272 3.227 2.149 7.192 3.773 10.028 6.696-9.086 12.497-19.05 17.1-29.362l8.363-18.739c.909-2.036 3.614-8.183 3.57-8.249z",
   PunctumInclinatumLiquescent:
     "M0-30.285l-19.807 30.021 19.807 29.932 19.807-29.932z",
   Quilisma:

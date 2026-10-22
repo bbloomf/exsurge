@@ -1004,6 +1004,75 @@ export class Gabc {
     return mappings;
   }
 
+  /**
+   * Sets the automaticLeaning of each punctum inclinatum in a syllable's
+   * notes that has no leaning of its own, as Gregorio does
+   * (gabc_determine_punctum_inclinatum_orientation()).  A run of inclinata
+   * leans the way the line they make goes, counting the steps into and out
+   * of it, unless they're all at one pitch, which leaves them upright; an
+   * inclinatum in the run that has a leaning, or is a liquescent (which
+   * leans down), gives the run its leaning instead.  (Gregorio carries a
+   * run's leaning on into the next syllable; this doesn't look past the
+   * syllable.)
+   */
+  static setAutomaticLeanings(notes: Note[]) {
+    // the inclinata in the run that have no leaning of their own, and the
+    // leaning that an inclinatum in the run that has one gives them
+    let run: Note[] = [];
+    let leaning: InclinatumLeaning | undefined;
+    // the steps up less the steps down, the number of inclinata, and whether they're at one pitch
+    let rising = 0,
+      count = 0,
+      unison = true;
+    let previous: Note | undefined;
+    const endRun = () => {
+      let runLeaning =
+        leaning ||
+        (unison && (count > 1 || (count === 1 && rising === 0))
+          ? "unison"
+          : rising > 0
+            ? "ascending"
+            : "descending");
+      for (let note of run) note.automaticLeaning = runLeaning;
+      run = [];
+      unison = true;
+    };
+    for (let note of notes) {
+      let isInclinatum = note.shape === NoteShape.Inclinatum;
+      // (a deminutus or an auctus, not an initio debilis)
+      let isLiquescent =
+        isInclinatum &&
+        (note.liquescent & (LiquescentType.Small | LiquescentType.Ascending | LiquescentType.Descending)) !== 0;
+      let step = previous ? Math.sign(note.staffPosition - previous.staffPosition) : 0;
+      delete note.automaticLeaning;
+      if (isInclinatum && !note.leaning && !isLiquescent) {
+        if (leaning) note.automaticLeaning = leaning;
+        else {
+          rising += step;
+          if (step && count > 0) unison = false;
+          run.push(note);
+        }
+        count++;
+      } else {
+        if (isLiquescent) {
+          unison = false;
+          leaning = "descending";
+        } else if (isInclinatum) leaning = note.leaning;
+        if (run.length) {
+          if (!isInclinatum) rising += step;
+          endRun();
+        }
+        if (isInclinatum) count++;
+        else {
+          rising = count = 0;
+          leaning = undefined;
+        }
+      }
+      previous = note;
+    }
+    if (run.length) endRun();
+  }
+
   // takes a gabc word (like those returned by splitWords below) and returns
   // a ChantMapping object that contains the gabc word source text as well
   // as the generated notations.
@@ -1120,6 +1189,7 @@ export class Gabc {
       }
 
       if (items.length === 0) continue;
+      this.setAutomaticLeanings(([] as Note[]).concat(...items.map((item) => item.notes || [])));
       // (and the areas that the word before left for its next syllable)
       setAreaBoundaries(items, this.marksForNext.areas);
       this.marksForNext = { ...this.marksForNext, areas: {} };

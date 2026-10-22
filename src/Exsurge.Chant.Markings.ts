@@ -34,9 +34,19 @@ import {
   type ChantNotationElement
 } from "./Exsurge.Drawing.js";
 
-// whether a glyph is a punctum inclinatum's, solid or hollow
+// the glyphs of a punctum inclinatum (other than a deminutus), solid or hollow
+const inclinatumGlyphs = new Set<GlyphCode>([
+  GlyphCode.PunctumInclinatum,
+  GlyphCode.PunctumInclinatumAscendens,
+  GlyphCode.PunctumInclinatumDescendens,
+  GlyphCode.PunctumInclinatumAuctus,
+  GlyphCode.PunctumInclinatumCavum,
+  GlyphCode.PunctumInclinatumAscendensCavum,
+  GlyphCode.PunctumInclinatumDescendensCavum,
+  GlyphCode.PunctumInclinatumAuctusCavum
+]);
 function isInclinatumGlyph(glyphCode: GlyphCode) {
-  return glyphCode === GlyphCode.PunctumInclinatum || glyphCode === GlyphCode.PunctumInclinatumCavum;
+  return inclinatumGlyphs.has(glyphCode);
 }
 
 export class Accent extends GlyphVisualizer {

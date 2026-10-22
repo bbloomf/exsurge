@@ -372,6 +372,16 @@ export const featureCases: GoldenCase[] = [
     // beside it, joined by a line, rather than above it (n is a quilisma pes)
     name: "quilisma-quadratum",
     gabc: "(c4) a(gWh) b(gWi) c(gWj) d(gWk) e(gWh<) f(gWh>) g(gWh~) h(gW) i(gWhg) j(-gWh) k(gWrh) l(gW_h_) m(gW.h.) n(gwh) (::)"
+  },
+  {
+    // with ctxt.inclinatumLeaning, inclinata lean as their gabc says (g to i)
+    // or as their line goes (a to f, and n to p), and an auctus (j to m) has
+    // a tail
+    name: "inclinatum-variants",
+    gabc:
+      "(c4) a(hGFE) b(GHI) c(GG) d(G) e(hG) f(fG) g(hG0F0) h(fG1H1) i(gG2G2) j(G<) k(G>) l(hGF<) m(hGF>) " +
+      "n(hvGFGF) o(fhGF) p(hGF~) q(hGrFr) r(G<r) s(fG1rH1r) t(G<_) u(hG'F'E') (::)",
+    setupContext: (ctxt) => (ctxt.inclinatumLeaning = true)
   }
 ];
 
