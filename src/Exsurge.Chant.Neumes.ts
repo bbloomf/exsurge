@@ -1009,6 +1009,41 @@ export class PesOriscus extends Neume {
 }
 
 /*
+ * PesQuadratum
+ *
+ * Two square puncta (gabc fqg), joined by a line when they're more than a
+ * second apart, with a virga's stem down from the upper one, as Gregorio's
+ * PesQuadratum glyphs have. A liquescent upper note is drawn as in a podatus,
+ * as Gregorio draws a pes quadratum auctus like a pes auctus.
+ */
+export class PesQuadratum extends Neume {
+  positionMarkings() {
+    this.positionPodatusMarkings(this.notes[0], this.notes[1]);
+  }
+
+  performLayout(ctxt: ChantContext) {
+    super.performLayout(ctxt);
+
+    var lower = this.notes[0];
+    var upper = this.notes[1];
+
+    if (upper.liquescent !== LiquescentType.None)
+      this.build(ctxt).withPodatus(lower, upper);
+    else
+      this.build(ctxt)
+        .noteAt(
+          lower,
+          lower.liquescent === LiquescentType.InitioDebilis
+            ? GlyphCode.TerminatingDesLiquescent
+            : GlyphCode.PunctumQuadratum
+        )
+        .virgaAt(upper);
+
+    this.finishLayout(ctxt);
+  }
+}
+
+/*
  * PesQuassus
  */
 export class PesQuassus extends Neume {

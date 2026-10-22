@@ -325,8 +325,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the brackets, fusion, linea, quadratum
-    // and parentheses are read but not drawn yet
+    // no notes are lost or made up; the brackets, fusion, linea and
+    // parentheses are read but not drawn yet (j is a pes quadratum)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -574,6 +574,15 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(gogh) b(go)(g)(f) c(go1)(f) d(go0)(h) e(go1f) f(fo0g) g(gO1f) h(fO0g) i(gogoh) " +
       "j(go<)(f) k(go>)(h) l(egO)(g)(h) m(egO0)(h) n(go) (::)"
+  },
+  {
+    // the q note starts a new neume (i, p) and ends it with the next note if
+    // that's higher (j); if it's lower, the q does nothing (k, l), as in
+    // Gregorio; a liquescent pes quadratum is drawn as a pes is (g, h)
+    name: "pes-quadratum",
+    gabc:
+      "(c4) a(fqg) b(gqh) c(fqh) d(eqi) e(-fqg) f(-fqh) g(fqg<) h(fqg~) i(gfqh) j(fqgh) k(gqf) l(gqfg) " +
+      "m(fqgv) n(f_qg_) o(f.qg.) p(efqg) (::)"
   }
 ];
 

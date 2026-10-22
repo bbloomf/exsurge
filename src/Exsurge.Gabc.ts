@@ -2267,6 +2267,9 @@ export class Gabc {
         if (currNote.staffPosition > prevNote.staffPosition) {
           if (currNote.ictus)
             currNote.ictus.positionHint = MarkingPositionHint.Above;
+          // a pes quadratum (gabc q) has no more notes, as in Gregorio
+          if (prevNote.quadratum)
+            return createNeume(new Neumes.PesQuadratum(), true);
           return podatusState;
         } else if (currNote.staffPosition < prevNote.staffPosition) {
           if (prevNote.ictus)
@@ -2593,12 +2596,16 @@ export class Gabc {
       var prevNote = currNoteIndex > 0 ? notes[currNoteIndex - 1] : null;
       var currNote = notes[currNoteIndex];
 
+      // the lower note of a pes quadratum (gabc q) starts a new neume, as in Gregorio
+      if (currNote.quadratum && state !== unknownState)
+        state = createNeume(state.neume(), false);
       // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
-      state = state.handle(
-        currNote,
-        prevNote!,
-        notes.length - 1 - currNoteIndex
-      );
+      else
+        state = state.handle(
+          currNote,
+          prevNote!,
+          notes.length - 1 - currNoteIndex
+        );
 
       // if we are on the last note, then try to create a neume if we need to.
       if (currNoteIndex === notes.length - 1 && state !== unknownState)
