@@ -351,9 +351,10 @@ export const featureCases: GoldenCase[] = [
   {
     // a porrectus stroke wider than a fourth (or between nudged notes, as a
     // note on a space is under a Chi-Rho clef) has no glyph yet, so its notes
-    // are drawn as puncta joined by a line
+    // are drawn as puncta joined by a line, and the note after it follows them
+    // rather than standing on the last (k is a torculus resupinus)
     name: "porrectus-wide",
-    gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) (::)"
+    gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
   }
 ];
 

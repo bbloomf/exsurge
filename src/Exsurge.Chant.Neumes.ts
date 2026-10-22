@@ -62,6 +62,23 @@ function porrectusGlyph(start: Note, end: Note): GlyphCode {
   }
 }
 
+// the glyph for the note after a porrectus's stroke from start down to end:
+// glyph itself, unless the stroke has no glyph and is drawn as puncta, which
+// the note follows, rather than standing on the last as a podatus's upper
+// note does, where it would hit the line between them
+function glyphAfterPorrectus(start: Note, end: Note, glyph: GlyphCode): GlyphCode {
+  if (porrectusGlyph(start, end) !== GlyphCode.None) return glyph;
+  switch (glyph) {
+    case GlyphCode.PodatusUpper:
+    case GlyphCode.PodatusUpperShort:
+      return GlyphCode.PunctumQuadratum;
+    case GlyphCode.TerminatingAscLiquescent:
+      return GlyphCode.PunctumQuadratumAscLiquescent;
+    default:
+      return glyph;
+  }
+}
+
 class NeumeBuilder {
   ctxt: ChantContext;
   neume: Neume;
@@ -1039,7 +1056,7 @@ export class Porrectus extends Neume {
     this.build(ctxt)
       .lineFrom(second)
       .withPorrectusSwash(first, second)
-      .noteAt(third, thirdGlyph);
+      .noteAt(third, glyphAfterPorrectus(first, second, thirdGlyph));
 
     this.finishLayout(ctxt);
   }
@@ -1401,7 +1418,7 @@ export class TorculusResupinus extends Neume {
     this.build(ctxt)
       .noteAt(first, firstGlyph)
       .withPorrectusSwash(second, third)
-      .noteAt(fourth, fourthGlyph);
+      .noteAt(fourth, glyphAfterPorrectus(second, third, fourthGlyph));
 
     this.finishLayout(ctxt);
   }
