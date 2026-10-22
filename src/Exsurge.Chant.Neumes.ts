@@ -47,7 +47,7 @@ export interface NeumeLedgerLine {
 }
 
 // the stroke of a porrectus from start down to end, or GlyphCode.None if
-// there's no glyph for it (an interval of more than a fourth)
+// there's no glyph for it (an interval of more than a fifth)
 function porrectusGlyph(start: Note, end: Note): GlyphCode {
   switch (start.staffPosition - end.staffPosition) {
     case 1:
@@ -58,6 +58,8 @@ function porrectusGlyph(start: Note, end: Note): GlyphCode {
       return GlyphCode.Porrectus3;
     case 4:
       return GlyphCode.Porrectus4;
+    case 5:
+      return GlyphCode.Porrectus5;
     default:
       return GlyphCode.None;
   }
@@ -420,8 +422,9 @@ class NeumeBuilder {
   withPorrectusSwash(start: Note, end: Note) {
     var glyph = porrectusGlyph(start, end);
     if (glyph === GlyphCode.None) {
-      // a stroke wider than a fourth, which has no glyph yet: the two notes
-      // as puncta joined by a line, as a clivis's are, so that neither is lost
+      // a stroke wider than a fifth, which has no glyph (nor has Gregorio
+      // one): the two notes as puncta joined by a line, as a clivis's are, so
+      // that neither is lost
       return this.noteAt(start, GlyphCode.PunctumQuadratum).noteAt(end, GlyphCode.PunctumQuadratum);
     }
 

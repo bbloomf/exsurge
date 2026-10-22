@@ -2317,9 +2317,10 @@ export class Gabc {
           currNote.staffPosition > prevNote.staffPosition
         ) {
           let prevNoteButOne = notes[currNoteIndex - 2];
+          // (if there's a porrectus stroke for the fall, up to a fifth)
           if (
             prevNoteButOne &&
-            prevNoteButOne.staffPosition - prevNote.staffPosition <= 4
+            prevNoteButOne.staffPosition - prevNote.staffPosition <= 5
           ) {
             if (currNote.ictus)
               currNote.ictus.positionHint = MarkingPositionHint.Above;

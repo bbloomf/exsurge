@@ -422,6 +422,7 @@ export const GlyphCode = {
   Porrectus2: "Porrectus2", // 2 lines difference, etc...
   Porrectus3: "Porrectus3",
   Porrectus4: "Porrectus4",
+  Porrectus5: "Porrectus5",
 
   PunctumCavum: "PunctumCavum",
   PunctumQuadratum: "PunctumQuadratum",
@@ -460,6 +461,7 @@ export const GlyphCode = {
   Porrectus2Cavum: "Porrectus2Cavum",
   Porrectus3Cavum: "Porrectus3Cavum",
   Porrectus4Cavum: "Porrectus4Cavum",
+  Porrectus5Cavum: "Porrectus5Cavum",
   PunctumQuadratumLiquescentCavum: "PunctumQuadratumLiquescentCavum",
   PunctumQuadratumAscLiquescentCavum: "PunctumQuadratumAscLiquescentCavum",
   PunctumQuadratumDesLiquescentCavum: "PunctumQuadratumDesLiquescentCavum",
@@ -491,6 +493,7 @@ export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } =
   [GlyphCode.Porrectus2]: GlyphCode.Porrectus2Cavum,
   [GlyphCode.Porrectus3]: GlyphCode.Porrectus3Cavum,
   [GlyphCode.Porrectus4]: GlyphCode.Porrectus4Cavum,
+  [GlyphCode.Porrectus5]: GlyphCode.Porrectus5Cavum,
   [GlyphCode.PunctumQuadratum]: GlyphCode.PunctumCavum,
   [GlyphCode.PunctumQuadratumLiquescent]: GlyphCode.PunctumQuadratumLiquescentCavum,
   [GlyphCode.PunctumQuadratumAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum,

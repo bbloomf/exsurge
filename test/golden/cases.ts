@@ -349,10 +349,11 @@ export const featureCases: GoldenCase[] = [
     gabc: "(c4) a(G) b(G0) c(G1) d(G2) e(hGF) f(hG0F0) g(fG1H1) h(gG2G2) i(-G0) (::) (xp3) j(H0) k(h0) l(H9) (::)"
   },
   {
-    // a porrectus stroke wider than a fourth (or between nudged notes, as a
-    // note on a space is under a Chi-Rho clef) has no glyph yet, so its notes
-    // are drawn as puncta joined by a line, and the note after it follows them
-    // rather than standing on the last (k is a torculus resupinus)
+    // a porrectus stroke of a fifth has its own glyph (a, c and e to h), but
+    // one wider (or between nudged notes, as a note on a space is under a
+    // Chi-Rho clef) has none, so its notes are drawn as puncta joined by a
+    // line, and the note after it follows them rather than standing on the
+    // last (k is a torculus resupinus)
     name: "porrectus-wide",
     gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
   },
@@ -398,6 +399,12 @@ export const featureCases: GoldenCase[] = [
     // a virga reversa with < or > has an auctus's head (a and j are without)
     name: "virga-reversa-liquescent",
     gabc: "(c4) a(gV) b(gV<) c(gV>) d(hV<) e(hV>) f(gV<r) g(gV<_) h(gV>.) i(fgV<) j(gv) (::)"
+  },
+  {
+    // a porrectus stroke of a fifth, in a porrectus (a, e to j), a porrectus
+    // flexus (b) and a torculus resupinus (c, d)
+    name: "porrectus-fifth",
+    gabc: "(c4) a(kfk) b(kfkh) c(dkfk) d(dkfkh) e(kfrk) f(kfk~) g(kfk<) h(lglj) i(kf'k) j(k_f_k) (::)"
   }
 ];
 
