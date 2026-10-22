@@ -430,6 +430,15 @@ export class ChantLine extends ChantLayoutElement {
           ctxt.staffInterval
       )
     );
+    // with room for lyrics that protrude past the end of the staff (<pr>)
+    for (i = this.notationsStartIndex; i < lastIndex; i++) {
+      for (var lyric of notations[i].lyrics) {
+        if (lyric && lyric.protrusionWidth)
+          this.notationBounds.union(
+            new Rect(lyric.getRight(), this.notationBounds.y, 0, 0)
+          );
+      }
+    }
     var totalHeight = this.notationBounds.height;
 
     this.bounds.x = 0;
@@ -2054,7 +2063,7 @@ export class ChantLine extends ChantLayoutElement {
       text.setMaxWidth(ctxt, this.staffRight);
       //text.bounds.x = neume.hasLyrics()? Math.min(...neume.lyrics.map(l => l.bounds.x)) : 0;
       text.bounds.x = leftX;
-      if (rightX)
+      if (rightX !== undefined)
         text.bounds.x = (text.bounds.x + rightX - text.bounds.width) / 2;
       var beyondStaffRight =
         neume.bounds.x + text.bounds.right() - this.staffRight;
@@ -2445,6 +2454,9 @@ export class ChantLine extends ChantLayoutElement {
           } else {
             condensableSpacesSincePrevLyric.sum = 0;
           }
+          // (the spaces before a syllable with <clear> aren't condensed, which
+          // could bring it back under the notes before it)
+          if (cleared) condensableSpacesSincePrevLyric.sum = 0;
         }
 
         curr.lyrics[i].setNeedsConnector(false); // we hope for the best!

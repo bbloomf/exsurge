@@ -44,7 +44,7 @@ import {
   GlyphCode,
   Annotation,
   Annotations,
-  LyricTieText
+  LyricTieSpecials
 } from "./Exsurge.Drawing.js";
 import { language as languages, type Language } from "./Exsurge.Text.js";
 import {
@@ -1256,11 +1256,17 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
-      // a ~ is a lyric tie (except in a special character, e.g. <sp>~</sp>)
-      var lyricTie = LyricTieText[ctxt.lyricTie] || " ";
+      // a ~ is a lyric tie (except in a special character, e.g. <sp>~</sp>),
+      // or a space in verbatim TeX, above-lines text and translations
+      var lyricTieSpecial = LyricTieSpecials[ctxt.lyricTie];
+      var lyricTie = (lyricTieSpecial && ctxt.specials[lyricTieSpecial]) || " ";
       var lyricText = match[1].replace(__commentMaskRegex, "").replace(
         /(^|<\/sp>)([\s\S]*?)($|<sp>)/g,
-        (_, pre, main, post) => `${pre}${main.replace(/~/g, lyricTie)}${post}`
+        (_, pre, main, post) =>
+          `${pre}${main.replace(
+            /(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|\[[^\]]*\])|~/g,
+            (tie: string, notLyric?: string) => (notLyric ? notLyric.replace(/~/g, " ") : lyricTie)
+          )}${post}`
       );
       var alText: AboveLinesText[] = [];
       var translationText: TranslationText[] = [];

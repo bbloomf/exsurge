@@ -1,5 +1,5 @@
 setTransform(1, 0, 0, 1, 0, 0)
-clearRect(0, 0, 114, 163.555) [matrix=1,0,0,1,0,0]
+clearRect(0, 0, 116.98463749999999, 163.555) [matrix=1,0,0,1,0,0]
 beginPath()
 moveTo(0, -43.75)
 lineTo(114, -43.75)

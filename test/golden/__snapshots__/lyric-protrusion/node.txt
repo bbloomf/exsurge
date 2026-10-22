@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="114" height="163.555" viewBox="0 0 114 163.555" source=<ChantScore>>
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="116.98463749999999" height="163.555" viewBox="0 0 116.98463749999999 163.555" source=<ChantScore>>
   <g>
     <defs>
       <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)">

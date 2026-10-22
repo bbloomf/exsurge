@@ -505,8 +505,9 @@ export const featureCases: GoldenCase[] = [
     setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.churchSlavonic)
   },
   {
-    // TeX that has no meaning outside TeX is left out of verbatim text,
-    // rather than printed; Gregorio's symbol commands, accents and escaped
+    // TeX commands that have no meaning outside TeX are left out of verbatim
+    // text, rather than printed, though the text of their arguments is kept
+    // (except for spacing); Gregorio's symbol commands, accents and escaped
     // characters are drawn
     name: "verbatim-unknown",
     gabc:
@@ -539,7 +540,7 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // "son." only fits on the first line because its period may go past the
-    // end of the staff (and so past the width of the svg)
+    // end of the staff, and the svg is made wider for it
     name: "lyric-protrusion",
     width: 114,
     gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"

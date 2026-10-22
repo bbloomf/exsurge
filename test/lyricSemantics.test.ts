@@ -37,11 +37,28 @@ describe('Lyric ties', function() {
   it('makes a ~ a space by default, and otherwise the tie that ctxt.lyricTie names', function() {
     var gabc = '(c4) De~us(f) <sp>~</sp>(g)';
     assert.deepEqual(lyricsOf(gabc).map((lyric) => lyric.text), ['De us', '∼']);
-    var ties = { space: ' ', undertie: '‿', overtie: '⁀', doubletie: '⁐' } as const;
+    // (the specials ut, ot and dt)
+    var ties = { space: ' ', undertie: '‿', overtie: '⁀', doubletie: '⁀‿' } as const;
     for (const [tie, text] of Object.entries(ties)) {
       var lyrics = lyricsOf(gabc, (ctxt) => (ctxt.lyricTie = tie as keyof typeof ties));
       assert.deepEqual(lyrics.map((lyric) => lyric.text), ['De' + text + 'us', '∼'], tie);
     }
+  });
+
+  it('draws a tie as ctxt.specials draws its special', function() {
+    var [lyric] = lyricsOf('(c4) De~us(f)', (ctxt) => {
+      ctxt.lyricTie = 'doubletie';
+      ctxt.specials.dt = '⁐';
+    });
+    assert.equal(lyric.text, 'De⁐us');
+  });
+
+  it('keeps a ~ a space in verbatim text, above-lines text and translations', function() {
+    var [notation] = lyricsOf('(c4) <alt>a~b</alt>c<v>d~e</v>f~g[h~i](f)', (ctxt) => (ctxt.lyricTie = 'undertie'))
+      .map((lyric) => lyric.notation);
+    assert.equal(notation.lyrics[0].text, 'cd ef‿g');
+    assert.equal(notation.alText![0].text, 'a b');
+    assert.equal(notation.translationText![0].text, 'h i');
   });
 
   it('centers a syllable with a tie on its first vowel, rather than after the space', function() {
@@ -91,6 +108,17 @@ describe('First word styles', function() {
       'l:font-variant: small-caps;font-weight: bold;fill: #d00;',
       'o:font-variant: small-caps;font-weight: bold;'
     ]);
+  });
+
+  it('takes the styles away from a lyric with a drop cap as it was parsed', function() {
+    var gabc = '(c4) <b>G</b><i></i>lo(f)ri(g)';
+    var parsed = styled(gabc, true).spans[0];
+    var { ctxt, score } = styled(gabc, true, styles);
+    ctxt.firstWordStyle = {};
+    ctxt.firstSyllableStyle = {};
+    ctxt.firstSyllableInitialStyle = {};
+    score.updateNotations(ctxt);
+    assert.deepEqual(score.notations[0].lyrics[0].spans.map((span) => span.text + ':' + span.getCss()), parsed);
   });
 
   it('moves the styles when the first word changes, and takes them away when they are emptied', function() {
@@ -190,11 +218,15 @@ describe('Verbatim text', function() {
       (span) => span.text + (span.mergedProperties['font-family'] === 'greextra' ? '@greextra' : '')
     );
 
-  it('leaves out TeX commands that it has nothing to draw for, with their arguments', function() {
-    assert.deepEqual(spansOf('a<v>\\textit{b}</v>c'), ['a', 'c']);
-    assert.deepEqual(spansOf('<v>\\hspace{1em}</v>d'), ['d']);
-    assert.deepEqual(spansOf('<v>\\textbf[x]{a {b} c}</v>d'), ['d']);
+  it('leaves out TeX commands that it has nothing to draw for, but not the text of their arguments', function() {
+    assert.deepEqual(spansOf('a<v>\\textit{b}</v>c'), ['a', 'b', 'c']);
+    assert.deepEqual(spansOf('<v>\\textit{Amen}</v>'), ['Amen']);
+    assert.deepEqual(spansOf('<v>\\textbf[x]{a {b} c}</v>d'), ['a ', 'b', ' c', 'd']);
+    assert.deepEqual(spansOf('<v>\\emph{\\\'e}</v>'), ['é']);
     assert.deepEqual(spansOf('<v>{\\bf e}</v>'), [' e']);
+    // spacing, and Gregorio's own commands, have no text to show
+    assert.deepEqual(spansOf('<v>\\hspace{1em}</v>d'), ['d']);
+    assert.deepEqual(spansOf('<v>\\kern{2pt}\\gresetlyriccentering{vowel}</v>d'), ['d']);
   });
 
   it("draws Gregorio's symbol commands, accents and escaped characters", function() {
@@ -263,6 +295,14 @@ describe('Clear', function() {
     assert(Math.abs(cleared.bounds.x - first.lyrics[0].getRight()) < 1e-9);
   });
 
+  it("doesn't condense the space before a syllable with <clear> and then leave a gap without a hyphen", function() {
+    // (one word, with notes without text between its syllables)
+    var [ky, melisma, cleared] = layout('(c4) Ky(f)(ghg)<clear>ri(g)');
+    assert(cleared.lyrics[0].getLeft() >= melisma.bounds.right() - 1e-9);
+    var gap = cleared.lyrics[0].getLeft() - ky.lyrics[0].getRight();
+    assert(ky.lyrics[0].needsConnector || gap < 0.5, String(gap));
+  });
+
   it("changes nothing where the text is clear already", function() {
     var plain = layout('(c4) Ky(f) ri(g)').map((notation) => notation.bounds.x);
     var cleared = layout('(c4) Ky(f) <clear>ri(g)').map((notation) => notation.bounds.x);
@@ -308,5 +348,31 @@ describe('Protrusion', function() {
     lyric = firstLine(gabc('<pr>'), width - 3, halfway).lyric;
     assert.equal(lyric.text, 'son.');
     assert(Math.abs(lyric.protrusionWidth! - 3.6) < 1e-9);
+  });
+
+  it('makes the score wide enough for the text that protrudes', function() {
+    var { line, lyric } = firstLine(gabc('<pr>'), width - 3);
+    assert(Math.abs(line.score.bounds.width - lyric.getRight()) < 1e-9);
+    assert.equal(firstLine(gabc(''), width).line.score.bounds.width, width);
+  });
+
+  it("doesn't protrude a syllable that a hyphen follows", function() {
+    var [lyric] = lyricsOf('(c4) glo<pr>ri(f)a(g)');
+    assert.equal(lyric.protrusionWidth, 0);
+  });
+
+  it('keeps protruding the same text when the drop cap is taken away and made again', function() {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) Al<pr>.(f)'), true);
+    var lyric = score.notations[0].lyrics[0];
+    var widths = [true, false, true].map((useDropCap) => {
+      score.useDropCap = useDropCap;
+      score.recreateDropCap(ctxt);
+      lyric.recalculateMetrics(ctxt);
+      return lyric.protrusionWidth;
+    });
+    // (the period, 7.2 wide)
+    assert.deepEqual(widths.map((width) => Math.round(width! * 10) / 10), [7.2, 7.2, 7.2]);
   });
 });

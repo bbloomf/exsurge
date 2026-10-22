@@ -801,13 +801,16 @@ export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
 /** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
 export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
 
-/** the text that a ~ in the lyrics becomes, for each LyricTie */
-export const LyricTieText: { [tie in LyricTie]: string } = {
-  space: " ",
-  undertie: "‿",
-  overtie: "⁀",
-  // (U+2050 close up, an overtie above an undertie)
-  doubletie: "⁐"
+/**
+ * the special character (in ChantContext.specials) that a ~ in the lyrics
+ * becomes, for each LyricTie but "space", as Gregorio draws its lyric ties
+ * with the macros of <sp>ut</sp>, <sp>ot</sp> and <sp>dt</sp>
+ */
+export const LyricTieSpecials: { [tie in LyricTie]: string | null } = {
+  space: null,
+  undertie: "ut",
+  overtie: "ot",
+  doubletie: "dt"
 };
 
 /** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
@@ -962,8 +965,9 @@ export class ChantContext {
    * What a ~ in the lyrics becomes.  "space" (the default) is a space that
    * doesn't break the syllable, so the syllable is centered on the text after
    * it.  "undertie", "overtie" and "doubletie" are Gregorio's lyric ties,
-   * which join the words, so the syllable is centered on its first vowel.
-   * Like the rest of the lyrics, it's read when the gabc is parsed.
+   * drawn as the specials ut, ot and dt are (see specials), which join the
+   * words, so the syllable is centered on its first vowel.  Like the rest of
+   * the lyrics, it's read when the gabc is parsed.
    */
   lyricTie: LyricTie;
   /**
@@ -2807,6 +2811,10 @@ const __greextraCommands: { [command: string]: string } = {
   gothvbar: "VWithBarGoth"
 };
 
+// TeX commands whose arguments aren't text to show: spacing, colors and
+// labels, and Gregorio's own commands
+const __texCommandsWithoutText = /^(?:gre|[hv]space$|[hv]skip$|kern$|rule$|[hv]?phantom$|color$|label$|(?:set|addto)length$)/i;
+
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
   fontFamily: (ctxt: ChantContext) => string;
@@ -2932,7 +2940,7 @@ export class TextElement extends ChantLayoutElement {
     // in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
     // {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped
     // character, a command with its arguments, or a brace, which is left out
-    // unless it's one of the others
+    // unless it's one of the others (a command's {arguments} may be read again)
     var vTagRegex = /\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?|\\'\{?([æœaeiouy])\}?|\\([a-z@]+)\*?((?:\s*(?:\[[^\]]*\]|\{(?:[^{}]|\{[^{}]*\})*\}))*)|\\([&%$#_{}])|[{}]/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
@@ -2993,10 +3001,19 @@ export class TextElement extends ChantLayoutElement {
           } else {
             if (command) {
               // \greextra{Name}, or one of Gregorio's commands for a symbol
-              // (e.g. \grecross for the Cross); any other command is left out
+              // (e.g. \grecross for the Cross)
               greextra = /^greextra$/i.test(command)
                 ? (/\{([^{}]*)\}/.exec(args) || [])[1]
                 : __greextraCommands[command.toLowerCase()];
+              // any other command is left out, but the text of its {arguments}
+              // is read again (e.g. the x of \textit{x}), unless it has none
+              let braceIndex = args.indexOf("{");
+              if (
+                !greextra &&
+                braceIndex >= 0 &&
+                !__texCommandsWithoutText.test(command)
+              )
+                vTagRegex.lastIndex -= args.length - braceIndex;
             }
             char = greextra && (greextraGlyphs as { [name: string]: string })[greextra];
             if (char) {
@@ -4160,9 +4177,18 @@ export class Lyric extends TextElement {
 
     this.vowelSegmentWidth = vowelSegmentWidth;
 
-    // the width of the text after a <pr>, times how much of it may protrude
+    // the width of the text after a <pr>, times how much of it may protrude,
+    // unless a connector would follow it (which Gregorio doesn't protrude)
     this.protrusionWidth = 0;
-    if (this.protrusion && this.protrusion.textIndex < this.text.length) {
+    // (the drop cap took the first letter of the text that the index counts in)
+    let protrusionIndex = this.protrusion
+      ? Math.max(0, this.protrusion.textIndex - (this.dropCap ? 1 : 0))
+      : 0;
+    if (
+      this.protrusion &&
+      protrusionIndex < this.text.length &&
+      !(this.allowsConnector() && !this.preventConnector)
+    ) {
       let factor = this.protrusion.factor;
       if (factor === undefined) factor = ctxt.defaultProtrusionFactor;
       let start =
@@ -4170,9 +4196,9 @@ export class Lyric extends TextElement {
           ? // svgTextMeasurer still has the current lyric in it...
             (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
               0,
-              this.protrusion.textIndex
+              protrusionIndex
             )
-          : this.measureSubstring(ctxt, this.protrusion.textIndex);
+          : this.measureSubstring(ctxt, protrusionIndex);
       this.protrusionWidth =
         Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
     }
@@ -4210,7 +4236,6 @@ export class Lyric extends TextElement {
     this.spans[0].text = this.spans[0].text.slice(1);
     this.text = this.text.slice(1);
     this.centerStartIndex--; // lost a letter, so adjust centering accordingly
-    if (this.protrusion && this.protrusion.textIndex > 0) this.protrusion.textIndex--;
 
     return dropCap;
   }
@@ -4245,11 +4270,15 @@ export class Lyric extends TextElement {
     if (!applied.length && !styles.length && !initialStyle) return false;
 
     if (applied.length) {
-      // start again from the lyric as it was parsed (less its drop cap)
+      // start again from the lyric as it was parsed (less its drop cap), which
+      // was before it had a drop cap, so without its empty spans
+      const dropCap = this.dropCap;
+      this.dropCap = null;
       this.generateSpansFromText(
         ctxt,
         (ctxt.textStyles.lyric.prefix || "") + this.originalText
       );
+      this.dropCap = dropCap;
       if (this.dropCap) {
         this.spans[0].text = this.spans[0].text.slice(1);
         this.text = this.text.slice(1);

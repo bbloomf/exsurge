@@ -1208,7 +1208,8 @@ export class ChantScore {
 
     this.bounds.x = 0;
     this.bounds.y = 0;
-    this.bounds.width = firstLine.bounds.width;
+    // (a line is wider than the first when a lyric protrudes past its staff)
+    this.bounds.width = Math.max(...this.lines.map((line) => line.bounds.width));
     this.bounds.height = y - spaceBetweenSystems;
 
     this.pages = [this];
