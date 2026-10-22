@@ -1220,10 +1220,9 @@ export class FusedNeume extends Neume {
 
       switch (glyph.kind) {
         case FusedGlyphKind.Punctum:
-          // (a fused oriscus scapus has no stem)
           if (!glyph.fused && notes[0].shape === NoteShape.Oriscus)
             builder.oriscusAt(notes[0], this.getNoteGlyphCode(ctxt, notes[0]));
-          else builder.noteAt(notes[0], this.getNoteGlyphCode(ctxt, notes[0]));
+          else this.withoutStemAt(builder, notes[0], this.getNoteGlyphCode(ctxt, notes[0]));
           break;
         case FusedGlyphKind.Virga:
           builder.virgaAt(notes[0]);
@@ -1282,7 +1281,7 @@ export class FusedNeume extends Neume {
 
     if (!glyph.fused) builder.withClivisUpper(upper, lower);
     else if (upper.shape === NoteShape.Oriscus)
-      builder.noteAt(upper, Oriscus.getGlyphCode(upper, false));
+      this.withoutStemAt(builder, upper, Oriscus.getGlyphCode(upper, false));
     else
       builder.noteAt(
         upper,
@@ -1300,7 +1299,8 @@ export class FusedNeume extends Neume {
       return;
     }
 
-    builder.noteAt(lower, Oriscus.getGlyphCode(lower, true));
+    // (Gregorio's pes quassus has no scapus's stem)
+    this.withoutStemAt(builder, lower, Oriscus.getGlyphCode(lower, true));
     if (upper.staffPosition - lower.staffPosition === 1) builder.virgaAt(upper);
     else
       builder
@@ -1312,6 +1312,16 @@ export class FusedNeume extends Neume {
         )
         .withLineEndingAt(lower);
     builder.lastNote = null;
+  }
+
+  // adds a note with noteAt(), but an oriscus scapus as a plain oriscus, as
+  // Gregorio fuses it: noteAt() would join it to the note before with a line,
+  // its stem, even a second away
+  withoutStemAt(builder: NeumeBuilder, note: Note, glyph: GlyphCode) {
+    var shapeModifiers = note.shapeModifiers;
+    note.shapeModifiers &= ~NoteShapeModifiers.Stemmed;
+    builder.noteAt(note, glyph);
+    note.shapeModifiers = shapeModifiers;
   }
 
   // the glyph of a one-note glyph: as a punctum's (see Punctum), or an
