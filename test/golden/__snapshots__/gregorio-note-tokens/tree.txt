@@ -120,12 +120,11 @@
           <rect x=5.45 y=-31.25 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=97 element-index=24 id="note-25" x=8.575 y=-31.249999999999996 source=<Note sourceIndex=97 elementIndex=24 noteIndex=24> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=98 element-index=25 id="note-26" x=14.825 y=-25 source=<Note sourceIndex=98 elementIndex=25 noteIndex=25> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(246.89610317460318,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(246.89610317460318,0)" source=<FusedNeume> className="ChantNotationElement FusedNeume">
         <text source-index=102 x=0.03620000000000001 y=13.012000000000008 style={} source=<Lyric sourceIndex=102> className="lyric" textAnchor="start" source-gabc="h">
           <tspan source-index=0 style={} className=undefined>
             "h"
         <g className="Notations">
-          <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=104 element-index=26 id="note-27" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=104 elementIndex=26 noteIndex=26> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="@h">
           <use source-index=106 element-index=27 id="note-28" x=9.375 y=-25 source=<Note sourceIndex=106 elementIndex=27 noteIndex=27> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
       <g transform="translate(270.3336031746032,0)" source=<Punctum> className="ChantNotationElement Punctum">

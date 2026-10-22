@@ -97,7 +97,6 @@ fillRect(5.45, -31.25, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,218.008603174
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,226.58360317460318,27.500000000000004]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,232.83360317460318,33.75]
 fillText("g", 0.3026, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,218.0086031746032,58.75]
-fillRect(0, -31.25, 0.8, 16.006761363636365) [fillStyle="#000" matrix=1,0,0,1,246.89610317460318,58.75]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,250.02110317460318,27.500000000000004]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,256.2711031746032,33.75]
 fillText("h", 0.03620000000000001, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,246.89610317460318,58.75]

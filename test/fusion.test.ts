@@ -40,7 +40,7 @@ describe("Gregorio's neume fusion", function() {
       // PunctumOneDown, FlexusNobarOneDeminutus...)
       ["h@iw@ji@j@ih~", "punctum punctum@ flexus@+1 punctum@+1 flexus@-1"],
       ["d@eo@fd", "punctum punctum@+1 flexus@+1"],
-      ["IJ@kh", "PunctaInclinata + Clivis"],
+      ["IJ@kh", "PunctaInclinata + flexus@"],
       ["g@h@g@h@g", "punctum punctum@+1 punctum@-1 punctum@+1 punctum@-1"],
       ["e@gfg", "punctum porrectus@+2"],
       ["hg@hg", "flexus flexus@+1"],
@@ -69,6 +69,14 @@ describe("Gregorio's neume fusion", function() {
       ["jj@fs", "Distropha | Apostropha"]
     ];
     for (const [notes, expected] of cases) assert.strictEqual(fusion(notes), expected, notes);
+  });
+
+  it("makes a fused flexus or porrectus on its own a FusedNeume, which has no stem", function() {
+    assert.strictEqual(fusion("@hg"), "flexus@");
+    assert.strictEqual(fusion("@hgh"), "porrectus@");
+    // and without the @, as usual
+    assert.strictEqual(fusion("hg"), "Clivis");
+    assert.strictEqual(fusion("g@g"), "punctum punctum@");
   });
 
   it("gives a fused neume that isn't joined no space before it, and no line break", function() {

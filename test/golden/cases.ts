@@ -801,6 +801,13 @@ export const featureCases: GoldenCase[] = [
       "i(gV@e) j(g@iv) k(h@gv) l(h@fg~) m(h@fog) n(gO@h) o(gO@f) p(f@gO@h) q(gw@hi) r(g@hw) s(g@hih) " +
       "t(jj@h) u(h@fg) (:) v(g_@h_@g_) w(e_@gfg_) x(h_@iw@j_i_@j@ih~) y(g_@ih) z(hg_@h'g) A(e@g@e__) " +
       "B(g.@h@g.) C(g@h.@g@h.) D(f.@hgh.) E(g'@h@g') F(gV'@e.) G(b@d@b) H(l@j@l) (::)"
+  },
+  {
+    // an @ before a flexus or porrectus leaves out its stem, even where it
+    // isn't joined to the glyph before (l, m), and a flexus's oriscus scapus
+    // (j) has no stem either; a, c and k are as usual
+    name: "fusion-no-stem",
+    gabc: "(c4) a(hg) b(@hg) c(hgh) d(@hgh) e(@ig) f(@kfk) g(@hg~) h(@kf) i(@gof) j(@gOf) k(gOf) l(fg@hg) m(fg@hgh) (::)"
   }
 ];
 

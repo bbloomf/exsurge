@@ -3077,7 +3077,9 @@ export class Gabc {
       segmentStart = segmentEnd;
     }
 
-    // the neumes: each run of glyphs fused one to the next makes a FusedNeume
+    // the neumes: each run of glyphs fused one to the next makes a
+    // FusedNeume, as does a fused glyph on its own (a flexus or porrectus
+    // without its stem)
     var neumes: Neumes.Neume[] = [];
     var fusedToPrevious: boolean[] = [];
     for (var first = 0; first < pieces.length; ) {
@@ -3087,7 +3089,7 @@ export class Gabc {
       var run = pieces.slice(first, last);
 
       var runNeumes: Neumes.Neume[];
-      if (run.length > 1) {
+      if (run.length > 1 || (run[0].glyph && run[0].fused)) {
         var neume = new Neumes.FusedNeume(run.map((piece) => piece.glyph!));
         // (it ends as the neume of its last glyph did)
         var lastNeume = run[run.length - 1].neume;

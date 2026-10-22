@@ -191,12 +191,10 @@
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="98" element-index="25" id="note-26" x="14.825" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement Clivis" transform="translate(246.89610317460318,0)" >
+<g class="ChantNotationElement FusedNeume" transform="translate(246.89610317460318,0)" >
 <text source-index="102" x="0.03620000000000001" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >h</tspan>
 </text>
-<rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
-</rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="104" element-index="26" id="note-27" x="3.125" y="-31.249999999999996" >
 </use>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="106" element-index="27" id="note-28" x="9.375" y="-25" >

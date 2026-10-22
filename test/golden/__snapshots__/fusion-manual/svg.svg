@@ -135,14 +135,12 @@
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="36" element-index="12" id="note-13" x="8.31201998281125" y="-43.75" >
 </use>
 </g>
-<g class="ChantNotationElement Clivis" transform="translate(112.01219450300117,0)" >
-<rect x="-0.8" y="-50" width="0.8" height="9.756761363636365" fill="#000" class="neumeLine" >
-</rect>
-<use xlink:href="#PunctumQuadratum" class=" note" source-index="37" element-index="13" id="note-14" x="2.325" y="-50" >
+<g class="ChantNotationElement FusedNeume" transform="translate(112.01219450300117,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="37" element-index="13" id="note-14" x="3.125" y="-50" >
 </use>
-<rect x="4.65" y="-50" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+<rect x="5.45" y="-50" width="0.8" height="18.75" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#PunctumQuadratum" class=" note" source-index="39" element-index="14" id="note-15" x="7.775" y="-31.249999999999996" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="39" element-index="14" id="note-15" x="8.575" y="-31.249999999999996" >
 </use>
 </g>
 <g class="ChantNotationElement FusedNeume" transform="translate(133.3753903788606,0)" >
