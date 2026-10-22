@@ -3300,10 +3300,7 @@ export class TextElement extends ChantLayoutElement {
           properties["font-family"] || this.fontFamily(ctxt)
         )!;
         const smallCaps = properties["font-variant"] === "small-caps";
-        let spanFontSize = parseFloat(properties["font-size"]) || fontSize;
-        if (/%$/.test(properties["font-size"])) {
-          spanFontSize *= fontSize / 100;
-        }
+        const spanFontSize = this.fontSizeForProperties(ctxt, properties);
         if ('getPath' in font) {
           // opentype.js
           const measured = ctxt.measureOpenTypeText(
@@ -3728,8 +3725,13 @@ export class TextElement extends ChantLayoutElement {
       options.y = this.bounds.y;
     }
     if (this.resize) {
-      options["font-size"] =
-        properties["font-size"] || this.fontSize(ctxt) * this.resize;
+      options["font-size"] = this.fontSizeForProperties(ctxt, properties);
+      if (properties["font-size"]) {
+        // the span's own font-size, in its style, would win over the attribute
+        const style = span.properties;
+        delete style["font-size"];
+        options.style = useStyleObject ? style : getCssForProperties(style);
+      }
     }
     // if (ctxt.setFontFamilyAttributes) {
     //   options["font-family"] =
@@ -3755,13 +3757,19 @@ export class TextElement extends ChantLayoutElement {
     const extraStyleProperties = this.getExtraStyleProperties(ctxt);
     let textClass = this.getCssClasses().trim();
     if (extraStyleProperties.class) textClass = extraStyleProperties.class + " " + textClass;
+    let style = properties;
+    if (this.resize && properties["font-size"]) {
+      // the span's own font-size, in its style, would win over the attribute
+      style = Object.assign({}, properties);
+      delete style["font-size"];
+    }
     const spanNode = QuickSvg.createNode(
       "tspan",
       {
         class: properties.class,
-        style: getCssForProperties(properties),
+        style: getCssForProperties(style),
         "font-size": this.resize
-          ? properties["font-size"] || this.fontSize(ctxt) * this.resize
+          ? this.fontSizeForProperties(ctxt, properties)
           : undefined
       },
       text

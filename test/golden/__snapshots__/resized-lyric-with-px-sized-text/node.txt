@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="270" height="108.77000000000001" viewBox="0 0 270 108.77000000000001" source=<ChantScore>>
+  <g>
+    <defs>
+      <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)">
+        <path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z">
+      <g id="None" class="glyph" transform="scale(0.0625)">
+        <g>
+      <g id="DoClef" class="glyph" transform="scale(0.0625)">
+        <path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z">
+      <style>
+        "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
+    <g class="Titles" source=<Titles>>
+    <g class="chantLine" transform="translate(0,58.75)" element-index="0" source=<ChantLine elementIndex=0>>
+      <g class="staffLines">
+        <line key="-7" x1="0" y1="-43.75" x2="270" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-5" x1="0" y1="-31.25" x2="270" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-3" x1="0" y1="-18.75" x2="270" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-1" x1="0" y1="-6.25" x2="270" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine">
+      <g class="ChantNotationElement DoClef" transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" source=<DoClef sourceIndex=1 elementIndex=-1>>
+      <g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" source=<Punctum>>
+        <text source-index="5" x="-10.339" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=5>>
+          <tspan source-index="0" style="">
+            "Ky"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="8" element-index="0" id="note-1" x="3.125" y="-18.75" source=<Note sourceIndex=8 elementIndex=0 noteIndex=0>>
+      <g class="ChantNotationElement Punctum" transform="translate(27.4689,0)" source=<Punctum>>
+        <text source-index="10" x="-5.687799999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=10>>
+          <tspan source-index="0" style="">
+            "ri"
+          <tspan source-index="0" style="">
+            "-"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="13" element-index="1" id="note-2" x="3.125" y="-25" source=<Note sourceIndex=13 elementIndex=1 noteIndex=1>>
+      <g class="ChantNotationElement Punctum" transform="translate(41.531400000000005,0)" source=<Punctum>>
+        <text source-index="15" x="0.8353999999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=15>>
+          <tspan source-index="0" style="">
+            "e"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="17" element-index="2" id="note-3" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=17 elementIndex=2 noteIndex=2>>
+      <g class="ChantNotationElement QuarterBar" transform="translate(55.593900000000005,0)" source=<QuarterBar sourceIndex=21 elementIndex=3>>
+        <g class="Notations">
+          <rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="21" element-index="3" source=<QuarterBar sourceIndex=21 elementIndex=3>>
+      <g class="ChantNotationElement TextOnly" transform="translate(270,0)" source=<TextOnly sourceIndex=106 elementIndex=4>>
+        <text source-index="24" x="-270" y="28.85200000000001" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=24>>
+          <tspan source-index="0" style="" font-size="12.955854126679462">
+            "A long run of text only words, too wide for the line"
+          <tspan source-index="59" style="font-style: italic;newLine: 1;" dy="1.1em" x="-270" font-size="10.796545105566217">
+            "and a smaller line"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#None" class="" source-index="106" element-index="4" x="0" y="0" source=<TextOnly sourceIndex=106 elementIndex=4>>
+      <g class="ChantNotationElement DoubleBar" transform="translate(64.2064,0)" source=<DoubleBar sourceIndex=109 elementIndex=5>>
+        <g class="Notations">
+          <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="109" element-index="5" source=<DoubleBar sourceIndex=109 elementIndex=5>>
+          <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="109" element-index="5" source=<DoubleBar sourceIndex=109 elementIndex=5>>

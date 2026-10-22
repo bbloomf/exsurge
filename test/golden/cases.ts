@@ -52,6 +52,10 @@ const salveRegina =
   "Ad(j) te(ji) cla(h)má(gh)mus,(g.) (,) éx(e)su(f)les,(g) fí(h)li(i)i(j) He(j)vae.(i.) (:) " +
   "Ad(i) te(h) su(ixh)spi(g)rá(f)mus,(e.) (,) ge(f)mén(g)tes(h) et(i) flen(j)tes(k) in(j) hac(i) la(h)cri(g)má(f)rum(e) val(f)le.(e.) (::)";
 
+// a text only lyric a little too wide for a line 270 wide, with a smaller line after a break
+const resizedLyricWithSizedText =
+  "(c4) Ky(f)ri(g)e(h) (,) A long run of text only words, too wide for the line<br><e>and a smaller line</e>() (::)";
+
 // headers for Gabc.applyHeader()
 const headerSettings =
   "name: Ave Maria;\noffice-part: Antiphona;\nannotation: Ant.;\nannotation: VIII\nG;;\n" +
@@ -281,6 +285,20 @@ export const featureCases: GoldenCase[] = [
     name: "line-breaks-in-sized-text",
     gabc: "(c4) Ky<br><e>rie</e>(f) e<br><br><e>lé</e>(g) son.(h) (::)",
     setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br><e>ánimam meam</e>")
+  },
+  {
+    // a text only lyric squeezed to fit on the line, with smaller text in it
+    name: "resized-lyric-with-sized-text",
+    width: 270,
+    gabc: resizedLyricWithSizedText
+  },
+  {
+    name: "resized-lyric-with-px-sized-text",
+    width: 270,
+    gabc: resizedLyricWithSizedText,
+    setupContext: (ctxt) => {
+      ctxt.fontStyleDictionary.e = { "font-style": "italic", "font-size": "12px" };
+    }
   },
   {
     name: "elisions",
@@ -905,6 +923,12 @@ export const svgMeasuredCases: GoldenCase[] = [
   {
     ...featureCases.find((c) => c.name === "line-breaks-in-sized-text")!,
     name: "svg-measured-sized-line-breaks",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "resized-lyric-with-sized-text")!,
+    name: "svg-measured-resized-lyric",
     outputs: ["svg", "node"],
     strategy: "svg"
   },
