@@ -218,6 +218,17 @@ var __slurRegex = /^([ou])slur:([012])(?:;([^,]+),(.+)|([{}]))$/;
 //  6. its length to the right, or how far it goes past its end (0, 1 or a TeX length)
 var __ledgerLineRegex = /^([ou])ll:(?:([01])|(\})|([^;{]+)([;{])(.+))$/;
 
+// Gregorio's episema tuning, inside [ and ]: [oh:p] after a note, where p is
+// a position in the space (m, l, h, ol, oh, ul or uh) or a nudge (a TeX
+// length starting with + or -), or both, and [oh:p{] … [oh}] for the notes
+// between them, where p can be left out (and uh for the episema under the
+// note).  The capturing groups are:
+//  1. o or u, for the episema over or under the note
+//  2. the position
+//  3. the nudge
+//  4. { or }, for the start or end of a block
+var __episemaTuningRegex = /^([ou])h(?::(m|[ou]?[lh])?([+-][^{}]+)?)?([{}])?$/;
+
 const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
 const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
@@ -545,7 +556,10 @@ var mergeAreas = (a: SyllableAreas, b: SyllableAreas) => {
 var noMarksForNext: MarksForNext = { noteMarks: [], areas: {} };
 
 // whether marks has any marks
-var hasMarks = (marks: MarksForNext) => marks.noteMarks.length > 0 || hasAreas(marks.areas);
+var hasMarks = (marks: MarksForNext) =>
+  marks.noteMarks.length > 0 ||
+  hasAreas(marks.areas) ||
+  !!(marks.episemaBlocks && (marks.episemaBlocks.above || marks.episemaBlocks.below));
 
 // the areas that Gregorio's closing tags after the last word's notes end, which end at its last notation
 var endTrailingAreas = (mappings: ChantMapping[], areas: SyllableAreas) => {
@@ -2163,14 +2177,16 @@ export class Gabc {
               true
             );
           } else if (atom[0] === "[") {
-            // Gregorio's instructions that aren't after a note: a custom
-            // ledger line is introduced just before the next note
-            let results = atom.slice(1, -1).match(__ledgerLineRegex);
+            // Gregorio's instructions that aren't after a note: the start or
+            // end of a block of episema tuning, and a custom ledger line,
+            // which is introduced just before the next note
+            let instruction = atom.slice(1, -1);
+            let results = instruction.match(__ledgerLineRegex);
             let line = results && !results[2] && this.customLedgerLine(results);
             if (line) {
               let lineBefore = { ...line, before: true };
               nextNoteMarks.push((note) => (note.customLedgerLines = (note.customLedgerLines || []).concat(lineBefore)));
-            }
+            } else this.processEpisemaTuning(instruction, null);
           } else if (atom.length > 1 && atom.endsWith("+")) {
             // custos
             var custos = new Signs.Custos();
@@ -2810,6 +2826,10 @@ export class Gabc {
     var note = new Note();
     note.sourceIndex = sourceIndex;
     note.sourceGabc = restoreEscapes(data);
+    // (the tuning of the blocks of Gregorio's episema tuning that the note is in)
+    var episemaBlocks = this.marksForNext.episemaBlocks;
+    if (episemaBlocks && (episemaBlocks.above || episemaBlocks.below))
+      note.episemaTuning = { above: episemaBlocks.above, below: episemaBlocks.below };
 
     if (data.length < 1) throw "Invalid note data: " + data;
 
@@ -3265,9 +3285,11 @@ export class Gabc {
     }
   }
 
-  // Gregorio's slurs and custom ledger lines on the note.  Returns whether
-  // the instruction is one of these.
+  // Gregorio's slurs, custom ledger lines and episema tuning on the note.
+  // Returns whether the instruction is one of these.
   static processDecorationForNote(note: Note, instruction: string) {
+    if (this.processEpisemaTuning(instruction, note)) return true;
+
     var results = instruction.match(__ledgerLineRegex);
     if (results) {
       if (results[2] && results[1] === "o") note.ledgerLineAbove = results[2] === "1";
@@ -3297,6 +3319,36 @@ export class Gabc {
       return true;
     }
     return false;
+  }
+
+  // Gregorio's episema tuning ([oh:…] and [uh:…]): one for the note it's
+  // after, if there is one, or the start or end of a block, whose tuning goes
+  // on the notes that come between its start and end.  Returns whether the
+  // instruction is one of these.
+  static processEpisemaTuning(instruction: string, note: Note | null) {
+    var results = instruction.match(__episemaTuningRegex);
+    if (!results) return false;
+    var side = results[1] === "o" ? ("above" as const) : ("below" as const);
+    var hasPositionOrNudge = !!(results[2] || results[3]);
+    var tuning: Markings.EpisemaTuning = {};
+    if (results[2]) tuning.position = results[2] as Markings.EpisemaTuningPosition;
+    if (results[3]) {
+      let nudge = texLengthToStaffIntervals(results[3]);
+      if (nudge === undefined) return true;
+      tuning.nudge = nudge;
+    }
+
+    var blocks = this.marksForNext.episemaBlocks || {};
+    if (results[4] === "{") {
+      // (as in Gregorio, a block can't start before the last one ends)
+      if (!blocks[side])
+        this.marksForNext = { ...this.marksForNext, episemaBlocks: { ...blocks, [side]: { ...tuning, block: true } } };
+    } else if (results[4] === "}") {
+      if (!hasPositionOrNudge) this.marksForNext = { ...this.marksForNext, episemaBlocks: { ...blocks, [side]: undefined } };
+    } else if (note && hasPositionOrNudge) {
+      note.episemaTuning = { ...note.episemaTuning, [side]: tuning };
+    }
+    return true;
   }
 
   // the custom ledger line that a match of __ledgerLineRegex gives, if its lengths are valid

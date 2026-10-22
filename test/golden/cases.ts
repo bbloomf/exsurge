@@ -758,6 +758,16 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(g[oll:1]) b(m[oll:0]) c(d[ull:1]) d(b[ull:0]) e(g[oll:0;5mm]h) f([oll:1;5mm]gh) g([ull:1{1]fgh) " +
       "h(g[ull:}]f) i(h[oll:2mm;2mm]) j(fg[oll:1]h) k(lm[oll:0]) l(e[ull:}]) m(g[oll:0{1]) (z) n(hg) o(h[oll:}]) (::)"
+  },
+  {
+    // episemata moved to the middle, or low or high, in their spaces, and
+    // nudged, over and under notes in spaces and on lines; and the episemata
+    // in blocks put on one level, even across syllables and spaces, where
+    // the note the block starts after isn't in it
+    name: "episema-tuning",
+    gabc:
+      "(c4) a(g_) b(g_[oh:m]) c(g_[oh:l]) d(g_[oh:h]) e(h_[oh:l]) f(h_[oh:+1mm]) g(h_[oh:m-0.5mm]) h(g_0[uh:l]) " +
+      "i(h_0[uh:m]) j(g_0[uh:oh]) (::) k(e_[oh:{]f_) l(g_ h_[oh}]) m(g_) n([oh:h{]f_ g_ e_[oh}]) o([uh:{]h_0 j_0) p(f_0[uh}]) (::)"
   }
 ];
 

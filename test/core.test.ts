@@ -747,3 +747,51 @@ describe("Gregorio slurs and custom ledger lines", function() {
     assert.strictEqual(notes[3].customLedgerLines![0].before, true);
   });
 });
+
+describe("Gregorio episema tuning", function() {
+  const mm = (length: number) => (length * 72.27) / 25.4 / ((31500 / 2) * 17 / 65536);
+  const notesOfMappings = (mappings: Exsurge.ChantMapping[]) =>
+    mappings.flatMap((mapping) => mapping.notations).flatMap((notation) => notation.notes || []);
+
+  it("reads a note's own tuning, and a block's for the notes between its start and end", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const notes = notesOfMappings(
+      Exsurge.Gabc.createMappingsFromSource(
+        ctxt,
+        "(c4) a(g_[oh:m]) b(g_0[uh:ol+1mm]) c(g_[oh:{]h_) d(i_[oh:h]j_[oh}]) e(f_) f([uh{]g_0) g(h_0[uh:}]) h(g_[oh:] g_[oh:m}])"
+      )
+    );
+    const block = notes[3].episemaTuning!.above;
+    assert.deepStrictEqual(
+      notes.map((note) => note.episemaTuning),
+      [
+        { above: { position: "m" } },
+        { below: { position: "ol", nudge: mm(1) } },
+        // (the block starts after the note it follows)
+        undefined,
+        { above: { block: true }, below: undefined },
+        // a note's own tuning is kept, rather than its block's
+        { above: { position: "h" }, below: undefined },
+        { above: block, below: undefined },
+        undefined,
+        { above: undefined, below: { block: true } },
+        { above: undefined, below: notes[7].episemaTuning!.below },
+        // ([oh:] and [oh:m}] aren't Gregorio's)
+        undefined,
+        undefined
+      ]
+    );
+    assert.strictEqual(notes[5].episemaTuning!.above, block);
+  });
+
+  it("puts the notes of words that are kept, as the gabc is changed, in the blocks that they're now in", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const mappings = Exsurge.Gabc.createMappingsFromSource(ctxt, "(c4) a(f_[oh:{]g_) b(h_) c(g_[oh}]) d(f_)");
+    const inBlock = () => notesOfMappings(mappings).map((note) => !!(note.episemaTuning && note.episemaTuning.above));
+    assert.deepStrictEqual(inBlock(), [false, true, true, true, false]);
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, mappings, "(c4) a(f_[oh:{]g_) b(h_) c(g_) d(f_)");
+    assert.deepStrictEqual(inBlock(), [false, true, true, true, true]);
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, mappings, "(c4) a(f_g_) b(h_) c(g_) d(f_)");
+    assert.deepStrictEqual(inBlock(), [false, false, false, false, false]);
+  });
+});

@@ -41,7 +41,7 @@ import {
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
-import type { BraceNote, HorizontalEpisema, LedgerLineExtent } from "./Exsurge.Chant.Markings.js";
+import type { BraceNote, EpisemaTuning, HorizontalEpisema, LedgerLineExtent } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type { Accidental, InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import type {
@@ -2175,6 +2175,8 @@ export class ChantLine extends ChantLayoutElement {
       }
     }
 
+    this.alignEpisemaBlocks(notations.slice(this.notationsStartIndex, lastIndex));
+
     // if we still have an active brace, that means it spands two chant lines!
     if (startBrace !== null) {
       if (this.custos) {
@@ -2278,6 +2280,27 @@ export class ChantLine extends ChantLayoutElement {
         delete openLedgerLines[side];
       }
     }
+  }
+
+  // puts the episemata of each of Gregorio's blocks of episema tuning
+  // ([oh:…{] … [oh}]) on the notations on the same level, the highest of
+  // them over the notes, or the lowest under them
+  alignEpisemaBlocks(notations: ChantNotationElement[]) {
+    var blocks = new Map<EpisemaTuning, HorizontalEpisema[]>();
+    for (let notation of notations) {
+      for (let note of notation.notes || []) {
+        for (let episema of note.episemata) {
+          let isAbove = episema.positionHint !== MarkingPositionHint.Below;
+          let tuning = note.episemaTuning && note.episemaTuning[isAbove ? "above" : "below"];
+          if (tuning && tuning.block) blocks.set(tuning, (blocks.get(tuning) || []).concat(episema));
+        }
+      }
+    }
+    blocks.forEach((episemata) => {
+      let ys = episemata.map((episema) => episema.bounds.y);
+      let y = episemata[0].positionHint === MarkingPositionHint.Below ? Math.max(...ys) : Math.min(...ys);
+      for (let episema of episemata) episema.bounds.y = y;
+    });
   }
 
   // Gregorio's slurs on the note (gabc [oslur:…] and [uslur:…]): one of its

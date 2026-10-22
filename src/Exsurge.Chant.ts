@@ -41,6 +41,7 @@ import type {
   Accent,
   BracePoint,
   CustomLedgerLine,
+  EpisemaTuning,
   HorizontalEpisema,
   Ictus,
   Mora,
@@ -175,6 +176,11 @@ export class Note extends ChantLayoutElement {
   ledgerLineBelow?: boolean;
   /** Gregorio's ledger lines of a given length (gabc [oll:…] and [ull:…]) next to the note, which the chant line draws */
   customLedgerLines?: CustomLedgerLine[];
+  /**
+   * Gregorio's tuning of the episema over the note (gabc [oh:…]) and under
+   * it ([uh:…]), the note's own or its block's
+   */
+  episemaTuning?: { above?: EpisemaTuning; below?: EpisemaTuning };
 
   // Gregorio's notation read since Phase 1 of docs/gregorio-feature-gap.md,
   // not all of it drawn yet
@@ -675,6 +681,8 @@ export class ChantLineBreak extends ChantNotationElement {
 export interface MarksForNext {
   noteMarks: ((note: Note) => void)[];
   areas: { euouae?: AreaBoundary; noLineBreak?: AreaBoundary };
+  /** the tunings of Gregorio's blocks of episemata ([oh:…{] … [oh}]) that the next notes are in */
+  episemaBlocks?: { above?: EpisemaTuning; below?: EpisemaTuning };
 }
 
 // a chant mapping is a lightweight format independent way of

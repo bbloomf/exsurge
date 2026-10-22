@@ -90,6 +90,33 @@ export const HorizontalEpisemaAlignment = {
 export type HorizontalEpisemaAlignment =
   (typeof HorizontalEpisemaAlignment)[keyof typeof HorizontalEpisemaAlignment];
 
+/**
+ * Where Gregorio's episema tuning puts an episema in its space: m in the
+ * middle, l low or h high (as for an episema over the note, or under it, as
+ * the episema is), or ol, oh, ul or uh, low or high as for one over (o) or
+ * under (u) the note
+ */
+export type EpisemaTuningPosition = "m" | "l" | "h" | "ol" | "oh" | "ul" | "uh";
+
+/**
+ * Gregorio's tuning of the episema over a note (gabc [oh:…]) or under it
+ * ([uh:…]), or of the episemata of a block of notes ([oh:…{] … [oh}])
+ */
+export interface EpisemaTuning {
+  position?: EpisemaTuningPosition;
+  /** how far to move the episema up, in staff intervals */
+  nudge?: number;
+  /** whether the tuning is a block's, whose episemata are put on one level */
+  block?: boolean;
+}
+
+// how far GregorioTeX puts an episema up from the middle of its space for
+// each position, in staff intervals: its hepisemamiddleshift,
+// overhepisemalowshift and so on (0.07206cm, 0.02287cm, 0.10066cm,
+// 0.02763cm and 0.10981cm at its default staff size, from 70 of the 157.5
+// font units of a step below the middle of the space)
+const episemaTuningShifts = { m: 0.057, ol: -0.285, oh: 0.257, ul: -0.252, uh: 0.32 };
+
 /*
  * HorizontalEpisema
  *
@@ -232,6 +259,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
       width *= 0.8;
     }
 
+    y = this.tunedY(ctxt, y);
+
     this.bounds.x = x;
     this.bounds.y = y - ctxt.episemaLineWeight / 2;
     this.bounds.width = width;
@@ -239,6 +268,32 @@ export class HorizontalEpisema extends ChantLayoutElement {
 
     this.origin.x = 0;
     this.origin.y = 0;
+  }
+
+  // y, the middle of the episema, as Gregorio's episema tuning of its note
+  // ([oh:…] or [uh:…]) moves it: to a position in the space that Gregorio
+  // puts it in, which is the space above (or below) the note, or the one
+  // beyond that if that's a staff line or ledger line, and then by the nudge
+  tunedY(ctxt: ChantContext, y: number) {
+    var isAbove = this.positionHint !== MarkingPositionHint.Below;
+    var tuning = this.note.episemaTuning && this.note.episemaTuning[isAbove ? "above" : "below"];
+    if (!tuning) return y;
+
+    if (tuning.position) {
+      let staffPosition = isAbove ? Math.floor(this.note.staffPosition) + 1 : Math.ceil(this.note.staffPosition) - 1;
+      let isOnLine =
+        Math.abs(staffPosition) % 2 === 1 &&
+        ((staffPosition > 0 && staffPosition < 2 * ctxt.staffLineCount) ||
+          this.note.neume!.ledgerLines.some((ledgerLine) => ledgerLine.staffPosition === staffPosition));
+      if (isOnLine) staffPosition += isAbove ? 1 : -1;
+      let position = tuning.position;
+      if (position === "l" || position === "h") position = ((isAbove ? "o" : "u") + position) as EpisemaTuningPosition;
+      y = ctxt.calculateHeightFromStaffPosition(
+        staffPosition + episemaTuningShifts[position as keyof typeof episemaTuningShifts]
+      );
+    }
+    if (tuning.nudge) y -= tuning.nudge * ctxt.staffInterval;
+    return y;
   }
 
   draw(ctxt: ChantContext) {
