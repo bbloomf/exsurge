@@ -106,3 +106,11 @@ same<typeof header.commentaryArray, string[] | undefined>(true);
 same<typeof header.comments, string[]>(true);
 same<typeof header.cValues, { [key: string]: string }>(true);
 const headerText: string = header.toString() + header.original;
+
+// Gabc.applyHeader
+Gabc.applyHeader(score, ctxt, header);
+Gabc.applyHeader(score, ctxt, header, { annotation: false, legacy: true });
+const modeLine: string = Gabc.modeText(ctxt, "8", "t.", "G");
+ctxt.modeNumberSystem = "roman-minuscule";
+// @ts-expect-error not one of Gregorio's mode number systems
+ctxt.modeNumberSystem = "greek";

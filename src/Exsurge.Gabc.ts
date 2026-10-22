@@ -41,8 +41,11 @@ import {
   ChoralSign,
   TranslationText,
   DefaultTrailingSpace,
-  GlyphCode
+  GlyphCode,
+  Annotation,
+  Annotations
 } from "./Exsurge.Drawing.js";
+import { language as languages, type Language } from "./Exsurge.Text.js";
 import {
   Note,
   LiquescentType,
@@ -133,13 +136,21 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
 var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[)$/;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
+
+// a clef with a second clef after it, as in c1@c4 or c3@fb2 (the clefs of
+// __notationsRegex).  The groups are:
+//  1. the first clef
+//  2. c or f, the second clef's type
+//  3. b if the second clef has a flat
+//  4. the line of the second clef
+var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])$/;
 
 // for the brace string inside of [ and ] in notation data
 // the capturing groups are:
@@ -372,6 +383,67 @@ var maskGabc = (gabc: string) =>
 // whether a gabc word is only spaces and comments
 var isEmptyWord = (word: string) => maskGabc(word).replace(__commentMaskRegex, "").trim() === "";
 
+/**
+ * Which headers Gabc.applyHeader() applies.  Each is applied unless it is
+ * set to false, except the legacy ones, which are only applied if legacy is
+ * set to true.
+ */
+export interface ApplyHeaderOptions {
+  /** annotation, as the score's annotation */
+  annotation?: boolean;
+  /**
+   * mode, mode-modifier and mode-differentia, as the score's annotation, if
+   * the header has no annotation
+   */
+  mode?: boolean;
+  /** staff-lines, as the score's staffLineCount */
+  staffLines?: boolean;
+  /** language, as the language of the score's lyrics */
+  language?: boolean;
+  /**
+   * the headers that Gregorio no longer reads: initial-style, as the score's
+   * useDropCap, and centering-scheme, as the language of the score's lyrics
+   */
+  legacy?: boolean;
+}
+
+// the languages of the language header, by their names and their ISO 639
+// codes, in lower case
+const __languagesByName: { [name: string]: Language } = {
+  latin: languages.latin,
+  la: languages.latin,
+  lat: languages.latin,
+  english: languages.english,
+  en: languages.english,
+  eng: languages.english,
+  spanish: languages.spanish,
+  "español": languages.spanish,
+  es: languages.spanish,
+  spa: languages.spanish
+};
+
+// the languages of the old centering-scheme header, which said how to center
+// the lyrics: on the vowel (latine) or on the whole syllable (english)
+const __languagesByCenteringScheme: { [scheme: string]: Language } = {
+  latine: languages.latin,
+  english: languages.english
+};
+
+// the annotations that Gabc.applyHeader() made, which it replaces when it's
+// called again
+const __headerAnnotations = new WeakSet<Annotation | Annotations>();
+
+const __romanModeNumbers = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"];
+
+// text that starts with punctuation: ASCII's, as Lua's %p has it, and that
+// of Latin-1 and of Unicode's general punctuation
+const __punctuationRegex = /^[!-/:-@[-`{-~\u00a1-\u00bf\u2010-\u205e]/;
+
+// a header value as one line of text: Gregorio's values go into TeX, which
+// reads the line ends of a multi-line value as spaces
+const headerText = (value: string | undefined) =>
+  (value || "").replace(/\s+/g, " ").trim();
+
 var elementCountForNotations = (items: ChantNotationElement[]) =>
   items.reduce((sum, item) => sum + (item.notes ? item.notes.length : 1), 0);
 
@@ -538,6 +610,129 @@ export class Gabc {
     // (a voice that was skipped with || has an empty string)
     for (let p of parts) for (let v = 0; v < p.nabc.length; v++) p.nabc[v] = p.nabc[v] || "";
     return { gabc, cuts, parts: parts.filter((p) => p.nabc.length > 0) };
+  }
+
+  /**
+   * Applies the settings in a gabc header to a score, as Gregorio does.
+   * exsurge doesn't otherwise read them, so call this after making the score,
+   * and again after updating its mappings (so that new lyrics get the
+   * header's language, and changes to the header take effect).  The score
+   * is then laid out again where it needs to be.
+   *
+   * - annotation: the first two, one line each, as the score's annotation.
+   * - mode, mode-modifier and mode-differentia, if there is no annotation
+   *   header: one line, as the score's annotation (see modeText()).
+   * - staff-lines: 2 to 5, as the score's staffLineCount.
+   * - language: Latin, English or Spanish, by name or ISO 639 code, as the
+   *   language of the score's lyrics, so that ctxt.defaultLanguage stays as
+   *   it is for other scores.  A language that exsurge doesn't have leaves
+   *   them as they are.
+   * - with options.legacy, the headers that Gregorio no longer reads:
+   *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
+   *   useDropCap, and centering-scheme (latine or english) as the language
+   *   of the score's lyrics, in place of the language header.
+   *
+   * A score that already has an annotation that this didn't make keeps it,
+   * and gets no mode line, as in Gregorio, where an annotation set in TeX
+   * wins over the header.
+   */
+  static applyHeader(
+    score: ChantScore,
+    ctxt: ChantContext,
+    header: GabcHeader,
+    options: ApplyHeaderOptions = {}
+  ) {
+    var annotations = (header.annotationArray || [header.annotation])
+      .map(headerText)
+      .filter((text) => text)
+      .slice(0, 2);
+    if (!score.annotation || __headerAnnotations.has(score.annotation)) {
+      var annotation: Annotation | Annotations | null = null;
+      if (annotations.length) {
+        if (options.annotation !== false)
+          annotation =
+            annotations.length === 1
+              ? new Annotation(ctxt, annotations[0])
+              : new Annotations(ctxt, ...annotations);
+      } else if (options.mode !== false) {
+        var mode = this.modeText(
+          ctxt,
+          headerText(header.mode),
+          headerText(header["mode-modifier"]),
+          headerText(header["mode-differentia"])
+        );
+        if (mode) annotation = new Annotation(ctxt, mode);
+      }
+      if (annotation) __headerAnnotations.add(annotation);
+      score.annotation = annotation;
+    }
+
+    var staffLineCount = parseInt(headerText(header["staff-lines"]), 10);
+    if (
+      options.staffLines !== false &&
+      staffLineCount >= 2 &&
+      staffLineCount <= 5 &&
+      staffLineCount !== score.staffLineCount
+    ) {
+      score.staffLineCount = staffLineCount;
+      // everything on the staff is laid out for its number of lines
+      for (let notation of score.notations) notation.needsLayout = true;
+    }
+
+    var language =
+      (options.language !== false &&
+        __languagesByName[headerText(header.language).toLowerCase()]) ||
+      null;
+    if (options.legacy)
+      language =
+        __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()] ||
+        language;
+    if (language) {
+      for (let notation of score.notations) {
+        for (let lyric of notation.lyrics) {
+          if (lyric && lyric.language !== language) {
+            lyric.language = language;
+            notation.needsLayout = true;
+          }
+        }
+      }
+    }
+
+    if (options.legacy) {
+      var initialStyle = headerText(header["initial-style"]);
+      if (/^[012]$/.test(initialStyle)) {
+        score.useDropCap = initialStyle !== "0";
+        score.recreateDropCap(ctxt);
+      }
+    }
+
+    score.needsLayout = true;
+  }
+
+  /**
+   * The mode line that Gregorio writes above the initial when there is no
+   * annotation (\GreMode): the mode, then the modifier and the differentia,
+   * each after a space unless it starts with punctuation.  A mode that
+   * starts with a number from 1 to 8 has it written in ctxt.modeNumberSystem
+   * ("8" is VIII, "4A" is IVA); any other mode is written as it is.  With no
+   * mode, the modifier and differentia aren't written either.
+   */
+  static modeText(ctxt: ChantContext, mode: string, modifier = "", differentia = "") {
+    if (!mode) return "";
+    var number = /^[1-8]/.test(mode) ? parseInt(mode[0], 10) : 0;
+    if (number) {
+      var roman = __romanModeNumbers[number - 1];
+      mode =
+        (ctxt.modeNumberSystem === "arabic"
+          ? mode[0]
+          : ctxt.modeNumberSystem === "roman-minuscule"
+          ? roman
+          : roman.toUpperCase()) + mode.slice(1);
+    }
+    for (var part of [modifier, differentia]) {
+      if (part) mode += (__punctuationRegex.test(part) ? "" : " ") + part;
+    }
+    return mode;
   }
 
   // A simple general purpose diff algorithm adapted here for comparing
@@ -1540,6 +1735,7 @@ export class Gabc {
         notation.sourceGabc = match![0];
         if (notation.isClef) {
           ctxt.activeClef = notation as Clef;
+          if (secondClef) (notation as Clef).secondClef = secondClef;
           if (
             prevNotation &&
             (prevNotation.trailingSpace as TrailingSpaceFunction).isDefault &&
@@ -1569,12 +1765,21 @@ export class Gabc {
 
     var regex = new RegExp(__notationsRegex);
     var match: RegExpExecArray | null;
+    // the second clef of the clef being parsed (gabc c1@c4)
+    var secondClef: Clef | null;
 
     while ((match = regex.exec(data))) {
       sourceIndex = baseSourceIndex + match.index;
       sourceLength = match[0].length;
       var atom = match[0];
       var bar = match[__notationsRegex_group_bar];
+
+      // a second clef goes on the clef before it, which is parsed below
+      var secondClefMatch = __secondClefRegex.exec(atom);
+      secondClef =
+        secondClefMatch &&
+        this.createClef(secondClefMatch[2], parseInt(secondClefMatch[4], 10), !!secondClefMatch[3]);
+      if (secondClefMatch) atom = secondClefMatch[1];
 
       // a bar can be followed by _ (a brace carrying the melody over it) and ' (a vertical episema)
       let barSigns = bar ? /['_]*$/.exec(bar)![0] : "";
@@ -1674,34 +1879,12 @@ export class Gabc {
         case "cb3":
         case "cb4":
         case "cb5":
-          {
-            const line = 2 * parseInt(atom[2], 10) - 1;
-            addNotation(
-              (ctxt.activeClef = new DoClef(
-                line,
-                2,
-                new Signs.Accidental(line - 1, Signs.AccidentalType.Flat)
-              ))
-            );
-          }
-          break;
         case "fb1":
         case "fb2":
         case "fb3":
         case "fb4":
         case "fb5":
-          {
-            // the flat is on the B above the F, or, when that's above a
-            // four-line staff, the B below (as Gregorio puts it)
-            const line = 2 * parseInt(atom[2], 10) - 1;
-            addNotation(
-              (ctxt.activeClef = new FaClef(
-                line,
-                2,
-                new Signs.Accidental(line <= 3 ? line + 3 : line - 4, Signs.AccidentalType.Flat)
-              ))
-            );
-          }
+          addNotation((ctxt.activeClef = this.createClef(atom[0], parseInt(atom[2], 10), true)));
           break;
 
         case "z":
@@ -1912,6 +2095,29 @@ export class Gabc {
     }
 
     return notations;
+  }
+
+  // a do (c) or fa (f) clef on a line from 1 to 5, with or without a flat
+  static createClef(type: string, line: number, flat: boolean): Clef {
+    var staffPosition = 2 * line - 1;
+    if (type === "c")
+      return new DoClef(
+        staffPosition,
+        2,
+        flat ? new Signs.Accidental(staffPosition - 1, Signs.AccidentalType.Flat) : null
+      );
+    // the flat is on the B above the F, or, when that's above a
+    // four-line staff, the B below (as Gregorio puts it)
+    return new FaClef(
+      staffPosition,
+      2,
+      flat
+        ? new Signs.Accidental(
+            staffPosition <= 3 ? staffPosition + 3 : staffPosition - 4,
+            Signs.AccidentalType.Flat
+          )
+        : null
+    );
   }
 
   static createNeumesFromNotes(
