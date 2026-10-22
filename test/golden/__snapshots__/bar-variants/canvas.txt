@@ -68,10 +68,7 @@ fill(Path2D(Virgula[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,240.5800625,
 fill(Path2D(VerticalEpisemaBelow[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,246.6388125,64.375]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,260.63925,34.375]
 fillText("k", -0.7629999999999999, 19.262, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,257.51425,65.625]
-beginPath()
-moveTo(-9.375, -50)
-bezierCurveTo(-6.25, -59.375, 6.25, -59.375, 9.375, -50)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,271.57675,65.625]
+stroke(Path2D(path "M -9.38 -50.00 C -6.25 -59.38 6.25 -59.38 9.38 -50.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,271.57675,65.625]
 fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,271.57675,65.625]
 fill(Path2D(VerticalEpisemaBelow[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,271.97675,64.375]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,283.51425,40.625]

@@ -16,10 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(220, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,59.375]
-beginPath()
-moveTo(13.516356421884142, -50)
-bezierCurveTo(46.17248451823678, -59.375, 176.79699690364737, -59.375, 209.453125, -50)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,59.375]
+stroke(Path2D(path "M 13.52 -50.00 C 46.17 -59.38 176.80 -59.38 209.45 -50.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,59.375]
 fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15.625]
 fill(Path2D(PodatusLowerShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,16.64135642188414,40.625]
 fill(Path2D(PodatusUpperShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,19.76635642188414,34.375]
@@ -71,14 +68,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(220, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,2.842170943040401e-14,147.24825]
-beginPath()
-moveTo(49.9473, -50)
-quadraticCurveTo(49.9473, -51.875, 71.6235, -51.25)
-quadraticCurveTo(93.29970000000002, -50.625, 93.2997, -53.125)
-moveTo(136.65210000000002, -50)
-quadraticCurveTo(136.65210000000002, -51.875, 114.97590000000001, -51.25)
-quadraticCurveTo(93.2997, -50.625, 93.2997, -53.125)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,2.842170943040401e-14,147.24825]
+stroke(Path2D(path "M 49.95 -50.00 Q 49.95 -51.88 71.62 -51.25 T 93.30 -53.13 M 136.65 -50.00 Q 136.65 -51.88 114.98 -51.25 T 93.30 -53.13")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,2.842170943040401e-14,147.24825]
 fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,2.842170943040401e-14,103.49825000000001]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.18750000000003,122.24825000000001]
 fillText("son", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.062500000000028,147.24825]
