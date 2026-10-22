@@ -28,6 +28,7 @@ beginPath()
 moveTo(139.3685625, 6.25)
 lineTo(154.725, 6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,71.25]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,27.5]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,52.5]
 fill(Path2D(PodatusLowerShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,23.4375,46.25]
 fill(Path2D(PodatusUpperShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,26.5625,40]
@@ -64,4 +65,3 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,216.872
 fillText("h", 0.03620000000000001, 33.170249999999996, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,213.74793749999998,71.25]
 fillRect(0, -56.25, 0.8, 50) [fillStyle="#000" matrix=1,0,0,1,227.81043749999998,71.25]
 fillRect(5.45, -56.25, 0.8, 50) [fillStyle="#000" matrix=1,0,0,1,227.81043749999998,71.25]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,-2.842170943040401e-14,27.5]

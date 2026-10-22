@@ -20,51 +20,16 @@ beginPath()
 moveTo(175, -56.25)
 lineTo(187.5, -56.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
-beginPath()
-moveTo(14.0625, -50)
-bezierCurveTo(17.1875, -59.375, 29.6875, -59.375, 32.8125, -50)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
-beginPath()
-moveTo(43.75, -0)
-bezierCurveTo(45.833333333333336, 9.375, 54.166666666666664, 9.375, 56.25, -0)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
-beginPath()
-moveTo(67.1875, -50)
-quadraticCurveTo(67.1875, -51.875, 70.3125, -51.25)
-quadraticCurveTo(73.4375, -50.625, 73.4375, -53.125)
-moveTo(79.6875, -50)
-quadraticCurveTo(79.6875, -51.875, 76.5625, -51.25)
-quadraticCurveTo(73.4375, -50.625, 73.4375, -53.125)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
-beginPath()
-moveTo(90.625, -50)
-quadraticCurveTo(90.625, -51.875, 93.75, -51.25)
-quadraticCurveTo(96.875, -50.625, 96.875, -53.125)
-moveTo(103.125, -50)
-quadraticCurveTo(103.125, -51.875, 100, -51.25)
-quadraticCurveTo(96.875, -50.625, 96.875, -53.125)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 14.06 -50.00 C 17.19 -59.38 29.69 -59.38 32.81 -50.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 43.75 0.00 C 45.83 9.38 54.17 9.38 56.25 0.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 67.19 -50.00 Q 67.19 -51.88 70.31 -51.25 T 73.44 -53.13 M 79.69 -50.00 Q 79.69 -51.88 76.56 -51.25 T 73.44 -53.13")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 90.63 -50.00 Q 90.63 -51.88 93.75 -51.25 T 96.88 -53.13 M 103.13 -50.00 Q 103.13 -51.88 100.00 -51.25 T 96.88 -53.13")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
 fill(Path2D(AcuteAccent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,96.9251875,11.798812499999997]
-beginPath()
-moveTo(120.3125, -50)
-bezierCurveTo(120.40202083333334, -59.375, 120.76010416666666, -59.375, 120.849625, -50)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
-beginPath()
-moveTo(137.5, -50)
-bezierCurveTo(138.54166666666666, -59.375, 142.70833333333334, -59.375, 143.75, -50)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
-beginPath()
-moveTo(154.6875, -50)
-quadraticCurveTo(154.6875, -51.875, 157.8125, -51.25)
-quadraticCurveTo(160.9375, -50.625, 160.9375, -53.125)
-moveTo(167.1875, -50)
-quadraticCurveTo(167.1875, -51.875, 164.0625, -51.25)
-quadraticCurveTo(160.9375, -50.625, 160.9375, -53.125)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
-beginPath()
-moveTo(178.125, -0)
-bezierCurveTo(179.16666666666666, 9.375, 183.33333333333334, 9.375, 184.375, -0)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 120.31 -50.00 C 120.40 -59.38 120.76 -59.38 120.85 -50.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 137.50 -50.00 C 138.54 -59.38 142.71 -59.38 143.75 -50.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 154.69 -50.00 Q 154.69 -51.88 157.81 -51.25 T 160.94 -53.13 M 167.19 -50.00 Q 167.19 -51.88 164.06 -51.25 T 160.94 -53.13")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+stroke(Path2D(path "M 178.13 0.00 C 179.17 9.38 183.33 9.38 184.38 0.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,22.736312499999997]
 fill(Path2D(PodatusLowerShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,47.7363125]
 fill(Path2D(PodatusUpperShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,20.3125,41.4863125]
 fillText("a", -1.1230000000000002, 26.137, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,66.4863125]
@@ -98,4 +63,3 @@ fill(Path2D(PodatusUpper[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,184.375
 fillText("h", 0.03620000000000001, 26.137, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,178.125,66.4863125]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,192.1875,66.4863125]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,192.1875,66.4863125]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,22.736312499999997]

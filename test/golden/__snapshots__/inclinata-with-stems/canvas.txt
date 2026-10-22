@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,59.375]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15.625]
 fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,34.375]
 fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,21.354166666666664,40.625]
 fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,25.52083333333333,46.875]
@@ -99,4 +100,3 @@ fill() [fillStyle="#000" matrix=1,0,0,1,131.77083333333331,59.375]
 fillText("e", 0.8353999999999999, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,131.77083333333331,59.375]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,158.575,59.375]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,158.575,59.375]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15.625]
