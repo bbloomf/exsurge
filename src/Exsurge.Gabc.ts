@@ -3025,6 +3025,10 @@ export class Gabc {
           note.sourceIndex + sourceIndexOffset
         );
         return;
+      // Gregorio's shape hints, which replace any before them on the note
+      case "shape":
+        note.shapeHint = data;
+        return;
     }
 
     results = instruction.match(__braceSpecRegex);

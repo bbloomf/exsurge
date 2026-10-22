@@ -169,6 +169,12 @@ export class Note extends ChantLayoutElement {
   quilismaQuadratum?: boolean;
   /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
   leaning?: InclinatumLeaning;
+  /**
+   * Gregorio's shape hints for the neume the note ends (gabc [shape:…]), as
+   * a list separated by commas.  The one there is, stroke, draws a clivis as
+   * the stroke a porrectus starts with.
+   */
+  shapeHint?: string;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;

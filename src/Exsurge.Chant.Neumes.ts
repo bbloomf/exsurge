@@ -857,7 +857,17 @@ export class Clivis extends Neume {
     var upper = this.notes[0];
     var lower = this.notes[1];
 
-    this.build(ctxt).withClivis(upper, lower);
+    // Gregorio's [shape:stroke] hint on the lower note draws a clivis (but
+    // not one with an oriscus or a liquescent) as the stroke a porrectus
+    // starts with, with its stem
+    if (
+      upper.shape === NoteShape.Default &&
+      lower.liquescent === LiquescentType.None &&
+      lower.shapeHint &&
+      lower.shapeHint.split(",").includes("stroke")
+    )
+      this.build(ctxt).lineFrom(lower).withPorrectusSwash(upper, lower);
+    else this.build(ctxt).withClivis(upper, lower);
 
     this.finishLayout(ctxt);
   }

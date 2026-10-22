@@ -590,6 +590,16 @@ export const featureCases: GoldenCase[] = [
     // punctum between lines (gabc R), to compare
     name: "linea",
     gabc: "(c4) a(g=) b(f=) c(fg=h) d(gv=) e(g=_) f(f=_0) g(g=.) h(g=') i(gR) j(b=) k(l=) (::)"
+  },
+  {
+    // [shape:stroke] on a clivis's second note draws it as the stroke that a
+    // porrectus (e) starts with (a-d, i-k); as in Gregorio, it does nothing
+    // on a liquescent (f), an oriscus (g) or the first note (h)
+    name: "clivis-stroke",
+    gabc:
+      "(c4) a(gf[shape:stroke]) b(hf[shape:stroke]) c(if[shape:stroke]) d(jf[shape:stroke]) e(gfg) " +
+      "f(gf~[shape:stroke]) g(gof[shape:stroke]) h(g[shape:stroke]f) i(hf[shape:x,stroke]) " +
+      "j(h_f_[shape:stroke]) k(h'f.[shape:stroke]) (::)"
   }
 ];
 
