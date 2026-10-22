@@ -355,6 +355,17 @@ export const featureCases: GoldenCase[] = [
     // rather than standing on the last (k is a torculus resupinus)
     name: "porrectus-wide",
     gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
+  },
+
+  // Gregorio: Phase 6
+  {
+    // a cavum stays in its neume, and each note with one is drawn hollow (a
+    // porrectus's stroke if either of its notes has one)
+    name: "cavum-neumes",
+    gabc:
+      "(c4) a(fgr) b(frg) c(fhr) d(frh) e(gfr) f(grf) g(fhrg) h(gvr) i(gor) j(gor~) k(gwr) l(fwrh) m(Gr) " +
+      "n(hGrFr) o(hGF~r) p(hgrh) q(hrgh) r(hfrh) s(ifri) t(jfrj) u(hgrhg) v(fr~) w(fgr~) x(gfr~) y(fgr<) " +
+      "z(gfr>) A(-frh) B(gorh) C(fsrsr) D(fr0g) E(fgr_) F(hgr'h) (::)"
   }
 ];
 

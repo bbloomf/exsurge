@@ -30,6 +30,7 @@ import {
   type Note
 } from "./Exsurge.Chant.js";
 import {
+  CavumGlyphCode,
   ChantNotationElement,
   GlyphCode, LineaVisualizer, MarkingPositionHint,
   NeumeBeamVisualizer,
@@ -60,6 +61,11 @@ function porrectusGlyph(start: Note, end: Note): GlyphCode {
     default:
       return GlyphCode.None;
   }
+}
+
+// the hollow form of a note's glyph if the note is a cavum (gabc r)
+function withCavum(note: Note, glyph: GlyphCode): GlyphCode {
+  return (note.shapeModifiers & NoteShapeModifiers.Cavum && CavumGlyphCode[glyph]) || glyph;
 }
 
 // the glyph for the note after a porrectus's stroke from start down to end:
@@ -122,7 +128,7 @@ class NeumeBuilder {
 
     if (!glyph) throw "NeumeBuilder.noteAt: glyph must be a valid glyph code";
 
-    note.setGlyph(this.ctxt, glyph);
+    note.setGlyph(this.ctxt, withCavum(note, glyph));
     var noteAlignsRight = note.glyphVisualizer!.align === "right";
 
     var needsLine =
@@ -319,13 +325,13 @@ class NeumeBuilder {
       beamCount = beamCount || (beams && beams.inclinataFlags);
 
       if (note.liquescent & LiquescentType.Small)
-        note.setGlyph(this.ctxt, GlyphCode.PunctumInclinatumLiquescent);
+        note.setGlyph(this.ctxt, withCavum(note, GlyphCode.PunctumInclinatumLiquescent));
       else if (note.liquescent & LiquescentType.Large)
         // fixme: is the large inclinatum liquescent the same as the apostropha?
-        note.setGlyph(this.ctxt, GlyphCode.Stropha);
+        note.setGlyph(this.ctxt, withCavum(note, GlyphCode.Stropha));
       // fixme: some climaci in the new chant books end with a punctum quadratum
       // (see, for example, the antiphon "Sancta Maria" for October 7).
-      else note.setGlyph(this.ctxt, GlyphCode.PunctumInclinatum);
+      else note.setGlyph(this.ctxt, withCavum(note, GlyphCode.PunctumInclinatum));
 
       staffPosition = note.staffPosition;
 
@@ -406,7 +412,8 @@ class NeumeBuilder {
       this.neume.addVisualizer(line);
     }
 
-    start.setGlyph(this.ctxt, glyph);
+    // (the stroke is both notes, so it's hollow if either is)
+    start.setGlyph(this.ctxt, withCavum(end, withCavum(start, glyph)));
     start.bounds.x = this.x;
 
     // the second glyph does not draw anything, but it still has logical importance for the editing
@@ -1147,9 +1154,8 @@ export class Punctum extends Neume {
         glyph = GlyphCode.PunctumQuadratumDesLiquescent;
       else glyph = GlyphCode.PunctumQuadratumLiquescent;
     } else {
-      if (note.shapeModifiers & NoteShapeModifiers.Cavum)
-        glyph = GlyphCode.PunctumCavum;
-      else if (note.shape === NoteShape.Inclinatum)
+      // (noteAt() draws a cavum hollow)
+      if (note.shape === NoteShape.Inclinatum)
         glyph = GlyphCode.PunctumInclinatum;
       else if (note.shape === NoteShape.Quilisma) glyph = GlyphCode.Quilisma;
       else glyph = GlyphCode.PunctumQuadratum;

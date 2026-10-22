@@ -1928,8 +1928,7 @@ export class Gabc {
         else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
         else if (currNote.shape === NoteShape.Inclinatum)
           return punctaInclinataState;
-        else if (currNote.shapeModifiers & NoteShapeModifiers.Cavum)
-          return createNeume(new Neumes.Punctum(), true);
+        // (a cavum goes into a neume like any other note, and is drawn hollow there)
         else return punctumState;
       }
     };

@@ -441,9 +441,58 @@ export const GlyphCode = {
   VirgaShort: "VirgaShort",
   Virgula: "Virgula",
 
-  UpperBrace: "UpperBrace"
+  UpperBrace: "UpperBrace",
+
+  // the hollow (cavum) forms of the note glyphs (see CavumGlyphCode)
+  OriscusAscCavum: "OriscusAscCavum",
+  OriscusDesCavum: "OriscusDesCavum",
+  OriscusLiquescentCavum: "OriscusLiquescentCavum",
+  PodatusLowerCavum: "PodatusLowerCavum",
+  PodatusUpperCavum: "PodatusUpperCavum",
+  PodatusLowerShortCavum: "PodatusLowerShortCavum",
+  PodatusUpperShortCavum: "PodatusUpperShortCavum",
+  Porrectus1Cavum: "Porrectus1Cavum",
+  Porrectus2Cavum: "Porrectus2Cavum",
+  Porrectus3Cavum: "Porrectus3Cavum",
+  Porrectus4Cavum: "Porrectus4Cavum",
+  PunctumQuadratumLiquescentCavum: "PunctumQuadratumLiquescentCavum",
+  PunctumQuadratumAscLiquescentCavum: "PunctumQuadratumAscLiquescentCavum",
+  PunctumQuadratumDesLiquescentCavum: "PunctumQuadratumDesLiquescentCavum",
+  PunctumInclinatumCavum: "PunctumInclinatumCavum",
+  PunctumInclinatumLiquescentCavum: "PunctumInclinatumLiquescentCavum",
+  QuilismaCavum: "QuilismaCavum",
+  StrophaCavum: "StrophaCavum",
+  TerminatingAscLiquescentCavum: "TerminatingAscLiquescentCavum",
+  TerminatingDesLiquescentCavum: "TerminatingDesLiquescentCavum"
 } as const; // GlyphCode
 export type GlyphCode = (typeof GlyphCode)[keyof typeof GlyphCode];
+
+/** the hollow form of each note glyph, for a note with a cavum (gabc r) */
+export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } = {
+  [GlyphCode.BeginningAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum, // (the same outline)
+  [GlyphCode.BeginningDesLiquescent]: GlyphCode.PunctumQuadratumDesLiquescentCavum, // (the same outline)
+  [GlyphCode.OriscusAsc]: GlyphCode.OriscusAscCavum,
+  [GlyphCode.OriscusDes]: GlyphCode.OriscusDesCavum,
+  [GlyphCode.OriscusLiquescent]: GlyphCode.OriscusLiquescentCavum,
+  [GlyphCode.PodatusLower]: GlyphCode.PodatusLowerCavum,
+  [GlyphCode.PodatusUpper]: GlyphCode.PodatusUpperCavum,
+  [GlyphCode.PodatusLowerShort]: GlyphCode.PodatusLowerShortCavum,
+  [GlyphCode.PodatusUpperShort]: GlyphCode.PodatusUpperShortCavum,
+  [GlyphCode.Porrectus1]: GlyphCode.Porrectus1Cavum,
+  [GlyphCode.Porrectus2]: GlyphCode.Porrectus2Cavum,
+  [GlyphCode.Porrectus3]: GlyphCode.Porrectus3Cavum,
+  [GlyphCode.Porrectus4]: GlyphCode.Porrectus4Cavum,
+  [GlyphCode.PunctumQuadratum]: GlyphCode.PunctumCavum,
+  [GlyphCode.PunctumQuadratumLiquescent]: GlyphCode.PunctumQuadratumLiquescentCavum,
+  [GlyphCode.PunctumQuadratumAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum,
+  [GlyphCode.PunctumQuadratumDesLiquescent]: GlyphCode.PunctumQuadratumDesLiquescentCavum,
+  [GlyphCode.PunctumInclinatum]: GlyphCode.PunctumInclinatumCavum,
+  [GlyphCode.PunctumInclinatumLiquescent]: GlyphCode.PunctumInclinatumLiquescentCavum,
+  [GlyphCode.Quilisma]: GlyphCode.QuilismaCavum,
+  [GlyphCode.Stropha]: GlyphCode.StrophaCavum,
+  [GlyphCode.TerminatingAscLiquescent]: GlyphCode.TerminatingAscLiquescentCavum,
+  [GlyphCode.TerminatingDesLiquescent]: GlyphCode.TerminatingDesLiquescentCavum
+};
 
 /** attributes of an svg element, by name; undefined ones are left out */
 export interface SvgAttributes {
@@ -1989,7 +2038,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
       else this.glyphCode = glyphCode;
 
       let glyph = this.glyph = Glyphs[glyphCode];
-      const porrectusResult = /^Porrectus([1-9])$/.exec(glyphCode);
+      const porrectusResult = /^Porrectus([1-9])(?:Cavum)?$/.exec(glyphCode);
       this.porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
 
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing
