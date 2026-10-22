@@ -784,6 +784,21 @@ export const settingCases: GoldenCase[] = [
     }
   },
   {
+    // the lines of a lyric, of a wrapped text only lyric and of the title are
+    // as far apart as their text styles' line heights
+    name: "line-height-with-line-breaks",
+    outputs: allOutputs,
+    width: 300,
+    gabc:
+      "(c4) Ky<br>rie(f) e<br/>lé(g) son.<br><br>A(h) (,) " +
+      "Here is a very long run of text only syllables that will not fit() on the line() (::)",
+    setupContext: (ctxt) => {
+      ctxt.textStyles.lyric.lineHeight = 1.5;
+      ctxt.textStyles.title.lineHeight = 1.3;
+    },
+    setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br>ánimam meam")
+  },
+  {
     name: "special-character-settings",
     gabc: featureCases.find((c) => c.name === "special-characters")!.gabc,
     setupContext: (ctxt) => {
@@ -959,6 +974,12 @@ export const svgMeasuredCases: GoldenCase[] = [
   {
     ...featureCases.find((c) => c.name === "extra-text-only-lines")!,
     name: "svg-measured-extra-text-only-lines",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...settingCases.find((c) => c.name === "line-height-with-line-breaks")!,
+    name: "svg-measured-line-height",
     outputs: ["svg", "node"],
     strategy: "svg"
   },

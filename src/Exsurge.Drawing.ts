@@ -746,7 +746,9 @@ export interface TextStyle {
   font: string;
   color?: string;
   /**
-   * Currently only used on lyrics, translations, and above lines text
+   * The distance from one line to the next, in ems: between the lines of a
+   * text with line breaks in it, and, for lyrics, translations and above
+   * lines text, between the lines that ChantLine lays them out on.
    * Defaults to 1.1
    */
   lineHeight?: number;
@@ -2668,9 +2670,6 @@ export interface TextSpanProperties {
 const __parseNewLine = (newLine: number | boolean | undefined) =>
   parseInt(newLine as unknown as string);
 
-// the distance from one line of a text element to the next, in ems
-const __lineSpacing = 1.1;
-
 /** a run of text in one style */
 export class TextSpan {
   text: string;
@@ -3202,6 +3201,11 @@ export class TextElement extends ChantLayoutElement {
     return fontSize * (this.resize || 1);
   }
 
+  /** the distance from one line of this element's text to the next, in ems */
+  lineSpacing(ctxt: ChantContext) {
+    return (this.textType && ctxt.textStyles[this.textType.key].lineHeight) || 1.1;
+  }
+
   getCanvasFontForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
     var font = "";
     if (properties["font-style"] === "italic") font += "italic ";
@@ -3266,7 +3270,7 @@ export class TextElement extends ChantLayoutElement {
       if (span.newLine) {
         // the same as the span's dy in the svg, in its own font size
         baseline +=
-          __lineSpacing *
+          this.lineSpacing(ctxt) *
           this.fontSizeForProperties(ctxt, span.mergedProperties) *
           (__parseNewLine(span.newLine) || 1);
         if (!lines && this.rightAligned === true && length === Infinity) {
@@ -3700,7 +3704,7 @@ export class TextElement extends ChantLayoutElement {
       if (span.newLine) {
         // the same as the span's dy in the svg, in its own font size
         let lineHeight =
-          __lineSpacing *
+          this.lineSpacing(ctxt) *
           this.fontSizeForProperties(ctxt, properties) *
           (__parseNewLine(span.newLine) || 1);
         canvasCtxt.translate(translateWidth + xOffset, lineHeight);
@@ -3747,7 +3751,7 @@ export class TextElement extends ChantLayoutElement {
 
     if (span.newLine) {
       var xOffset = span.xOffset || 0;
-      options.dy = __lineSpacing * (__parseNewLine(span.newLine) || 1) + "em";
+      options.dy = this.lineSpacing(ctxt) * (__parseNewLine(span.newLine) || 1) + "em";
       options.x = this.bounds.x + xOffset;
     } else if (span.xOffset) {
       options.x = this.bounds.x + span.xOffset;
