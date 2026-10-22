@@ -3657,7 +3657,7 @@ export class TextElement extends ChantLayoutElement {
           this.fontSize(ctxt) * count
         );
         translateWidth = -xOffset;
-        translateHeight -= this.fontSize(ctxt);
+        translateHeight -= this.fontSize(ctxt) * count;
       } else if (xOffset) {
         canvasCtxt.translate(translateWidth + xOffset, 0);
         translateWidth = -xOffset;
