@@ -71,7 +71,7 @@ function withCavum(note: Note, glyph: GlyphCode): GlyphCode {
 }
 
 // a punctum inclinatum's glyph: an auctus for gabc G< or G>, and otherwise
-// leaning as its leaning says when ctxt.inclinatumLeaning is set, or upright
+// leaning as its leaning says, or upright if ctxt.inclinatumLeaning is off
 function inclinatumGlyph(ctxt: ChantContext, note: Note): GlyphCode {
   if (note.liquescent & (LiquescentType.Ascending | LiquescentType.Descending))
     return GlyphCode.PunctumInclinatumAuctus;

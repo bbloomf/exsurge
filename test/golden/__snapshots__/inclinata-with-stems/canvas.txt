@@ -16,87 +16,87 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,59.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,34.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,21.354166666666664,40.625]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,25.52083333333333,46.875]
-fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,14.062499999999996,59.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,34.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,22.37451998281125,40.625]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,27.5615399656225,46.875]
+fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,14.0625,59.375]
 beginPath()
 moveTo(-1.4416666666666669, -51.925)
 lineTo(-1.4416666666666669, -54.325)
 lineTo(3.525, -51.2)
 lineTo(3.525, -48.8)
 closePath()
-fill() [fillStyle="#000" matrix=1,0,0,1,14.062499999999996,59.375]
-fillText("a", -1.1230000000000002, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.062499999999996,59.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,43.74999999999999,34.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,47.91666666666666,40.625]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,52.08333333333333,46.875]
-fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,40.625,59.375]
-fillRect(6.891666666666666, -43.75, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,40.625,59.375]
+fill() [fillStyle="#000" matrix=1,0,0,1,14.0625,59.375]
+fillText("a", -1.1230000000000002, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,59.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,45.79070663228917,34.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,50.97772661510042,40.625]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,56.16474659791167,46.875]
+fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,42.66570663228917,59.375]
+fillRect(7.91201998281125, -43.75, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,42.66570663228917,59.375]
 beginPath()
 moveTo(2.725, -44)
 lineTo(2.725, -46.400000000000006)
-lineTo(7.691666666666666, -40.150000000000006)
-lineTo(7.691666666666666, -37.75)
+lineTo(8.71201998281125, -40.150000000000006)
+lineTo(8.71201998281125, -37.75)
 closePath()
-fill() [fillStyle="#000" matrix=1,0,0,1,40.625,59.375]
+fill() [fillStyle="#000" matrix=1,0,0,1,42.66570663228917,59.375]
 beginPath()
 moveTo(2.725, -48.8)
 lineTo(2.725, -51.2)
-lineTo(7.691666666666666, -44.95)
-lineTo(7.691666666666666, -42.55)
+lineTo(8.71201998281125, -44.95)
+lineTo(8.71201998281125, -42.55)
 closePath()
-fill() [fillStyle="#000" matrix=1,0,0,1,40.625,59.375]
-fillText("b", -1.3894000000000002, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,40.625,59.375]
-fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,69.27083333333333,28.125000000000004]
-fillText("c", -1.6558000000000002, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,66.14583333333333,59.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,78.64583333333333,34.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,82.8125,40.625]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,86.97916666666666,46.875]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,91.14583333333333,53.125]
-fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,75.52083333333333,59.375]
-fillRect(6.891666666666666, -43.75, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,75.52083333333333,59.375]
-fillRect(11.058333333333332, -37.5, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,75.52083333333333,59.375]
+fill() [fillStyle="#000" matrix=1,0,0,1,42.66570663228917,59.375]
+fillText("b", -1.3894000000000002, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,42.66570663228917,59.375]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,73.35224659791167,28.125000000000004]
+fillText("c", -1.6558000000000002, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,70.22724659791167,59.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,82.72724659791167,34.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,87.91426658072292,40.625]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,93.10128656353417,46.875]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,98.28830654634542,53.125]
+fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,79.60224659791167,59.375]
+fillRect(7.91201998281125, -43.75, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,79.60224659791167,59.375]
+fillRect(13.0990399656225, -37.5, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,79.60224659791167,59.375]
 beginPath()
 moveTo(2.725, -48.8)
 lineTo(2.725, -51.2)
-lineTo(11.858333333333333, -38.7)
-lineTo(11.858333333333333, -36.3)
+lineTo(13.899039965622501, -38.7)
+lineTo(13.899039965622501, -36.3)
 closePath()
-fill() [fillStyle="#000" matrix=1,0,0,1,75.52083333333333,59.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,108.33333333333333,28.125]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,112.5,34.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,116.66666666666666,40.625]
-fillRect(2.725, -56.25, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,105.20833333333333,59.375]
+fill() [fillStyle="#000" matrix=1,0,0,1,79.60224659791167,59.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,115.47580654634542,28.125]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,120.66282652915667,34.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,125.84984651196793,40.625]
+fillRect(2.725, -56.25, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,112.35080654634542,59.375]
 beginPath()
 moveTo(-1.4416666666666669, -53.375)
 lineTo(-1.4416666666666669, -55.775000000000006)
 lineTo(3.525, -52.650000000000006)
 lineTo(3.525, -50.25)
 closePath()
-fill() [fillStyle="#000" matrix=1,0,0,1,105.20833333333333,59.375]
+fill() [fillStyle="#000" matrix=1,0,0,1,112.35080654634542,59.375]
 beginPath()
 moveTo(-1.4416666666666669, -58.175)
 lineTo(-1.4416666666666669, -60.575)
 lineTo(3.525, -57.45)
 lineTo(3.525, -55.05)
 closePath()
-fill() [fillStyle="#000" matrix=1,0,0,1,105.20833333333333,59.375]
-fillText("d", 1.1018, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,105.20833333333333,59.375]
-fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,134.89583333333331,34.375]
-fillRect(5.45, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,131.77083333333331,59.375]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,143.4708333333333,40.625]
-fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,147.6375,46.875]
-fillRect(11.299999999999999, -43.75, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,131.77083333333331,59.375]
-fillRect(15.466666666666665, -37.5, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,131.77083333333331,59.375]
+fill() [fillStyle="#000" matrix=1,0,0,1,112.35080654634542,59.375]
+fillText("d", 1.1018, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,112.35080654634542,59.375]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,144.0790131786346,34.375]
+fillRect(5.45, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,140.9540131786346,59.375]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,152.65401317863459,40.625]
+fill(Path2D(PunctumInclinatumDescendens[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,157.84103316144584,46.875]
+fillRect(11.299999999999999, -43.75, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,140.9540131786346,59.375]
+fillRect(16.48701998281125, -37.5, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,140.9540131786346,59.375]
 beginPath()
 moveTo(11.299999999999999, -42.55)
 lineTo(11.299999999999999, -44.95)
-lineTo(16.266666666666666, -38.7)
-lineTo(16.266666666666666, -36.3)
+lineTo(17.28701998281125, -38.7)
+lineTo(17.28701998281125, -36.3)
 closePath()
-fill() [fillStyle="#000" matrix=1,0,0,1,131.77083333333331,59.375]
-fillText("e", 0.8353999999999999, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,131.77083333333331,59.375]
-fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,158.575,59.375]
-fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,158.575,59.375]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15.625]
+fill() [fillStyle="#000" matrix=1,0,0,1,140.9540131786346,59.375]
+fillText("e", 0.8353999999999999, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,140.9540131786346,59.375]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,168.7785331614458,59.375]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,168.7785331614458,59.375]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,-2.842170943040401e-14,15.625]

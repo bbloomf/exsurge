@@ -934,8 +934,8 @@ export class ChantContext {
   /**
    * Whether puncta inclinata lean as Gregorio's do: as their gabc says (G0
    * descending, G1 ascending, G2 upright), or else the way the notes around
-   * them go (see Note.automaticLeaning).  Off by default, which draws every
-   * inclinatum upright.
+   * them go (see Note.automaticLeaning).  On by default; set it false to draw
+   * every inclinatum upright.
    */
   inclinatumLeaning: boolean;
 
@@ -1125,7 +1125,7 @@ export class ChantContext {
     // everything depends on the scale of the punctum
     this.glyphPunctumWidth = Glyphs.PunctumQuadratum.bounds.width;
     this.glyphPunctumHeight = Glyphs.PunctumQuadratum.bounds.height;
-    this.inclinatumLeaning = false;
+    this.inclinatumLeaning = true;
 
     // max space to add between notations when justifying, in multiples of this.staffInterval
     this.maxExtraSpaceInStaffIntervals = 0.5;

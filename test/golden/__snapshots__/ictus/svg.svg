@@ -21,8 +21,8 @@
 <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
 </path>
 </g>
-<g id="PunctumInclinatum" class="glyph" transform="scale(0.0625)" >
-<path d="M0-75.78L50 0 0 75-50 0 0-75.78z" >
+<g id="PunctumInclinatumDescendens" class="glyph" transform="scale(0.0625)" >
+<path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z" >
 </path>
 </g>
 <g id="Porrectus1" class="glyph" transform="scale(0.0625)" >
@@ -133,16 +133,16 @@
 <text source-index="53" x="0.03620000000000001" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >h</tspan>
 </text>
-<use xlink:href="#PunctumInclinatum" class=" note" source-index="55" element-index="10" id="note-11" x="3.125" y="-25" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="55" element-index="10" id="note-11" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatum" class=" note" source-index="57" element-index="11" id="note-12" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="57" element-index="11" id="note-12" x="8.31201998281125" y="-18.75" >
 </use>
-<use xlink:href="#PunctumInclinatum" class=" note" source-index="58" element-index="12" id="note-13" x="11.458333333333332" y="-12.499999999999998" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="58" element-index="12" id="note-13" x="13.4990399656225" y="-12.499999999999998" >
 </use>
 <use xlink:href="#VerticalEpisemaBelow" class="" x="3.125" y="-16.875" >
 </use>
 </g>
-<g class="ChantNotationElement Clivis" transform="translate(166.14583333333334,0)" >
+<g class="ChantNotationElement Clivis" transform="translate(168.1865399656225,0)" >
 <text source-index="61" x="-0.23019999999999996" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >i</tspan>
 </text>
@@ -157,7 +157,7 @@
 <use xlink:href="#VerticalEpisemaBelow" class="" x="9.375" y="-11.25" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(189.58333333333334,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(191.6240399656225,0)" >
 <text source-index="69" x="-0.49659999999999993" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >j</tspan>
 </text>
@@ -168,7 +168,7 @@
 <use xlink:href="#VerticalEpisemaBelow" class="" x="3.125" y="-13.75" >
 </use>
 </g>
-<g class="ChantNotationElement Porrectus" transform="translate(206.77083333333334,0)" >
+<g class="ChantNotationElement Porrectus" transform="translate(208.8115399656225,0)" >
 <text source-index="77" x="-0.7629999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >k</tspan>
 </text>
@@ -183,7 +183,7 @@
 <use xlink:href="#VerticalEpisemaAbove" class="" x="16.040062499999998" y="-36.25" >
 </use>
 </g>
-<g class="ChantNotationElement Porrectus" transform="translate(236.60483333333335,0)" >
+<g class="ChantNotationElement Porrectus" transform="translate(238.6455399656225,0)" >
 <text source-index="85" x="-1.0293999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >l</tspan>
 </text>
@@ -198,7 +198,7 @@
 <use xlink:href="#VerticalEpisemaAbove" class="" x="16.040062499999998" y="-33.125" >
 </use>
 </g>
-<g class="ChantNotationElement DoubleBar" transform="translate(263.3138333333334,0)" >
+<g class="ChantNotationElement DoubleBar" transform="translate(265.3545399656225,0)" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="94" element-index="22" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="94" element-index="22" source="[object Object]" >
