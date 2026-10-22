@@ -285,6 +285,76 @@ export const featureCases: GoldenCase[] = [
     name: "header",
     useDropCap: true,
     gabc: "name: Kyrie;\noffice-part: Kyriale;\n%commented: yes;\n%%\n" + kyrie
+  },
+
+  // Gregorio: Phase 1
+  {
+    // the tags aren't printed, and </eu> and </nlba> after the notes don't join two words
+    name: "gregorio-lyric-controls",
+    gabc:
+      "(c4) Gló(ehg)ri(hi)a(i) Pa(i)tri.(i) (:) <eu>E(i) u(i!jwk) o(i) u(h) a(hhh) e</eu>(fe..) (::) " +
+      "<eu>E(i) u(i) o(i) u(h) a(hhh) e(fe..)</eu> (::) <nlba>Ky(f)ri(g)e.(h)</nlba> Chri(g)ste(f) " +
+      "<nlba>e</nlba>(g) <clear>e(g)lé(f)i(g)son<pr>.(f) son<pr:0.5>;(g) a<clear/>b<pr/>c(h) (::)"
+  },
+  {
+    // Gregorio's default specials, an unknown one shown as its text, and <tt>
+    name: "gregorio-special-characters",
+    gabc:
+      "(c4) <tt>tt</tt>(f) a<sp>*</sp>(g) b<sp>+</sp>(h) ex<sp>-</sp>cel(g) <sp>\\</sp>(f) <sp>&</sp>(g) <sp>#</sp>(h) " +
+      "<sp>_</sp>(g) <sp>%</sp>(f) De<sp>ut</sp>us(g) De<sp>ot</sp>us(h) De<sp>dt</sp>us(g) <sp>unknown</sp>(f) " +
+      "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
+  },
+  {
+    // no notes are lost or made up; the brackets, fusion, linea, quadratum
+    // and parentheses are read but not drawn yet
+    name: "gregorio-note-tokens",
+    gabc:
+      "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
+      "g(@[fhg]) h(@hg) i(g=) j(fqg) k(gWh) l(fx?g) m(fy?f) n(f#?f) o(gVV) (::)"
+  },
+  {
+    // the comments aren't printed, and one at the end of a line takes the line
+    // break away; a % in the notes or after a letter isn't one
+    name: "comments-in-notation",
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) % a comment (x)\n e(g)lé(f)i(g)son.(f) (::)\n% a whole line\n" +
+      "Chri(g)ste(h) % comment\n e(g)lé(f)i(g)%c\nson(g) a(f%g) %small%(g) a%b%c(h) % 50% off\n 50%(f) (::)"
+  },
+  {
+    // the escaped characters are printed as they are
+    name: "dollar-escapes",
+    gabc:
+      "(c4) a$(b$)(f) c$$d(g) e$<b>f(h) g$~h(g) i$[j$](f) k$|l(g) m$-(f) n(g) o$%p(g) q$*r*(f[cs:x$]y]) (::)"
+  },
+  {
+    // the NABC isn't drawn yet, but no notes are made of it
+    name: "nabc-separated",
+    gabc:
+      "nabc-lines: 1;\n%%\n(c3) FAc(e|talsi8)tus(ei|pe) est(i|vi) re(i|vihh)pén(i|vihi)te(e.|tahglsi9) " +
+      "so(kjki|pfhhlsl2lsc2)nus(i.|ta) (,) ad(fg/hggf|peclhgpi|hg|cl)ve(i|ta)ni(ij|pe) a(fg|pe||vi) b(|vi) (::)"
+  },
+  {
+    // small accidentals above the staff, or above a note that's higher
+    name: "musica-ficta",
+    gabc: "(c4) a(gr6) b(hr7) c(fr8) d(gv_r7) e(lr6) f(gr1) g(fgr6h) h(gr3) i(cr8) (::)"
+  },
+  {
+    // the flat on the B above the F on lines 1 and 2, and below it on lines 3 to 5
+    name: "flat-fa-clefs",
+    gabc: "(fb3) a(ghd) b(dfd) (fb4) c(egf) (fb2) d(ihi) (fb1) e(gfg) (fb5) f(hgh) (f3) g(d) (::)"
+  },
+  {
+    // a 0, 1 or 2 after an inclinatum is its leaning, so the notes stay on their pitches
+    name: "inclinatum-digits",
+    gabc: "(c4) a(G) b(G0) c(G1) d(G2) e(hGF) f(hG0F0) g(fG1H1) h(gG2G2) i(-G0) (::) (xp3) j(H0) k(h0) l(H9) (::)"
+  },
+  {
+    // a porrectus stroke wider than a fourth (or between nudged notes, as a
+    // note on a space is under a Chi-Rho clef) has no glyph yet, so its notes
+    // are drawn as puncta joined by a line, and the note after it follows them
+    // rather than standing on the last (k is a torculus resupinus)
+    name: "porrectus-wide",
+    gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
   }
 ];
 

@@ -125,3 +125,392 @@ describe('Latin syllabification', function() {
     assertWordSyllables(words[2], ['est']);
   });
 });
+
+// ---- Gregorio GABC (docs/gregorio-feature-gap.md, Phase 1)
+
+// the notations of a score, without its first clef (as in score.notations)
+const parseNotations = (gabc: string) => {
+  const ctxt = new Exsurge.ChantContext();
+  const notations = Exsurge.Gabc.createMappingsFromSource(ctxt, gabc).flatMap((mapping) => mapping.notations);
+  return notations[0]?.isClef ? notations.slice(1) : notations;
+};
+const lyricTexts = (notations: Exsurge.ChantNotationElement[]) =>
+  notations.flatMap((notation) => notation.lyrics.map((lyric) => lyric.text));
+
+describe("Gregorio lyric controls", function() {
+  it("marks the notations where <eu> and <nlba> areas start and end", function() {
+    const notations = parseNotations(
+      "(c4) a(f) (:) <eu>E(i) u(i) o(i) u(h) a(hhh) e</eu>(fe..) (::) <nlba>Ky(f)ri(g)e(h/gh)</nlba> son(f)"
+    );
+    assert.deepStrictEqual(lyricTexts(notations), ["a", "E", "u", "o", "u", "a", "e", "Ky", "ri", "e", "son"]);
+    const marks = notations.map((notation) => [notation.euouae, notation.noLineBreak]);
+    assert.deepStrictEqual(marks[2], [{ start: true }, undefined]);
+    assert.deepStrictEqual(marks[7], [{ end: true }, undefined]);
+    assert.deepStrictEqual(marks[9], [undefined, { start: true }]);
+    // a closing tag after a word's notes is the next syllable's, as in Gregorio
+    assert.deepStrictEqual(marks[12], [undefined, undefined]);
+    assert.deepStrictEqual(marks[13], [undefined, { end: true }]);
+    assert.strictEqual(notations.filter((notation) => notation.euouae || notation.noLineBreak).length, 4);
+  });
+
+  it("ends an area at a closing tag between a word's notes and the next word at the next syllable", function() {
+    const notations = parseNotations("(c4) <nlba>Ky(f)ri(g)e.(h)</nlba> Chri(g)ste(f) e(g)lé(f)i(e)son(f)</eu> (::)");
+    assert.deepStrictEqual(lyricTexts(notations), ["Ky", "ri", "e.", "Chri", "ste", "e", "lé", "i", "son"]);
+    // (as in Gregorio, where the tag is the text of the syllable after it)
+    assert.deepStrictEqual(notations[2].noLineBreak, undefined);
+    assert.deepStrictEqual(notations[3].noLineBreak, { end: true });
+    // e. is the end of a word, and Chri the start of the next
+    assert.strictEqual(notations[2].lyrics[0].lyricType, Exsurge.LyricType.EndingSyllable);
+    assert.strictEqual(notations[3].lyrics[0].lyricType, Exsurge.LyricType.BeginningSyllable);
+    assert.deepStrictEqual(notations[9].euouae, { end: true });
+    assert.strictEqual(notations[8].lyrics[0].lyricType, Exsurge.LyricType.EndingSyllable);
+    assert.strictEqual(notations.length, 10);
+  });
+
+  it("starts an area at an opening tag after a word's notes at the next syllable", function() {
+    const notations = parseNotations("(c4) A(f)B(g)<eu> C(h) D(i)</eu>");
+    assert.deepStrictEqual(
+      notations.map((notation) => notation.euouae),
+      [undefined, undefined, { start: true }, { end: true }]
+    );
+  });
+
+  it("gives a lyric the source index of its text after the controls", function() {
+    const source = "(c4) <eu>E(f) <clear>Ky|<pr>ri(g)</eu>";
+    const lyrics = parseNotations(source).flatMap((notation) => notation.lyrics);
+    assert.deepStrictEqual(
+      lyrics.map((lyric) => [lyric.text, lyric.sourceIndex]),
+      [["E", source.indexOf("E(")], ["Ky", source.indexOf("Ky")], ["ri", source.indexOf("ri")]]
+    );
+  });
+
+  it("marks an area of one notation as both starting and ending there", function() {
+    const notations = parseNotations("(c4) <nlba>Ky</nlba>(f) e(g)");
+    assert.deepStrictEqual(notations[0].noLineBreak, { start: true, end: true });
+  });
+
+  it("records <clear> and <pr> on the lyric", function() {
+    const notations = parseNotations(
+      "(c4) <clear>e(g)lé(f)son<pr>.(f) son<pr:0.5>;(g) a<clear/>b< pr : .25 />c(h) f{i}re<pr>s(g) d(h)"
+    );
+    const lyrics = notations.map((notation) => notation.lyrics[0]);
+    assert.deepStrictEqual(lyrics.map((lyric) => lyric.text), ["e", "lé", "son.", "son;", "abc", "fires", "d"]);
+    assert.deepStrictEqual(lyrics.map((lyric) => !!lyric.clear), [true, false, false, false, true, false, false]);
+    assert.deepStrictEqual(
+      lyrics.map((lyric) => lyric.protrusion),
+      [
+        undefined,
+        undefined,
+        { factor: undefined, textIndex: 3 },
+        { factor: 0.5, textIndex: 3 },
+        { factor: 0.25, textIndex: 2 },
+        { factor: undefined, textIndex: 4 },
+        undefined
+      ]
+    );
+    // the centering braces still center on the i
+    assert.strictEqual(lyrics[5].centerStartIndex, 1);
+  });
+
+  it("counts a run of spaces as one in a protrusion's index, as the lyric's text does", function() {
+    const lyric = parseNotations("(c4) a  b<pr>c(f)")[0].lyrics[0];
+    assert.strictEqual(lyric.text, "a bc");
+    assert.strictEqual(lyric.protrusion!.textIndex, 3);
+  });
+
+  it("makes no lyric of a syllable with only controls", function() {
+    const notations = parseNotations("(c4) a(f) <clear>(g) <pr>(h) <eu>(i) b</eu>(j)");
+    assert.deepStrictEqual(lyricTexts(notations), ["a", "b"]);
+    assert.deepStrictEqual(notations[3].euouae, { start: true });
+    assert.strictEqual(notations.length, 5);
+  });
+});
+
+describe("Gregorio special characters", function() {
+  const text = (ctxt: Exsurge.ChantContext, lyric: string) => new Exsurge.Lyric(ctxt, lyric).text;
+
+  it("shows Gregorio's default specials, and an unknown one as its text", function() {
+    const ctxt = new Exsurge.ChantContext();
+    assert.strictEqual(text(ctxt, "De<sp>ut</sp>us"), "De‿us");
+    assert.strictEqual(text(ctxt, "De<sp>ot</sp>us"), "De⁀us");
+    assert.strictEqual(text(ctxt, "ex<sp>-</sp>cel"), "excel");
+    assert.strictEqual(text(ctxt, "<sp>+</sp>"), "†");
+    assert.strictEqual(text(ctxt, "<sp>\\</sp><sp>&</sp><sp>#</sp><sp>_</sp><sp>%</sp>"), "\\&#_%");
+    assert.strictEqual(text(ctxt, "a<sp>unknown</sp>b"), "aunknownb");
+    // the specials exsurge draws itself are as they were
+    assert.strictEqual(text(ctxt, "<sp>'ae</sp><sp>OE</sp><sp>~</sp>"), "ǽŒ∼");
+  });
+
+  it("takes the specials from ctxt.specials", function() {
+    const ctxt = new Exsurge.ChantContext();
+    ctxt.specials.ut = "_";
+    ctxt.specials.new = "N";
+    delete ctxt.specials["-"];
+    assert.strictEqual(text(ctxt, "De<sp>ut</sp>us <sp>new</sp> ex<sp>-</sp>cel"), "De_us N ex-cel");
+  });
+
+  it("styles <tt> in monospace", function() {
+    const lyric = new Exsurge.Lyric(new Exsurge.ChantContext(), "a<tt>b</tt>c");
+    assert.strictEqual(lyric.text, "abc");
+    assert.deepStrictEqual(lyric.spans[1].activeTags, ["tt"]);
+    assert.strictEqual(lyric.spans[1].mergedProperties["font-family"], "monospace");
+  });
+});
+
+describe("Gregorio note tokens", function() {
+  const notesOf = (notations: Exsurge.ChantNotationElement[]) =>
+    notations.flatMap((notation) => notation.notes || []);
+  const sources = (notations: Exsurge.ChantNotationElement[]) =>
+    notations.map((notation) => (notation.notes ? notation.notes.map((note) => note.sourceGabc).join("") : notation.sourceGabc));
+
+  it("keeps the notes in [[ ]] and records the bracket on them", function() {
+    const notations = parseNotations("(c4) a(f[[gh]]i) b([[g]]) c(fg]])");
+    // the brackets end the neumes, as ! does
+    assert.deepStrictEqual(sources(notations), ["f", "gh", "i", "g", "fg"]);
+    assert.strictEqual(notations[0].keepWithNext, true);
+    assert.strictEqual(notations[0].trailingSpace, 0);
+    const notes = notesOf(notations);
+    assert.deepStrictEqual(
+      notes.map((note) => [!!note.bracketStart, !!note.bracketEnd]),
+      [[false, false], [true, false], [false, true], [false, false], [true, true], [false, false], [false, true]]
+    );
+  });
+
+  it("keeps the notes in <nlba> </nlba> and marks the area on the notes and their notations", function() {
+    const notations = parseNotations("(c4) a(fg<nlba>hg</nlba>ih) b(<nlba>fg) c(hg</nlba>)");
+    // the tags end the neumes, as / does
+    assert.deepStrictEqual(sources(notations), ["fg", "hg", "ih", "fg", "hg"]);
+    assert.strictEqual(notations[0].allowLineBreakBeforeNext, true);
+    assert.deepStrictEqual(
+      notesOf(notations).map((note) => note.noLineBreak),
+      [undefined, undefined, { start: true }, { end: true }, undefined, undefined, { start: true }, undefined, undefined, { end: true }]
+    );
+    assert.deepStrictEqual(
+      notations.map((notation) => notation.noLineBreak),
+      [undefined, { start: true, end: true }, undefined, { start: true }, { end: true }]
+    );
+  });
+
+  it("puts [[, <nlba> and @[ after a syllable's last notes on the next note, and <nlba> on a bar after it", function() {
+    const notations = parseNotations("(c4) a(fg<nlba>) b(h) c(f[[) d(g]]) e(f@[) f(gh]) g(fg<nlba>,h</nlba>)");
+    const notes = notesOf(notations);
+    assert.deepStrictEqual(notes[2].noLineBreak, { start: true });
+    assert.deepStrictEqual(notations[1].noLineBreak, { start: true });
+    assert.deepStrictEqual([!!notes[4].bracketStart, !!notes[4].bracketEnd], [true, true]);
+    assert.deepStrictEqual(notes[6].autoFusion, { start: true });
+    // the area starts at the bar after <nlba>
+    assert.ok(notations[7].isDivider);
+    assert.deepStrictEqual(notations[7].noLineBreak, { start: true });
+    assert.deepStrictEqual(notations[8].noLineBreak, { end: true });
+  });
+
+  it("records @, @[ and ]", function() {
+    const notations = parseNotations("(c4) a(h@iw@j) b(@[fhg]) c(@hg) d(c1@c4)");
+    const notes = notesOf(notations);
+    assert.deepStrictEqual(notes.map((note) => note.sourceGabc), ["h", "@iw", "@j", "f", "h", "g", "@h", "g"]);
+    assert.deepStrictEqual(notes.map((note) => !!note.fused), [false, true, true, false, false, false, true, false]);
+    assert.deepStrictEqual(notes[3].autoFusion, { start: true });
+    assert.deepStrictEqual(notes[5].autoFusion, { end: true });
+    // the @ between two clefs isn't a fusion
+    assert.deepStrictEqual(sources(notations).slice(-2), ["c1", "c4"]);
+  });
+
+  it("records =, q, W and parenthesized accidentals, and r6 to r8 aren't cavum", function() {
+    const notations = parseNotations("(c4) a(g=) b(fqg) c(gWh) d(fx?g) e(fyg) f(gr6) g(gr8)");
+    const notes = notesOf(notations);
+    assert.strictEqual(notes[0].linea, true);
+    assert.strictEqual(notes[1].quadratum, true);
+    assert.strictEqual(notes[3].quilismaQuadratum, true);
+    const accidentals = notations.filter((notation) => notation.isAccidental) as Exsurge.Accidental[];
+    assert.deepStrictEqual(accidentals.map((accidental) => !!accidental.parenthesized), [true, false]);
+    for (const note of notes.slice(-2)) {
+      assert.strictEqual(note.shapeModifiers & Exsurge.NoteShapeModifiers.Cavum, 0, note.sourceGabc);
+    }
+    // (item 1.6 draws them as musica ficta)
+    assert.ok(notes[notes.length - 1].accent instanceof Exsurge.MusicaFicta);
+    assert.deepStrictEqual(notes.slice(-2).map((note) => note.accent!.glyphCode), ["Flat", "Sharp"]);
+  });
+});
+
+describe("Gregorio comments", function() {
+  it("leaves out a % comment to the end of the line", function() {
+    const notations = parseNotations("(c4) Ky(f)ri(g)e(h) % a comment (x)\n e(g)lé(f) (::)\n% a whole line\nChri(g)ste(h)");
+    assert.deepStrictEqual(lyricTexts(notations), ["Ky", "ri", "e", "e", "lé", "Chri", "ste"]);
+    assert.strictEqual(notations.length, 8);
+  });
+
+  it("takes away the line break at the end of a comment", function() {
+    const notations = parseNotations("(c4) Ky(f)ri(g)%comment\ne(h) a(f)");
+    assert.deepStrictEqual(lyricTexts(notations), ["Ky", "ri", "e", "a"]);
+    // Ky(f)ri(g)e(h) is still one word
+    assert.deepStrictEqual(
+      notations.slice(0, 3).map((notation) => notation.lyrics[0].lyricType),
+      [Exsurge.LyricType.BeginningSyllable, Exsurge.LyricType.MiddleSyllable, Exsurge.LyricType.EndingSyllable]
+    );
+  });
+
+  it("starts a comment only at the start of a line, or after a space or notes", function() {
+    const notations = parseNotations("(c4) a(f%g) b(h) %TODO: 100% sure?\nc(g) 50%(f) d(g)");
+    assert.deepStrictEqual(lyricTexts(notations), ["a", "b", "c", "50", "d"]);
+    // a % in the notes isn't a comment, as in Gregorio
+    assert.strictEqual(notations[0].notes!.length, 2);
+    // nor is one after a letter
+    assert.strictEqual(notations[3].notes![0].sourceGabc, "f");
+  });
+
+  it("keeps the source indices of what comes after a comment", function() {
+    const source = "(c4) a(f) % comment\n b(g)";
+    const notations = parseNotations(source);
+    assert.strictEqual(notations[1].notes![0].sourceIndex, source.indexOf("g)"));
+    assert.strictEqual(notations[1].lyrics[0].sourceIndex, source.indexOf("b(g)"));
+  });
+
+  it("keeps a % closed on its line, a % in <sp> or <v> and an escaped %", function() {
+    const notations = parseNotations("(c4) %small%(g) a%b%c(h) <sp>%</sp>(f) <v>%y</v>(f) %%% sep\n d(g) % 50% off\n e(h)");
+    assert.deepStrictEqual(lyricTexts(notations), ["small", "abc", "%", "%y", "d", "e"]);
+    assert.deepStrictEqual(notations[0].lyrics[0].spans[0].activeTags, ["sc"]);
+  });
+});
+
+describe("Gregorio $ escapes", function() {
+  it("takes away the special meaning of the character after a $", function() {
+    const notations = parseNotations(
+      "(c4) a$(b$)(f) c$$d(g) e$<b>f(h) g$~h(g) i$[j$](f) k$|l(g) m$-(f) n(g) $*(h) o$%p(g) <eu>$<eu>(f)"
+    );
+    assert.deepStrictEqual(lyricTexts(notations), ["a(b)", "c$d", "e<b>f", "g~h", "i[j]", "k|l", "m-", "n", "*", "o%p", "<eu>"]);
+    // m$- is a word of its own rather than a syllable with a hyphen
+    assert.strictEqual(notations[6].lyrics[0].lyricType, Exsurge.LyricType.SingleSyllable);
+    assert.strictEqual(notations.length, 11);
+  });
+
+  it("keeps the escapes in the source and the source indices", function() {
+    const source = "(c4) a$(b$)(f[cs:x$]y]) c(g)";
+    const notations = parseNotations(source);
+    assert.strictEqual(notations[0].lyrics[0].sourceGabc, "a$(b$)");
+    assert.strictEqual(notations[0].notes![0].sourceGabc, "f[cs:x$]y]");
+    assert.strictEqual(notations[0].notes![0].choralSign!.text, "x]y");
+    assert.strictEqual(notations[0].notes![0].sourceIndex, source.indexOf("f[cs"));
+    assert.strictEqual(notations[1].lyrics[0].sourceIndex, source.indexOf("c(g)"));
+  });
+
+  it("splits words and syllables at the unescaped characters, but keeps their source", function() {
+    assert.deepStrictEqual(Exsurge.Gabc.splitWords("a$) b(f) c(g) %x)\n d(h)"), ["a$) b(f)", "c(g)", "%x)\n d(h)"]);
+    assert.deepStrictEqual(Exsurge.Gabc.parseWord("a$(b$)(f)c$$(g)"), Object.assign(
+      [{ notations: "f", lyrics: ["a$(b$)"] }, { notations: "g", lyrics: ["c$$"] }],
+      { wordLength: 15 }
+    ));
+  });
+
+  it("draws a $ before any other character as that character", function() {
+    const notations = parseNotations("(c4) a$\uE041b(f) c$éd(g)");
+    assert.deepStrictEqual(lyricTexts(notations), ["a\uE041b", "céd"]);
+    assert.strictEqual(notations[0].lyrics[0].sourceGabc, "a$\uE041b");
+  });
+});
+
+describe("Gregorio NABC", function() {
+  const nabcOf = (notations: Exsurge.ChantNotationElement[]) =>
+    notations.map((notation) => notation.nabc && notation.nabc.join("/"));
+
+  it("keeps the gabc's own / before the NABC in the note's source", function() {
+    const notations = parseNotations("nabc-lines: 1;\n%%\n(c4) A(f/|vi|g|pu)");
+    assert.deepStrictEqual(notations.map((notation) => notation.notes!.map((note) => note.sourceGabc).join("")), ["f/", "g"]);
+  });
+
+  it("keeps the gabc and puts the NABC on the first notation of the gabc before it", function() {
+    const notations = parseNotations(
+      "nabc-lines: 1;\n%%\n(c3) FAc(e|talsi8)tus(ei|pe) ad(fg/hggf|peclhgpi|hg|cl)ve(g$|h) a(fg|pe||vi) b(|vi)"
+    );
+    assert.deepStrictEqual(
+      notations.map((notation) => (notation.notes ? notation.notes.map((note) => note.sourceGabc).join("") : notation.constructor.name)),
+      ["e", "ei", "fg/", "hg", "gf", "hg", "gh", "fg", "TextOnly"]
+    );
+    // (the NABC after an empty part of gabc, Gregorio's empty element, follows after a space)
+    assert.deepStrictEqual(nabcOf(notations), ["talsi8", "pe", "peclhgpi", undefined, undefined, "cl", undefined, "pe/vi", "vi"]);
+    // the gabc after the NABC is a new neume, as after a /
+    assert.strictEqual(notations[4].allowLineBreakBeforeNext, true);
+    assert.deepStrictEqual(lyricTexts(notations), ["FAc", "tus", "ad", "ve", "a", "b"]);
+  });
+
+  it("takes the lines of NABC in turn", function() {
+    const notations = parseNotations("nabc-lines: 2;\n%%\n(c3) a(g||ta) b(g|vi|pe|h|cl) d(ixi|vi)");
+    assert.deepStrictEqual(notations.map((notation) => notation.nabc), [["", "ta"], ["vi", "pe"], ["cl"], ["vi"], undefined]);
+    assert.strictEqual(notations[3].isAccidental, true);
+  });
+
+  it("keeps | as the stem of an inclinatum without the nabc-lines header", function() {
+    const notations = parseNotations("(c4) a(G|FE) b(g|vi)");
+    assert.strictEqual(notations[0].notes![0].inclinataFlags, 1);
+    assert.strictEqual(notations.filter((notation) => notation.nabc).length, 0);
+    // (g|v is a virga with a stem, as it was)
+    assert.strictEqual(notesOfAll(notations).length, 5);
+  });
+
+  it("parses every word anew when nabc-lines changes", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const mappings = Exsurge.Gabc.createMappingsFromSource(ctxt, "(c3) a(g|vi) b(h)");
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, mappings, "nabc-lines: 1;\n%%\n(c3) a(g|vi) b(h)");
+    assert.strictEqual(ctxt.nabcLines, 1);
+    assert.deepStrictEqual(mappings[1].notations[0].nabc, ["vi"]);
+  });
+});
+
+function notesOfAll(notations: Exsurge.ChantNotationElement[]) {
+  return notations.flatMap((notation) => notation.notes || []);
+}
+
+describe("Gregorio flat F clefs", function() {
+  it("reads fb1 to fb5 as F clefs with a flat on the B", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const notations = Exsurge.Gabc.createMappingsFromSource(ctxt, "(fb1) (fb2) (fb3) (fb4) (fb5) a(h)").flatMap(
+      (mapping) => mapping.notations
+    );
+    const clefs = notations.filter((notation) => notation.isClef) as Exsurge.Clef[];
+    assert.ok(clefs.every((clef) => clef instanceof Exsurge.FaClef));
+    assert.deepStrictEqual(
+      clefs.map((clef) => [clef.staffPosition, clef.defaultAccidental!.staffPosition]),
+      [[1, 4], [3, 6], [5, 1], [7, 3], [9, 5]]
+    );
+    // h is the B below the F on line 5, flattened
+    assert.strictEqual(notations[notations.length - 1].notes![0].pitch!.step, Exsurge.Step.Te);
+  });
+});
+
+describe("Gregorio inclinatum digits", function() {
+  it("reads 0, 1 and 2 after an inclinatum as its leaning, not as a nudge", function() {
+    const notes = parseNotations("(c4) a(hG0F0) b(fG1H1) c(gG2) d(G) e(-G0)").flatMap(
+      (notation) => notation.notes || []
+    );
+    assert.deepStrictEqual(
+      notes.map((note) => [note.sourceGabc, note.leaning, note.staffPositionOffset]),
+      [
+        ["h", undefined, 0],
+        ["G0", "descending", 0],
+        ["F0", "descending", 0],
+        ["f", undefined, 0],
+        ["G1", "ascending", 0],
+        ["H1", "ascending", 0],
+        ["g", undefined, 0],
+        ["G2", "unison", 0],
+        ["G", undefined, 0],
+        ["-G0", "descending", 0]
+      ]
+    );
+  });
+
+  it("doesn't nudge an inclinatum with a 0 under a Chi-Rho clef, where 0 and 9 nudge other notes", function() {
+    const notes = parseNotations("(xp3) a(H0) b(h0) c(H9)").flatMap((notation) => notation.notes || []);
+    assert.deepStrictEqual(
+      notes.map((note) => [note.sourceGabc, note.leaning, note.staffPositionOffset]),
+      [
+        ["H0", "descending", 0],
+        // a lowercase pitch is still nudged, and so is an inclinatum with a 9
+        ["h0", undefined, -2 / 3],
+        ["H9", undefined, 2 / 3]
+      ]
+    );
+    // as is a custos
+    const custos = parseNotations("(xp3) a(h0+)").find((notation) => notation instanceof Exsurge.Custos) as Exsurge.Custos;
+    assert.strictEqual(custos.staffPositionOffset, -2 / 3);
+  });
+});

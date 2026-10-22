@@ -48,6 +48,7 @@ import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type {
   AboveLinesText,
   Annotations,
+  AreaBoundary,
   ChantContext,
   ChoralSign,
   DropCap,
@@ -85,6 +86,9 @@ export const NoteShape = {
   Oriscus: 5
 } as const;
 export type NoteShape = (typeof NoteShape)[keyof typeof NoteShape];
+
+/** which way Gregorio's punctum inclinatum leans (gabc G0, G1 and G2) */
+export type InclinatumLeaning = "descending" | "ascending" | "unison";
 
 export const NoteShapeModifiers = {
   // flags which modify the shape
@@ -132,6 +136,32 @@ export class Note extends ChantLayoutElement {
   alText?: AboveLinesText;
   /** the number of stems of a punctum inclinatum (gabc |) */
   inclinataFlags?: number;
+
+  // Gregorio's notation that's read but not drawn yet (see
+  // docs/gregorio-feature-gap.md, Phase 1)
+  /** a bracket (gabc [[) starts at the note */
+  bracketStart?: boolean;
+  /** a bracket (gabc ]]) ends at the note */
+  bracketEnd?: boolean;
+  /**
+   * whether a no-line-break area (<nlba>…</nlba> in the notes) starts at
+   * the note after <nlba> or ends at the note before </nlba>.  The note's
+   * notation has the same mark in its noLineBreak, and gabc's
+   * neume ends at the tag, as it does at a /.
+   */
+  noLineBreak?: AreaBoundary;
+  /** the note is fused to the note before it, or, first in its neume, drawn without a stem (gabc @ before the pitch) */
+  fused?: boolean;
+  /** whether an automatic fusion (gabc @[…]) starts or ends at the note */
+  autoFusion?: AreaBoundary;
+  /** a linea (gabc =), drawn as a punctum for now */
+  linea?: boolean;
+  /** the first note of a pes quadratum (gabc q) */
+  quadratum?: boolean;
+  /** a quilisma quadratum (gabc W), drawn as a punctum for now */
+  quilismaQuadratum?: boolean;
+  /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
+  leaning?: InclinatumLeaning;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;
@@ -543,6 +573,16 @@ export class ChantLineBreak extends ChantNotationElement {
   }
 }
 
+/**
+ * Gregorio's marks after the last notes of a gabc word ([[, <nlba> or @[),
+ * which go on the next note, and its controls after its last notes (such as
+ * </nlba>), which go on the next syllable's notations
+ */
+export interface MarksForNext {
+  noteMarks: ((note: Note) => void)[];
+  areas: { euouae?: AreaBoundary; noLineBreak?: AreaBoundary };
+}
+
 // a chant mapping is a lightweight format independent way of
 // tracking how a chant language (e.g., gabc) has been
 // mapped to exsurge notations.
@@ -550,6 +590,10 @@ export class ChantMapping {
   source: string;
   notations: ChantNotationElement[];
   sourceIndex: number;
+  /** what the gabc word leaves for the next one's notes and syllable */
+  marksForNext?: MarksForNext;
+  /** whether the word before left marks on this one's notes or syllable */
+  followsMarks?: boolean;
 
   // source can be any object type. in the case of gabc, source is a text
   // string that maps to a gabc word (e.g.: "no(g)bis(fg)").

@@ -30,6 +30,7 @@ import {
 import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
 import { language, type IgnoredRange, type Language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
+import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
 import { makeLigature } from "./makeLigature.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
@@ -827,6 +828,14 @@ export class ChantContext {
   textAfterSpecialChar: string;
   /** what each of "℣", "℟", "*" and "+" is shown as */
   specialCharMap: { [char: string]: string };
+  /**
+   * What each of Gregorio's special characters, <sp>…</sp>, is shown as, by
+   * the text between the tags, for the specials that exsurge doesn't draw
+   * itself (it draws the ligatures and accented vowels, A/, R/, V/ and ~).
+   * A special shown as "*" or "+" is drawn as a lyric's asterisk or plus
+   * would be, and one that isn't here is shown as its text.
+   */
+  specials: { [special: string]: string };
   asteriskProperties: CssProperties;
   plusProperties: CssProperties;
   fontStyleDictionary: {
@@ -838,6 +847,14 @@ export class ChantContext {
   useExtraTextOnly: boolean;
   /** prefix for the id of each note's svg element; defaults to "note-" */
   noteIdPrefix: string;
+  /**
+   * The number of lines of Gregorio's NABC (St. Gall or Laon neumes) in the
+   * gabc, from its nabc-lines header, which Gabc.createMappingsFromSource()
+   * and updateMappingsFromSource() set.  When it's more than 0, a | in the
+   * notes separates gabc from NABC rather than adding a stem to an
+   * inclinatum.
+   */
+  nabcLines: number;
 
   minLedgerSeparation: number;
   minSpaceAboveStaff: number;
@@ -983,6 +1000,20 @@ export class ChantContext {
       "+": "+",
       "*": "*"
     };
+    this.specials = {
+      "*": "*",
+      "+": "†",
+      // a zero-width hyphen
+      "-": "",
+      "\\": "\\",
+      "&": "&",
+      "#": "#",
+      "_": "_",
+      "%": "%",
+      ot: "⁀",
+      ut: "‿",
+      dt: "⁀‿"
+    };
     this.plusProperties = {};
     this.asteriskProperties = {};
     this.specialCharText = (char: string) => this.specialCharMap[char] || char;
@@ -994,6 +1025,7 @@ export class ChantContext {
       ul: { "text-decoration": "underline" },
       c: { fill: this.rubricColor, class: 'rubric' },
       sc: { "font-variant": "small-caps" },
+      tt: { "font-family": "monospace" },
       v: {},
       e: { "font-style": "italic", "font-size": "90%" }
     };
@@ -1122,6 +1154,7 @@ export class ChantContext {
     this.useExtraTextOnly = true;
 
     this.noteIdPrefix = 'note-';
+    this.nabcLines = 0;
 
     this.insertFontsInDoc();
     this.setMergeAnnotationWithTextLeft(true);
@@ -1207,7 +1240,7 @@ export class ChantContext {
    * document.fonts fires loadingdone, and at the start of a ChantScore layout
    * once a font has been added to or removed from document.fonts; call this
    * after changing fontStyleDictionary, specialCharProperties,
-   * asteriskProperties or plusProperties directly once text has been created,
+   * asteriskProperties, plusProperties or specials directly once text has been created,
    * or after any other change to the fonts that text is measured in (such as
    * replacing a face in document.fonts with another, which leaves its size
    * the same).
@@ -1931,9 +1964,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
   /** for a porrectus, the staff positions its notes are apart; otherwise 0 */
   porrectusNoteDiff!: number;
   align?: "left" | "right";
+  /** the glyph's size, relative to the other glyphs (set it before setGlyph()) */
+  scale: number;
 
   constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null) {
     super();
+
+    this.scale = 1;
 
     // setGlyph() sets the glyph just below
     this.glyph = null as unknown as Glyph;
@@ -2008,13 +2045,14 @@ export class GlyphVisualizer extends ChantLayoutElement {
       this.align = this.glyph.align;
     }
 
-    this.origin.x = this.glyph.origin.x * ctxt.glyphScaling;
-    this.origin.y = this.glyph.origin.y * ctxt.glyphScaling;
+    const glyphScaling = ctxt.glyphScaling * this.scale;
+    this.origin.x = this.glyph.origin.x * glyphScaling;
+    this.origin.y = this.glyph.origin.y * glyphScaling;
 
     this.bounds.x = 0;
     this.bounds.y = -this.origin.y;
-    this.bounds.width = this.glyph.bounds.width * ctxt.glyphScaling;
-    this.bounds.height = this.glyph.bounds.height * ctxt.glyphScaling;
+    this.bounds.width = this.glyph.bounds.width * glyphScaling;
+    this.bounds.height = this.glyph.bounds.height * glyphScaling;
   }
 
   setStaffPosition(ctxt: ChantContext, staffPosition: number) {
@@ -2029,12 +2067,12 @@ export class GlyphVisualizer extends ChantLayoutElement {
 
     var x = this.bounds.x + this.origin.x;
     var y = this.bounds.y + this.origin.y;
-    var scaleX = ctxt.glyphScaling;
-    var scaleY = ctxt.glyphScaling;
-    if (porrectusNoteDiff) {
-      scaleY /= ctxt.glyphMultiplier;
-      y /= scaleY;
-    }
+    var scaleX = ctxt.glyphScaling * this.scale;
+    var scaleY = ctxt.glyphScaling * this.scale;
+    // a porrectus is drawn taller by 1 / glyphMultiplier.  (unlike the svg's
+    // x and y, which are in the glyph's scaled units, the translation here
+    // comes before the scaling, so y isn't divided by it)
+    if (porrectusNoteDiff) scaleY /= ctxt.glyphMultiplier;
     canvasCtxt.translate(x, y);
     canvasCtxt.scale(scaleX, scaleY);
 
@@ -2096,6 +2134,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
     if (ctxt.scaleDefs === true) {
       result.x = this.bounds.x + this.origin.x;
       result.y = this.bounds.y + this.origin.y;
+      if (this.scale !== 1) {
+        result.transform = "scale(" + this.scale + ")";
+        result.x /= this.scale;
+        result.y /= this.scale;
+      }
       if (porrectusNoteDiff) {
         // result.transform = "scale(" + (porrectusNoteDiff / (porrectusNoteDiff + 1)) + ")";
         const scaleGlyph = 1 / ctxt.glyphMultiplier;
@@ -2103,12 +2146,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
         result.y /= scaleGlyph;
       }
     } else {
+      const glyphScaling = ctxt.glyphScaling * this.scale;
       const scaleGlyph = porrectusNoteDiff
-        ? ctxt.glyphScaling / ctxt.glyphMultiplier
-        : ctxt.glyphScaling;
-      result.x = (this.bounds.x + this.origin.x) / ctxt.glyphScaling;
+        ? glyphScaling / ctxt.glyphMultiplier
+        : glyphScaling;
+      result.x = (this.bounds.x + this.origin.x) / glyphScaling;
       result.y = (this.bounds.y + this.origin.y) / scaleGlyph;
-      result.transform = "scale(" + ctxt.glyphScaling + "," + scaleGlyph + ")";
+      result.transform = "scale(" + glyphScaling + "," + scaleGlyph + ")";
     }
     return result;
   }
@@ -2625,6 +2669,10 @@ interface BreakMatch {
   forced?: boolean;
 }
 
+// the markup in a TextElement's text (see generateSpansFromText()), and the
+// characters that Gregorio's $ escaped (see gabcEscapes.ts)
+const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
+
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
   fontFamily: (ctxt: ChantContext) => string;
@@ -2678,7 +2726,7 @@ export class TextElement extends ChantLayoutElement {
     this.fontSize = fontSize;
     this.textAnchor = textAnchor;
     this.sourceIndex = sourceIndex;
-    this.sourceGabc = sourceGabc;
+    this.sourceGabc = sourceGabc === undefined ? sourceGabc : restoreEscapes(sourceGabc);
     this.dominantBaseline = "baseline"; // default placement
     if (textType) this.textType = textType;
 
@@ -2746,7 +2794,7 @@ export class TextElement extends ChantLayoutElement {
 
     };
 
-    var markupRegex = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)/gi;
+    var markupRegex = new RegExp(markupRegexSource, "gi");
     var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
@@ -2771,7 +2819,9 @@ export class TextElement extends ChantLayoutElement {
         family,
         fill,
         cssClass,
-        enclosedText
+        enclosedText,
+        special,
+        escaped
       ] = match;
       specialChar = specialChar || specialChar2 || specialChar3;
       // non-matching symbols first
@@ -2848,6 +2898,21 @@ export class TextElement extends ChantLayoutElement {
           match.index,
           ctxt.specialCharProperties
         );
+      } else if (escaped) {
+        // a character that Gregorio's $ escaped (see gabcEscapes.ts)
+        closeCurrentSpan();
+        closeSpan(unescapeText(escaped), match.index);
+      } else if (special !== undefined) {
+        // the rest of Gregorio's specials
+        closeCurrentSpan();
+        let specialText = Object.prototype.hasOwnProperty.call(ctxt.specials, special)
+          ? ctxt.specials[special]
+          : special;
+        if (specialText === "*")
+          closeSpan(ctxt.specialCharText("*") || "*", match.index, ctxt.asteriskProperties);
+        else if (specialText === "+")
+          closeSpan(ctxt.specialCharText("+") || "+", match.index, ctxt.plusProperties);
+        else closeSpan(specialText, match.index);
       } else {
         // otherwise we're dealing with matching markup delimeters
         if (markupSymbol === "*") {
@@ -3674,6 +3739,10 @@ export class Lyric extends TextElement {
   widthWithoutConnector!: number;
   vowelSegmentWidth!: number;
   elidesToNext?: boolean;
+  /** Gregorio's <clear>: the lyric may not reach back under the previous syllable's notes */
+  clear?: boolean;
+  /** Gregorio's <pr>: how much of the lyric may go into the right margin */
+  protrusion?: LyricProtrusion;
   /** which line of lyrics this is */
   lyricIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
@@ -4360,6 +4429,30 @@ export interface SoftAccidentalShift {
 }
 
 /**
+ * Where one of Gregorio's areas (<eu>…</eu> or <nlba>…</nlba>) starts or
+ * ends.  An area starts at the first notation of the syllable (or, in the
+ * notes, of the note) after its opening tag, and ends at the last notation
+ * of the syllable (or note) before its closing tag, so an area of one
+ * notation both starts and ends there.
+ */
+export interface AreaBoundary {
+  start?: boolean;
+  end?: boolean;
+}
+
+/** a lyric's Gregorio protrusion, <pr> or <pr:factor> */
+export interface LyricProtrusion {
+  /**
+   * how much of the text after the tag may go into the right margin, from 0
+   * to 1, or undefined for <pr>, which takes the default factor (1 in
+   * Gregorio)
+   */
+  factor?: number;
+  /** where the text that may protrude starts in the lyric's text */
+  textIndex: number;
+}
+
+/**
  * A notation in a score: a neume, clef, divider, accidental, custos, line
  * break or text with no notes.  The layout tells them apart by the flags
  * isNeume, isClef, isDivider and isAccidental.
@@ -4406,6 +4499,19 @@ export class ChantNotationElement extends ChantLayoutElement {
   softAccidentalShift?: SoftAccidentalShift | null;
   /** the css class of the notation's svg element; defaults to its class name */
   cssClass?: string;
+  /** whether a Gregorio euouae area (<eu>…</eu> in the lyrics) starts or ends at this notation */
+  euouae?: AreaBoundary;
+  /**
+   * Gregorio's NABC for the gabc that starts with this notation, a string
+   * for each line (nabc[0] above the staff, nabc[1] below it), which isn't
+   * drawn yet
+   */
+  nabc?: string[];
+  /**
+   * whether a Gregorio no-line-break area (<nlba>…</nlba>, in the lyrics or
+   * in the notes) starts or ends at this notation
+   */
+  noLineBreak?: AreaBoundary;
 
   // poor man's reflection:
   isNeume?: boolean;

@@ -31,7 +31,7 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,74.2,27
 fill(Path2D(TerminatingDesLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,77.325,33.75]
 fillText("d", 1.1018, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,65.625,58.75]
 fillRect(0, -25, 0.8, 9.756761363636363) [fillStyle="#000" matrix=1,0,0,1,88.2625,58.75]
-fill(Path2D(Porrectus1[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,91.3875,-341.25]
+fill(Path2D(Porrectus1[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,91.3875,33.75]
 fill(Path2D(TerminatingAscLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,107.159,33.75]
 fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,88.2625,58.75]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,121.2215,33.75]
