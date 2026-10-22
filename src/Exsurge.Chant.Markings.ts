@@ -548,6 +548,153 @@ export class NoteBracket extends ChantLayoutElement {
   }
 }
 
+/**
+ * A Gregorio slur on a note (gabc [oslur:…] or [uslur:…]): one of its own,
+ * with its width and height, or the start or end of one to another note.
+ */
+export interface SlurMark {
+  isAbove: boolean;
+  /**
+   * where the slur starts or ends: 0 at the right of the note, 1 a punctum's
+   * width to the left of that, or 2 half a punctum's width to the left
+   */
+  shift: 0 | 1 | 2;
+  kind: "fixed" | "start" | "end";
+  /** a fixed slur's width, in staff intervals */
+  width?: number;
+  /** a fixed slur's height from its start to its end (up), in staff intervals */
+  height?: number;
+}
+
+/**
+ * Where a slur from note to note started, while the layout looks for its end:
+ * x is null if it started on an earlier line, so that it goes on from the
+ * start of this one
+ */
+export interface SlurStart {
+  x: number | null;
+  y: number;
+}
+
+/*
+ * Slur
+ *
+ * A slur from one point to another, drawn as GregorioTeX draws its slurs
+ * (\GreSlur): a crescent that bulges 0.20 to 0.22 of the em of Gregorio's
+ * music font (6.35 staff intervals) at the control points, above the line
+ * between its ends or below it, outlined with a 0.3bp pen (0.074 staff
+ * intervals).  The slur is drawn by the chant line.
+ */
+export class Slur extends ChantLayoutElement {
+  isAbove: boolean;
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+
+  constructor(ctxt: ChantContext, x0: number, y0: number, x1: number, y1: number, isAbove: boolean) {
+    super();
+
+    this.isAbove = isAbove;
+    this.start = { x: x0, y: y0 };
+    this.end = { x: x1, y: y1 };
+
+    var points = [0, 0.25, 0.5, 0.75, 1].map((t) => this.pointOnOuterCurve(ctxt, t));
+    var xs = points.map((p) => p.x),
+      ys = points.map((p) => p.y);
+    this.bounds.x = Math.min(...xs);
+    this.bounds.y = Math.min(...ys);
+    this.bounds.width = Math.max(...xs) - this.bounds.x;
+    this.bounds.height = Math.max(...ys) - this.bounds.y;
+  }
+
+  // where a slur that the mark puts on the note starts or ends, in the
+  // coordinates of the chant line: GregorioTeX raises a slur from the pitch
+  // above the note (or the pitch below), by its overslurshift (0.05cm) or
+  // underslurshift (0.01cm)
+  static pointOnNote(ctxt: ChantContext, note: Note, mark: SlurMark) {
+    // (a punctum is a staff interval wide)
+    var x = note.neume!.bounds.x + note.bounds.right() - [0, 1, 0.5][mark.shift] * ctxt.staffInterval;
+    var y = ctxt.calculateHeightFromStaffPosition(note.staffPosition + (mark.isAbove ? 0.904 : -1.375));
+    return { x, y };
+  }
+
+  // the control points of the slur's inner curve (at 0.20 em) or outer curve (0.22 em)
+  getControlPoints(ctxt: ChantContext, outer: boolean) {
+    var { start, end } = this;
+    var length = Math.hypot(end.x - start.x, end.y - start.y) || 1;
+    var ux = (end.x - start.x) / length,
+      uy = (end.y - start.y) / length;
+    // (the normal, pointing up for a slur above the notes)
+    var direction = this.isAbove ? 1 : -1;
+    var nx = uy * direction,
+      ny = -ux * direction;
+    var offset = (outer ? 0.22 : 0.2) * (1000 / 157.5) * ctxt.staffInterval;
+    return [0.3, 0.7].map((t) => ({
+      x: start.x + t * length * ux + offset * nx,
+      y: start.y + t * length * uy + offset * ny
+    }));
+  }
+
+  pointOnOuterCurve(ctxt: ChantContext, t: number) {
+    var [c1, c2] = this.getControlPoints(ctxt, true);
+    var { start, end } = this;
+    var bezier = (p0: number, p1: number, p2: number, p3: number) =>
+      (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3;
+    return { x: bezier(start.x, c1.x, c2.x, end.x), y: bezier(start.y, c1.y, c2.y, end.y) };
+  }
+
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
+    var [c1, c2] = this.getControlPoints(ctxt, false);
+    var [d1, d2] = this.getControlPoints(ctxt, true);
+
+    var lineWidth = canvasCtxt.lineWidth;
+
+    canvasCtxt.fillStyle = canvasCtxt.strokeStyle = ctxt.neumeLineColor;
+    canvasCtxt.lineWidth = this.getPenWidth(ctxt);
+    canvasCtxt.beginPath();
+    canvasCtxt.moveTo(this.start.x, this.start.y);
+    canvasCtxt.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, this.end.x, this.end.y);
+    canvasCtxt.bezierCurveTo(d2.x, d2.y, d1.x, d1.y, this.start.x, this.start.y);
+    canvasCtxt.closePath();
+    canvasCtxt.fill();
+    canvasCtxt.stroke();
+    canvasCtxt.lineWidth = lineWidth;
+  }
+
+  getPenWidth(ctxt: ChantContext) {
+    return 0.074 * ctxt.staffInterval;
+  }
+
+  getSvgProps(ctxt: ChantContext) {
+    var [c1, c2] = this.getControlPoints(ctxt, false);
+    var [d1, d2] = this.getControlPoints(ctxt, true);
+    var point = (p: { x: number; y: number }) => p.x.toFixed(2) + " " + p.y.toFixed(2);
+    return {
+      d:
+        "M " + point(this.start) +
+        " C " + [c1, c2, this.end].map(point).join(" ") +
+        " C " + [d2, d1, this.start].map(point).join(" ") +
+        " Z",
+      fill: ctxt.neumeLineColor,
+      stroke: ctxt.neumeLineColor,
+      "stroke-width": this.getPenWidth(ctxt),
+      "stroke-linejoin": "round",
+      class: "slur"
+    };
+  }
+
+  createSvgNode(ctxt: ChantContext) {
+    return QuickSvg.createNode("path", this.getSvgProps(ctxt));
+  }
+  createSvgTree(ctxt: ChantContext) {
+    return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
+  }
+
+  createSvgFragment(ctxt: ChantContext) {
+    return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
+  }
+}
+
 // indicates the shape of the brace
 export const BraceShape = {
   RoundBrace: 0,

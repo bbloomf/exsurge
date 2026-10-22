@@ -736,6 +736,18 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c([[g]]) d([[fh]]) e([[fg]]) f([[eg]]) g([[eh]]) h([[ce]]) i([[jk]]) " +
       "j(e[[ghg]]f) ad([[ef) te(g]]) k(f[[]]g) l(g[[h[[i]]) (::)"
+  },
+  {
+    // slurs of a given width and height, over or under the notes, and from
+    // note to note, shifted left by none, a punctum or half a punctum; one
+    // from note to note across a line break is drawn in two parts, one in em
+    // takes the em of TeX's default font (as a brace's length does), and one
+    // that ends without a start isn't drawn
+    name: "slurs",
+    gabc:
+      "(c4) a(g[oslur:0;5mm,0mm]h) b(g[uslur:0;5mm,0mm]h) c(e[oslur:0;8mm,2mm]) d(j[oslur:1;4mm,-1mm]) " +
+      "e(f[oslur:1{]gh[oslur:0}]) f(h[uslur:2{]gf[uslur:2}]) g(fg[oslur:2{]) h(hi) i(h[oslur:2}]) " +
+      "j(f[oslur:0;1em,1mm]) k(g[oslur:0{]) l(h) (z) m(g[oslur:0}]) n(h[uslur:0}]) (::)"
   }
 ];
 

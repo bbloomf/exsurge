@@ -42,7 +42,8 @@ import type {
   BracePoint,
   HorizontalEpisema,
   Ictus,
-  Mora
+  Mora,
+  SlurMark
 } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type {
@@ -162,6 +163,8 @@ export class Note extends ChantLayoutElement {
   bracketStart?: boolean;
   /** Gregorio's square brackets (gabc ]]) end at the note */
   bracketEnd?: boolean;
+  /** Gregorio's slurs (gabc [oslur:…] and [uslur:…]) on the note, which the chant line draws */
+  slurs?: SlurMark[];
 
   // Gregorio's notation read since Phase 1 of docs/gregorio-feature-gap.md,
   // not all of it drawn yet

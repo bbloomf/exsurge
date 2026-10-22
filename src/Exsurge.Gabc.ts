@@ -196,6 +196,15 @@ function texLengthToStaffIntervals(length: string) {
   );
 }
 
+// Gregorio's slurs, inside [ and ] after a note: [oslur:s;w,h], or [oslur:s{]
+// and [oslur:s}] for one from note to note (and uslur under the notes).  The
+// capturing groups are:
+//  1. o or u, for over or under
+//  2. the shift: 0, 1 or 2
+//  3. and 4. the width and height, as TeX lengths
+//  5. { or } for the start or end of a slur from note to note
+var __slurRegex = /^([ou])slur:([012])(?:;([^,]+),(.+)|([{}]))$/;
+
 const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
 const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
@@ -3148,6 +3157,7 @@ export class Gabc {
       return;
     }
 
+    if (this.processDecorationForNote(note, instruction)) return;
     var results = instruction.match(__bracketedCommandRegex);
     if (results === null) return;
     var cmd = results[1];
@@ -3231,6 +3241,28 @@ export class Gabc {
       note.braceStart!.length = texLengthToStaffIntervals(results[5]);
       this.needToEndBrace = note.braceStart;
     }
+  }
+
+  // Gregorio's slurs on the note.  Returns whether the instruction is one of these.
+  static processDecorationForNote(note: Note, instruction: string) {
+    var results = instruction.match(__slurRegex);
+    if (results) {
+      let mark: Markings.SlurMark = {
+        isAbove: results[1] === "o",
+        shift: Number(results[2]) as Markings.SlurMark["shift"],
+        kind: results[5] === "{" ? "start" : results[5] === "}" ? "end" : "fixed"
+      };
+      if (mark.kind === "fixed") {
+        let width = texLengthToStaffIntervals(results[3]);
+        let height = texLengthToStaffIntervals(results[4]);
+        if (width === undefined || height === undefined) return true;
+        mark.width = width;
+        mark.height = height;
+      }
+      note.slurs = (note.slurs || []).concat(mark);
+      return true;
+    }
+    return false;
   }
 
   // takes raw gabc text source and parses it into words. For example, passing

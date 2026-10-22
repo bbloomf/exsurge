@@ -25,7 +25,7 @@
 
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
 import {
-  BraceAttachment, BracePoint, BraceShape, HorizontalEpisemaAlignment
+  BraceAttachment, BracePoint, BraceShape, HorizontalEpisemaAlignment, Slur
 } from "./Exsurge.Chant.Markings.js";
 import {
   AccidentalType,
@@ -114,6 +114,8 @@ export class ChantLine extends ChantLayoutElement {
   justify: boolean | undefined;
   ledgerLines: LedgerLine[];
   braces: Array<RoundBraceVisualizer | CurlyBraceVisualizer>;
+  /** Gregorio's slurs on the line */
+  slurs: Slur[];
   nextLine: ChantLine | null;
   previousLine: ChantLine | null;
   lyricLineHeight: number;
@@ -168,6 +170,7 @@ export class ChantLine extends ChantLayoutElement {
     // these are markings that exist at the chant line level rather than at the neume level.
     this.ledgerLines = [];
     this.braces = [];
+    this.slurs = [];
 
     this.nextLine = null;
     this.previousLine = null; // for layout assistance
@@ -274,6 +277,8 @@ export class ChantLine extends ChantLayoutElement {
     // add any braces to the notationBounds as well
     for (i = 0; i < this.braces.length; i++)
       this.notationBounds.union(this.braces[i].bounds);
+    for (i = 0; i < this.slurs.length; i++)
+      this.notationBounds.union(this.slurs[i].bounds);
 
     // finalize the lyrics placement
     var notationBoundsOffset =
@@ -537,6 +542,8 @@ export class ChantLine extends ChantLayoutElement {
     for (i = this.notationsStartIndex; i < lastIndex; i++)
       if (notations[i] !== this.custos) notations[i].draw(ctxt);
 
+    for (i = 0; i < this.slurs.length; i++) this.slurs[i].draw(ctxt);
+
     if (this.custos) this.custos.draw(ctxt);
 
     canvasCtxt.translate(-this.bounds.x, -this.bounds.y);
@@ -615,6 +622,8 @@ export class ChantLine extends ChantLayoutElement {
     // add any braces
     for (i = 0; i < this.braces.length; i++)
       inner.push(this.braces[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+    for (i = 0; i < this.slurs.length; i++)
+      inner.push(this.slurs[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
     // dropCap and the annotations
     if (this.notationsStartIndex === 0) {
@@ -729,6 +738,8 @@ export class ChantLine extends ChantLayoutElement {
     // add any braces
     for (i = 0; i < this.braces.length; i++)
       inner += this.braces[i].createSvgFragment(ctxt);
+    for (i = 0; i < this.slurs.length; i++)
+      inner += this.slurs[i].createSvgFragment(ctxt);
 
     // dropCap and the annotations
     if (this.notationsStartIndex === 0) {
@@ -1939,6 +1950,8 @@ export class ChantLine extends ChantLayoutElement {
 
   finishLayout(ctxt: ChantContext) {
     this.ledgerLines = []; // clear any existing ledger lines
+    this.slurs = [];
+    if (this.notationsStartIndex === 0) delete ctxt.openSlurs;
 
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
@@ -2145,6 +2158,8 @@ export class ChantLine extends ChantLayoutElement {
           }
         }
 
+        if (note.slurs) this.handleSlurs(ctxt, note);
+
         if (note.braceEnd) this.handleEndBrace(ctxt, note, i);
 
         if (note.braceStart) {
@@ -2200,6 +2215,48 @@ export class ChantLine extends ChantLayoutElement {
 
     // don't forget to also include the final custos, which may need a ledger line too
     if (this.custos) processElementForLedgerLine(this.custos);
+
+    // a slur that goes on to the next line goes to the end of this one (and
+    // one that isn't closed by the end of the score isn't drawn)
+    var openSlurs = ctxt.openSlurs || {};
+    for (let side of ["above", "below"] as const) {
+      let start = openSlurs[side];
+      if (!start || lastIndex >= notations.length) continue;
+      let x = start.x === null ? this.startingClef.bounds.right() : start.x;
+      this.slurs.push(new Slur(ctxt, x, start.y, this.staffRight, start.y, side === "above"));
+      start.x = null;
+    }
+  }
+
+  // Gregorio's slurs on the note (gabc [oslur:…] and [uslur:…]): one of its
+  // own, or the start or end of one from note to note.  As in Gregorio, a
+  // slur that starts before the last one ends, or ends without one, is ignored.
+  handleSlurs(ctxt: ChantContext, note: Note) {
+    var openSlurs = (ctxt.openSlurs = ctxt.openSlurs || {});
+    for (let mark of note.slurs!) {
+      let side = mark.isAbove ? ("above" as const) : ("below" as const);
+      let point = Slur.pointOnNote(ctxt, note, mark);
+      let start = openSlurs[side];
+      if (mark.kind === "fixed") {
+        this.slurs.push(
+          new Slur(
+            ctxt,
+            point.x,
+            point.y,
+            point.x + mark.width! * ctxt.staffInterval,
+            point.y - mark.height! * ctxt.staffInterval,
+            mark.isAbove
+          )
+        );
+      } else if (mark.kind === "start") {
+        if (!start) openSlurs[side] = point;
+      } else if (start) {
+        // (one that started on an earlier line goes on from the start of this one, level with its end)
+        if (start.x === null) this.slurs.push(new Slur(ctxt, this.startingClef.bounds.right(), point.y, point.x, point.y, mark.isAbove));
+        else this.slurs.push(new Slur(ctxt, start.x, start.y, point.x, point.y, mark.isAbove));
+        delete openSlurs[side];
+      }
+    }
   }
 
   // this is where the real core of positioning neumes takes place
