@@ -92,23 +92,23 @@
 <g class="ChantNotationElement PunctaInclinata" transform="translate(23.4375,0)" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="8" element-index="1" id="note-2" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="9" element-index="2" id="note-3" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="9" element-index="2" id="note-3" x="8.31201998281125" y="-18.75" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="10" element-index="3" id="note-4" x="11.458333333333332" y="-12.499999999999998" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="10" element-index="3" id="note-4" x="13.4990399656225" y="-12.499999999999998" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(49.77817460317459,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(51.083694198898975,0)" >
 <text source-index="13" x="-1.3894000000000002" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >b</tspan>
 </text>
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="15" element-index="4" id="note-5" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="16" element-index="5" id="note-6" x="7.291666666666666" y="-31.25" >
+<use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="16" element-index="5" id="note-6" x="8.31201998281125" y="-31.25" >
 </use>
-<use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="17" element-index="6" id="note-7" x="11.458333333333332" y="-37.5" >
+<use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="17" element-index="6" id="note-7" x="13.4990399656225" y="-37.5" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(76.11884920634918,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(78.72988839779795,0)" >
 <text source-index="20" x="-1.6558000000000002" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >c</tspan>
 </text>
@@ -117,115 +117,115 @@
 <use xlink:href="#PunctumInclinatum" class=" note" source-index="23" element-index="8" id="note-9" x="10" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(101.00119047619046,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(102.87704263107443,0)" >
 <text source-index="26" x="1.1018" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >d</tspan>
 </text>
 <use xlink:href="#PunctumInclinatum" class=" note" source-index="28" element-index="9" id="note-10" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(119.00853174603172,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(120.1491968643509,0)" >
 <text source-index="31" x="0.8353999999999999" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >e</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="33" element-index="10" id="note-11" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(128.3835317460317,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(129.5241968643509,0)" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="34" element-index="11" id="note-12" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(146.39087301587298,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(146.79635109762737,0)" >
 <text source-index="37" x="0.569" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >f</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="39" element-index="12" id="note-13" x="3.125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(152.64087301587298,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(153.04635109762737,0)" >
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="40" element-index="13" id="note-14" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(170.64821428571426,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(170.31850533090386,0)" >
 <text source-index="43" x="0.3026" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >g</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="45" element-index="14" id="note-15" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(180.02321428571426,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(179.69350533090386,0)" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="46" element-index="15" id="note-16" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="48" element-index="16" id="note-17" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="48" element-index="16" id="note-17" x="8.31201998281125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(202.19722222222217,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(202.15267954699158,0)" >
 <text source-index="52" x="0.03620000000000001" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >h</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="54" element-index="17" id="note-18" x="3.125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(208.44722222222217,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(208.40267954699158,0)" >
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="55" element-index="18" id="note-19" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="57" element-index="19" id="note-20" x="7.291666666666666" y="-31.25" >
+<use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="57" element-index="19" id="note-20" x="8.31201998281125" y="-31.25" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(230.6212301587301,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(230.8618537630793,0)" >
 <text source-index="61" x="-0.23019999999999996" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >i</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="63" element-index="20" id="note-21" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(239.9962301587301,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(240.2368537630793,0)" >
 <use xlink:href="#PunctumInclinatum" class=" note" source-index="64" element-index="21" id="note-22" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatum" class=" note" source-index="66" element-index="22" id="note-23" x="10" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(264.8785714285714,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(264.38400799635576,0)" >
 <text source-index="70" x="-0.49659999999999993" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >j</tspan>
 </text>
 <use xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="72" element-index="23" id="note-24" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(282.88591269841265,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(281.65616222963223,0)" >
 <text source-index="76" x="-0.7629999999999999" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >k</tspan>
 </text>
 <use xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="78" element-index="24" id="note-25" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(300.89325396825393,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(298.92831646290875,0)" >
 <text source-index="82" x="-1.0293999999999999" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >l</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="84" element-index="25" id="note-26" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(310.26825396825393,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(308.30331646290875,0)" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="85" element-index="26" id="note-27" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="86" element-index="27" id="note-28" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="86" element-index="27" id="note-28" x="8.31201998281125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(332.4422619047619,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(330.76249067899647,0)" >
 <text source-index="90" x="-1.2957999999999998" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >m</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="92" element-index="28" id="note-29" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(341.8172619047619,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(340.13749067899647,0)" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="93" element-index="29" id="note-30" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="94" element-index="30" id="note-31" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="94" element-index="30" id="note-31" x="8.31201998281125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement Climacus" transform="translate(363.99126984126985,0)" >
+<g class="ChantNotationElement Climacus" transform="translate(362.5966648950842,0)" >
 <text source-index="98" x="-1.5621999999999998" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >n</tspan>
 </text>
@@ -235,14 +235,14 @@
 </rect>
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="102" element-index="32" id="note-33" x="11.7" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="103" element-index="33" id="note-34" x="15.866666666666665" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="103" element-index="33" id="note-34" x="16.88701998281125" y="-18.75" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="104" element-index="34" id="note-35" x="20.03333333333333" y="-25" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="104" element-index="34" id="note-35" x="20.166961359025287" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="105" element-index="35" id="note-36" x="24.199999999999996" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="105" element-index="35" id="note-36" x="25.353981341836537" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement PesSubpunctis" transform="translate(403.07361111111106,0)" >
+<g class="ChantNotationElement PesSubpunctis" transform="translate(402.09780047019717,0)" >
 <text source-index="108" x="1.1954" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >o</tspan>
 </text>
@@ -254,56 +254,56 @@
 </use>
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="112" element-index="38" id="note-39" x="11.5" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="113" element-index="39" id="note-40" x="15.666666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="113" element-index="39" id="note-40" x="16.68701998281125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(433.622619047619,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(432.9319746862849,0)" >
 <text source-index="116" x="0.9290000000000003" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >p</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="118" element-index="40" id="note-41" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(442.997619047619,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(442.3069746862849,0)" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="119" element-index="41" id="note-42" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumLiquescent" class=" note" source-index="120" element-index="42" id="note-43" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumLiquescent" class=" note" source-index="120" element-index="42" id="note-43" x="8.31201998281125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(465.171626984127,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(464.7661489023726,0)" >
 <text source-index="124" x="0.6625999999999999" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >q</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="126" element-index="43" id="note-44" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(474.546626984127,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(474.1411489023726,0)" >
 <use xlink:href="#PunctumInclinatumDescendensCavum" class=" note" source-index="127" element-index="44" id="note-45" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendensCavum" class=" note" source-index="129" element-index="45" id="note-46" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendensCavum" class=" note" source-index="129" element-index="45" id="note-46" x="8.31201998281125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(496.72063492063495,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(496.6003231184603,0)" >
 <text source-index="133" x="0.3961999999999999" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >r</tspan>
 </text>
 <use xlink:href="#PunctumInclinatumAuctusCavum" class=" note" source-index="135" element-index="46" id="note-47" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(514.7279761904762,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(513.8724773517367,0)" >
 <text source-index="140" x="0.12979999999999992" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >s</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="142" element-index="47" id="note-48" x="3.125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(520.9779761904762,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(520.1224773517367,0)" >
 <use xlink:href="#PunctumInclinatumAscendensCavum" class=" note" source-index="143" element-index="48" id="note-49" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumAscendensCavum" class=" note" source-index="146" element-index="49" id="note-50" x="7.291666666666666" y="-31.25" >
+<use xlink:href="#PunctumInclinatumAscendensCavum" class=" note" source-index="146" element-index="49" id="note-50" x="8.31201998281125" y="-31.25" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(543.1519841269841,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(542.5816515678246,0)" >
 <text source-index="151" x="-0.13660000000000005" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >t</tspan>
 </text>
@@ -312,25 +312,25 @@
 <rect x="0" y="-36.461875" width="6.25" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(561.1593253968254,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(559.853805801101,0)" >
 <text source-index="158" x="-0.403" y="16.137" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >u</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="160" element-index="51" id="note-52" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement PunctaInclinata" transform="translate(570.5343253968254,0)" >
+<g class="ChantNotationElement PunctaInclinata" transform="translate(569.228805801101,0)" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="161" element-index="52" id="note-53" x="3.125" y="-25" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="163" element-index="53" id="note-54" x="7.291666666666666" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="163" element-index="53" id="note-54" x="8.31201998281125" y="-18.75" >
 </use>
-<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="165" element-index="54" id="note-55" x="11.458333333333332" y="-12.499999999999998" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="165" element-index="54" id="note-55" x="13.4990399656225" y="-12.499999999999998" >
 </use>
 <use xlink:href="#VerticalEpisemaBelow" class="" x="3.125" y="-16.875" >
 </use>
-<use xlink:href="#VerticalEpisemaBelow" class="" x="7.291666666666666" y="-11.875" >
+<use xlink:href="#VerticalEpisemaBelow" class="" x="8.31201998281125" y="-11.875" >
 </use>
-<use xlink:href="#VerticalEpisemaBelow" class="" x="11.458333333333332" y="-4.375" >
+<use xlink:href="#VerticalEpisemaBelow" class="" x="13.4990399656225" y="-4.375" >
 </use>
 </g>
 <g class="ChantNotationElement DoubleBar" transform="translate(593.75,0)" >

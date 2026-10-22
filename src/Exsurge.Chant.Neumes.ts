@@ -85,6 +85,27 @@ function inclinatumGlyph(ctxt: ChantContext, note: Note): GlyphCode {
   }
 }
 
+// upright inclinata a step apart lie along a line 2/3 of a staff interval
+// across for each one down, as the lower edges of PunctumInclinatum do, and
+// PunctumInclinatumAscendens and Descendens are it turned 6°
+const inclinatumStepAngle = Math.atan(2 / 3),
+  inclinatumLean = (6 * Math.PI) / 180;
+
+// which way an inclinatum's glyph is turned: 1 as in an ascending line, -1 as
+// in a descending line, and 0 if it's upright
+function inclinatumTurn(note: Note): number {
+  switch (note.glyphVisualizer!.glyphCode) {
+    case GlyphCode.PunctumInclinatumAscendens:
+    case GlyphCode.PunctumInclinatumAscendensCavum:
+      return 1;
+    case GlyphCode.PunctumInclinatumDescendens:
+    case GlyphCode.PunctumInclinatumDescendensCavum:
+      return -1;
+    default:
+      return 0;
+  }
+}
+
 // the glyph for the note after a porrectus's stroke from start down to end:
 // glyph itself, unless the stroke has no glyph and is drawn as puncta, which
 // the note follows, rather than standing on the last as a podatus's upper
@@ -380,7 +401,18 @@ class NeumeBuilder {
           break;
       }
 
-      if (i > 0) this.x += advanceWidth * multiple;
+      if (i > 0) {
+        // leaning inclinata go further apart along their leaning and closer
+        // together against it, so that their edges line up as upright ones'
+        // do (turned as the one before, or as this one if that's upright)
+        let turn =
+          (inclinatumTurn(notes[i - 1]) || inclinatumTurn(note)) *
+          Math.sign(staffPosition - prevStaffPosition);
+        if (turn)
+          multiple *=
+            Math.tan(inclinatumStepAngle + turn * inclinatumLean) / Math.tan(inclinatumStepAngle);
+        this.x += advanceWidth * multiple;
+      }
 
       note.bounds.x = this.x;
 
