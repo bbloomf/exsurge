@@ -443,6 +443,8 @@ export const GlyphCode = {
   VirgaLong: "VirgaLong",
   VirgaShort: "VirgaShort",
   Virgula: "Virgula",
+  OpenParenthesis: "OpenParenthesis",
+  CloseParenthesis: "CloseParenthesis",
 
   UpperBrace: "UpperBrace",
 

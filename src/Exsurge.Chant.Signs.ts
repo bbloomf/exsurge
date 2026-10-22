@@ -28,9 +28,39 @@ import {
   ChantNotationElement, DividerLineVisualizer, GlyphCode,
   GlyphVisualizer,
   RoundBraceVisualizer,
-  type ChantContext
+  type ChantContext,
+  type ChantLayoutElement
 } from "./Exsurge.Drawing.js";
 import type { BracePoint } from "./Exsurge.Chant.Markings.js";
+
+// adds a sign to a notation between parentheses (Gregorio's parenthesized
+// accidentals and bars): an open one at the sign's left, which moves right
+// to make room for it, and a close one at its right, each as tall as the
+// sign (or a staff interval and a half, if that's taller) and centred on it.
+// drawnOffset is how far right of its bounds the sign is drawn.
+function addInParentheses(
+  ctxt: ChantContext,
+  notation: ChantNotationElement,
+  sign: ChantLayoutElement,
+  drawnOffset = 0
+) {
+  var middle = sign.bounds.y + sign.bounds.height / 2;
+  var height = Math.max(sign.bounds.height, ctxt.staffInterval * 1.5);
+  var gap = ctxt.staffInterval / 8;
+  var [open, close] = [GlyphCode.OpenParenthesis, GlyphCode.CloseParenthesis].map((glyphCode) => {
+    var parenthesis = new GlyphVisualizer(ctxt, glyphCode);
+    parenthesis.scale = height / (parenthesis.glyph.bounds.height * ctxt.glyphScaling);
+    parenthesis.setGlyph(ctxt, glyphCode);
+    parenthesis.bounds.y = middle - parenthesis.bounds.height / 2;
+    return parenthesis;
+  });
+  open.bounds.x = sign.bounds.x + drawnOffset;
+  sign.bounds.x = open.bounds.right() + gap - drawnOffset;
+  close.bounds.x = sign.bounds.right() + drawnOffset + gap;
+  notation.addVisualizer(open);
+  notation.addVisualizer(sign);
+  notation.addVisualizer(close);
+}
 
 /*
  *
@@ -112,6 +142,8 @@ export class Divider extends ChantNotationElement {
   declare isDivider: true;
   /** whether a brace above the divider carries the melody over it (gabc _) */
   hasCarryover: boolean;
+  /** Gregorio's parenthesized bar (gabc `? or ,?), drawn between parentheses */
+  parenthesized?: boolean;
 
   constructor(withCarryover = false) {
     super();
@@ -139,7 +171,9 @@ export class QuarterBar extends Divider {
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     const top = ctxt.staffLineCount * 2;
-    this.addVisualizer(new DividerLineVisualizer(ctxt, top - 2, top, this));
+    const line = new DividerLineVisualizer(ctxt, top - 2, top, this);
+    if (this.parenthesized) addInParentheses(ctxt, this, line);
+    else this.addVisualizer(line);
     this.origin.x = this.bounds.width / 2;
 
     this.finishLayout(ctxt);
@@ -264,7 +298,7 @@ export class Accidental extends ChantNotationElement {
   /** a soft accidental (gabc X, Y or ##) is only printed if it changes the accidental in effect */
   soft: boolean;
   hidden: boolean;
-  /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn without its parentheses for now */
+  /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn between parentheses */
   parenthesized?: boolean;
   pitch?: Pitch;
 
@@ -294,6 +328,8 @@ export class Accidental extends ChantNotationElement {
         0,
         0
       );
+    } else if (this.parenthesized) {
+      addInParentheses(ctxt, this, this.createGlyphVisualizer(ctxt));
     } else {
       this.addVisualizer(this.createGlyphVisualizer(ctxt));
     }
@@ -386,7 +422,9 @@ export class Virgula extends Divider {
     var glyph = new GlyphVisualizer(ctxt, GlyphCode.Virgula);
     glyph.setStaffPosition(ctxt, this.staffPosition);
 
-    this.addVisualizer(glyph);
+    // (the virgula is drawn centred on the left of its bounds)
+    if (this.parenthesized) addInParentheses(ctxt, this, glyph, -glyph.bounds.width / 2);
+    else this.addVisualizer(glyph);
 
     this.origin.x = this.bounds.width / 2;
 

@@ -132,7 +132,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z|Z|(::|(?:[,`]0?\?|:|[,;][1-8]?|`)_?)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -1635,6 +1635,17 @@ export class Gabc {
         case "`":
           addNotation(new Signs.Virgula(barWithCarryover));
           break;
+        // Gregorio's parenthesized bars (`0? and ,0? are drawn as `? and ,?
+        // are, as `0 and ,0 are drawn as ` and ,)
+        case ",?":
+        case ",0?":
+        case "`?":
+        case "`0?": {
+          let parenthesizedBar = atom[0] === "," ? new Signs.QuarterBar(barWithCarryover) : new Signs.Virgula(barWithCarryover);
+          parenthesizedBar.parenthesized = true;
+          addNotation(parenthesizedBar);
+          break;
+        }
         case ";":
           addNotation(new Signs.HalfBar(barWithCarryover));
           break;

@@ -1007,6 +1007,44 @@
   },
   "align": "left"
  },
+ "OpenParenthesis": {
+  "paths": [
+   {
+    "type": "positive",
+    "data": "M40-150C16-118 0-62 0 0s16 118 40 150c3 .5 6.5-1.5 7-4C29 112 17 60 17 0s12-112 30-146c-.5-2.5-4-4.5-7-4z"
+   }
+  ],
+  "bounds": {
+   "x": 0,
+   "y": 0,
+   "width": 47,
+   "height": 300
+  },
+  "origin": {
+   "x": 0,
+   "y": 150
+  },
+  "align": "left"
+ },
+ "CloseParenthesis": {
+  "paths": [
+   {
+    "type": "positive",
+    "data": "M7-150c24 32 40 88 40 150S31 118 7 150c-3 .5-6.5-1.5-7-4C18 112 30 60 30 0S18-112 0-146c.5-2.5 4-4.5 7-4z"
+   }
+  ],
+  "bounds": {
+   "x": 0,
+   "y": 0,
+   "width": 47,
+   "height": 300
+  },
+  "origin": {
+   "x": 0,
+   "y": 150
+  },
+  "align": "left"
+ },
  "OriscusAscCavum": {
   "paths": [
    {

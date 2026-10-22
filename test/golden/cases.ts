@@ -305,8 +305,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the brackets, fusion, linea, quadratum
-    // and parentheses are read but not drawn yet
+    // no notes are lost or made up; the brackets, fusion, linea and
+    // quadratum are read but not drawn yet
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -388,6 +388,11 @@ export const featureCases: GoldenCase[] = [
     // are plain strophae)
     name: "stropha-aucta",
     gabc: "(c4) a(fs<) b(fs>) c(fss<) d(fsss>) e(fs) f(fs<r) g(hs<) h(fs<_) i(fs<.) j(fss) k(fs<') (::)"
+  },
+  {
+    // accidentals and bars between parentheses (e, i and j are without them)
+    name: "parenthesized-signs",
+    gabc: "(c4) a(fx?fg) b(hy?hg) c(f#?fg) d(ix?ih) e(fxfg) f(g) (`?) g(h) (,?) h(g) (,0?) i(f) (`) j(g) (,) k(f) (::)"
   }
 ];
 
