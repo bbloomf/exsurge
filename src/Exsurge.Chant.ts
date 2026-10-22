@@ -175,6 +175,14 @@ export class Note extends ChantLayoutElement {
    * the stroke a porrectus starts with.
    */
   shapeHint?: string;
+  /**
+   * Gregorio's ledger-line hints (gabc [ll:1] or [ll:0], and [hl:1] or
+   * [hl:0]): whether to draw the note's virga stem and place its episemata
+   * as if there were a ledger line below (or above) it, or as if there
+   * weren't, whatever ledger lines there are
+   */
+  lowLedgerLine?: boolean;
+  highLedgerLine?: boolean;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;

@@ -3029,6 +3029,15 @@ export class Gabc {
       case "shape":
         note.shapeHint = data;
         return;
+      // Gregorio's ledger-line hints, of which the first on the note counts
+      case "ll":
+        if (note.lowLedgerLine === undefined && /^[01]$/.test(data))
+          note.lowLedgerLine = data === "1";
+        return;
+      case "hl":
+        if (note.highLedgerLine === undefined && /^[01]$/.test(data))
+          note.highLedgerLine = data === "1";
+        return;
     }
 
     results = instruction.match(__braceSpecRegex);

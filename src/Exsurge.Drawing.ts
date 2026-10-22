@@ -1967,7 +1967,14 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition);
     var y1;
 
-    if (Math.abs(staffPosition % 2) === 0) y1 = y0 + ctxt.staffInterval * 1.8;
+    // a note on a space has a shorter stem than one on a line, as does one on
+    // the bottom line with Gregorio's [ll:0] (as if there's no ledger line
+    // below it, where its stem would end)
+    if (
+      Math.abs(staffPosition % 2) === 0 ||
+      (staffPosition === 1 && note.lowLedgerLine === false)
+    )
+      y1 = y0 + ctxt.staffInterval * 1.8;
     else y1 = y0 + ctxt.staffInterval * 2.7;
 
     this.bounds.x = 0;
