@@ -136,6 +136,13 @@ export class Note extends ChantLayoutElement {
   alText?: AboveLinesText;
   /** the number of stems of a punctum inclinatum (gabc |) */
   inclinataFlags?: number;
+  /** leaves out the custos of a line that breaks after the note (gabc [nocustos]) */
+  noCustos?: boolean;
+  /**
+   * leaves out the custos of a line that breaks before the note, after a
+   * [nocustos] with no note before it in its notes
+   */
+  noCustosBefore?: boolean;
 
   // Gregorio's notation that's read but not drawn yet (see
   // docs/gregorio-feature-gap.md, Phase 1)
@@ -550,14 +557,23 @@ export class TextOnly extends ChantNotationElement {
   }
 }
 
+/**
+ * whether a line break ends its line with a custos: "auto" if
+ * ChantContext.eolCustos says so (gabc z or Z), "force" to always (z+ or Z+)
+ * or "none" to never (z- or Z-)
+ */
+export type LineBreakCustos = "auto" | "force" | "none";
+
 export class ChantLineBreak extends ChantNotationElement {
   /** whether to justify the line that it ends */
   justify?: boolean;
+  custos: LineBreakCustos;
 
-  constructor(justify?: boolean) {
+  constructor(justify?: boolean, custos: LineBreakCustos = "auto") {
     super();
     this.calculatedTrailingSpace = this.trailingSpace = 0;
     this.justify = justify;
+    this.custos = custos;
   }
 
   performLayout(ctxt: ChantContext) {
@@ -568,6 +584,7 @@ export class ChantLineBreak extends ChantNotationElement {
   clone() {
     var lb = new ChantLineBreak();
     lb.justify = this.justify;
+    lb.custos = this.custos;
 
     return lb;
   }
@@ -650,6 +667,12 @@ export class ChantScore {
    */
   notes: Array<Note | ChantNotationElement>;
   notations!: ChantNotationElement[];
+  /**
+   * for each notation, whether a Gregorio no-line-break or euouae area keeps
+   * it with the next one; worked out by ChantLine.keepsInArea() during
+   * layoutChantLines()
+   */
+  keptInAreas?: boolean[] | null;
   staffLineCount: number;
   titles?: Titles;
   startingClef: Clef;
@@ -1063,6 +1086,7 @@ export class ChantScore {
     finishedCallback?: (score: ChantScore) => void
   ) {
     this.lines = [];
+    this.keptInAreas = null;
     ctxt.noticeFontChanges();
 
     if (ctxt.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {

@@ -112,23 +112,45 @@ export class Divider extends ChantNotationElement {
   declare isDivider: true;
   /** whether a brace above the divider carries the melody over it (gabc _) */
   hasCarryover: boolean;
+  /** whether the divider has a vertical episema under the staff (gabc ') */
+  hasVerticalEpisema: boolean;
+  /** whether the divider is a space higher, on or above the ledger line above the staff (gabc `0, ,0 and ^0) */
+  high: boolean;
 
-  constructor(withCarryover = false) {
+  constructor(withCarryover = false, high = false) {
     super();
 
     this.isDivider = true;
     this.hasCarryover = withCarryover || false;
+    this.hasVerticalEpisema = false;
+    this.high = high;
     this.resetsAccidentals = true;
   }
 
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     if (this.hasCarryover) {
-      const top = ctxt.staffLineCount * 2;
+      // (above a high divider too)
+      const top = ctxt.staffLineCount * 2 + (this.high ? 2 : 0);
       const y = ctxt.calculateHeightFromStaffPosition(top);
       this.addVisualizer(new RoundBraceVisualizer(ctxt, -ctxt.staffInterval * 1.5, ctxt.staffInterval * 1.5, y, true));
     }
-    
+
+  }
+
+  // the subclasses call this once they have drawn the divider and set its origin
+  finishLayout(ctxt: ChantContext) {
+    if (this.hasVerticalEpisema) {
+      // Gregorio puts it under the staff (at gabc c), as it would go under a
+      // note on the bottom line, centered on the divider
+      var episema = new GlyphVisualizer(ctxt, GlyphCode.VerticalEpisemaBelow);
+      episema.setStaffPosition(ctxt, 0);
+      episema.bounds.x = this.origin.x - episema.origin.x;
+      episema.bounds.y -= ctxt.staffInterval * 0.2;
+      this.addVisualizer(episema);
+    }
+
+    super.finishLayout(ctxt);
   }
 }
 
@@ -138,8 +160,23 @@ export class Divider extends ChantNotationElement {
 export class QuarterBar extends Divider {
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
-    const top = ctxt.staffLineCount * 2;
+    const top = ctxt.staffLineCount * 2 + (this.high ? 2 : 0);
     this.addVisualizer(new DividerLineVisualizer(ctxt, top - 2, top, this));
+    this.origin.x = this.bounds.width / 2;
+
+    this.finishLayout(ctxt);
+  }
+}
+
+/*
+ * DivisioMinimis, Gregorio's eighth bar: a short stroke just above the staff
+ */
+export class DivisioMinimis extends Divider {
+  performLayout(ctxt: ChantContext) {
+    super.performLayout(ctxt);
+    // (the top line, or the ledger line above it)
+    const line = ctxt.staffLineCount * 2 - 1 + (this.high ? 2 : 0);
+    this.addVisualizer(new DividerLineVisualizer(ctxt, line + 0.5, line + 1.5, this));
     this.origin.x = this.bounds.width / 2;
 
     this.finishLayout(ctxt);
@@ -166,10 +203,27 @@ export class HalfBar extends Divider {
  * FullBar
  */
 export class FullBar extends Divider {
+  /** whether the bar is dotted (gabc :?) */
+  dotted: boolean;
+
+  constructor(withCarryover = false, dotted = false) {
+    super(withCarryover);
+    this.dotted = dotted;
+  }
+
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
 
-    this.addVisualizer(new DividerLineVisualizer(ctxt, 1, ctxt.staffLineCount * 2 - 1, this));
+    const top = ctxt.staffLineCount * 2 - 1;
+    if (this.dotted) {
+      // dashes a quarter of a space long, four to a space, with the staff
+      // lines in the middle of the gaps between them, and one dash beyond the
+      // top and bottom lines, as in Gregorio's glyph
+      for (var center = 0.75; center < top + 0.5; center += 0.5)
+        this.addVisualizer(new DividerLineVisualizer(ctxt, center - 0.125, center + 0.125, this));
+    } else {
+      this.addVisualizer(new DividerLineVisualizer(ctxt, 1, top, this));
+    }
 
     this.origin.x = this.bounds.width / 2;
 
@@ -367,8 +421,9 @@ export class Accidental extends ChantNotationElement {
 export class Virgula extends Divider {
   staffPosition: number;
 
-  constructor(withCarryover = false) {
-    super(withCarryover);
+  /** @param high whether it is on the ledger line above the staff (gabc `0) */
+  constructor(withCarryover = false, high = false) {
+    super(withCarryover, high);
 
     // unlike other dividers a virgula does not reset accidentals
     this.resetsAccidentals = false;
@@ -377,7 +432,7 @@ export class Virgula extends Divider {
     // can be placed on different lines (top or bottom) depending on the
     // notation tradition of what is being notated (e.g., Benedictine has it
     //  on top line, Norbertine at the bottom)
-    this.staffPosition = 7;
+    this.staffPosition = high ? 9 : 7;
   }
 
   performLayout(ctxt: ChantContext) {

@@ -58,6 +58,12 @@ import type {
 const isHiddenAccidental = (notation: ChantNotationElement) =>
   notation.isAccidental && (notation as Accidental).hidden && !notation.hasLyrics();
 
+// a notation whose own trailing space is negative (gabc /[-1]) moves the next one back
+const hasBackspace = (ctxt: ChantContext, notation: ChantNotationElement) =>
+  (typeof notation.trailingSpace === "function"
+    ? notation.trailingSpace(ctxt)
+    : notation.trailingSpace) < 0;
+
 /** a ledger line on a chant line */
 export interface LedgerLine {
   x1: number;
@@ -99,6 +105,12 @@ export class ChantLine extends ChantLayoutElement {
   /** a copy of the clef in effect at the start of the line */
   startingClef: Clef;
   custos: Custos | null;
+  /**
+   * the line break that ends the line when a clef comes just before it: the
+   * clef goes at the start of the next line instead, and the line break is
+   * left out of both lines
+   */
+  clefLineBreak: ChantLineBreak | null;
   justify: boolean | undefined;
   ledgerLines: LedgerLine[];
   braces: Array<RoundBraceVisualizer | CurlyBraceVisualizer>;
@@ -149,6 +161,7 @@ export class ChantLine extends ChantLayoutElement {
 
     this.startingClef = null as unknown as Clef; // necessary for the layout process
     this.custos = null;
+    this.clefLineBreak = null;
 
     this.justify = true;
 
@@ -812,6 +825,7 @@ export class ChantLine extends ChantLayoutElement {
     var condensableSpaces = [] as unknown as CondensableSpaces;
     this.notationsStartIndex = newElementStart;
     this.numNotationsOnLine = 0;
+    this.clefLineBreak = null;
 
     this.staffLeft = 0;
     this.paddingLeft = 0;
@@ -882,6 +896,14 @@ export class ChantLine extends ChantLayoutElement {
       ctxt.activeClef = notations[newElementStart] as Clef;
       newElementStart++;
       this.notationsStartIndex++;
+
+      // the line break just after the clef may have ended the line before
+      // already (see clefLineBreak)
+      let previousLine = this.score.lines && this.score.lines[this.score.lines.length - 1];
+      if (previousLine && previousLine.clefLineBreak && previousLine.clefLineBreak === notations[newElementStart]) {
+        newElementStart++;
+        this.notationsStartIndex++;
+      }
     }
 
     // make a copy for this line to use at the beginning
@@ -923,6 +945,28 @@ export class ChantLine extends ChantLayoutElement {
       }
 
       curr = notations[i];
+
+      // as in Gregorio, a clef just before a line break only goes at the start
+      // of the next line, and the custos at the end of this line is worked out
+      // from the clef that is in effect on it.  (Not when the clef or the line
+      // break has text, which neither line would then draw.)
+      if (
+        width > 0 &&
+        curr.isClef &&
+        !curr.hasLyrics() &&
+        this.numNotationsOnLine > 0 &&
+        i + 1 < lastNotationIndex &&
+        notations[i + 1].constructor === ChantLineBreak &&
+        !notations[i + 1].hasLyrics()
+      ) {
+        this.clefLineBreak = notations[i + 1] as ChantLineBreak;
+        this.justify =
+          this.clefLineBreak.justify ||
+          this.extraTextOnlyIndex !== null ||
+          this.getWhitespaceOnRight(ctxt) < 0;
+        if (this.justify) this.findNeumesToJustify(prevLyrics);
+        break;
+      }
 
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !this.isSoftAccidentalVisible(i));
@@ -1145,6 +1189,7 @@ export class ChantLine extends ChantLayoutElement {
         }
 
         // check if the prev elements want to be kept with this one
+        var breakInArea: number | undefined;
         for (j = i - 1; j > this.notationsStartIndex; j--) {
           var cne = notations[j];
           curr = notations[j + 1];
@@ -1189,11 +1234,19 @@ export class ChantLine extends ChantLayoutElement {
           // if the line break is allowed (cne.allowLineBreakBeforeNext), keep this number of notations around so we can check during justification
           // whether there would be too much space introduced between
           if (cne.keepWithNext === true) {
-            if (cne.allowLineBreakBeforeNext && !this.maxNumNotationsOnLine)
+            if (cne.allowLineBreakBeforeNext && !this.maxNumNotationsOnLine && !this.keepsInArea(j))
               this.maxNumNotationsOnLine = this.numNotationsOnLine;
+            this.numNotationsOnLine--;
+          } else if (this.keepsInArea(j)) {
+            // no line break in a Gregorio no-line-break or euouae area, unless
+            // the line can't break anywhere else (see just below)
+            if (breakInArea === undefined) breakInArea = this.numNotationsOnLine;
             this.numNotationsOnLine--;
           } else break;
         }
+        // (an area too long for the line has to break after all)
+        if (j === this.notationsStartIndex && breakInArea !== undefined)
+          this.numNotationsOnLine = breakInArea;
         if (this.extraTextOnlyIndex && (this.notationsStartIndex + this.numNotationsOnLine) <= this.extraTextOnlyIndex) {
           // we've cut back to before the extra text only index, so we have to remove it:
           this.extraTextOnlyIndex = null;
@@ -1236,7 +1289,8 @@ export class ChantLine extends ChantLayoutElement {
           next &&
           next.hasLyrics() &&
           (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-            next.lyrics[0].lyricType === LyricType.SingleSyllable)
+            next.lyrics[0].lyricType === LyricType.SingleSyllable) &&
+          (this.custos || this.wantsEolCustos(ctxt))
         ) {
           this.toJustify!.push(this.custos);
         }
@@ -1337,7 +1391,7 @@ export class ChantLine extends ChantLayoutElement {
           ctxt.staffInterval * ctxt.maxExtraSpaceInStaffIntervals;
     }
 
-    if (!this.custos) {
+    if (!this.custos && this.wantsEolCustos(ctxt)) {
       // create the automatic custos at the end of the line if there are neumes left in the notations
       for (
         i = this.notationsStartIndex + this.numNotationsOnLine;
@@ -1672,10 +1726,75 @@ export class ChantLine extends ChantLayoutElement {
       if (this.custos.hasLyrics()) {
         lastRightLyric = LyricArray.getRight(this.custos.lyrics);
       }
-    } else if (ctxt && lastIndex < notations.length) {
+    } else if (ctxt && lastIndex < notations.length && this.wantsEolCustos(ctxt)) {
       lastRightNeume += Glyphs.CustosLong.bounds.width * ctxt.glyphScaling;
     }
     return this.staffRight - Math.max(lastRightLyric, lastRightNeume);
+  }
+
+  /**
+   * whether a Gregorio no-line-break or euouae area (gabc <nlba> or <eu>)
+   * keeps the score's notation at index on the same line as the one after it
+   */
+  keepsInArea(index: number) {
+    var score = this.score;
+    if (!score.keptInAreas) {
+      // (worked out once for each layout of the score)
+      var inside = { noLineBreak: false, euouae: false };
+      score.keptInAreas = score.notations.map((notation) => {
+        var kept = false;
+        for (const area of ["noLineBreak", "euouae"] as const) {
+          var boundary = notation[area];
+          if (boundary && boundary.start) inside[area] = true;
+          // (the line can break after the end of an area)
+          if (inside[area] && !(boundary && boundary.end)) kept = true;
+          if (boundary && boundary.end) inside[area] = false;
+        }
+        return kept;
+      });
+    }
+    return score.keptInAreas[index];
+  }
+
+  /**
+   * whether the line, ending where it does now, gets an automatic custos: as
+   * the line break that ends it says (gabc z+ or z-), or else unless a
+   * euouae area (gabc <eu>) starts the next line, a [nocustos] is on the last
+   * note before the end of the line or ctxt.eolCustos is "manual"
+   */
+  wantsEolCustos(ctxt: ChantContext) {
+    var notations = this.score.notations;
+    var lastIndex = this.notationsStartIndex + this.numNotationsOnLine - 1;
+    var last = this.clefLineBreak || notations[lastIndex];
+    if (last && last.constructor === ChantLineBreak) {
+      if ((last as ChantLineBreak).custos === "force") return true;
+      if ((last as ChantLineBreak).custos === "none") return false;
+    }
+
+    // Gregorio leaves out the custos just before a euouae area (gabc <eu>)
+    for (var k = lastIndex + 1; k < notations.length; k++) {
+      var next = notations[k];
+      if (next.isClef || next.constructor === ChantLineBreak) continue;
+      if (next.euouae && next.euouae.start) return false;
+      break;
+    }
+    // and after a [nocustos] before the next note
+    for (k = lastIndex + 1; k < notations.length; k++) {
+      if (notations[k].isNeume) {
+        if (notations[k].notes![0].noCustosBefore) return false;
+        break;
+      }
+    }
+
+    for (var i = lastIndex; i >= this.notationsStartIndex; i--) {
+      if (notations[i].isNeume) {
+        var notes = notations[i].notes!;
+        if (notes[notes.length - 1].noCustos) return false;
+        break;
+      }
+    }
+
+    return ctxt.eolCustos !== "manual";
   }
 
   justifyElements(
@@ -2152,11 +2271,15 @@ export class ChantLine extends ChantLayoutElement {
 
     if (
       (curr.constructor === TextOnly && this.extraTextOnlyIndex === null) ||
-      (!curr.hasLyrics() && prev.calculatedTrailingSpace < 0)
+      (!curr.hasLyrics() &&
+        prev.calculatedTrailingSpace < 0 &&
+        !hasBackspace(ctxt, prev))
     ) {
       // We transfer over the trailing space from the previous neume if the current neume is text only,
       // so that the text only neume has a better chance at not needing a connector.
-      curr.calculatedTrailingSpace = prev.calculatedTrailingSpace;
+      // (A backspace moves the text only neume back instead, as it would any other.)
+      if (hasBackspace(ctxt, prev)) curr.bounds.x += prev.calculatedTrailingSpace;
+      curr.calculatedTrailingSpace = hasBackspace(ctxt, prev) ? 0 : prev.calculatedTrailingSpace;
       if (curr.hasLyrics())
         curr.calculatedTrailingSpace -= curr.lyrics[0].bounds.width;
       if (curr.constructor === TextOnly && (curr as TextOnly).lyrics.length === 1) {
@@ -2192,7 +2315,10 @@ export class ChantLine extends ChantLayoutElement {
       space.total = space.condensable = 0;
     } else {
       space.total = curr.bounds.x - prev.bounds.right();
-      space.condensable = space.total * ctxt.condensingTolerance;
+      // (a backspace can't be condensed)
+      space.condensable = hasBackspace(ctxt, prev)
+        ? 0
+        : space.total * ctxt.condensingTolerance;
     }
 
     // if the previous notation has no lyrics, then we simply make sure the

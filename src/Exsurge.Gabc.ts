@@ -70,6 +70,7 @@ import type {
   ChantContext,
   ChantNotationElement,
   LyricProtrusion,
+  NeumeSpaceCode,
   TrailingSpace,
   TrailingSpaceFunction
 } from "./Exsurge.Drawing.js";
@@ -132,7 +133,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -153,6 +154,9 @@ const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
 const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * multiplier;
+// a space between neumes, from ctxt.neumeSpaceMultipliers, times factor
+const NeumeSpace = (code: NeumeSpaceCode, factor = 1) => (ctxt: ChantContext) =>
+  ctxt.intraNeumeSpacing * ctxt.neumeSpaceMultipliers[code] * factor;
 
 // the line that ends the header: two or more %s, as Gregorio allows, and the
 // blank lines after it, which Gregorio also takes
@@ -1465,7 +1469,7 @@ export class Gabc {
     var notations: ChantNotationElement[] = [];
     var notes: Note[] = [];
     var trailingSpace: TrailingSpace = DefaultTrailingSpace;
-    // whether the data so far ends with a / or a space after a neume
+    // whether the data so far ends with a / or a space after a neume that the line can break at
     var endsWithSpace = false;
     // what Gregorio's [[, <nlba> and @[ (and a </nlba> before any note) mark on
     // the next note, starting with those that the notes before left (see
@@ -1490,6 +1494,30 @@ export class Gabc {
       if (notes.length > 0) {
         notes[notes.length - 1].sourceGabc += gabc;
       }
+    };
+    // ends the neume before a space (/0, /!, /, //, /[n] or a space), which
+    // the line can break at only if it is breakable
+    var addSpace = (atom: string, space: TrailingSpaceFunction, breakable: boolean) => {
+      // (a space at the very end that the line can't break at, such as /0
+      // or a backspace, still keeps the neume with the next syllable's)
+      endsWithSpace = breakable && (endsWithSpace || notes.length > 0);
+      let prevNotation = notations[notations.length - 1];
+      if (
+        !notes.length &&
+        data[match!.index - 1] === "!" &&
+        prevNotation &&
+        prevNotation.isNeume
+      ) {
+        // a space after a ! can't be broken: the neume before it
+        // already keeps with the next one, so it only needs the width
+        prevNotation.trailingSpace = space;
+      }
+      let endsNeume = notes.length > 0;
+      trailingSpace = space;
+      addToLastSourceGabc(atom);
+      addNotation(null);
+      if (endsNeume && !breakable)
+        notations[notations.length - 1].allowLineBreakBeforeNext = false;
     };
     var addNotation = (notation: ChantNotationElement | null) => {
       // first, if we have any notes left over, we create a neume out of them
@@ -1548,22 +1576,30 @@ export class Gabc {
       var atom = match[0];
       var bar = match[__notationsRegex_group_bar];
 
-      let barWithCarryover = !!bar && bar.endsWith('_');
-      if (barWithCarryover) {
-        atom = atom.slice(0, -1);
+      // a bar can be followed by _ (a brace carrying the melody over it) and ' (a vertical episema)
+      let barSigns = bar ? /['_]*$/.exec(bar)![0] : "";
+      let barWithCarryover = barSigns.includes("_");
+      if (barSigns) {
+        atom = atom.slice(0, -barSigns.length);
       }
 
-      if (atom === " " || atom[0] === "/")
-        endsWithSpace = endsWithSpace || notes.length > 0;
-      else if (!__noteMarkRegex.test(atom)) endsWithSpace = false;
+      // (addSpace() sets it for a space)
+      if (atom !== " " && atom[0] !== "/" && atom !== "[nocustos]" && !__noteMarkRegex.test(atom))
+        endsWithSpace = false;
 
       // handle the clefs and dividers here
       switch (atom) {
         case ",":
-          addNotation(new Signs.QuarterBar(barWithCarryover));
+        case ",0":
+          addNotation(new Signs.QuarterBar(barWithCarryover, atom === ",0"));
           break;
         case "`":
-          addNotation(new Signs.Virgula(barWithCarryover));
+        case "`0":
+          addNotation(new Signs.Virgula(barWithCarryover, atom === "`0"));
+          break;
+        case "^":
+        case "^0":
+          addNotation(new Signs.DivisioMinimis(barWithCarryover, atom === "^0"));
           break;
         case ";":
           addNotation(new Signs.HalfBar(barWithCarryover));
@@ -1587,12 +1623,13 @@ export class Gabc {
           addNotation(new Signs.DominicanBar(parseInt(atom[1], 10)));
           break;
         case ":":
-          addNotation(new Signs.FullBar(barWithCarryover));
+        case ":?":
+          addNotation(new Signs.FullBar(barWithCarryover, atom === ":?"));
           break;
         case "::":
           addNotation(new Signs.DoubleBar());
           break;
-        // other gregorio dividers are not supported yet
+        // the parenthesized bars (`? ,? and ,0?) are not supported yet
 
         case "c1":
         case "c2":
@@ -1668,14 +1705,29 @@ export class Gabc {
           break;
 
         case "z":
-          addNotation(new ChantLineBreak(true));
-          break;
+        case "z+":
+        case "z-":
         case "Z":
-          addNotation(new ChantLineBreak(false));
+        case "Z+":
+        case "Z-":
+          addNotation(
+            new ChantLineBreak(
+              atom[0] === "z",
+              atom[1] === "+" ? "force" : atom[1] === "-" ? "none" : "auto"
+            )
+          );
           break;
         case "z0":
           addNotation(new Signs.Custos(true));
           break;
+        case "[nocustos]": {
+          // (after a space: it applies to the note before the space, and with
+          // no note before it, to a line break before the next note)
+          let note = lastNote();
+          if (note) note.noCustos = true;
+          else nextNoteMarks.push((note) => (note.noCustosBefore = true));
+          break;
+        }
 
         // Gregorio's marks between notes, which are recorded on the notes
         // after or before them.  Brackets end a neume as ! does, and
@@ -1720,30 +1772,31 @@ export class Gabc {
           addNotation(null);
           break;
         case " ":
-          // fixme: is this correct? logically what is the difference in gabc
-          // between putting a space between notes vs putting '//' between notes?
-          trailingSpace = TrailingSpaceMultiple(2);
-          addToLastSourceGabc(atom);
-          addNotation(null);
+          // (by default the same width as //, see ctxt.neumeSpaceMultipliers)
+          addSpace(atom, NeumeSpace(" "), true);
+          break;
+        case "/0":
+        case "/!":
+          // spaces within a neume, which the line can't break at
+          addSpace(atom, NeumeSpace(atom), false);
           break;
 
         default:
           // might be a number of slashes, a custos, might be an accidental, or might be a note
-          if (atom[0] === "/") {
-            let prevNotation = notations[notations.length - 1];
-            if (
-              !notes.length &&
-              data[match.index - 1] === "!" &&
-              prevNotation &&
-              prevNotation.isNeume
-            ) {
-              // !/ is a space that can't be broken: the neume before it
-              // already keeps with the next one, so it only needs the width
-              prevNotation.trailingSpace = TrailingSpaceMultiple(atom.length);
-            }
-            trailingSpace = TrailingSpaceMultiple(atom.length);
-            addToLastSourceGabc(atom);
-            addNotation(null);
+          if (atom.startsWith("/[")) {
+            // /[n]: n times /, where a negative n moves the next neume back
+            let factor = parseFloat(atom.slice(2, -1));
+            addSpace(atom, NeumeSpace("/", factor), factor > 0);
+          } else if (atom[0] === "/") {
+            // (/// and more: // and then / for each further slash)
+            let slashes = atom.length;
+            addSpace(
+              atom,
+              slashes === 1
+                ? NeumeSpace("/")
+                : (ctxt) => NeumeSpace("//")(ctxt) + NeumeSpace("/", slashes - 2)(ctxt),
+              true
+            );
           } else if (atom.length > 1 && atom.endsWith("+")) {
             // custos
             var custos = new Signs.Custos();
@@ -1833,6 +1886,9 @@ export class Gabc {
           }
           break;
       }
+
+      if (barSigns.includes("'"))
+        (notations[notations.length - 1] as Signs.Divider).hasVerticalEpisema = true;
     }
 
     // finish up any remaining notes we have left
@@ -2664,6 +2720,11 @@ export class Gabc {
     instruction: string,
     sourceIndexOffset: number
   ) {
+    if (instruction === "nocustos") {
+      note.noCustos = true;
+      return;
+    }
+
     var results = instruction.match(__bracketedCommandRegex);
     if (results === null) return;
     var cmd = results[1];
