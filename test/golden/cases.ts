@@ -152,6 +152,16 @@ export const featureCases: GoldenCase[] = [
     name: "brace-open-at-final-custos",
     gabc: "(c4) a(g[ob:1{]h+)"
   },
+  {
+    // braces are drawn in the neume line color, not the staff line color
+    name: "brace-colors",
+    outputs: ["svg", "canvas"],
+    gabc: "(c4) a(f[ob:1{]g h[ob:0}]) b(f[ub:1{]gh[ub:0}]) c(f[ocba:1{]gh[ocba:0}]) d(g) (,_) e(f) (::)",
+    setupContext: (ctxt) => {
+      ctxt.neumeLineColor = "#111";
+      ctxt.staffLineColor = "#222";
+    }
+  },
 
   // ---- accidentals and clefs
   {
