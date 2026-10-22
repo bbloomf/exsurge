@@ -3181,16 +3181,21 @@ export class TextElement extends ChantLayoutElement {
       closeSpan(text.slice(spanStartIndex), spanStartIndex);
   }
 
+  /** the size in px of this element's text in the given properties */
+  fontSizeForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
+    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
+    if (/%$/.test(properties["font-size"] as string)) {
+      fontSize *= this.fontSize(ctxt) / 100;
+    }
+    return fontSize * (this.resize || 1);
+  }
+
   getCanvasFontForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
     var font = "";
     if (properties["font-style"] === "italic") font += "italic ";
     if (properties["font-variant"] === "small-caps") font += "small-caps ";
     if (properties["font-weight"] === "bold") font += "bold ";
-    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
-    if (/%$/.test(properties["font-size"] as string)) {
-      fontSize *= this.fontSize(ctxt) / 100;
-    }
-    font += `${fontSize * (this.resize || 1)}px `;
+    font += `${this.fontSizeForProperties(ctxt, properties)}px `;
     font += properties["font-family"] || this.fontFamily(ctxt);
     return font;
   }
@@ -3239,15 +3244,19 @@ export class TextElement extends ChantLayoutElement {
     var widths: number[] = [];
     var newLineSpans = [this.spans[0]];
     var subStringLength = 0;
-    var numLines = 1;
     var fontSize = this.fontSize(ctxt) * (this.resize || 1);
-    var lineHeight = __lineSpacing * fontSize;
+    // the y of the current line's baseline
+    var baseline = 0;
     var bbox = new Rect(0, 0, 0, 0);
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i],
         myText = span.text.slice(0, length - subStringLength);
       if (span.newLine) {
-        numLines += __parseNewLine(span.newLine) || 1;
+        // the same as the span's dy in the svg, in its own font size
+        baseline +=
+          __lineSpacing *
+          this.fontSizeForProperties(ctxt, span.mergedProperties) *
+          (__parseNewLine(span.newLine) || 1);
         if (!lines && this.rightAligned === true && length === Infinity) {
           newLineSpans[newLineSpans.length - 1].xOffset =
             this.firstLineMaxWidth! - width;
@@ -3266,7 +3275,7 @@ export class TextElement extends ChantLayoutElement {
           bbox.union(
             new Rect(
               width - left,
-              lineHeight * (numLines - 1) - metrics.actualBoundingBoxAscent,
+              baseline - metrics.actualBoundingBoxAscent,
               metrics.width + left,
               metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent
             )
@@ -3276,12 +3285,7 @@ export class TextElement extends ChantLayoutElement {
           }
         } else {
           bbox.union(
-            new Rect(
-              width,
-              lineHeight * (numLines - 1) - fontSize,
-              (metrics as TextMetrics).width,
-              fontSize
-            )
+            new Rect(width, baseline - fontSize, (metrics as TextMetrics).width, fontSize)
           );
         }
         width += metrics.width;
@@ -3289,7 +3293,7 @@ export class TextElement extends ChantLayoutElement {
         strategy === TextMeasuringStrategy.OpenTypeJS &&
         ctxt.fontDictionary
       ) {
-        // get the bounding box for the substring, placing it at x = width, y = lineHeight * (numLines - 1)
+        // get the bounding box for the substring, placing it at x = width, y = baseline
         const properties = span.mergedProperties;
         let font = ctxt.getFontForProperties(
           properties,
@@ -3300,14 +3304,13 @@ export class TextElement extends ChantLayoutElement {
         if (/%$/.test(properties["font-size"])) {
           spanFontSize *= fontSize / 100;
         }
-        const y = lineHeight * (numLines - 1);
         if ('getPath' in font) {
           // opentype.js
           const measured = ctxt.measureOpenTypeText(
             font,
             myText,
             width,
-            y,
+            baseline,
             spanFontSize,
             smallCaps
           );
@@ -3335,7 +3338,7 @@ export class TextElement extends ChantLayoutElement {
           bbox.union(
             new Rect(
               width + subBbox.minX * multiplier,
-              y - subBbox.maxY * multiplier,
+              baseline - subBbox.maxY * multiplier,
               subWidth - subBbox.minX * multiplier,
               (subBbox.height) * multiplier
             )
@@ -3351,7 +3354,7 @@ export class TextElement extends ChantLayoutElement {
         bbox.union(
           new Rect(
             width + subBbox.x,
-            lineHeight * (numLines - 1) + subBbox.y,
+            baseline + subBbox.y,
             subBbox.width,
             subBbox.height
           )
@@ -3656,24 +3659,27 @@ export class TextElement extends ChantLayoutElement {
       translateHeight = 0,
       extraStyleProperties = this.getExtraStyleProperties(ctxt),
       font: string | null = null;
-    var lineHeight = __lineSpacing * this.fontSize(ctxt) * (this.resize || 1);
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
-      if (span.newLine) {
-        let count = __parseNewLine(span.newLine) || 1;
-        canvasCtxt.translate(translateWidth + xOffset, lineHeight * count);
-        translateWidth = -xOffset;
-        translateHeight -= lineHeight * count;
-      } else if (xOffset) {
-        canvasCtxt.translate(translateWidth + xOffset, 0);
-        translateWidth = -xOffset;
-      }
       var properties = Object.assign(
         {},
         extraStyleProperties,
         span.mergedProperties
       );
+      if (span.newLine) {
+        // the same as the span's dy in the svg, in its own font size
+        let lineHeight =
+          __lineSpacing *
+          this.fontSizeForProperties(ctxt, properties) *
+          (__parseNewLine(span.newLine) || 1);
+        canvasCtxt.translate(translateWidth + xOffset, lineHeight);
+        translateWidth = -xOffset;
+        translateHeight -= lineHeight;
+      } else if (xOffset) {
+        canvasCtxt.translate(translateWidth + xOffset, 0);
+        translateWidth = -xOffset;
+      }
       var spanFont = this.getCanvasFontForProperties(ctxt, properties);
       if (spanFont !== font) canvasCtxt.font = font = spanFont;
       canvasCtxt.fillStyle = properties.fill || "#000";

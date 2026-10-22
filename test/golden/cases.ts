@@ -277,6 +277,12 @@ export const featureCases: GoldenCase[] = [
     gabc: "(c4) Ky<br>rie(f) e<br/>lé(g) son.<br><br>A(h) (::)"
   },
   {
+    // the lines after the breaks are in a smaller font, which spaces them less
+    name: "line-breaks-in-sized-text",
+    gabc: "(c4) Ky<br><e>rie</e>(f) e<br><br><e>lé</e>(g) son.(h) (::)",
+    setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br><e>ánimam meam</e>")
+  },
+  {
     name: "elisions",
     gabc: "(c4) Glo(f)ri(g)<i>a</i>(h) in(g) ex(f)cél(g)sis(h) De(g)<i>o</i>(f) et(g) (::)"
   },
@@ -893,6 +899,12 @@ export const svgMeasuredCases: GoldenCase[] = [
   {
     ...featureCases.find((c) => c.name === "lyric-centering")!,
     name: "svg-measured-centering",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "line-breaks-in-sized-text")!,
+    name: "svg-measured-sized-line-breaks",
     outputs: ["svg", "node"],
     strategy: "svg"
   },
