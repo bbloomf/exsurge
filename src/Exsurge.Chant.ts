@@ -40,6 +40,7 @@ import type { Accidental } from "./Exsurge.Chant.Signs.js";
 import type {
   Accent,
   BracePoint,
+  CustomLedgerLine,
   HorizontalEpisema,
   Ictus,
   Mora,
@@ -165,6 +166,15 @@ export class Note extends ChantLayoutElement {
   bracketEnd?: boolean;
   /** Gregorio's slurs (gabc [oslur:…] and [uslur:…]) on the note, which the chant line draws */
   slurs?: SlurMark[];
+  /**
+   * whether Gregorio's [oll:1] or [oll:0] draws a ledger line above the
+   * staff at the note, or leaves one out (see Neume.requiresLedgerLine())
+   */
+  ledgerLineAbove?: boolean;
+  /** whether Gregorio's [ull:1] or [ull:0] draws a ledger line below the staff at the note, or leaves one out */
+  ledgerLineBelow?: boolean;
+  /** Gregorio's ledger lines of a given length (gabc [oll:…] and [ull:…]) next to the note, which the chant line draws */
+  customLedgerLines?: CustomLedgerLine[];
 
   // Gregorio's notation read since Phase 1 of docs/gregorio-feature-gap.md,
   // not all of it drawn yet

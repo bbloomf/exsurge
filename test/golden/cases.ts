@@ -748,6 +748,16 @@ export const featureCases: GoldenCase[] = [
       "(c4) a(g[oslur:0;5mm,0mm]h) b(g[uslur:0;5mm,0mm]h) c(e[oslur:0;8mm,2mm]) d(j[oslur:1;4mm,-1mm]) " +
       "e(f[oslur:1{]gh[oslur:0}]) f(h[uslur:2{]gf[uslur:2}]) g(fg[oslur:2{]) h(hi) i(h[oslur:2}]) " +
       "j(f[oslur:0;1em,1mm]) k(g[oslur:0{]) l(h) (z) m(g[oslur:0}]) n(h[uslur:0}]) (::)"
+  },
+  {
+    // ledger lines drawn at notes in the staff, or left out at notes beyond
+    // it; ledger lines of a given length from just after a note, or from just
+    // before one, and from note to note, even across a line break (and one
+    // that ends without a start isn't drawn)
+    name: "custom-ledger-lines",
+    gabc:
+      "(c4) a(g[oll:1]) b(m[oll:0]) c(d[ull:1]) d(b[ull:0]) e(g[oll:0;5mm]h) f([oll:1;5mm]gh) g([ull:1{1]fgh) " +
+      "h(g[ull:}]f) i(h[oll:2mm;2mm]) j(fg[oll:1]h) k(lm[oll:0]) l(e[ull:}]) m(g[oll:0{1]) (z) n(hg) o(h[oll:}]) (::)"
   }
 ];
 

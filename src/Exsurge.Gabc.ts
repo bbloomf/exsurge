@@ -137,11 +137,12 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\[[^\[\]]*\]|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
-// Gregorio's marks between notes, which are recorded on the notes after or before them
-var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[)$/;
+// Gregorio's marks between notes, which are recorded on the notes after or
+// before them (and the instructions in [ and ] that aren't after a note)
+var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[|\[[^\[\]]*\])$/;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
 
@@ -204,6 +205,18 @@ function texLengthToStaffIntervals(length: string) {
 //  3. and 4. the width and height, as TeX lengths
 //  5. { or } for the start or end of a slur from note to note
 var __slurRegex = /^([ou])slur:([012])(?:;([^,]+),(.+)|([{}]))$/;
+
+// Gregorio's custom ledger lines, inside [ and ]: [oll:1] or [oll:0] after a
+// note, to draw a ledger line at the note or leave it out, [oll:l;r], one of
+// a given length, and [oll:l{r] … [oll:}], one from the first to the second
+// (and ull under the staff).  The capturing groups are:
+//  1. o or u, for over or under
+//  2. 1 or 0, to draw a ledger line at the note or leave it out
+//  3. }, for the end of one from note to note
+//  4. how far the line starts to the left: 0, 1 or a TeX length
+//  5. ; for a line of a given length, or { for the start of one from note to note
+//  6. its length to the right, or how far it goes past its end (0, 1 or a TeX length)
+var __ledgerLineRegex = /^([ou])ll:(?:([01])|(\})|([^;{]+)([;{])(.+))$/;
 
 const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
@@ -2149,6 +2162,15 @@ export class Gabc {
                 : (ctxt) => NeumeSpace("//")(ctxt) + NeumeSpace("/", slashes - 2)(ctxt),
               true
             );
+          } else if (atom[0] === "[") {
+            // Gregorio's instructions that aren't after a note: a custom
+            // ledger line is introduced just before the next note
+            let results = atom.slice(1, -1).match(__ledgerLineRegex);
+            let line = results && !results[2] && this.customLedgerLine(results);
+            if (line) {
+              let lineBefore = { ...line, before: true };
+              nextNoteMarks.push((note) => (note.customLedgerLines = (note.customLedgerLines || []).concat(lineBefore)));
+            }
           } else if (atom.length > 1 && atom.endsWith("+")) {
             // custos
             var custos = new Signs.Custos();
@@ -3243,9 +3265,21 @@ export class Gabc {
     }
   }
 
-  // Gregorio's slurs on the note.  Returns whether the instruction is one of these.
+  // Gregorio's slurs and custom ledger lines on the note.  Returns whether
+  // the instruction is one of these.
   static processDecorationForNote(note: Note, instruction: string) {
-    var results = instruction.match(__slurRegex);
+    var results = instruction.match(__ledgerLineRegex);
+    if (results) {
+      if (results[2] && results[1] === "o") note.ledgerLineAbove = results[2] === "1";
+      else if (results[2]) note.ledgerLineBelow = results[2] === "1";
+      else {
+        let line = this.customLedgerLine(results);
+        if (line) note.customLedgerLines = (note.customLedgerLines || []).concat(line);
+      }
+      return true;
+    }
+
+    results = instruction.match(__slurRegex);
     if (results) {
       let mark: Markings.SlurMark = {
         isAbove: results[1] === "o",
@@ -3263,6 +3297,18 @@ export class Gabc {
       return true;
     }
     return false;
+  }
+
+  // the custom ledger line that a match of __ledgerLineRegex gives, if its lengths are valid
+  static customLedgerLine(results: RegExpMatchArray): Markings.CustomLedgerLine | null {
+    var isAbove = results[1] === "o";
+    if (results[3]) return { isAbove, kind: "end" };
+    var extent = (text: string): Markings.LedgerLineExtent | undefined =>
+      text === "0" ? 0 : text === "1" ? "overhang" : texLengthToStaffIntervals(text);
+    var left = extent(results[4]);
+    var right = results[5] === ";" ? texLengthToStaffIntervals(results[6]) : extent(results[6]);
+    if (left === undefined || right === undefined) return null;
+    return { isAbove, kind: results[5] === ";" ? "fixed" : "start", left, right };
   }
 
   // takes raw gabc text source and parses it into words. For example, passing

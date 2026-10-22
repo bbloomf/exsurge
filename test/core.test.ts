@@ -694,3 +694,56 @@ describe("Gregorio inclinatum leaning", function() {
     ]);
   });
 });
+
+describe("Gregorio slurs and custom ledger lines", function() {
+  const notesOf = (gabc: string) => parseNotations(gabc).flatMap((notation) => notation.notes || []);
+  // a TeX length in staff intervals, at Gregorio's default staff size
+  const mm = (length: number) => (length * 72.27) / 25.4 / ((31500 / 2) * 17 / 65536);
+  const rounded = (value: any) => JSON.parse(JSON.stringify(value), (key, v) => (typeof v === "number" ? Math.round(v * 1000) / 1000 : v));
+
+  it("reads slurs of a given size, and slurs from note to note", function() {
+    const notes = notesOf("(c4) a(g[oslur:0;5mm,-0.5mm]) b(f[uslur:2{]g[uslur:1}]) c(f[oslur:0;\\slurwidth,1mm]) d(f[oslur:3;1mm,1mm])");
+    assert.deepStrictEqual(
+      rounded(notes.map((note) => note.slurs)),
+      rounded([
+        [{ isAbove: true, shift: 0, kind: "fixed", width: mm(5), height: mm(-0.5) }],
+        [{ isAbove: false, shift: 2, kind: "start" }],
+        [{ isAbove: false, shift: 1, kind: "end" }],
+        // (a length that's a TeX macro isn't understood, and there's no shift 3)
+        undefined,
+        undefined
+      ])
+    );
+  });
+
+  it("reads ledger lines drawn or left out at notes, and custom ledger lines", function() {
+    const notes = notesOf("(c4) a(g[oll:1]m[oll:0]d[ull:1]b[ull:0]) b(g[oll:1;2mm]h[ull:2mm{1]) c([ull:0{0]f) d(g[ull:}])");
+    assert.deepStrictEqual(
+      notes.map((note) => [note.ledgerLineAbove, note.ledgerLineBelow]),
+      [[true, undefined], [false, undefined], [undefined, true], [undefined, false], [undefined, undefined], [undefined, undefined], [undefined, undefined], [undefined, undefined]]
+    );
+    assert.deepStrictEqual(
+      rounded(notes.map((note) => note.customLedgerLines)),
+      rounded([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [{ isAbove: true, kind: "fixed", left: "overhang", right: mm(2) }],
+        [{ isAbove: false, kind: "start", left: mm(2), right: "overhang" }],
+        // one that isn't after a note is introduced just before the next note
+        [{ isAbove: false, kind: "start", left: 0, right: 0, before: true }],
+        [{ isAbove: false, kind: "end" }]
+      ])
+    );
+  });
+
+  it("doesn't take the ] of an instruction that isn't after a note as the end of a fusion", function() {
+    const notes = notesOf("(c4) a(f) b([cs:x]g) c(f[[) d([oll:1;1mm]g]])");
+    assert.deepStrictEqual(
+      notes.map((note) => [note.autoFusion, !!note.bracketStart, !!note.bracketEnd]),
+      [[undefined, false, false], [undefined, false, false], [undefined, false, false], [undefined, true, true]]
+    );
+    assert.strictEqual(notes[3].customLedgerLines![0].before, true);
+  });
+});

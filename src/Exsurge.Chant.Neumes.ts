@@ -720,7 +720,7 @@ export class Neume extends ChantNotationElement {
 
     for (var i = 0; i < this.notes.length; ++i) {
       var note = this.notes[i];
-      var staffPosition = note.staffPosition;
+      var staffPosition = this.ledgerLineStaffPosition(ctxt, note);
       if (staffPosition >= ledgerLinePositionAbove - 1) {
         needsAbove = needsAbove || staffPosition >= ledgerLinePositionAbove - 0.9;
         if (firstAbove === false) firstAbove = Math.max(0, i - 1);
@@ -749,6 +749,19 @@ export class Neume extends ChantNotationElement {
       });
     }
     return result;
+  }
+
+  // the staff position that requiresLedgerLine() takes the note to be at:
+  // its own, or, where Gregorio's [oll:1] or [ull:1] draws a ledger line at
+  // it, on the ledger line, or where [oll:0] or [ull:0] leaves one out, on
+  // the nearest staff line
+  ledgerLineStaffPosition(ctxt: ChantContext, note: Note) {
+    var topLine = ctxt.staffLineCount * 2 - 1;
+    if (note.ledgerLineAbove === true) return Math.max(note.staffPosition, topLine + 2);
+    if (note.ledgerLineAbove === false && note.staffPosition > topLine) return topLine;
+    if (note.ledgerLineBelow === true) return Math.min(note.staffPosition, -1);
+    if (note.ledgerLineBelow === false && note.staffPosition < 1) return 1;
+    return note.staffPosition;
   }
 
   resetDependencies() {}

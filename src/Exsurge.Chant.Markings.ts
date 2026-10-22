@@ -549,6 +549,38 @@ export class NoteBracket extends ChantLayoutElement {
 }
 
 /**
+ * How far a custom ledger line goes beyond where it's introduced: a length in
+ * staff intervals (Gregorio's 0 is 0), or, for Gregorio's 1, "overhang", as
+ * far as a ledger line goes beyond a note
+ */
+export type LedgerLineExtent = number | "overhang";
+
+/**
+ * A Gregorio custom ledger line (gabc [oll:…] or [ull:…]), or its start or
+ * end, introduced just after a note, or just before it if nothing comes
+ * between them
+ */
+export interface CustomLedgerLine {
+  isAbove: boolean;
+  /** whether it's introduced at the left of the note rather than its right */
+  before?: boolean;
+  kind: "fixed" | "start" | "end";
+  /** how far the line starts to the left of where it's introduced */
+  left?: LedgerLineExtent;
+  /** a fixed line's length to the right, or how far one from note to note goes beyond its end */
+  right?: LedgerLineExtent;
+}
+
+/**
+ * Where a custom ledger line from note to note started, while the layout
+ * looks for its end (x is null if it started on an earlier line)
+ */
+export interface LedgerLineStart {
+  x: number | null;
+  right: LedgerLineExtent;
+}
+
+/**
  * A Gregorio slur on a note (gabc [oslur:…] or [uslur:…]): one of its own,
  * with its width and height, or the start or end of one to another note.
  */

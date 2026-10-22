@@ -41,7 +41,7 @@ import {
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
-import type { BraceNote, HorizontalEpisema } from "./Exsurge.Chant.Markings.js";
+import type { BraceNote, HorizontalEpisema, LedgerLineExtent } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type { Accidental, InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import type {
@@ -1951,7 +1951,12 @@ export class ChantLine extends ChantLayoutElement {
   finishLayout(ctxt: ChantContext) {
     this.ledgerLines = []; // clear any existing ledger lines
     this.slurs = [];
-    if (this.notationsStartIndex === 0) delete ctxt.openSlurs;
+    // (Gregorio's custom ledger lines, which go after the automatic ones)
+    var customLedgerLines: LedgerLine[] = [];
+    if (this.notationsStartIndex === 0) {
+      delete ctxt.openSlurs;
+      delete ctxt.openLedgerLines;
+    }
 
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
@@ -2159,6 +2164,7 @@ export class ChantLine extends ChantLayoutElement {
         }
 
         if (note.slurs) this.handleSlurs(ctxt, note);
+        if (note.customLedgerLines) this.handleCustomLedgerLines(ctxt, note, customLedgerLines);
 
         if (note.braceEnd) this.handleEndBrace(ctxt, note, i);
 
@@ -2225,6 +2231,52 @@ export class ChantLine extends ChantLayoutElement {
       let x = start.x === null ? this.startingClef.bounds.right() : start.x;
       this.slurs.push(new Slur(ctxt, x, start.y, this.staffRight, start.y, side === "above"));
       start.x = null;
+    }
+
+    // and so does a custom ledger line
+    var openLedgerLines = ctxt.openLedgerLines || {};
+    for (let side of ["above", "below"] as const) {
+      let start = openLedgerLines[side];
+      if (!start || lastIndex >= notations.length) continue;
+      customLedgerLines.push({
+        x1: start.x === null ? this.startingClef.bounds.right() : start.x,
+        x2: this.staffRight,
+        staffPosition: side === "above" ? this.score.staffLineCount * 2 + 1 : -1
+      });
+      start.x = null;
+    }
+    for (let line of customLedgerLines) {
+      line.x1 = Math.max(line.x1, this.staffLeft);
+      line.x2 = Math.min(line.x2, this.staffRight);
+      this.ledgerLines.push(line);
+    }
+  }
+
+  // Gregorio's ledger lines of a given length next to the note (gabc [oll:…]
+  // and [ull:…]), or from note to note, which go in customLedgerLines.  As in
+  // Gregorio, a line that starts before the last one ends, or ends without
+  // one, is ignored.
+  handleCustomLedgerLines(ctxt: ChantContext, note: Note, customLedgerLines: LedgerLine[]) {
+    var openLedgerLines = (ctxt.openLedgerLines = ctxt.openLedgerLines || {});
+    var extent = (e: LedgerLineExtent) => (e === "overhang" ? ctxt.intraNeumeSpacing : e * ctxt.staffInterval);
+    for (let line of note.customLedgerLines!) {
+      let side = line.isAbove ? ("above" as const) : ("below" as const);
+      let staffPosition = line.isAbove ? this.score.staffLineCount * 2 + 1 : -1;
+      // (where the line is introduced)
+      let x = note.neume!.bounds.x + (line.before ? note.bounds.x : note.bounds.right());
+      let start = openLedgerLines[side];
+      if (line.kind === "fixed") {
+        customLedgerLines.push({ x1: x - extent(line.left!), x2: x + extent(line.right!), staffPosition });
+      } else if (line.kind === "start") {
+        if (!start) openLedgerLines[side] = { x: x - extent(line.left!), right: line.right! };
+      } else if (start) {
+        customLedgerLines.push({
+          x1: start.x === null ? this.startingClef.bounds.right() : start.x,
+          x2: x + extent(start.right),
+          staffPosition
+        });
+        delete openLedgerLines[side];
+      }
     }
   }
 
