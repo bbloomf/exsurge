@@ -1,0 +1,36 @@
+name: Publish
+
+# `npm version` pushes a vX.Y.Z tag; this publishes that version to npm as
+# exsurge-ts.
+#
+# Authentication is npm trusted publishing (OIDC), so there is no NPM_TOKEN
+# secret. On npmjs.com the package's trusted publisher must name this repository
+# and this file, `publish.yml`, exactly. Provenance is generated automatically.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # A stray v* tag must not publish whatever version package.json holds.
+      - run: test "$GITHUB_REF_NAME" = "v$(node -p 'require("./package.json").version')"
+      # Trusted publishing needs npm >= 11.5.1.
+      - run: npm install -g npm@11
+      - run: npm ci
+      - run: npm test
+      # Publish dist/ as built here from the tagged source, rather than the copy
+      # that `npm version` committed with the tag.
+      - run: npm run build
+      - run: npm publish
