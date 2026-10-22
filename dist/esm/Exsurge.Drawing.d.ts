@@ -786,6 +786,7 @@ export declare class CurlyBraceVisualizer extends ChantLayoutElement {
     braceHeight: number;
     accent?: GlyphVisualizer;
     constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove?: boolean, addAcuteAccent?: boolean);
+    draw(ctxt: ChantContext): void;
     getSvgPathProps(ctxt: ChantContext): {
         d: string;
         stroke: string;
@@ -796,6 +797,19 @@ export declare class CurlyBraceVisualizer extends ChantLayoutElement {
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext): string;
+    getPathPoints(): {
+        x1: number;
+        x2: number;
+        y: number;
+        qy1: number;
+        qx2: number;
+        qy2: number;
+        tx1: number;
+        ty1: number;
+        qy3: number;
+        qx4: number;
+        qy4: number;
+    };
     generatePathString(): string;
 }
 /** a group of css properties of a span of text; Object.assign() skips any missing ones */

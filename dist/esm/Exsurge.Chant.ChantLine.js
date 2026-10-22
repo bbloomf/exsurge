@@ -318,7 +318,9 @@ export class ChantLine extends ChantLayoutElement {
             canvasCtxt.lineTo(ledgerLine.x2, y);
             canvasCtxt.stroke();
         }
-        // fixme: draw the braces
+        // draw any braces
+        for (i = 0; i < this.braces.length; i++)
+            this.braces[i].draw(ctxt);
         // draw the dropCap and the annotations
         if (this.notationsStartIndex === 0) {
             if (this.score.dropCap !== null)

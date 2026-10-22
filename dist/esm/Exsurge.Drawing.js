@@ -1406,10 +1406,14 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
          */
         var d = ctxt.canvasCtxt;
         const { x1, x2, y, cx1, cx2, cy } = this.getPathPoints();
+        d.strokeStyle = ctxt.neumeLineColor;
+        d.lineWidth = ctxt.staffLineWeight;
         d.beginPath();
         d.moveTo(x1, y);
         d.bezierCurveTo(cx1, cy, cx2, cy, x2, y);
         d.stroke();
+        if (this.accent)
+            this.accent.draw(ctxt);
     }
     getSvgPathProps(ctxt) {
         return {
@@ -1522,6 +1526,24 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
         this.origin.x = 0;
         this.origin.y = 0;
     }
+    draw(ctxt) {
+        var d = ctxt.canvasCtxt;
+        const { x1, x2, y, qy1, qx2, qy2, tx1, ty1, qy3, qx4, qy4 } = this.getPathPoints();
+        d.strokeStyle = ctxt.neumeLineColor;
+        d.lineWidth = ctxt.staffLineWeight;
+        d.beginPath();
+        // the svg path's T reflects the previous control point through the
+        // current point, which the canvas has to be given explicitly
+        d.moveTo(x1, y);
+        d.quadraticCurveTo(x1, qy1, qx2, qy2);
+        d.quadraticCurveTo(2 * qx2 - x1, 2 * qy2 - qy1, tx1, ty1);
+        d.moveTo(x2, y);
+        d.quadraticCurveTo(x2, qy3, qx4, qy4);
+        d.quadraticCurveTo(2 * qx4 - x2, 2 * qy4 - qy3, tx1, ty1);
+        d.stroke();
+        if (this.accent)
+            this.accent.draw(ctxt);
+    }
     getSvgPathProps(ctxt) {
         return {
             d: this.generatePathString(),
@@ -1564,8 +1586,7 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
     }
     // code below inspired by: https://gist.github.com/alexhornbake
     // optimized for braces that are only drawn horizontally.
-    // returns svg path d string
-    generatePathString() {
+    getPathPoints() {
         var q = 0.6; // .5 is normal, higher q = more expressive bracket
         var x1 = this.bounds.x;
         var x2 = this.bounds.right();
@@ -1588,6 +1609,11 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
         var qy3 = y + q * h;
         var qx4 = x1 + 0.75 * width;
         var qy4 = y + (1 - q) * h;
+        return { x1, x2, y, qy1, qx2, qy2, tx1, ty1, qy3, qx4, qy4 };
+    }
+    // returns svg path d string
+    generatePathString() {
+        const { x1, x2, y, qy1, qx2, qy2, tx1, ty1, qy3, qx4, qy4 } = this.getPathPoints();
         // two decimal points should be enough, but if we need more precision, we can
         // up it here.
         var dp = 2;
