@@ -1,0 +1,55 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 600, 77.09) [matrix=1,0,0,1,0,0]
+beginPath()
+moveTo(0, -43.75)
+lineTo(600, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -31.25)
+lineTo(600, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -18.75)
+lineTo(600, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -6.25)
+lineTo(600, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,33.75]
+fillRect(0, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,14.0625,58.75]
+fillText("a", -1.1230000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,58.75]
+fill(Path2D(BeginningAscLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,34.375,33.75]
+fillRect(0, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,31.25,58.75]
+fillText("b", -1.3894000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,31.25,58.75]
+fill(Path2D(BeginningDesLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,51.5625,33.75]
+fillRect(0, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,48.4375,58.75]
+fillText("c", -1.6558000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,48.4375,58.75]
+fill(Path2D(BeginningAscLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,68.75,27.499999999999996]
+fillRect(0, -31.25, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,65.625,58.75]
+fillText("d", 1.1018, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,65.625,58.75]
+fill(Path2D(BeginningDesLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,85.9375,27.5]
+fillRect(0, -31.25, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,82.8125,58.75]
+fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,82.8125,58.75]
+fill(Path2D(BeginningAscLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,103.125,33.75]
+fill(Path2D(PunctumQuadratumAscLiquescentCavum[1])) [fillStyle="#fff" matrix=0.0625,0,0,0.0625,103.125,33.75]
+fillRect(0, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,100,58.75]
+fillText("f", 0.569, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,100,58.75]
+fill(Path2D(BeginningAscLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,120.3125,33.75]
+fillRect(0, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,117.1875,58.75]
+fillRect(0, -36.8545, 6.25, 1) [fillStyle="#000" matrix=1,0,0,1,117.1875,58.75]
+fillText("g", 0.3026, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,117.1875,58.75]
+fill(Path2D(BeginningDesLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,137.5,33.75]
+fillRect(0, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,134.375,58.75]
+fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,140.75,33.75]
+fillText("h", 0.03620000000000001, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,134.375,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,157.8125,40]
+fillText("i", -0.23019999999999996, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,154.6875,58.75]
+fill(Path2D(BeginningAscLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,164.0625,33.75]
+fillRect(0, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,160.9375,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,181.25,33.75]
+fillRect(5.45, -25, 0.8, 11.25) [fillStyle="#000" matrix=1,0,0,1,178.125,58.75]
+fillText("j", -0.49659999999999993, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,178.125,58.75]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,192.1875,58.75]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,192.1875,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]

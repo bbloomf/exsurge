@@ -393,6 +393,11 @@ export const featureCases: GoldenCase[] = [
     // accidentals and bars between parentheses (e, i and j are without them)
     name: "parenthesized-signs",
     gabc: "(c4) a(fx?fg) b(hy?hg) c(f#?fg) d(ix?ih) e(fxfg) f(g) (`?) g(h) (,?) h(g) (,0?) i(f) (`) j(g) (,) k(f) (::)"
+  },
+  {
+    // a virga reversa with < or > has an auctus's head (a and j are without)
+    name: "virga-reversa-liquescent",
+    gabc: "(c4) a(gV) b(gV<) c(gV>) d(hV<) e(hV>) f(gV<r) g(gV<_) h(gV>.) i(fgV<) j(gv) (::)"
   }
 ];
 

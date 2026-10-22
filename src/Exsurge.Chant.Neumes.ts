@@ -200,8 +200,14 @@ class NeumeBuilder {
   // a special form of noteAdd that creates a virga
   // uses a punctum cuadratum and a line rather than the virga glyphs
   virgaAt(note: Note, withLineTo = true) {
-    // add the punctum for the virga
-    this.noteAt(note, GlyphCode.PunctumQuadratum);
+    // add the punctum for the virga (a virga reversa auctus, gabc V< or V>,
+    // has the head of a punctum auctus, as Gregorio's does)
+    var head: GlyphCode = GlyphCode.PunctumQuadratum;
+    if (note.shapeModifiers & NoteShapeModifiers.Reverse) {
+      if (note.liquescent & LiquescentType.Ascending) head = GlyphCode.PunctumQuadratumAscLiquescent;
+      else if (note.liquescent & LiquescentType.Descending) head = GlyphCode.PunctumQuadratumDesLiquescent;
+    }
+    this.noteAt(note, head);
 
     // add a line for the virga
     var line = new VirgaLineVisualizer(this.ctxt, note);
