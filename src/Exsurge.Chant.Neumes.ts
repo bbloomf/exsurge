@@ -746,7 +746,11 @@ export class Apostropha extends Neume {
   }
 
   static getNoteGlyphCode(note: Note) {
-    if (note.shape === NoteShape.Stropha) return GlyphCode.Stropha;
+    if (note.shape === NoteShape.Stropha)
+      // (a stropha aucta for gabc s< or s>)
+      return note.liquescent & (LiquescentType.Ascending | LiquescentType.Descending)
+        ? GlyphCode.StrophaLiquescent
+        : GlyphCode.Stropha;
 
     if (note.liquescent & LiquescentType.Ascending)
       return GlyphCode.PunctumQuadratumAscLiquescent;
@@ -907,7 +911,7 @@ export class Distropha extends Neume {
     );
     let glyphAdvance = ctxt.intraNeumeSpacing;
     glyphCodes.slice(0, 2).forEach((glyphCode) => {
-      if (glyphCode === GlyphCode.Stropha)
+      if (glyphCode === GlyphCode.Stropha || glyphCode === GlyphCode.StrophaLiquescent)
         glyphAdvance -= ctxt.intraNeumeSpacing / 4;
     });
 

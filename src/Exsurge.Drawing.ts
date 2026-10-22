@@ -468,6 +468,7 @@ export const GlyphCode = {
   PunctumInclinatumLiquescentCavum: "PunctumInclinatumLiquescentCavum",
   QuilismaCavum: "QuilismaCavum",
   StrophaCavum: "StrophaCavum",
+  StrophaLiquescentCavum: "StrophaLiquescentCavum",
   TerminatingAscLiquescentCavum: "TerminatingAscLiquescentCavum",
   TerminatingDesLiquescentCavum: "TerminatingDesLiquescentCavum"
 } as const; // GlyphCode
@@ -499,6 +500,7 @@ export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } =
   [GlyphCode.PunctumInclinatumLiquescent]: GlyphCode.PunctumInclinatumLiquescentCavum,
   [GlyphCode.Quilisma]: GlyphCode.QuilismaCavum,
   [GlyphCode.Stropha]: GlyphCode.StrophaCavum,
+  [GlyphCode.StrophaLiquescent]: GlyphCode.StrophaLiquescentCavum,
   [GlyphCode.TerminatingAscLiquescent]: GlyphCode.TerminatingAscLiquescentCavum,
   [GlyphCode.TerminatingDesLiquescent]: GlyphCode.TerminatingDesLiquescentCavum
 };

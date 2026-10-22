@@ -1,0 +1,51 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 600, 77.09) [matrix=1,0,0,1,0,0]
+beginPath()
+moveTo(0, -43.75)
+lineTo(600, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -31.25)
+lineTo(600, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -18.75)
+lineTo(600, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -6.25)
+lineTo(600, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.0625,40]
+fillText("a", -1.2480000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,58.75]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,34.1035625,40]
+fillText("b", -1.5144000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,31.103562500000002,58.75]
+fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,51.144625,40]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,58.8106875,40]
+fillText("c", -1.7808000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,48.144625000000005,58.75]
+fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,75.85175000000001,40]
+fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,83.5178125,40]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,91.183875,40]
+fillText("d", 0.9767999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,72.85175000000001,58.75]
+fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,108.22493750000001,40]
+fillText("e", 0.7103999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,105.22493750000001,58.75]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,125.266,40]
+fill(Path2D(StrophaLiquescentCavum[1])) [fillStyle="#fff" matrix=0.0625,0,0,0.0625,125.266,40]
+fillText("f", 0.44399999999999995, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,122.266,58.75]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,142.30706250000003,27.5]
+fillText("g", 0.17759999999999998, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,139.30706250000003,58.75]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,159.34812500000004,40]
+fillRect(0, -27.0136875, 6.1035625, 1) [fillStyle="#000" matrix=1,0,0,1,156.34812500000004,58.75]
+fillText("h", -0.08879999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,156.34812500000004,58.75]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,176.38918750000005,40]
+fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,179.61775000000006,35.3125]
+fillText("i", -0.35519999999999996, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,173.38918750000005,58.75]
+fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,196.55525000000006,40]
+fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,204.22131250000007,40]
+fillText("j", -0.6215999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,193.55525000000006,58.75]
+fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,221.26237500000005,40]
+fill(Path2D(VerticalEpisemaBelow[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,221.31415625000005,45]
+fillText("k", -0.8879999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,218.26237500000005,58.75]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,232.17843750000006,58.75]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,232.17843750000006,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,2.842170943040401e-14,15]

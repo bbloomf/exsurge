@@ -382,6 +382,12 @@ export const featureCases: GoldenCase[] = [
       "(c4) a(hGFE) b(GHI) c(GG) d(G) e(hG) f(fG) g(hG0F0) h(fG1H1) i(gG2G2) j(G<) k(G>) l(hGF<) m(hGF>) " +
       "n(hvGFGF) o(fhGF) p(hGF~) q(hGrFr) r(G<r) s(fG1rH1r) t(G<_) u(hG'F'E') (::)",
     setupContext: (ctxt) => (ctxt.inclinatumLeaning = true)
+  },
+  {
+    // a stropha with < or > is a stropha aucta, with a longer tail (e and j
+    // are plain strophae)
+    name: "stropha-aucta",
+    gabc: "(c4) a(fs<) b(fs>) c(fss<) d(fsss>) e(fs) f(fs<r) g(hs<) h(fs<_) i(fs<.) j(fss) k(fs<') (::)"
   }
 ];
 
