@@ -461,6 +461,89 @@ export const featureCases: GoldenCase[] = [
     useDropCap: true,
     gabc: headerModeAnnotation,
     setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerModeAnnotation))
+  },
+
+  // Gregorio: Phase 4
+  {
+    // an elision counts as consonants when centering: at the start, in the
+    // middle and at the end of a syllable, and as the whole of one
+    name: "elision-tags",
+    gabc:
+      "(c4) <e>A</e>ve(f) ma(g)ri<e>a</e>(h) <e>et</e>(g) qu<e>e</e>(f) mon(g)str<e>a</e> te(h) " +
+      "s<e>a</e>n(g)ctum(f) (::)"
+  },
+  {
+    // a ~ drawn as an undertie, centered on the syllable's first vowel
+    name: "lyric-tie",
+    gabc: "(c4) Glo(f)ri(g)a~in(h) ex(g)cel(f)sis(g) De~o(h) <sp>~</sp>(g) (::)",
+    setupContext: (ctxt) => (ctxt.lyricTie = "undertie")
+  },
+  {
+    // after the drop cap: the first word in small caps, its first syllable in
+    // bold and that syllable's first letter in red, with the lyric's own
+    // markup (the italics) kept
+    name: "first-syllable-styles",
+    useDropCap: true,
+    gabc: "(c4) Glo(f)<i>ri</i>(g)a(h) in(g) ex(f)cél(g)sis(h) (::)",
+    setupContext: (ctxt) => {
+      ctxt.firstWordStyle = { "font-variant": "small-caps" };
+      ctxt.firstSyllableStyle = { "font-weight": "bold" };
+      ctxt.firstSyllableInitialStyle = { fill: "#d00" };
+    }
+  },
+  {
+    // ő and ű are vowels, which the Latin rules don't know
+    name: "language-hungarian",
+    gabc: "(c4) Üd(f)vöz(g)légy,(h) sző(g)lő(f) fű(g) nyűg(h) Ö(g)rök(f)ké(g) (::)",
+    setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.hungarian)
+  },
+  {
+    // the Czech and Polish that Gregorio's Church Slavonic rules are for, with
+    // syllables centered on a syllabic l or r, which have no vowel
+    name: "language-church-slavonic",
+    gabc: "(c4) Hos(f)po(g)di(h)ne,(g) po(f)mi(g)luj(h) ny.(g) (;) Smrt(f) vlk(g) Świę(h)ty(g) Bůh(f) (::)",
+    setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.churchSlavonic)
+  },
+  {
+    // TeX commands that have no meaning outside TeX are left out of verbatim
+    // text, rather than printed, though the text of their arguments is kept
+    // (except for spacing); Gregorio's symbol commands, accents and escaped
+    // characters are drawn
+    name: "verbatim-unknown",
+    gabc:
+      "(c4) a<v>\\textit{b}</v>c(f) <v>\\hspace{1em}</v>d(g) <v>{\\bf e}</v>(h) <v>\\GreStar</v>(g) " +
+      "<v>\\'e\\&\\%</v>(f) <v>\\GreDagger{}</v>(g) <v>\\greextra{StarHeight}</v>(h) (::)"
+  },
+  {
+    // above-lines text and translations are in italics already, and keep the
+    // text before (and between) any italic markup of their own
+    name: "alt-text-markup",
+    gabc:
+      "(c4) <alt><b>Bold</b> <i>it</i> plain</alt>Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (,) " +
+      "[alt:<b>B</b> and <i>i</i>]Chri[<b>Christ</b> <i>have</i> mercy](g)ste(h) (::)"
+  },
+  {
+    // translations centered under their syllables, except one ended with [/]
+    name: "translation-centered",
+    gabc:
+      "(c4) Ky[Lord](f)ri(g)e(h) e[have mercy](g)lé(f)i(e)son.[on us](f) (,) " +
+      "Chri[Christ, have mercy](f)ste(g) e(h)lé(g)i(f)son[/](e) (::)",
+    setupContext: (ctxt) => (ctxt.translationCentering = "center")
+  },
+  {
+    // the same syllables without and with <clear>: with it, the text doesn't
+    // reach back under the notes before it
+    name: "lyric-clear",
+    gabc:
+      "(c4) Ky(fgfh) e(hih) Chri(g)ste(h) Ky(fgfh) e(hih) <clear>Chri(g)ste(h) (,) " +
+      "a(f) Sanctus(g) a(f) <clear>Sanctus(g) (::)"
+  },
+  {
+    // "son." only fits on the first line because its period may go past the
+    // end of the staff, and the svg is made wider for it
+    name: "lyric-protrusion",
+    width: 114,
+    gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
   }
 ];
 

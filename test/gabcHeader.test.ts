@@ -266,7 +266,14 @@ describe("Gabc.applyHeader", function() {
       ["Spanish", language.spanish],
       ["es", language.spanish],
       ["Latin", language.latin],
-      ["la", language.latin]
+      ["la", language.latin],
+      ["Church Slavonic", language.churchSlavonic],
+      ["cu", language.churchSlavonic],
+      ["Polish", language.churchSlavonic],
+      ["cs", language.churchSlavonic],
+      ["Slovak", language.churchSlavonic],
+      ["Hungarian", language.hungarian],
+      ["hu", language.hungarian]
     ];
     for (const [name, expected] of languages) {
       const { ctxt, score: s } = score(`language: ${name};\n`);
@@ -277,7 +284,7 @@ describe("Gabc.applyHeader", function() {
   });
 
   it("leaves the language as it is for one that exsurge doesn't have", function() {
-    const { ctxt, score: s } = score("language: Polish;\n");
+    const { ctxt, score: s } = score("language: German;\n");
     assert.deepStrictEqual(lyricLanguages(s), [null, null, null]);
     assert.strictEqual(ctxt.defaultLanguage, language.latin);
   });

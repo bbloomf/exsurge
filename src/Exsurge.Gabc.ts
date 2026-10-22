@@ -43,7 +43,8 @@ import {
   DefaultTrailingSpace,
   GlyphCode,
   Annotation,
-  Annotations
+  Annotations,
+  LyricTieSpecials
 } from "./Exsurge.Drawing.js";
 import { language as languages, type Language } from "./Exsurge.Text.js";
 import {
@@ -408,7 +409,9 @@ export interface ApplyHeaderOptions {
 }
 
 // the languages of the language header, by their names and their ISO 639
-// codes, in lower case
+// codes, in lower case (Church Slavonic's and Hungarian's are the aliases in
+// Gregorio's gregorio-vowels.dat, which also gives Polish, Czech and Slovak
+// Church Slavonic's vowel rules)
 const __languagesByName: { [name: string]: Language } = {
   latin: languages.latin,
   la: languages.latin,
@@ -419,7 +422,29 @@ const __languagesByName: { [name: string]: Language } = {
   spanish: languages.spanish,
   "español": languages.spanish,
   es: languages.spanish,
-  spa: languages.spanish
+  spa: languages.spanish,
+  "church slavonic": languages.churchSlavonic,
+  "church slavic": languages.churchSlavonic,
+  "old church slavonic": languages.churchSlavonic,
+  "old slavonic": languages.churchSlavonic,
+  "old bulgarian": languages.churchSlavonic,
+  slavic: languages.churchSlavonic,
+  cu: languages.churchSlavonic,
+  chu: languages.churchSlavonic,
+  polish: languages.churchSlavonic,
+  pl: languages.churchSlavonic,
+  pol: languages.churchSlavonic,
+  czech: languages.churchSlavonic,
+  cs: languages.churchSlavonic,
+  ces: languages.churchSlavonic,
+  cze: languages.churchSlavonic,
+  slovak: languages.churchSlavonic,
+  sk: languages.churchSlavonic,
+  slk: languages.churchSlavonic,
+  slo: languages.churchSlavonic,
+  hungarian: languages.hungarian,
+  hu: languages.hungarian,
+  hun: languages.hungarian
 };
 
 // the languages of the old centering-scheme header, which said how to center
@@ -623,8 +648,9 @@ export class Gabc {
    * - mode, mode-modifier and mode-differentia, if there is no annotation
    *   header: one line, as the score's annotation (see modeText()).
    * - staff-lines: 2 to 5, as the score's staffLineCount.
-   * - language: Latin, English or Spanish, by name or ISO 639 code, as the
-   *   language of the score's lyrics, so that ctxt.defaultLanguage stays as
+   * - language: Latin, English, Spanish, Church Slavonic (also for Polish,
+   *   Czech and Slovak, as in Gregorio) or Hungarian, by name or ISO 639
+   *   code, as the language of the score's lyrics, so that ctxt.defaultLanguage stays as
    *   it is for other scores.  A language that exsurge doesn't have leaves
    *   them as they are.
    * - with options.legacy, the headers that Gregorio no longer reads:
@@ -1255,9 +1281,17 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
+      // a ~ is a lyric tie (except in a special character, e.g. <sp>~</sp>),
+      // or a space in verbatim TeX, above-lines text and translations
+      var lyricTieSpecial = LyricTieSpecials[ctxt.lyricTie];
+      var lyricTie = (lyricTieSpecial && ctxt.specials[lyricTieSpecial]) || " ";
       var lyricText = match[1].replace(__commentMaskRegex, "").replace(
         /(^|<\/sp>)([\s\S]*?)($|<sp>)/g,
-        (_, pre, main, post) => `${pre}${main.replace(/~/g, " ")}${post}`
+        (_, pre, main, post) =>
+          `${pre}${main.replace(
+            /(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|\[[^\]]*\])|~/g,
+            (tie: string, notLyric?: string) => (notLyric ? notLyric.replace(/~/g, " ") : lyricTie)
+          )}${post}`
       );
       var alText: AboveLinesText[] = [];
       var translationText: TranslationText[] = [];
@@ -1625,7 +1659,10 @@ export class Gabc {
         // connecting hyphen from ever being drawn before the next syllable,
         // but the syllables are still laid out as part of a single word
         preventConnector = true;
-      } else if (/<\/i>$/.test(text)) {
+      } else if (
+        /<\/e>$/.test(text) ||
+        (ctxt.italicMeansElision && /<\/i>$/.test(text))
+      ) {
         // must be an elision
         elides = true;
       }

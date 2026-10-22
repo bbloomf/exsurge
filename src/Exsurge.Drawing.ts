@@ -28,7 +28,7 @@ import {
   Rect
 } from "./Exsurge.Core.js";
 import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
-import { language, type IgnoredRange, type Language } from "./Exsurge.Text.js";
+import { language, type IgnoredRange, type Language, type VowelSegment } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
@@ -798,6 +798,21 @@ export type ClefVisibility = "visible" | "invisible" | "phantom";
 /** how the number of a mode is written (see ChantContext.modeNumberSystem) */
 export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
 
+/** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
+export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
+
+/**
+ * the special character (in ChantContext.specials) that a ~ in the lyrics
+ * becomes, for each LyricTie but "space", as Gregorio draws its lyric ties
+ * with the macros of <sp>ut</sp>, <sp>ot</sp> and <sp>dt</sp>
+ */
+export const LyricTieSpecials: { [tie in LyricTie]: string | null } = {
+  space: null,
+  undertie: "ut",
+  overtie: "ot",
+  doubletie: "dt"
+};
+
 /** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
 export type MakeDef = (() => void) & {
   /** the def as an svg tree */
@@ -931,6 +946,55 @@ export class ChantContext {
   modeNumberSystem: ModeNumberSystem;
 
   defaultLanguage: Language;
+  /**
+   * What each lyric is centered under its notation on, as Gregorio's
+   * \gresetlyriccentering: "vowel" (the default) centers it on its vowel
+   * segment, found by its language's rules (see defaultLanguage); "syllable"
+   * on the whole syllable; and "firstletter" on its first letter (after any
+   * drop cap).  Centering marked in the gabc with braces (e.g. "f{i}re")
+   * wins over each of these.
+   */
+  lyricCentering: "vowel" | "syllable" | "firstletter";
+  /**
+   * Whether a syllable that ends in italics (e.g. "ri<i>a</i>") elides into
+   * the next one, as a syllable that ends in an elision ("ri<e>a</e>") does.
+   * Defaults to true.
+   */
+  italicMeansElision: boolean;
+  /**
+   * What a ~ in the lyrics becomes.  "space" (the default) is a space that
+   * doesn't break the syllable, so the syllable is centered on the text after
+   * it.  "undertie", "overtie" and "doubletie" are Gregorio's lyric ties,
+   * drawn as the specials ut, ot and dt are (see specials), which join the
+   * words, so the syllable is centered on its first vowel.  Like the rest of
+   * the lyrics, it's read when the gabc is parsed.
+   */
+  lyricTie: LyricTie;
+  /**
+   * Gregorio's firstword, firstsyllable and firstsyllableinitial styles: the
+   * styles of the lyrics of the score's first word, of its first syllable
+   * (after any drop cap), and of that syllable's first letter.  Markup in the
+   * lyrics wins over them.  Each is empty, and so changes nothing, by default.
+   * They're applied by ChantScore.updateNotations().
+   */
+  firstWordStyle: CssProperties;
+  firstSyllableStyle: CssProperties;
+  firstSyllableInitialStyle: CssProperties;
+  /**
+   * Where a translation starts under its syllable, as Gregorio's
+   * \gresettranslationcentering: "left" (the default) at the left of the
+   * syllable's notation, or "center" centered under its lyric.  A
+   * translation that ends at a later syllable ([/]) is centered between the
+   * two either way.
+   */
+  translationCentering: "left" | "center";
+  /**
+   * How much of the text after a <pr> (with no factor of its own, as <pr:0.5>
+   * has) may go past the right end of the staff, from 0 to 1.  It's 1 by
+   * default, as in Gregorio (\gresetprotrusionfactor{default}).  Text past
+   * the end of the staff is outside the width the score is laid out at.
+   */
+  defaultProtrusionFactor: number;
 
   pixelRatio: number;
 
@@ -1120,6 +1184,14 @@ export class ChantContext {
     this.modeNumberSystem = "roman-majuscule";
 
     this.defaultLanguage = language.latin;
+    this.lyricCentering = "vowel";
+    this.italicMeansElision = true;
+    this.lyricTie = "space";
+    this.firstWordStyle = {};
+    this.firstSyllableStyle = {};
+    this.firstSyllableInitialStyle = {};
+    this.translationCentering = "left";
+    this.defaultProtrusionFactor = 1;
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio =
@@ -2726,6 +2798,23 @@ interface BreakMatch {
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
 
+// Gregorio's commands for the symbols in its greextra font (from its
+// gregoriotex-symbols.tex), by their names in lower case
+const __greextraCommands: { [command: string]: string } = {
+  grecross: "Cross",
+  grealtcross: "Cross.alt",
+  gredagger: "Dagger",
+  greheightstar: "StarHeight",
+  gresixstar: "StarSix",
+  grestar: "StarSix",
+  gothrbar: "RWithBarGoth",
+  gothvbar: "VWithBarGoth"
+};
+
+// TeX commands whose arguments aren't text to show: spacing, colors and
+// labels, and Gregorio's own commands
+const __texCommandsWithoutText = /^(?:gre|[hv]space$|[hv]skip$|kern$|rule$|[hv]?phantom$|color$|label$|(?:set|addto)length$)/i;
+
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
   fontFamily: (ctxt: ChantContext) => string;
@@ -2848,7 +2937,11 @@ export class TextElement extends ChantLayoutElement {
     };
 
     var markupRegex = new RegExp(markupRegexSource, "gi");
-    var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
+    // in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
+    // {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped
+    // character, a command with its arguments, or a brace, which is left out
+    // unless it's one of the others (a command's {arguments} may be read again)
+    var vTagRegex = /\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?|\\'\{?([æœaeiouy])\}?|\\([a-z@]+)\*?((?:\s*(?:\[[^\]]*\]|\{(?:[^{}]|\{[^{}]*\})*\}))*)|\\([&%$#_{}])|[{}]/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
@@ -2895,19 +2988,34 @@ export class TextElement extends ChantLayoutElement {
             closeSpan(vTag.slice(lastIndex, vMatch.index), match.index + lastIndex + iOffset);
             iOffset = 3; // length of '<v>'
           }
-          let [, grecross, greextra, accent, diphthong] = vMatch;
+          let [, greextra, accent, diphthong, accentedVowel, command, args, escaped] = vMatch;
           let char = '';
           if (diphthong) {
             char = makeLigature(diphthong);
             if (accent) char = addAccent(char);
             closeSpan(char, match.index + vMatch.index + iOffset)
+          } else if (accentedVowel) {
+            closeSpan(addAccent(accentedVowel), match.index + vMatch.index + iOffset);
+          } else if (escaped) {
+            closeSpan(escaped, match.index + vMatch.index + iOffset);
           } else {
-            if (grecross) {
-              // grecross is just the command for the Cross:
-              // set up greextra so it will get handled with it below:
-              greextra = 'Cross';
-            }    
-            char = (greextraGlyphs as { [name: string]: string })[greextra];
+            if (command) {
+              // \greextra{Name}, or one of Gregorio's commands for a symbol
+              // (e.g. \grecross for the Cross)
+              greextra = /^greextra$/i.test(command)
+                ? (/\{([^{}]*)\}/.exec(args) || [])[1]
+                : __greextraCommands[command.toLowerCase()];
+              // any other command is left out, but the text of its {arguments}
+              // is read again (e.g. the x of \textit{x}), unless it has none
+              let braceIndex = args.indexOf("{");
+              if (
+                !greextra &&
+                braceIndex >= 0 &&
+                !__texCommandsWithoutText.test(command)
+              )
+                vTagRegex.lastIndex -= args.length - braceIndex;
+            }
+            char = greextra && (greextraGlyphs as { [name: string]: string })[greextra];
             if (char) {
               closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
             }
@@ -2993,11 +3101,12 @@ export class TextElement extends ChantLayoutElement {
           markupStack.length > 0 &&
           markupStack[markupStack.length - 1].tagName === tagName
         ) {
-          if (closingTag) {
-            // group close
-            closeCurrentSpan();
-            markupStack.pop();
-          }
+          // (a tag opened again inside itself, e.g. <i> in a translation,
+          // which is already in italics, changes nothing, but the text
+          // before it is kept)
+          closeCurrentSpan();
+          // group close
+          if (closingTag) markupStack.pop();
         } else if (markupStack.filter(filterFrames).length > 0) {
           // trying to open a recursive group (or forgot to close a previous group)
           // in either case, we just unwind to the previous stack frame
@@ -3714,7 +3823,8 @@ export const LyricArray = {
     return x;
   },
 
-  getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean) {
+  /** (lessProtrusion leaves out how far each lyric may go past the end of the staff) */
+  getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean, lessProtrusion?: boolean) {
     if (lyricArray.length === 0) return NaN;
 
     var x = Number.MIN_VALUE;
@@ -3731,7 +3841,8 @@ export const LyricArray = {
             !l.preventConnector &&
             !l.needsConnector
               ? l.getConnectorWidth()
-              : 0)
+              : 0) -
+            (lessProtrusion ? l.protrusionWidth || 0 : 0)
         );
     }
 
@@ -3796,10 +3907,17 @@ export class Lyric extends TextElement {
   clear?: boolean;
   /** Gregorio's <pr>: how much of the lyric may go into the right margin */
   protrusion?: LyricProtrusion;
+  /** how far the lyric may go past the end of the staff, for its protrusion */
+  protrusionWidth?: number;
   /** which line of lyrics this is */
   lyricIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
   lineWidth?: number;
+  /**
+   * the styles that setFirstWordStyles() gave the lyric: the first word's and
+   * first syllable's, then the first letter's
+   */
+  firstWordStyles?: SpanPropertyDict[];
 
   constructor(
     ctxt: ChantContext,
@@ -3995,25 +4113,40 @@ export class Lyric extends TextElement {
           startIndex = 0;
         }
 
-        // find indices of e tags to ignore when finding vowel segment:
-        var ignore: IgnoredRange[] = [];
+        // elisions (<e> tags) count as consonants when finding the vowel
+        // segment, so one at the start is skipped and any later one ignored:
+        var textStartIndex = startIndex;
+        var elisions: IgnoredRange[] = [];
         let index = 0;
-        let indexOffset = startIndex;
         for (var span of this.spans) {
           let endIndex = index + span.text.length;
-          if (span.activeTags.includes('e')) {
+          if (span.activeTags.includes('e') && endIndex > startIndex) {
             if (index <= startIndex) {
               startIndex = endIndex;
             } else {
-              ignore.push({ index: index - indexOffset, endIndex: endIndex - indexOffset });
+              elisions.push({ index, endIndex });
             }
           }
           index = endIndex;
         }
+        // (findVowelSegment counts the ranges from startIndex)
+        var ignore = elisions.map((range) => ({
+          index: range.index - startIndex,
+          endIndex: range.endIndex - startIndex
+        }));
         // Non-directive elements are lined up to the chant notation based on vowel segments,
-        var result = activeLanguage.findVowelSegment(this.text, startIndex, ignore);
+        // or (as ctxt.lyricCentering says) on the whole syllable or its first letter
+        var result: VowelSegment =
+          ctxt.lyricCentering === "syllable"
+            ? { found: true, startIndex: 0, length: this.text.length }
+            : ctxt.lyricCentering === "firstletter"
+            ? { found: true, startIndex: 0, length: Array.from(this.text)[0].length }
+            : activeLanguage.findVowelSegment(this.text, startIndex, ignore);
 
         if (result.found !== true) {
+          // with no vowel, center on the syllable's letters, elisions and all
+          // (as Gregorio centers a syllable with no vowel as a whole)
+          startIndex = textStartIndex;
           var match = this.text.slice(startIndex).match(/[a-z]+/i);
           if (match) {
             result.startIndex = startIndex + match.index!;
@@ -4043,6 +4176,32 @@ export class Lyric extends TextElement {
     }
 
     this.vowelSegmentWidth = vowelSegmentWidth;
+
+    // the width of the text after a <pr>, times how much of it may protrude,
+    // unless a connector would follow it (which Gregorio doesn't protrude)
+    this.protrusionWidth = 0;
+    // (the drop cap took the first letter of the text that the index counts in)
+    let protrusionIndex = this.protrusion
+      ? Math.max(0, this.protrusion.textIndex - (this.dropCap ? 1 : 0))
+      : 0;
+    if (
+      this.protrusion &&
+      protrusionIndex < this.text.length &&
+      !(this.allowsConnector() && !this.preventConnector)
+    ) {
+      let factor = this.protrusion.factor;
+      if (factor === undefined) factor = ctxt.defaultProtrusionFactor;
+      let start =
+        ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
+          ? // svgTextMeasurer still has the current lyric in it...
+            (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
+              0,
+              protrusionIndex
+            )
+          : this.measureSubstring(ctxt, protrusionIndex);
+      this.protrusionWidth =
+        Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
+    }
 
     this.bounds.x = -offset;
     this.bounds.y = 0;
@@ -4079,6 +4238,83 @@ export class Lyric extends TextElement {
     this.centerStartIndex--; // lost a letter, so adjust centering accordingly
 
     return dropCap;
+  }
+
+  /**
+   * Gives the lyric the styles of the score's first word (part "word"), or of
+   * its first syllable ("syllable", which also styles the first letter after
+   * any drop cap), from ChantContext.firstWordStyle and so on, or takes them
+   * away (null).  Returns whether the lyric's spans changed.
+   */
+  setFirstWordStyles(ctxt: ChantContext, part: "syllable" | "word" | null) {
+    const hasProperties = (style: CssProperties) =>
+      !!style && Object.keys(style).length > 0;
+    let styles: CssProperties[] = [],
+      initialStyle: CssProperties | null = null;
+    if (part) {
+      styles = [ctxt.firstWordStyle];
+      if (part === "syllable") {
+        styles.push(ctxt.firstSyllableStyle);
+        initialStyle = ctxt.firstSyllableInitialStyle;
+      }
+      styles = styles.filter(hasProperties);
+      if (initialStyle && !hasProperties(initialStyle)) initialStyle = null;
+    }
+    const applied = this.firstWordStyles || [];
+    if (
+      applied.length === styles.length + 1 &&
+      styles.every((style, i) => applied[i] === style) &&
+      applied[styles.length] === initialStyle
+    )
+      return false;
+    if (!applied.length && !styles.length && !initialStyle) return false;
+
+    if (applied.length) {
+      // start again from the lyric as it was parsed (less its drop cap), which
+      // was before it had a drop cap, so without its empty spans
+      const dropCap = this.dropCap;
+      this.dropCap = null;
+      this.generateSpansFromText(
+        ctxt,
+        (ctxt.textStyles.lyric.prefix || "") + this.originalText
+      );
+      this.dropCap = dropCap;
+      if (this.dropCap) {
+        this.spans[0].text = this.spans[0].text.slice(1);
+        this.text = this.text.slice(1);
+      }
+    }
+    this.firstWordStyles =
+      styles.length || initialStyle ? [...styles, initialStyle] : undefined;
+    if (!this.firstWordStyles) return true;
+
+    // the lyric's own markup goes last, so that it wins
+    let spans: TextSpan[] = [];
+    for (let span of this.spans) {
+      if (span === this.connectorSpan) continue;
+      let propertyArray = [...styles, ...span.propertyArray];
+      if (initialStyle && span.text) {
+        // the first letter gets a span of its own
+        const initial = Array.from(span.text)[0];
+        const initialSpan = span.clone();
+        initialSpan.text = initial;
+        initialSpan.propertyArray = [...styles, initialStyle, ...span.propertyArray];
+        spans.push(initialSpan);
+        initialStyle = null;
+        if (span.text.length === initial.length) continue;
+        span = span.clone();
+        span.text = span.text.slice(initial.length);
+        span.index += initial.length;
+        delete span.newLine;
+        delete span.wrappedSpace;
+      } else {
+        span = span.clone();
+      }
+      span.propertyArray = propertyArray;
+      spans.push(span);
+    }
+    this.spans = spans;
+    return true;
   }
 
   getCssClasses() {
