@@ -130,6 +130,8 @@ class NeumeBuilder {
       this.lastNote !== null &&
       (this.ctxt.glyphMultiplier < 1 ||
         this.lineIsHanging ||
+        // (an oriscus scapus's stem, even a second above)
+        (note.shapeModifiers & NoteShapeModifiers.Stemmed) !== 0 ||
         (this.lastNote.glyphVisualizer &&
           this.lastNote.glyphVisualizer.align === "right") ||
         Math.abs(this.lastNote.staffPosition - note.staffPosition) > 1);
@@ -216,10 +218,10 @@ class NeumeBuilder {
   }
 
   // adds a linea (gabc =), a flat bar between two lines, as Gregorio's Linea
-  // glyph is.  the note itself has no glyph, but it has the bar's bounds,
-  // which its markings go by
+  // glyph is.  the note's glyph (Linea) draws nothing, but the note has the
+  // bar's bounds, which its markings go by
   lineaAt(note: Note) {
-    note.setGlyph(this.ctxt, GlyphCode.None);
+    note.setGlyph(this.ctxt, GlyphCode.Linea);
 
     var linea = new LineaVisualizer(this.ctxt, note, true);
     linea.bounds.x = this.x;
@@ -1327,8 +1329,8 @@ export class Salicus extends Neume {
       builder.advanceBy(ctxt.intraNeumeSpacing);
 
     // second note is always an oriscus, which may or may not be stemmed
-    // to the first
-    builder.noteAt(second, GlyphCode.OriscusAsc);
+    // to the first, and points up unless gabc designates otherwise
+    builder.noteAt(second, Oriscus.getGlyphCode(second, true));
 
     // third note can be a punctum quadratum or various liquescent forms
     if (third.liquescent & LiquescentType.Small)
@@ -1375,8 +1377,8 @@ export class SalicusFlexus extends Neume {
       builder.advanceBy(ctxt.intraNeumeSpacing);
 
     // second note is always an oriscus, which may or may not be stemmed
-    // to the first
-    builder.noteAt(second, GlyphCode.OriscusAsc);
+    // to the first, and points up unless gabc designates otherwise
+    builder.noteAt(second, Oriscus.getGlyphCode(second, true));
 
     // third note can be a punctum quadratum or various liquescent forms,
     // ...based on note four though!

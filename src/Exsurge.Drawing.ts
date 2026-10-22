@@ -389,6 +389,7 @@ export type NeumeSpaceCode = "/0" | "/!" | "/" | "//" | " ";
 
 export const GlyphCode = {
   None: "None",
+  Linea: "Linea",
 
   AcuteAccent: "AcuteAccent",
   GraveAccent: "GraveAccent",
@@ -2295,8 +2296,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
           const glyphCode = source.glyphVisualizer!.glyphCode;
           if (porrectusNoteDiff) {
             result.class += ' porrectus porrectus-start';
-          } else if (glyphCode === 'None' && !source.linea) {
-            // (a linea's note has no glyph either, but its lines draw it)
+          } else if (glyphCode === 'None') {
             result.class += ' porrectus porrectus-end';
           }
         }

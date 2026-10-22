@@ -9,7 +9,7 @@
 <path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z" >
 </path>
 </g>
-<g id="None" class="glyph" transform="scale(0.0625)" >
+<g id="Linea" class="glyph" transform="scale(0.0625)" >
 <g >
 </g>
 </g>
@@ -60,7 +60,7 @@
 <rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="7" element-index="0" id="note-1" x="0.8" y="-27.893078125" >
+<use xlink:href="#Linea" class=" note" source-index="7" element-index="0" id="note-1" x="0.8" y="-27.893078125" >
 </use>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(41.6,0)" >
@@ -75,7 +75,7 @@
 <rect x="0.8" y="-21.643078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="13" element-index="1" id="note-2" x="0.8" y="-21.643078125" >
+<use xlink:href="#Linea" class=" note" source-index="13" element-index="1" id="note-2" x="0.8" y="-21.643078125" >
 </use>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(69.1375,0)" >
@@ -94,7 +94,7 @@
 <rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="20" element-index="3" id="note-4" x="0.8" y="-27.893078125" >
+<use xlink:href="#Linea" class=" note" source-index="20" element-index="3" id="note-4" x="0.8" y="-27.893078125" >
 </use>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(102.92500000000001,0)" >
@@ -113,7 +113,7 @@
 <rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="27" element-index="5" id="note-6" x="0.8" y="-27.893078125" >
+<use xlink:href="#Linea" class=" note" source-index="27" element-index="5" id="note-6" x="0.8" y="-27.893078125" >
 </use>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(147.65,0)" >
@@ -128,7 +128,7 @@
 <rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="34" element-index="6" id="note-7" x="0.8" y="-27.893078125" >
+<use xlink:href="#Linea" class=" note" source-index="34" element-index="6" id="note-7" x="0.8" y="-27.893078125" >
 </use>
 <rect x="0.8" y="-35.916666666666664" width="15.000000000000002" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
@@ -145,7 +145,7 @@
 <rect x="0.8" y="-21.643078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="41" element-index="7" id="note-8" x="0.8" y="-21.643078125" >
+<use xlink:href="#Linea" class=" note" source-index="41" element-index="7" id="note-8" x="0.8" y="-21.643078125" >
 </use>
 <rect x="0.8" y="-12.334710937499999" width="15.000000000000002" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
@@ -162,7 +162,7 @@
 <rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="49" element-index="8" id="note-9" x="0.8" y="-27.893078125" >
+<use xlink:href="#Linea" class=" note" source-index="49" element-index="8" id="note-9" x="0.8" y="-27.893078125" >
 </use>
 <use xlink:href="#Mora" class="" x="15.925000000000004" y="-25" >
 </use>
@@ -179,7 +179,7 @@
 <rect x="0.8" y="-27.893078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="56" element-index="9" id="note-10" x="0.8" y="-27.893078125" >
+<use xlink:href="#Linea" class=" note" source-index="56" element-index="9" id="note-10" x="0.8" y="-27.893078125" >
 </use>
 <use xlink:href="#VerticalEpisemaBelow" class="" x="8.3" y="-16.875" >
 </use>
@@ -209,7 +209,7 @@
 <rect x="0.8" y="3.356921875" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="69" element-index="11" id="note-12" x="0.8" y="3.356921875" >
+<use xlink:href="#Linea" class=" note" source-index="69" element-index="11" id="note-12" x="0.8" y="3.356921875" >
 </use>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(308.85,0)" >
@@ -224,7 +224,7 @@
 <rect x="0.8" y="-59.143078125" width="15.000000000000002" height="5.78615625" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<use xlink:href="#None" class=" note" source-index="75" element-index="12" id="note-13" x="0.8" y="-59.143078125" >
+<use xlink:href="#Linea" class=" note" source-index="75" element-index="12" id="note-13" x="0.8" y="-59.143078125" >
 </use>
 </g>
 <g class="ChantNotationElement DoubleBar" transform="translate(333.26250000000005,0)" >

@@ -5,7 +5,7 @@
         <path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z">
       <g id="VerticalEpisemaAbove" transform="scale(0.0625)" className="glyph">
         <path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z">
-      <g id="None" transform="scale(0.0625)" className="glyph">
+      <g id="Linea" transform="scale(0.0625)" className="glyph">
         <g>
       <g id="PunctumQuadratum" transform="scale(0.0625)" className="glyph">
         <path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z">
@@ -36,7 +36,7 @@
             <rect x=0 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-27.893078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=7 element-index=0 id="note-1" x=0.8 y=-27.893078125 source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className=" note" xlinkHref="#None" source-gabc="g=">
+          <use source-index=7 element-index=0 id="note-1" x=0.8 y=-27.893078125 source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className=" note" xlinkHref="#Linea" source-gabc="g=">
       <g transform="translate(41.6,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=11 x=3.7856000000000005 y=27.833796875000004 style={} source=<Lyric sourceIndex=11> className="lyric" textAnchor="start" source-gabc="b">
           <tspan source-index=0 style={} className=undefined>
@@ -46,7 +46,7 @@
             <rect x=0 y=-23.571796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-23.571796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-21.643078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=13 element-index=1 id="note-2" x=0.8 y=-21.643078125 source=<Note sourceIndex=13 elementIndex=1 noteIndex=1> className=" note" xlinkHref="#None" source-gabc="f=">
+          <use source-index=13 element-index=1 id="note-2" x=0.8 y=-21.643078125 source=<Note sourceIndex=13 elementIndex=1 noteIndex=1> className=" note" xlinkHref="#Linea" source-gabc="f=">
       <g transform="translate(69.1375,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=17 x=-1.6558000000000002 y=27.833796875000004 style={} source=<Lyric sourceIndex=17> className="lyric" textAnchor="start" source-gabc="c">
           <tspan source-index=0 style={} className=undefined>
@@ -59,7 +59,7 @@
             <rect x=0 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-27.893078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=20 element-index=3 id="note-4" x=0.8 y=-27.893078125 source=<Note sourceIndex=20 elementIndex=3 noteIndex=3> className=" note" xlinkHref="#None" source-gabc="g=">
+          <use source-index=20 element-index=3 id="note-4" x=0.8 y=-27.893078125 source=<Note sourceIndex=20 elementIndex=3 noteIndex=3> className=" note" xlinkHref="#Linea" source-gabc="g=">
       <g transform="translate(102.92500000000001,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <g className="Notations">
           <use source-index=22 element-index=4 id="note-5" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=22 elementIndex=4 noteIndex=4> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
@@ -72,7 +72,7 @@
             <rect x=0 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-27.893078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=27 element-index=5 id="note-6" x=0.8 y=-27.893078125 source=<Note sourceIndex=27 elementIndex=5 noteIndex=5> className=" note" xlinkHref="#None" source-gabc="gv=">
+          <use source-index=27 element-index=5 id="note-6" x=0.8 y=-27.893078125 source=<Note sourceIndex=27 elementIndex=5 noteIndex=5> className=" note" xlinkHref="#Linea" source-gabc="gv=">
       <g transform="translate(147.65,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=32 x=6.010400000000001 y=27.833796875000004 style={} source=<Lyric sourceIndex=32> className="lyric" textAnchor="start" source-gabc="e">
           <tspan source-index=0 style={} className=undefined>
@@ -82,7 +82,7 @@
             <rect x=0 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-27.893078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=34 element-index=6 id="note-7" x=0.8 y=-27.893078125 source=<Note sourceIndex=34 elementIndex=6 noteIndex=6> className=" note" xlinkHref="#None" source-gabc="g=_">
+          <use source-index=34 element-index=6 id="note-7" x=0.8 y=-27.893078125 source=<Note sourceIndex=34 elementIndex=6 noteIndex=6> className=" note" xlinkHref="#Linea" source-gabc="g=_">
           <rect x=0.8 y=-35.916666666666664 width=15.000000000000002 height=1 fill="#000" className="horizontalEpisema">
       <g transform="translate(175.1875,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=39 x=5.744000000000001 y=27.833796875000004 style={} source=<Lyric sourceIndex=39> className="lyric" textAnchor="start" source-gabc="f">
@@ -93,7 +93,7 @@
             <rect x=0 y=-23.571796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-23.571796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-21.643078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=41 element-index=7 id="note-8" x=0.8 y=-21.643078125 source=<Note sourceIndex=41 elementIndex=7 noteIndex=7> className=" note" xlinkHref="#None" source-gabc="f=_0">
+          <use source-index=41 element-index=7 id="note-8" x=0.8 y=-21.643078125 source=<Note sourceIndex=41 elementIndex=7 noteIndex=7> className=" note" xlinkHref="#Linea" source-gabc="f=_0">
           <rect x=0.8 y=-12.334710937499999 width=15.000000000000002 height=1 fill="#000" className="horizontalEpisema">
       <g transform="translate(202.725,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=47 x=5.477600000000001 y=27.833796875000004 style={} source=<Lyric sourceIndex=47> className="lyric" textAnchor="start" source-gabc="g">
@@ -104,7 +104,7 @@
             <rect x=0 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-27.893078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=49 element-index=8 id="note-9" x=0.8 y=-27.893078125 source=<Note sourceIndex=49 elementIndex=8 noteIndex=8> className=" note" xlinkHref="#None" source-gabc="g=.">
+          <use source-index=49 element-index=8 id="note-9" x=0.8 y=-27.893078125 source=<Note sourceIndex=49 elementIndex=8 noteIndex=8> className=" note" xlinkHref="#Linea" source-gabc="g=.">
           <use source-index=undefined element-index=undefined x=15.925000000000004 y=-25 source=<Punctum> className="" xlinkHref="#Mora">
       <g transform="translate(232.5875,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=54 x=5.211200000000001 y=27.833796875000004 style={} source=<Lyric sourceIndex=54> className="lyric" textAnchor="start" source-gabc="h">
@@ -115,7 +115,7 @@
             <rect x=0 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-29.821796875 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-27.893078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=56 element-index=9 id="note-10" x=0.8 y=-27.893078125 source=<Note sourceIndex=56 elementIndex=9 noteIndex=9> className=" note" xlinkHref="#None" source-gabc="g='">
+          <use source-index=56 element-index=9 id="note-10" x=0.8 y=-27.893078125 source=<Note sourceIndex=56 elementIndex=9 noteIndex=9> className=" note" xlinkHref="#Linea" source-gabc="g='">
           <use source-index=undefined element-index=undefined x=8.3 y=-16.875 source=<Punctum> className="" xlinkHref="#VerticalEpisemaBelow">
       <g transform="translate(260.125,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=61 x=1.7698 y=27.833796875000004 style={} source=<Lyric sourceIndex=61> className="lyric" textAnchor="start" source-gabc="i">
@@ -135,7 +135,7 @@
             <rect x=0 y=1.4282031249999998 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=1.4282031249999998 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=3.356921875 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=69 element-index=11 id="note-12" x=0.8 y=3.356921875 source=<Note sourceIndex=69 elementIndex=11 noteIndex=11> className=" note" xlinkHref="#None" source-gabc="b=">
+          <use source-index=69 element-index=11 id="note-12" x=0.8 y=3.356921875 source=<Note sourceIndex=69 elementIndex=11 noteIndex=11> className=" note" xlinkHref="#Linea" source-gabc="b=">
       <g transform="translate(308.85,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=73 x=4.412000000000001 y=27.833796875000004 style={} source=<Lyric sourceIndex=73> className="lyric" textAnchor="start" source-gabc="k">
           <tspan source-index=0 style={} className=undefined>
@@ -145,7 +145,7 @@
             <rect x=0 y=-61.071796875000004 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=15.8 y=-61.071796875000004 width=0.8 height=9.64359375 fill="#000" className="neumeLine">
             <rect x=0.8 y=-59.143078125 width=15.000000000000002 height=5.78615625 fill="#000" className="neumeLine">
-          <use source-index=75 element-index=12 id="note-13" x=0.8 y=-59.143078125 source=<Note sourceIndex=75 elementIndex=12 noteIndex=12> className=" note" xlinkHref="#None" source-gabc="l=">
+          <use source-index=75 element-index=12 id="note-13" x=0.8 y=-59.143078125 source=<Note sourceIndex=75 elementIndex=12 noteIndex=12> className=" note" xlinkHref="#Linea" source-gabc="l=">
       <g transform="translate(333.26250000000005,0)" source=<DoubleBar sourceIndex=80 elementIndex=13> className="ChantNotationElement DoubleBar" source-gabc="::">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=80 element-index=13 source=<DoubleBar sourceIndex=80 elementIndex=13> className="dividerLine" source-gabc="::">

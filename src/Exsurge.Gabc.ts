@@ -162,7 +162,9 @@ var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])
 //  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
 var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
 // a TeX length: a number (with TeX's . or , for the decimal point) and a unit
-var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*([a-z]{2})\s*$/;
+// in either case, maybe with true before it (the same at TeX's usual
+// magnification), and any stretch and shrink after it (plus …, minus …)
+var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:true\s*)?([a-z]{2})(?:\s*(?:plus|minus).*)?\s*$/i;
 // TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
 var __texUnits: { [unit: string]: number } = {
   sp: 1,
@@ -186,9 +188,10 @@ var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
 // undefined if it isn't a length exsurge can read (TeX can take a macro)
 function texLengthToStaffIntervals(length: string) {
   var results = length.match(__texLengthRegex);
-  if (!results || !__texUnits.hasOwnProperty(results[2])) return undefined;
+  var unit = results && results[2].toLowerCase();
+  if (!unit || !__texUnits.hasOwnProperty(unit)) return undefined;
   return (
-    (Number(results[1].replace(",", ".")) * __texUnits[results[2]]) /
+    (Number(results![1].replace(",", ".")) * __texUnits[unit]) /
     __gregorioStaffIntervalInSp
   );
 }
@@ -2271,12 +2274,14 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote, notesRemaining) {
-        // an oriscus scapus is joined to the lower punctum before it, as in Gregorio
+        // an oriscus scapus is joined to the lower punctum before it, as in
+        // Gregorio (unless either is liquescent)
         if (
           currNote.shape === NoteShape.Oriscus &&
           currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
           currNote.staffPosition > prevNote.staffPosition &&
-          prevNote.liquescent === LiquescentType.None
+          prevNote.liquescent === LiquescentType.None &&
+          currNote.liquescent === LiquescentType.None
         )
           return pesOriscusState;
 
@@ -2709,6 +2714,19 @@ export class Gabc {
     var episemaNoteIndex = notes.length;
     var episemaNote = note;
 
+    // starts a new note at the same pitch after the note so far, for gabc's
+    // repeated notes (gsss, gvvv and gVV)
+    var startRepeatedNote = (sourceGabc: string) => {
+      let newNote = new Note();
+      newNote.sourceIndex = sourceIndex + i;
+      newNote.sourceGabc = sourceGabc;
+      newNote.staffPosition = note.staffPosition;
+      newNote.pitch = note.pitch;
+      notes.push(note);
+      note = newNote;
+      episemaNoteIndex++; // since a new note was added, increase the index here
+    };
+
     // process the modifiers
     for (var i = 1; i < data.length; i++) {
       var c = data[i];
@@ -2873,14 +2891,7 @@ export class Gabc {
           if (note.shape === NoteShape.Stropha) {
             // if we're already a stropha, that means this is gabc's
             // quick stropha feature (e.g., gsss). create a new note
-            let newNote = new Note();
-            newNote.sourceIndex = sourceIndex + i;
-            newNote.sourceGabc = "s";
-            newNote.staffPosition = note.staffPosition;
-            newNote.pitch = note.pitch;
-            notes.push(note);
-            note = newNote;
-            episemaNoteIndex++; // since a new note was added, increase the index here
+            startRepeatedNote("s");
           }
 
           note.shape = NoteShape.Stropha;
@@ -2890,14 +2901,7 @@ export class Gabc {
           if (note.shape === NoteShape.Virga) {
             // if we're already a stropha, that means this is gabc's
             // quick virga feature (e.g., gvvv). create a new note
-            let newNote = new Note();
-            newNote.sourceIndex = sourceIndex + i;
-            newNote.sourceGabc = "v";
-            newNote.staffPosition = note.staffPosition;
-            newNote.pitch = note.pitch;
-            notes.push(note);
-            note = newNote;
-            episemaNoteIndex++; // since a new note was added, increase the index here
+            startRepeatedNote("v");
           }
 
           note.shape = NoteShape.Virga;
@@ -2909,14 +2913,7 @@ export class Gabc {
             // or trivirga of virgas that aren't reversed
             // (gabc-glyphs-determination.c), so create a new note
             note.shapeModifiers &= ~NoteShapeModifiers.Reverse;
-            let newNote = new Note();
-            newNote.sourceIndex = sourceIndex + i;
-            newNote.sourceGabc = "V";
-            newNote.staffPosition = note.staffPosition;
-            newNote.pitch = note.pitch;
-            notes.push(note);
-            note = newNote;
-            episemaNoteIndex++; // since a new note was added, increase the index here
+            startRepeatedNote("V");
             note.shape = NoteShape.Virga;
             break;
           }

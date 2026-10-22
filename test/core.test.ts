@@ -619,4 +619,13 @@ describe("Gregorio brace lengths", function() {
     assert.strictEqual(braces[12]!.length, undefined);
     assert.strictEqual(braces[14], undefined);
   });
+
+  it("reads a unit in either case, with true, and with stretch and shrink, as TeX does", function() {
+    const braces = parseNotations(
+      "(c4) a(f[ob:1;6MM]g) b(f[ob:1;6truemm]g) c(f[ob:1;6 true mm]g) d(f[ob:1;6mm plus 1fil minus 2pt]g)"
+    ).flatMap((notation) => (notation.notes || []).map((note) => note.braceStart));
+    [0, 2, 4, 6].forEach((i) => {
+      assert.ok(Math.abs(braces[i]!.length! - 4.178554198372262) < 1e-9, `${braces[i]!.length} should be 4.178554198372262`);
+    });
+  });
 });

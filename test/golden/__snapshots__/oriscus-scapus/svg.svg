@@ -95,10 +95,12 @@
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="40" element-index="8" id="note-9" x="3.125" y="-18.75" >
 </use>
-<use xlink:href="#OriscusDes" class=" note" source-index="41" element-index="9" id="note-10" x="9.375" y="-25" >
+<rect x="5.45" y="-25" width="0.8" height="6.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#OriscusDes" class=" note" source-index="41" element-index="9" id="note-10" x="8.575" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement PesOriscus" transform="translate(141.3875,0)" >
+<g class="ChantNotationElement PesOriscus" transform="translate(140.5875,0)" >
 <text source-index="45" x="0.3026" y="15.178666666666665" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >g</tspan>
 </text>
@@ -109,7 +111,7 @@
 <use xlink:href="#OriscusDes" class=" note" source-index="48" element-index="11" id="note-12" x="8.575" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement PesOriscus" transform="translate(164.02499999999998,0)" >
+<g class="ChantNotationElement PesOriscus" transform="translate(163.225,0)" >
 <text source-index="52" x="0.03620000000000001" y="15.178666666666665" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >h</tspan>
 </text>
@@ -124,7 +126,7 @@
 <rect x="5.45" y="-36.4501875" width="6.25" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
 </g>
-<g class="ChantNotationElement Salicus" transform="translate(186.66249999999997,0)" >
+<g class="ChantNotationElement Salicus" transform="translate(185.86249999999998,0)" >
 <text source-index="61" x="-0.23019999999999996" y="15.178666666666665" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >i</tspan>
 </text>
@@ -141,7 +143,7 @@
 <rect x="16.349999999999998" y="-37.5" width="0.8" height="11.25" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<g class="ChantNotationElement SalicusFlexus" transform="translate(214.74999999999997,0)" >
+<g class="ChantNotationElement SalicusFlexus" transform="translate(213.95,0)" >
 <text source-index="69" x="-0.49659999999999993" y="15.178666666666665" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >j</tspan>
 </text>
@@ -158,20 +160,20 @@
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="75" element-index="20" id="note-21" x="20.275" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(249.08749999999998,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(248.2875,0)" >
 <text source-index="78" x="-0.7629999999999999" y="15.178666666666665" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >k</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="80" element-index="21" id="note-22" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement Oriscus" transform="translate(258.4625,0)" >
+<g class="ChantNotationElement Oriscus" transform="translate(257.6625,0)" >
 <use xlink:href="#OriscusDes" class=" note" source-index="81" element-index="22" id="note-23" x="3.125" y="-25" >
 </use>
 <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<g class="ChantNotationElement Oriscus" transform="translate(275.65,0)" >
+<g class="ChantNotationElement Oriscus" transform="translate(274.85,0)" >
 <text source-index="85" x="-1.0293999999999999" y="15.178666666666665" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >l</tspan>
 </text>
@@ -180,7 +182,7 @@
 <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<g class="ChantNotationElement Oriscus" transform="translate(292.8375,0)" >
+<g class="ChantNotationElement Oriscus" transform="translate(292.0375,0)" >
 <text source-index="92" x="-1.2957999999999998" y="15.178666666666665" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >m</tspan>
 </text>
@@ -189,7 +191,7 @@
 <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<g class="ChantNotationElement DoubleBar" transform="translate(306.9,0)" >
+<g class="ChantNotationElement DoubleBar" transform="translate(306.1,0)" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="100" element-index="25" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="100" element-index="25" source="[object Object]" >
