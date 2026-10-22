@@ -42,11 +42,11 @@
       <g transform="translate(55.593900000000005,0)" source=<QuarterBar sourceIndex=21 elementIndex=3> className="ChantNotationElement QuarterBar" source-gabc=",">
         <g className="Notations">
           <rect x=0 y=-50 width=0.8 height=12.5 fill="#000" source-index=21 element-index=3 source=<QuarterBar sourceIndex=21 elementIndex=3> className="dividerLine" source-gabc=",">
-      <g transform="translate(270,0)" source=<TextOnly sourceIndex=106 elementIndex=4> className="ChantNotationElement TextOnly">
-        <text source-index=24 x=-270 y=28.85200000000001 style={} source=<Lyric sourceIndex=24> className="lyric" textAnchor="start" source-gabc="A long run of text only words, too wide for the line<br><e>and a smaller line</e>">
+      <g transform="translate(85.30652591170826,0)" source=<TextOnly sourceIndex=106 elementIndex=4> className="ChantNotationElement TextOnly">
+        <text source-index=24 x=-85.30652591170826 y=28.85200000000001 style={} source=<Lyric sourceIndex=24> className="lyric" textAnchor="start" source-gabc="A long run of text only words, too wide for the line<br><e>and a smaller line</e>">
           <tspan source-index=0 style={} className=undefined fontSize=12.955854126679462>
             "A long run of text only words, too wide for the line"
-          <tspan source-index=59 style={newLine: 1, fontStyle: "italic"} dy="1.1em" x=-270 className=undefined fontSize=11.660268714011517>
+          <tspan source-index=59 style={newLine: 1, fontStyle: "italic"} dy="1.1em" x=-85.30652591170826 className=undefined fontSize=11.660268714011517>
             "and a smaller line"
         <g className="Notations">
           <use source-index=106 element-index=4 x=0 y=0 source=<TextOnly sourceIndex=106 elementIndex=4> className="" xlinkHref="#None">

@@ -62,13 +62,13 @@
 <rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="21" element-index="3" source="[object Object]" >
 </rect>
 </g>
-<g class="ChantNotationElement TextOnly" transform="translate(160,0)" >
-<text source-index="24" x="-152.56799999999998" y="28.85200000000001" class="lyric" text-anchor="start" style="" >
+<g class="ChantNotationElement TextOnly" transform="translate(107.13760000000002,0)" >
+<text source-index="24" x="-99.7056" y="28.85200000000001" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >Here is a very</tspan>
 <tspan source-index="0" style="" > long run of</tspan>
-<tspan source-index="0" style="newLine: true;" dy="1.1em" x="-152.56799999999998" >text only</tspan>
+<tspan source-index="0" style="newLine: true;" dy="1.1em" x="-99.7056" >text only</tspan>
 <tspan source-index="0" style="" > syllables</tspan>
-<tspan source-index="0" style="newLine: true;" dy="1.1em" x="-152.56799999999998" >that will not</tspan>
+<tspan source-index="0" style="newLine: true;" dy="1.1em" x="-99.7056" >that will not</tspan>
 <tspan source-index="0" style="" > fit</tspan>
 </text>
 <use xlink:href="#None" class="" source-index="89" element-index="4" x="0" y="0" >

@@ -2829,6 +2829,16 @@ interface BreakMatch {
   forced?: boolean;
 }
 
+// a line of a text element, as it's drawn
+interface TextLine {
+  /** the index in the spans' text where the line starts */
+  start: number;
+  /** the index in the spans' text where the line ends */
+  end: number;
+  /** the index in the element's text where the line starts */
+  textStart: number;
+}
+
 // the markup in a TextElement's text (see generateSpansFromText()), and the
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
@@ -3383,6 +3393,27 @@ export class TextElement extends ChantLayoutElement {
     } else {
       return width;
     }
+  }
+
+  /**
+   * The lines of the text, as they are drawn.  Where setMaxWidth() wrapped
+   * the text, the spans no longer have the whitespace that it broke the line
+   * at, though this.text still does.
+   */
+  getLines() {
+    var lines: TextLine[] = [],
+      index = 0,
+      textIndex = 0;
+    this.spans.forEach((span, i) => {
+      if (!i || span.newLine) {
+        if (span.newLine === true) textIndex += (span.wrappedSpace || " ").length;
+        lines.push({ start: index, end: index, textStart: textIndex });
+      }
+      index += span.text.length;
+      textIndex += span.text.length;
+      lines[lines.length - 1].end = index;
+    });
+    return lines;
   }
 
   recalculateMetrics(ctxt: ChantContext, resetNewLines = true) {
@@ -4111,6 +4142,31 @@ export class Lyric extends TextElement {
       x2,
       vowelSegmentWidth = this.widthWithoutConnector;
 
+    // svgTextMeasurer still has the current lyric in it...
+    var svgText =
+      ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
+        ? (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement)
+        : null;
+    var lines = this.getLines();
+    // the line that an index of this.text is on
+    var lineAt = (index: number) =>
+      lines.reduce((result, line) => (line.textStart <= index ? line : result));
+    // the x of an index of the spans' text, from the start of its line
+    var measure = (line: TextLine, index: number) =>
+      index <= line.start
+        ? 0
+        : svgText
+        ? svgText.getSubStringLength(line.start, index - line.start)
+        : this.measureSubstring(ctxt, index, false, true);
+    // the x of the start and the end of length characters of this.text from
+    // index, on the line that they start on (and so that they end on, at the
+    // latest)
+    var measureOnLine = (index: number, length: number) => {
+      let line = lineAt(index),
+        start = Math.min(line.end, line.start + index - line.textStart);
+      return [measure(line, start), measure(line, Math.min(line.end, start + length))];
+    };
+
     // some simple checks for sanity, and disable manual centering if the numbers are bad
     if (
       this.centerStartIndex >= 0 &&
@@ -4130,23 +4186,7 @@ export class Lyric extends TextElement {
     } else if (this.centerStartIndex >= 0) {
       // if we have manually overriden the centering logic for this lyric,
       // then always use that.
-      if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-        // svgTextMeasurer still has the current lyric in it...
-        x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-          0,
-          this.centerStartIndex
-        );
-        x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-          0,
-          this.centerStartIndex + this.centerLength
-        );
-      } else {
-        x1 = this.measureSubstring(ctxt, this.centerStartIndex);
-        x2 = this.measureSubstring(
-          ctxt,
-          this.centerStartIndex + this.centerLength
-        );
-      }
+      [x1, x2] = measureOnLine(this.centerStartIndex, this.centerLength);
       offset = (x1 + x2) / 2;
       vowelSegmentWidth = x2 - x1;
     } else {
@@ -4209,20 +4249,7 @@ export class Lyric extends TextElement {
             result.length = this.text.length - startIndex;
           }
         }
-        if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-          // svgTextMeasurer still has the current lyric in it...
-          x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-            0,
-            result.startIndex
-          );
-          x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-            0,
-            result.startIndex + result.length
-          );
-        } else {
-          x1 = this.measureSubstring(ctxt, result.startIndex);
-          x2 = this.measureSubstring(ctxt, result.startIndex + result.length);
-        }
+        [x1, x2] = measureOnLine(result.startIndex, result.length);
         offset = (x1 + x2) / 2;
         vowelSegmentWidth = x2 - x1;
       }
@@ -4244,14 +4271,13 @@ export class Lyric extends TextElement {
     ) {
       let factor = this.protrusion.factor;
       if (factor === undefined) factor = ctxt.defaultProtrusionFactor;
-      let start =
-        ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
-          ? // svgTextMeasurer still has the current lyric in it...
-            (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-              0,
-              protrusionIndex
-            )
-          : this.measureSubstring(ctxt, protrusionIndex);
+      // the right of the text before it: where it starts on its line, unless
+      // a line before that is wider
+      let line = lineAt(protrusionIndex);
+      let start = Math.max(
+        measureOnLine(protrusionIndex, 0)[0],
+        ...lines.slice(0, lines.indexOf(line)).map((before) => measure(before, before.end))
+      );
       this.protrusionWidth =
         Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
     }

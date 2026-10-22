@@ -301,6 +301,12 @@ export const featureCases: GoldenCase[] = [
     }
   },
   {
+    // the notes are centered on a vowel (after the last space) and on a {}
+    // that are on a second line, which is narrower than the first
+    name: "centering-after-line-breaks",
+    gabc: "(c4) Kýrie eléison<br>Lord have(f) mer(g)cy(h) Christe<br>e{lé}(g)i(h)son.(g) (::)"
+  },
+  {
     name: "elisions",
     gabc: "(c4) Glo(f)ri(g)<i>a</i>(h) in(g) ex(f)cél(g)sis(h) De(g)<i>o</i>(f) et(g) (::)"
   },
@@ -568,6 +574,12 @@ export const featureCases: GoldenCase[] = [
     name: "lyric-protrusion",
     width: 114,
     gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
+  },
+  {
+    // the same, with the period at the end of a second line
+    name: "lyric-protrusion-after-line-break",
+    width: 114,
+    gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<br>son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
   }
 ];
 
@@ -929,6 +941,18 @@ export const svgMeasuredCases: GoldenCase[] = [
   {
     ...featureCases.find((c) => c.name === "resized-lyric-with-sized-text")!,
     name: "svg-measured-resized-lyric",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "centering-after-line-breaks")!,
+    name: "svg-measured-centering-after-line-breaks",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "lyric-protrusion-after-line-break")!,
+    name: "svg-measured-protrusion-after-line-break",
     outputs: ["svg", "node"],
     strategy: "svg"
   },
