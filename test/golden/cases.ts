@@ -52,6 +52,20 @@ const salveRegina =
   "Ad(j) te(ji) cla(h)má(gh)mus,(g.) (,) éx(e)su(f)les,(g) fí(h)li(i)i(j) He(j)vae.(i.) (:) " +
   "Ad(i) te(h) su(ixh)spi(g)rá(f)mus,(e.) (,) ge(f)mén(g)tes(h) et(i) flen(j)tes(k) in(j) hac(i) la(h)cri(g)má(f)rum(e) val(f)le.(e.) (::)";
 
+// a text only lyric a little too wide for a line 270 wide, with a smaller line after a break
+const resizedLyricWithSizedText =
+  "(c4) Ky(f)ri(g)e(h) (,) A long run of text only words, too wide for the line<br><e>and a smaller line</e>() (::)";
+
+// headers for Gabc.applyHeader()
+const headerSettings =
+  "name: Ave Maria;\noffice-part: Antiphona;\nannotation: Ant.;\nannotation: VIII\nG;;\n" +
+  "staff-lines: 5;\nlanguage: English;\n%%\n" +
+  "(c4) A(f)ve(gh) Ma(h)ri(g)a,(f.) (;) gra(hj)ti(i)a(h) ple(gh)na(g.) (::)";
+
+const headerModeAnnotation =
+  "name: Ave Maria;\nmode: 8;\nmode-modifier: t.;\nmode-differentia: G*;\n%%\n" +
+  "(c4) A(f)ve(gh) Ma(h)ri(g)a,(f.) (;) gra(hj)ti(i)a(h) ple(gh)na(g.) (::)";
+
 export const featureCases: GoldenCase[] = [
   // ---- notes and neumes
   {
@@ -141,6 +155,16 @@ export const featureCases: GoldenCase[] = [
   {
     name: "brace-open-at-final-custos",
     gabc: "(c4) a(g[ob:1{]h+)"
+  },
+  {
+    // braces are drawn in the neume line color, not the staff line color
+    name: "brace-colors",
+    outputs: ["svg", "canvas"],
+    gabc: "(c4) a(f[ob:1{]g h[ob:0}]) b(f[ub:1{]gh[ub:0}]) c(f[ocba:1{]gh[ocba:0}]) d(g) (,_) e(f) (::)",
+    setupContext: (ctxt) => {
+      ctxt.neumeLineColor = "#111";
+      ctxt.staffLineColor = "#222";
+    }
   },
 
   // ---- accidentals and clefs
@@ -267,6 +291,32 @@ export const featureCases: GoldenCase[] = [
     gabc: "(c4) Ky<br>rie(f) e<br/>lé(g) son.<br><br>A(h) (::)"
   },
   {
+    // the lines after the breaks are in a smaller font, which spaces them less
+    name: "line-breaks-in-sized-text",
+    gabc: "(c4) Ky<br><e>rie</e>(f) e<br><br><e>lé</e>(g) son.(h) (::)",
+    setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br><e>ánimam meam</e>")
+  },
+  {
+    // a text only lyric squeezed to fit on the line, with smaller text in it
+    name: "resized-lyric-with-sized-text",
+    width: 270,
+    gabc: resizedLyricWithSizedText
+  },
+  {
+    name: "resized-lyric-with-px-sized-text",
+    width: 270,
+    gabc: resizedLyricWithSizedText,
+    setupContext: (ctxt) => {
+      ctxt.fontStyleDictionary.e = { "font-style": "italic", "font-size": "12px" };
+    }
+  },
+  {
+    // the notes are centered on a vowel (after the last space) and on a {}
+    // that are on a second line, which is narrower than the first
+    name: "centering-after-line-breaks",
+    gabc: "(c4) Kýrie eléison<br>Lord have(f) mer(g)cy(h) Christe<br>e{lé}(g)i(h)son.(g) (::)"
+  },
+  {
     name: "elisions",
     gabc: "(c4) Glo(f)ri(g)<i>a</i>(h) in(g) ex(f)cél(g)sis(h) De(g)<i>o</i>(f) et(g) (::)"
   },
@@ -305,8 +355,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the brackets, fusion, linea and
-    // quadratum are read but not drawn yet
+    // no notes are lost or made up; the brackets and fusion are read but
+    // not drawn yet (i is a linea, j a pes quadratum and o a bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -356,6 +406,261 @@ export const featureCases: GoldenCase[] = [
     // last (k is a torculus resupinus)
     name: "porrectus-wide",
     gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
+  },
+
+  // Gregorio: Phase 2
+  {
+    name: "bar-variants",
+    gabc:
+      "(c4) a(f) (^) b(g) (^0) c(h) (`0) d(g) (,0) e(f) (:?) f(g) (:') g(h) (;') h(g) (::') i(f) (,') j(g) (`') " +
+      "k(h) (,_') l(g) (;3') m(f) (fg^hg:?f) (::)"
+  },
+  {
+    // the last [nocustos] is where the line breaks at this width
+    name: "line-break-custos-control",
+    width: 200,
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (z) e(g)lé(f)i(e)son.(f) (z+) Chri(f)ste(g) (z-) e(h)lé(i)i(h)son.(g) (Z) Ky(f)ri(g)e(h) (Z+) " +
+      "e(g)lé(f) (Z-) i(e)son.(f) (;) Ky(f)ri(g)e(h[nocustos]) (z) e(g)lé(f)i(e)son.(f) (,) Chri(f)ste(g) " +
+      "Chri(f)ste(g) e(h [nocustos])lé(i)i(h)son.(g) (::)"
+  },
+  {
+    name: "line-break-custos-manual",
+    width: 200,
+    setupContext: (ctxt: any) => {
+      ctxt.eolCustos = "manual";
+    },
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (z) e(g)lé(f)i(e)son.(f) (z+) Chri(f)ste(g) (Z) e(h)lé(i)i(h)son.(g) (Z+) " +
+      "Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) Chri(f)ste(g) e(h)lé(i)i(h)son.(g) (::)"
+  },
+  {
+    name: "gregorio-spacing-codes",
+    gabc:
+      "(c4) a(f/0g) b(f/!g) c(f/g) d(f/[2]g) e(f/[0.5]g) f(f/[-1]g) g(f!/[2]g) h(f! g) i(f g) j(f//g) k(f///g) " +
+      "l(gh/[-2]ih) m(f!/0g!/!h) (::)"
+  },
+  {
+    // the line can only break before the hg that the /0, /! and "! " spaces keep together
+    name: "gregorio-spacing-codes-unbreakable",
+    width: 120,
+    gabc: "(c4) Ky(f)ri(gf/hg/fe/fg/hg/0hi/!hg! hg/!fe/0fg)e(f) e(gh/gf/ef/gh/ih/gf)lé(f)i(e)son.(f) (::)"
+  },
+  {
+    name: "neume-spacing-gregorio-widths",
+    setupContext: (ctxt: any) => {
+      ctxt.neumeSpaceMultipliers = { "/0": 0.5, "/!": 1, "/": 1, "//": 1.58, " ": 3.16 };
+    },
+    // neume-spacing's gabc, and the codes it doesn't have
+    gabc:
+      "(c4) a(f/g) b(f//g) c(f g) d(f!g) e(f!/g) f(f!//g) g(f///g) h(fg/hg) i(f/) j(g//) k(h ) l(f!/g!//h!i) m(f/ g) " +
+      "n(fg//hi) o(f/0g) p(f/!g) q(f/[2]g) r(f! g) (::)"
+  },
+  {
+    // each clef goes only at the start of the line after the break
+    name: "clef-change-before-break",
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (c3) (z) e(g)lé(f)i(e)son.(f) (::c4) (Z) Chri(f)ste(g) e(h)lé(i)i(h)son.(g) " +
+      "(z0) (;) (f3) (z+) Ky(f)ri(g)e(h) (cb3) (z-) e(g)lé(f)i(e)son.(f) (::)"
+  },
+  {
+    // without the areas, the lines would break after "ste" and after "ih"
+    name: "no-line-break-areas",
+    width: 190,
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (;) <nlba>Chri(f)ste(g) e(h)lé(i)i(h)son.(g)</nlba> (:) " +
+      "Ky(f)ri(g)e(h) e(hg<nlba>hi/hg/ih/ji</nlba>hg)lé(f)i(e)son.(f) (::)"
+  },
+  {
+    // the line breaks before the euouae, with no custos, rather than in it
+    name: "euouae",
+    width: 200,
+    gabc: "(c4) Gló(ehg)ri(hi)a(i) Pa(i)tri.(i) (:) Ky(f)ri(g)e(h) <eu>E(i) u(i!jwk) o(i) u(h) a(hhh) e(fe..)</eu> (::)"
+  },
+
+  // Gregorio: Phase 3
+  {
+    // clefs two lines or more apart are drawn one over the other, and clefs
+    // on neighboring lines one after the other, each with its flat; the
+    // pitches follow the first clef, and each line starts with both
+    name: "two-clefs",
+    gabc:
+      "(c1@c4) A(d)B(j) (c3) C(h) (f3@c4) D(h) (c2@c3) E(h) (cb4@cb2) F(h) (z) " +
+      "G(g) (c4@fb2) H(h) (c1@fb3) I(h) (::)"
+  },
+  {
+    // the annotation (the second written over two lines), the staff lines
+    // and the language, from the header
+    name: "header-settings",
+    useDropCap: true,
+    gabc: headerSettings,
+    setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerSettings))
+  },
+  {
+    // with no annotation header, the mode is the annotation
+    name: "header-mode-annotation",
+    useDropCap: true,
+    gabc: headerModeAnnotation,
+    setupScore: (score, ctxt, E) => E.Gabc.applyHeader(score, ctxt, new E.GabcHeader(headerModeAnnotation))
+  },
+
+  // Gregorio: Phase 4
+  {
+    // an elision counts as consonants when centering: at the start, in the
+    // middle and at the end of a syllable, and as the whole of one
+    name: "elision-tags",
+    gabc:
+      "(c4) <e>A</e>ve(f) ma(g)ri<e>a</e>(h) <e>et</e>(g) qu<e>e</e>(f) mon(g)str<e>a</e> te(h) " +
+      "s<e>a</e>n(g)ctum(f) (::)"
+  },
+  {
+    // a ~ drawn as an undertie, centered on the syllable's first vowel
+    name: "lyric-tie",
+    gabc: "(c4) Glo(f)ri(g)a~in(h) ex(g)cel(f)sis(g) De~o(h) <sp>~</sp>(g) (::)",
+    setupContext: (ctxt) => (ctxt.lyricTie = "undertie")
+  },
+  {
+    // after the drop cap: the first word in small caps, its first syllable in
+    // bold and that syllable's first letter in red, with the lyric's own
+    // markup (the italics) kept
+    name: "first-syllable-styles",
+    useDropCap: true,
+    gabc: "(c4) Glo(f)<i>ri</i>(g)a(h) in(g) ex(f)cél(g)sis(h) (::)",
+    setupContext: (ctxt) => {
+      ctxt.firstWordStyle = { "font-variant": "small-caps" };
+      ctxt.firstSyllableStyle = { "font-weight": "bold" };
+      ctxt.firstSyllableInitialStyle = { fill: "#d00" };
+    }
+  },
+  {
+    // ő and ű are vowels, which the Latin rules don't know
+    name: "language-hungarian",
+    gabc: "(c4) Üd(f)vöz(g)légy,(h) sző(g)lő(f) fű(g) nyűg(h) Ö(g)rök(f)ké(g) (::)",
+    setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.hungarian)
+  },
+  {
+    // the Czech and Polish that Gregorio's Church Slavonic rules are for, with
+    // syllables centered on a syllabic l or r, which have no vowel
+    name: "language-church-slavonic",
+    gabc: "(c4) Hos(f)po(g)di(h)ne,(g) po(f)mi(g)luj(h) ny.(g) (;) Smrt(f) vlk(g) Świę(h)ty(g) Bůh(f) (::)",
+    setupContext: (ctxt, E) => (ctxt.defaultLanguage = E.language.churchSlavonic)
+  },
+  {
+    // TeX commands that have no meaning outside TeX are left out of verbatim
+    // text, rather than printed, though the text of their arguments is kept
+    // (except for spacing); Gregorio's symbol commands, accents and escaped
+    // characters are drawn
+    name: "verbatim-unknown",
+    gabc:
+      "(c4) a<v>\\textit{b}</v>c(f) <v>\\hspace{1em}</v>d(g) <v>{\\bf e}</v>(h) <v>\\GreStar</v>(g) " +
+      "<v>\\'e\\&\\%</v>(f) <v>\\GreDagger{}</v>(g) <v>\\greextra{StarHeight}</v>(h) (::)"
+  },
+  {
+    // above-lines text and translations are in italics already, and keep the
+    // text before (and between) any italic markup of their own
+    name: "alt-text-markup",
+    gabc:
+      "(c4) <alt><b>Bold</b> <i>it</i> plain</alt>Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (,) " +
+      "[alt:<b>B</b> and <i>i</i>]Chri[<b>Christ</b> <i>have</i> mercy](g)ste(h) (::)"
+  },
+  {
+    // translations centered under their syllables, except one ended with [/]
+    name: "translation-centered",
+    gabc:
+      "(c4) Ky[Lord](f)ri(g)e(h) e[have mercy](g)lé(f)i(e)son.[on us](f) (,) " +
+      "Chri[Christ, have mercy](f)ste(g) e(h)lé(g)i(f)son[/](e) (::)",
+    setupContext: (ctxt) => (ctxt.translationCentering = "center")
+  },
+  {
+    // the same syllables without and with <clear>: with it, the text doesn't
+    // reach back under the notes before it
+    name: "lyric-clear",
+    gabc:
+      "(c4) Ky(fgfh) e(hih) Chri(g)ste(h) Ky(fgfh) e(hih) <clear>Chri(g)ste(h) (,) " +
+      "a(f) Sanctus(g) a(f) <clear>Sanctus(g) (::)"
+  },
+  {
+    // "son." only fits on the first line because its period may go past the
+    // end of the staff, and the svg is made wider for it
+    name: "lyric-protrusion",
+    width: 114,
+    gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
+  },
+  {
+    // the same, with the period at the end of a second line
+    name: "lyric-protrusion-after-line-break",
+    width: 114,
+    gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<br>son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
+  },
+
+  // Gregorio: Phase 5
+  {
+    // an oriscus scapus has a stem down on its left, unless it's joined to a
+    // lower punctum before it (f-h, and the salicus i-j); as in Gregorio, a
+    // pes quassus (e) has no stem, and k's g after a higher note isn't joined
+    name: "oriscus-scapus",
+    gabc:
+      "(c4) a(gO) b(fO) c(gOf) d(hOe) e(fOg) f(fgO) g(dgO) h(e_gO_) i(egOi) j(egOih) k(hgO) l(gO<) m(gO>) (::)"
+  },
+  {
+    // an oriscus points to the first note after it that isn't at the unison,
+    // even in a later syllable (a, b, i, l), and down if there's none (n); o1
+    // and o0 (and exsurge's o< and o>) point it up or down, even in a clivis
+    // (e, g) or a pes quassus (f, h)
+    name: "oriscus-orientation",
+    gabc:
+      "(c4) a(gogh) b(go)(g)(f) c(go1)(f) d(go0)(h) e(go1f) f(fo0g) g(gO1f) h(fO0g) i(gogoh) " +
+      "j(go<)(f) k(go>)(h) l(egO)(g)(h) m(egO0)(h) n(go) (::)"
+  },
+  {
+    // the q note starts a new neume (i, p) and ends it with the next note if
+    // that's higher (j); if it's lower, the q does nothing (k, l), as in
+    // Gregorio; a liquescent pes quadratum is drawn as a pes is (g, h)
+    name: "pes-quadratum",
+    gabc:
+      "(c4) a(fqg) b(gqh) c(fqh) d(eqi) e(-fqg) f(-fqh) g(fqg<) h(fqg~) i(gfqh) j(fqgh) k(gqf) l(gqfg) " +
+      "m(fqgv) n(f_qg_) o(f.qg.) p(efqg) (::)"
+  },
+  {
+    // a linea is a flat bar between two lines, and a neume of its own (c),
+    // whatever shape it's given (d); its markings go by the bar; i is a
+    // punctum between lines (gabc R), to compare
+    name: "linea",
+    gabc: "(c4) a(g=) b(f=) c(fg=h) d(gv=) e(g=_) f(f=_0) g(g=.) h(g=') i(gR) j(b=) k(l=) (::)"
+  },
+  {
+    // [shape:stroke] on a clivis's second note draws it as the stroke that a
+    // porrectus (e) starts with (a-d, i-k); as in Gregorio, it does nothing
+    // on a liquescent (f), an oriscus (g) or the first note (h)
+    name: "clivis-stroke",
+    gabc:
+      "(c4) a(gf[shape:stroke]) b(hf[shape:stroke]) c(if[shape:stroke]) d(jf[shape:stroke]) e(gfg) " +
+      "f(gf~[shape:stroke]) g(gof[shape:stroke]) h(g[shape:stroke]f) i(hf[shape:x,stroke]) " +
+      "j(h_f_[shape:stroke]) k(h'f.[shape:stroke]) (::)"
+  },
+  {
+    // [ll:0] gives a stem on the bottom line the short length (c, j; the
+    // first hint counts, d), and [ll:1] the long one it has anyway (b);
+    // [ll:1] and [hl:1] place an episema below c (f, g) or above k (i) as if
+    // there were a ledger line there
+    name: "ledger-line-hints",
+    gabc:
+      "(c4) a(dv) b(dv[ll:1]) c(dv[ll:0]) d(dv[ll:0][ll:1]) e(c_0) f(c_0[ll:1]) g(dc_0[ll:1]) h(k_) " +
+      "i(k_[hl:1]) j(dO[ll:0]) k(dO) (::)"
+  },
+  {
+    // a brace given a length in any TeX unit is drawn, as one in mm (e) is:
+    // to the next note
+    name: "brace-units",
+    gabc:
+      "(c4) a(f[ob:0;0.5cm]g) b(g[ub:1;0.3in]h) c(f[ocb:1;10pt]gh) d(h[ocba:0;1,5em]g) e(f[ob:1;6mm]g) " +
+      "f(f[ob:1;\\gre@dimen]g) (::)"
+  },
+  {
+    // Gregorio reads VV and VVV as vv and vvv (b-e): a bivirga or trivirga of
+    // virgas that aren't reversed, unlike a lone V (a)
+    name: "virga-reversa-repeated",
+    gabc: "(c4) a(gV) b(gVV) c(gvv) d(gVVV) e(gvvv) f(gVV_) g(dVV) h(gVV.) (::)"
   },
 
   // Gregorio: Phase 6
@@ -505,6 +810,16 @@ export const settingCases: GoldenCase[] = [
     setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.", "VIII", "g", "<b>x</b>"))
   },
   {
+    // an annotation after one with a line break goes below the other's last
+    // line, which is spaced by its own (90%) size
+    name: "annotations-with-line-breaks",
+    outputs: allOutputs,
+    gabc: "(c4) A(f)ve(g) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => ctxt.setStaffHeight(30),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.<br><e>VIII</e>", "g"))
+  },
+  {
     name: "annotation-merged-into-text-left",
     outputs: allOutputs,
     gabc: kyrie,
@@ -621,6 +936,30 @@ export const settingCases: GoldenCase[] = [
       ctxt.textStyles.translation.prefix = "<sc>";
       ctxt.textStyles.translation.color = "#060";
     }
+  },
+  {
+    // the lines of a lyric, of a wrapped text only lyric and of the title are
+    // as far apart as their text styles' line heights
+    name: "line-height-with-line-breaks",
+    outputs: allOutputs,
+    width: 300,
+    gabc:
+      "(c4) Ky<br>rie(f) e<br/>lé(g) son.<br><br>A(h) (,) " +
+      "Here is a very long run of text only syllables that will not fit() on the line() (::)",
+    setupContext: (ctxt) => {
+      ctxt.textStyles.lyric.lineHeight = 1.5;
+      ctxt.textStyles.title.lineHeight = 1.3;
+    },
+    setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br>ánimam meam")
+  },
+  {
+    // annotations are as far apart as the annotation text style's line height
+    name: "annotation-line-height",
+    outputs: allOutputs,
+    gabc: kyrie,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.textStyles.annotation.lineHeight = 1.6),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.", "VIII", "g"))
   },
   {
     name: "special-character-settings",
@@ -768,6 +1107,42 @@ export const svgMeasuredCases: GoldenCase[] = [
   {
     ...featureCases.find((c) => c.name === "lyric-centering")!,
     name: "svg-measured-centering",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "line-breaks-in-sized-text")!,
+    name: "svg-measured-sized-line-breaks",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "resized-lyric-with-sized-text")!,
+    name: "svg-measured-resized-lyric",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "centering-after-line-breaks")!,
+    name: "svg-measured-centering-after-line-breaks",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "lyric-protrusion-after-line-break")!,
+    name: "svg-measured-protrusion-after-line-break",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "extra-text-only-lines")!,
+    name: "svg-measured-extra-text-only-lines",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...settingCases.find((c) => c.name === "line-height-with-line-breaks")!,
+    name: "svg-measured-line-height",
     outputs: ["svg", "node"],
     strategy: "svg"
   },

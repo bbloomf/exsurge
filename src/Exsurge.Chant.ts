@@ -136,9 +136,30 @@ export class Note extends ChantLayoutElement {
   alText?: AboveLinesText;
   /** the number of stems of a punctum inclinatum (gabc |) */
   inclinataFlags?: number;
+  /**
+   * Gregorio's shape hints for the neume the note ends (gabc [shape:…]), as
+   * a list separated by commas.  The one there is, stroke, draws a clivis as
+   * the stroke a porrectus starts with.
+   */
+  shapeHint?: string;
+  /**
+   * Gregorio's ledger-line hint below the note (gabc [ll:1] or [ll:0]):
+   * whether to draw its virga stem and place its episemata as if there were
+   * a ledger line below it, whatever ledger lines there are
+   */
+  lowLedgerLine?: boolean;
+  /** the same above the note (gabc [hl:1] or [hl:0]), for its episemata */
+  highLedgerLine?: boolean;
+  /** leaves out the custos of a line that breaks after the note (gabc [nocustos]) */
+  noCustos?: boolean;
+  /**
+   * leaves out the custos of a line that breaks before the note, after a
+   * [nocustos] with no note before it in its notes
+   */
+  noCustosBefore?: boolean;
 
-  // Gregorio's notation that's read but not drawn yet (see
-  // docs/gregorio-feature-gap.md, Phase 1)
+  // Gregorio's notation read since Phase 1 of docs/gregorio-feature-gap.md,
+  // not all of it drawn yet
   /** a bracket (gabc [[) starts at the note */
   bracketStart?: boolean;
   /** a bracket (gabc ]]) ends at the note */
@@ -154,7 +175,7 @@ export class Note extends ChantLayoutElement {
   fused?: boolean;
   /** whether an automatic fusion (gabc @[…]) starts or ends at the note */
   autoFusion?: AreaBoundary;
-  /** a linea (gabc =), drawn as a punctum for now */
+  /** a linea (gabc =), a flat bar between two lines, a neume of its own */
   linea?: boolean;
   /** the first note of a pes quadratum (gabc q) */
   quadratum?: boolean;
@@ -288,6 +309,11 @@ export class Clef extends ChantNotationElement {
   sans?: boolean;
   /** the clef that this clef (at the start of a line) is a copy of */
   model?: Clef;
+  /**
+   * the second clef of a pair (gabc c1@c4), which is drawn with this one;
+   * the pitches follow this one
+   */
+  secondClef?: Clef;
 
   constructor(staffPosition: number, octave: number, defaultAccidental: Accidental | null = null) {
     super();
@@ -326,7 +352,35 @@ export class Clef extends ChantNotationElement {
       this.addVisualizer(accidentalGlyph);
     }
 
+    if (this.secondClef) this.addSecondClef(ctxt);
+
     super.finishLayout(ctxt);
+  }
+
+  // takes the glyphs away after a layout, for ctxt.clefVisibility: an
+  // invisible clef has no width, and a phantom one keeps its width
+  hide(ctxt: ChantContext) {
+    this.visualizers = [];
+    if (ctxt.clefVisibility === "invisible") this.bounds.width = 0;
+  }
+
+  // adds the glyphs of the second clef, placed as Gregorio places them
+  // (gre@boxclef in gregoriotex-signs.tex): clefs two or more lines apart
+  // start at the same x, and clefs on the same or neighboring lines go one
+  // after the other
+  private addSecondClef(ctxt: ChantContext) {
+    var secondClef = this.secondClef!;
+    secondClef.performLayout(ctxt);
+    ctxt.activeClef = this;
+
+    var x =
+      Math.abs(secondClef.staffPosition - this.staffPosition) > 2
+        ? 0
+        : this.bounds.right() + ctxt.intraNeumeSpacing;
+    for (var visualizer of secondClef.visualizers) {
+      visualizer.bounds.x += x;
+      this.addVisualizer(visualizer);
+    }
   }
 
   static default(): Clef {
@@ -346,6 +400,8 @@ export class Clef extends ChantNotationElement {
     );
     clone.small = this.small;
     clone.sans = this.sans;
+    // (a copy, since laying a clef out lays its second clef out too)
+    clone.secondClef = this.secondClef && this.secondClef.clone();
     clone.sourceGabc = this.sourceGabc;
     clone.sourceIndex = this.sourceIndex;
     clone.elementIndex = this.elementIndex;
@@ -564,14 +620,23 @@ export class TextOnly extends ChantNotationElement {
   }
 }
 
+/**
+ * whether a line break ends its line with a custos: "auto" if
+ * ChantContext.eolCustos says so (gabc z or Z), "force" to always (z+ or Z+)
+ * or "none" to never (z- or Z-)
+ */
+export type LineBreakCustos = "auto" | "force" | "none";
+
 export class ChantLineBreak extends ChantNotationElement {
   /** whether to justify the line that it ends */
   justify?: boolean;
+  custos: LineBreakCustos;
 
-  constructor(justify?: boolean) {
+  constructor(justify?: boolean, custos: LineBreakCustos = "auto") {
     super();
     this.calculatedTrailingSpace = this.trailingSpace = 0;
     this.justify = justify;
+    this.custos = custos;
   }
 
   performLayout(ctxt: ChantContext) {
@@ -582,6 +647,7 @@ export class ChantLineBreak extends ChantNotationElement {
   clone() {
     var lb = new ChantLineBreak();
     lb.justify = this.justify;
+    lb.custos = this.custos;
 
     return lb;
   }
@@ -664,6 +730,12 @@ export class ChantScore {
    */
   notes: Array<Note | ChantNotationElement>;
   notations!: ChantNotationElement[];
+  /**
+   * for each notation, whether a Gregorio no-line-break or euouae area keeps
+   * it with the next one; worked out by ChantLine.keepsInArea() during
+   * layoutChantLines()
+   */
+  keptInAreas?: boolean[] | null;
   staffLineCount: number;
   titles?: Titles;
   startingClef: Clef;
@@ -690,6 +762,8 @@ export class ChantScore {
   insertionElement?: ChantNotationElement | null;
   /** the annotation and left text together, when they're merged */
   overrideTextLeft?: TextLeftRight | null;
+  /** the lyrics given the first word's styles (see updateFirstWordStyles()) */
+  firstWordLyrics?: Lyric[];
   svg?: SvgElementWithSource;
 
   // mappings is an array of ChantMappings.
@@ -859,6 +933,7 @@ export class ChantScore {
     // update drop cap
     if (this.useDropCap) this.recreateDropCap(ctxt);
     else this.dropCap = null;
+    this.updateFirstWordStyles(ctxt);
 
     this.needsLayout = true;
   }
@@ -876,16 +951,56 @@ export class ChantScore {
       ) {
         let notation = this.notations[i],
           lyrics = notation.lyrics[0];
+        // a new drop cap is taken from the lyric without the first word's styles
+        if (!this.useDropCap || !lyrics.dropCap)
+          lyrics.setFirstWordStyles(ctxt, null);
         if (this.useDropCap) {
           this.dropCap = lyrics.generateDropCap(ctxt);
         } else {
+          // give the lyric back the letter that its drop cap took
+          if (lyrics.dropCap) {
+            lyrics.sourceIndex -= lyrics.dropCap.sourceGabc!.length;
+            lyrics.sourceGabc = lyrics.dropCap.sourceGabc + lyrics.sourceGabc!;
+            lyrics.centerStartIndex++;
+          }
           lyrics.dropCap = null;
           lyrics.generateSpansFromText(ctxt, lyrics.originalText);
         }
         notation.needsLayout = true;
+        this.updateFirstWordStyles(ctxt);
         return;
       }
     }
+  }
+
+  /**
+   * Gives the lyrics of the first word ctxt.firstWordStyle, and the first
+   * syllable (after any drop cap) ctxt.firstSyllableStyle and
+   * ctxt.firstSyllableInitialStyle, taking them from any lyrics that had them
+   * but are no longer the first word.
+   */
+  updateFirstWordStyles(ctxt: ChantContext) {
+    const lyrics: Lyric[] = [];
+    for (const notation of this.notations) {
+      const lyric = notation.hasLyrics() ? notation.lyrics[0] : null;
+      if (!lyric || !lyric.spans || !lyric.spans.length) continue;
+      lyrics.push(lyric);
+      // the first word ends with its last syllable (or a directive)
+      if (
+        lyric.lyricType !== LyricType.BeginningSyllable &&
+        lyric.lyricType !== LyricType.MiddleSyllable
+      )
+        break;
+    }
+    for (const lyric of this.firstWordLyrics || []) {
+      if (!lyrics.includes(lyric) && lyric.setFirstWordStyles(ctxt, null))
+        lyric.notation.needsLayout = true;
+    }
+    lyrics.forEach((lyric, i) => {
+      if (lyric.setFirstWordStyles(ctxt, i === 0 ? "syllable" : "word"))
+        lyric.notation.needsLayout = true;
+    });
+    this.firstWordLyrics = lyrics;
   }
 
   /**
@@ -1077,6 +1192,7 @@ export class ChantScore {
     finishedCallback?: (score: ChantScore) => void
   ) {
     this.lines = [];
+    this.keptInAreas = null;
     ctxt.noticeFontChanges();
 
     if (ctxt.mergeAnnotationWithTextLeft && this.annotation && !this.dropCap) {
@@ -1120,7 +1236,8 @@ export class ChantScore {
 
     this.bounds.x = 0;
     this.bounds.y = 0;
-    this.bounds.width = firstLine.bounds.width;
+    // (a line is wider than the first when a lyric protrudes past its staff)
+    this.bounds.width = Math.max(...this.lines.map((line) => line.bounds.width));
     this.bounds.height = y - spaceBetweenSystems;
 
     this.pages = [this];

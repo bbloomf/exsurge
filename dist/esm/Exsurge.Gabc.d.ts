@@ -1,5 +1,5 @@
 import { LyricType, Lyric } from "./Exsurge.Drawing.js";
-import { Note, ChantMapping, Clef } from "./Exsurge.Chant.js";
+import { Note, ChantMapping, type MarksForNext, ChantScore, Clef } from "./Exsurge.Chant.js";
 import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
@@ -46,10 +46,91 @@ export interface GabcHeaderConstructor {
     getLength(gabc: string): number;
 }
 export declare const GabcHeader: GabcHeaderConstructor;
+/**
+ * Which headers Gabc.applyHeader() applies.  Each is applied unless it is
+ * set to false, except the legacy ones, which are only applied if legacy is
+ * set to true.
+ */
+export interface ApplyHeaderOptions {
+    /** annotation, as the score's annotation */
+    annotation?: boolean;
+    /**
+     * mode, mode-modifier and mode-differentia, as the score's annotation, if
+     * the header has no annotation
+     */
+    mode?: boolean;
+    /** staff-lines, as the score's staffLineCount */
+    staffLines?: boolean;
+    /** language, as the language of the score's lyrics */
+    language?: boolean;
+    /**
+     * the headers that Gregorio no longer reads: initial-style, as the score's
+     * useDropCap, and centering-scheme, as the language of the score's lyrics
+     */
+    legacy?: boolean;
+}
 export declare class Gabc {
     /** a brace given a length rather than an end, which the next note ends */
     static needToEndBrace?: Markings.BracePoint;
+    /** what the gabc parsed last leaves for the next notes and syllable (see createMappingFromWord()) */
+    static marksForNext: MarksForNext;
     static createMappingsFromSource(ctxt: ChantContext, gabcSource: string): ChantMapping[];
+    /** the number of lines of NABC that a gabc file's header gives (nabc-lines) */
+    static getNabcLines(gabc: string, headerLength?: number): number;
+    /**
+     * Splits a syllable's notes into gabc and Gregorio's NABC, when there are
+     * nabcLines lines of NABC.  As in Gregorio, the parts between the |s take
+     * turns: gabc, then the NABC of each line, then gabc again.  Returns the
+     * notes with the NABC and the |s masked (keeping their length), but with a
+     * / at a | between two parts of gabc, which Gregorio makes separate
+     * elements, and each part of gabc that has NABC, by where it starts in the
+     * notes, and where it put the /s.  The NABC of a part of gabc that's empty,
+     * which Gregorio gives an element of its own, goes with the part before it,
+     * after a / (a space in NABC).
+     */
+    static splitNabc(data: string, nabcLines: number): {
+        gabc: string;
+        cuts: number[];
+        parts: {
+            index: number;
+            nabc: string[];
+        }[];
+    };
+    /**
+     * Applies the settings in a gabc header to a score, as Gregorio does.
+     * exsurge doesn't otherwise read them, so call this after making the score,
+     * and again after updating its mappings (so that new lyrics get the
+     * header's language, and changes to the header take effect).  The score
+     * is then laid out again where it needs to be.
+     *
+     * - annotation: the first two, one line each, as the score's annotation.
+     * - mode, mode-modifier and mode-differentia, if there is no annotation
+     *   header: one line, as the score's annotation (see modeText()).
+     * - staff-lines: 2 to 5, as the score's staffLineCount.
+     * - language: Latin, English, Spanish, Church Slavonic (also for Polish,
+     *   Czech and Slovak, as in Gregorio) or Hungarian, by name or ISO 639
+     *   code, as the language of the score's lyrics, so that ctxt.defaultLanguage stays as
+     *   it is for other scores.  A language that exsurge doesn't have leaves
+     *   them as they are.
+     * - with options.legacy, the headers that Gregorio no longer reads:
+     *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
+     *   useDropCap, and centering-scheme (latine or english) as the language
+     *   of the score's lyrics, in place of the language header.
+     *
+     * A score that already has an annotation that this didn't make keeps it,
+     * and gets no mode line, as in Gregorio, where an annotation set in TeX
+     * wins over the header.
+     */
+    static applyHeader(score: ChantScore, ctxt: ChantContext, header: GabcHeader, options?: ApplyHeaderOptions): void;
+    /**
+     * The mode line that Gregorio writes above the initial when there is no
+     * annotation (\GreMode): the mode, then the modifier and the differentia,
+     * each after a space unless it starts with punctuation.  A mode that
+     * starts with a number from 1 to 8 has it written in ctxt.modeNumberSystem
+     * ("8" is VIII, "4A" is IVA); any other mode is written as it is.  With no
+     * mode, the modifier and differentia aren't written either.
+     */
+    static modeText(ctxt: ChantContext, mode: string, modifier?: string, differentia?: string): string;
     static diffDescriptorsAndNewWords<Descriptor extends {
         source: string;
     }>(before: Descriptor[], after: string[]): WordDiff<Descriptor>[];
@@ -66,6 +147,7 @@ export declare class Gabc {
     static createSyllableLyrics(ctxt: ChantContext, text: string, proposedLyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric[];
     static makeLyric(ctxt: ChantContext, text: string, lyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric;
     static parseNotations(ctxt: ChantContext, data: string, sourceIndex: number, insertionIndex?: number): ChantNotationElement[];
+    static createClef(type: string, line: number, flat: boolean): Clef;
     static createNeumesFromNotes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace): Neumes.Neume[];
     static createNoteFromData(ctxt: ChantContext, clef: Clef, data: string, notes: Note[], sourceIndex: number): void;
     static processInstructionForNote(ctxt: ChantContext, note: Note, instruction: string, sourceIndexOffset: number): void;
@@ -96,8 +178,9 @@ export declare class Gabc {
      *
      * @param {*} note to set staffPosition and staffPositionOffset on
      * @param {*} gabcAtom gabc letter from a to m with modifiers
+     * @param {*} clef the clef the note is under: only under a Chi-Rho clef do 0 and 9 nudge it
      */
-    static setStaffPositionAndOffset(note: Note | Signs.Custos, gabcAtom: string): void;
+    static setStaffPositionAndOffset(note: Note | Signs.Custos, gabcAtom: string, clef: Clef): void;
 }
 export {};
 //# sourceMappingURL=Exsurge.Gabc.d.ts.map

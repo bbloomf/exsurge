@@ -176,6 +176,8 @@ class NeumeBuilder {
       this.lastNote !== null &&
       (this.ctxt.glyphMultiplier < 1 ||
         this.lineIsHanging ||
+        // (an oriscus scapus's stem, even a second above)
+        (note.shapeModifiers & NoteShapeModifiers.Stemmed) !== 0 ||
         (this.lastNote.glyphVisualizer &&
           this.lastNote.glyphVisualizer.align === "right") ||
         Math.abs(this.lastNote.staffPosition - note.staffPosition) > 1);
@@ -244,6 +246,49 @@ class NeumeBuilder {
     }
     this.neume.addVisualizer(line);
 
+    this.lastNote = note;
+    this.lineIsHanging = false;
+
+    return this;
+  }
+
+  // adds an oriscus with the glyph given (OriscusAsc or OriscusDes).  an
+  // oriscus scapus (gabc O) also gets a stem down on its left, like a virga
+  // reversa's, as in Gregorio's OriscusScapus glyphs.  (where an oriscus
+  // scapus is joined to the lower note before it, the line joining them is
+  // its stem, so it's added with noteAt() instead)
+  oriscusAt(note: Note, glyph: GlyphCode, withLineTo = true) {
+    this.noteAt(note, glyph, withLineTo);
+
+    if (note.shapeModifiers & NoteShapeModifiers.Stemmed) {
+      var line = new VirgaLineVisualizer(this.ctxt, note);
+      line.bounds.x = note.bounds.x;
+      this.neume.addVisualizer(line);
+    }
+
+    return this;
+  }
+
+  // adds a linea (gabc =), a flat bar between two lines, as Gregorio's Linea
+  // glyph is.  the note's glyph (Linea) draws nothing, but the note has the
+  // bar's bounds, which its markings go by
+  lineaAt(note: Note) {
+    note.setGlyph(this.ctxt, GlyphCode.Linea);
+
+    var linea = new LineaVisualizer(this.ctxt, note, true);
+    linea.bounds.x = this.x;
+    this.neume.addVisualizer(linea);
+
+    note.bounds.x = linea.bounds.x + linea.origin.x;
+    note.bounds.y = linea.bounds.y + linea.bar!.y;
+    note.bounds.width = linea.bounds.width - linea.origin.x * 2;
+    note.bounds.height = linea.bar!.height;
+    // (as noteAt() does for the lines around a punctum, from the left of the lines)
+    note.origin.x = linea.origin.x + note.bounds.width / 2;
+    note.origin.y = note.bounds.height / 2;
+    this.neume.addVisualizer(note);
+
+    this.x += linea.bounds.width;
     this.lastNote = note;
     this.lineIsHanging = false;
 
@@ -321,7 +366,7 @@ class NeumeBuilder {
 
   withClivisUpper(upper: Note, lower?: Note | null, glyph: GlyphCode = GlyphCode.PunctumQuadratum) {
     if (upper.shape === NoteShape.Oriscus)
-      this.noteAt(upper, GlyphCode.OriscusDes, false);
+      this.oriscusAt(upper, Oriscus.getGlyphCode(upper, false), false);
     else {
       if (lower) {
         this.lineFrom(lower);
@@ -887,7 +932,17 @@ export class Clivis extends Neume {
     var upper = this.notes[0];
     var lower = this.notes[1];
 
-    this.build(ctxt).withClivis(upper, lower);
+    // Gregorio's [shape:stroke] hint on the lower note draws a clivis (but
+    // not one with an oriscus or a liquescent) as the stroke a porrectus
+    // starts with, with its stem
+    if (
+      upper.shape === NoteShape.Default &&
+      lower.liquescent === LiquescentType.None &&
+      lower.shapeHint &&
+      lower.shapeHint.split(",").includes("stroke")
+    )
+      this.build(ctxt).lineFrom(lower).withPorrectusSwash(upper, lower);
+    else this.build(ctxt).withClivis(upper, lower);
 
     this.finishLayout(ctxt);
   }
@@ -976,46 +1031,126 @@ export class Oriscus extends Neume {
 
     if (note.liquescent !== LiquescentType.None) {
       glyph = GlyphCode.OriscusLiquescent;
-    } else {
-      if (note.shapeModifiers & NoteShapeModifiers.Ascending)
-        glyph = GlyphCode.OriscusAsc;
-      else if (note.shapeModifiers & NoteShapeModifiers.Descending)
-        glyph = GlyphCode.OriscusDes;
-      else {
-        // by default we take the descending form, unless we can figure out by a lookahead here
-        glyph = GlyphCode.OriscusDes;
+    } else glyph = Oriscus.getLastNoteGlyphCode(ctxt, note);
 
-        // try to find a neume following this one
-        var neume = ctxt.findNextNeume();
-
-        if (neume) {
-          var nextNoteStaffPosition = ctxt.activeClef.pitchToStaffPosition(
-            neume.notes[0].pitch!
-          );
-
-          if (nextNoteStaffPosition > note.staffPosition)
-            glyph = GlyphCode.OriscusAsc;
-        }
-      }
-    }
-
-    this.build(ctxt).noteAt(note, glyph);
+    this.build(ctxt).oriscusAt(note, glyph);
 
     this.finishLayout(ctxt);
   }
 
   resetDependencies() {
-    // a single oriscus tries to automatically use the right direction
-    // based on the following neumes. if we don't have a manually designated
-    // direction, then we reset our layout so that we can try to guess it
-    // at next layout phase.
-    if (
-      this.notes[0].shapeModifiers & NoteShapeModifiers.Ascending ||
-      this.notes[0].shapeModifiers & NoteShapeModifiers.Descending
-    )
-      return;
+    if (Oriscus.pointsToNextNeume(this.notes[0])) this.needsLayout = true;
+  }
 
-    this.needsLayout = true;
+  // OriscusAsc or OriscusDes: as gabc o1 or o0 (or o< or o>) designates, or
+  // else pointing up if the note it points to is higher
+  static getGlyphCode(note: Note, pointsToHigherNote: boolean) {
+    if (note.shapeModifiers & NoteShapeModifiers.Ascending)
+      return GlyphCode.OriscusAsc;
+    else if (note.shapeModifiers & NoteShapeModifiers.Descending)
+      return GlyphCode.OriscusDes;
+    else if (pointsToHigherNote) return GlyphCode.OriscusAsc;
+    else return GlyphCode.OriscusDes;
+  }
+
+  // the glyph for an oriscus that ends its neume, which points, as in
+  // Gregorio, to the first note after it that isn't at the unison, however
+  // many neumes on, or down if there's none
+  static getLastNoteGlyphCode(ctxt: ChantContext, note: Note) {
+    var staffPosition = ctxt.activeClef.pitchToStaffPosition(note.pitch!);
+
+    for (var i = ctxt.currNotationIndex + 1; i < ctxt.notations!.length; i++) {
+      var notation = ctxt.notations![i];
+
+      if (!notation.isNeume || notation.hasNoWidth) continue;
+
+      for (var nextNote of notation.notes!) {
+        var nextStaffPosition = ctxt.activeClef.pitchToStaffPosition(
+          nextNote.pitch!
+        );
+
+        if (nextStaffPosition !== staffPosition)
+          return Oriscus.getGlyphCode(note, nextStaffPosition > staffPosition);
+      }
+    }
+
+    return Oriscus.getGlyphCode(note, false);
+  }
+
+  // an oriscus at the end of its neume tries to automatically use the right
+  // direction based on the following neumes. if we don't have a manually
+  // designated direction, then its neume resets its layout so that we can
+  // try to guess it at next layout phase.
+  static pointsToNextNeume(note: Note) {
+    return !(
+      note.shapeModifiers & NoteShapeModifiers.Ascending ||
+      note.shapeModifiers & NoteShapeModifiers.Descending
+    );
+  }
+}
+
+/*
+ * PesOriscus
+ *
+ * A punctum and an oriscus scapus above it (gabc egO), joined by a line, which
+ * is the oriscus's stem (Gregorio's pes ascendens or descendens oriscus). The
+ * oriscus points the way a lone oriscus does.
+ */
+export class PesOriscus extends Neume {
+  positionMarkings() {
+    this.positionPodatusMarkings(this.notes[0], this.notes[1]);
+  }
+
+  performLayout(ctxt: ChantContext) {
+    super.performLayout(ctxt);
+
+    var lower = this.notes[0];
+    var upper = this.notes[1];
+
+    this.build(ctxt)
+      .noteAt(lower, GlyphCode.PunctumQuadratum)
+      .noteAt(upper, Oriscus.getLastNoteGlyphCode(ctxt, upper));
+
+    this.finishLayout(ctxt);
+  }
+
+  resetDependencies() {
+    if (Oriscus.pointsToNextNeume(this.notes[1])) this.needsLayout = true;
+  }
+}
+
+/*
+ * PesQuadratum
+ *
+ * Two square puncta (gabc fqg), joined by a line when they're more than a
+ * second apart, with a virga's stem down from the upper one, as Gregorio's
+ * PesQuadratum glyphs have. A liquescent upper note is drawn as in a podatus,
+ * as Gregorio draws a pes quadratum auctus like a pes auctus.
+ */
+export class PesQuadratum extends Neume {
+  positionMarkings() {
+    this.positionPodatusMarkings(this.notes[0], this.notes[1]);
+  }
+
+  performLayout(ctxt: ChantContext) {
+    super.performLayout(ctxt);
+
+    var lower = this.notes[0];
+    var upper = this.notes[1];
+
+    if (upper.liquescent !== LiquescentType.None)
+      this.build(ctxt).withPodatus(lower, upper);
+    else
+      this.build(ctxt)
+        .noteAt(
+          lower,
+          lower.liquescent === LiquescentType.InitioDebilis
+            ? GlyphCode.TerminatingDesLiquescent
+            : GlyphCode.PunctumQuadratum
+        )
+        .virgaAt(upper);
+
+    this.finishLayout(ctxt);
   }
 }
 
@@ -1034,7 +1169,8 @@ export class PesQuassus extends Neume {
     var lowerStaffPos = lower.staffPosition;
     var upperStaffPos = upper.staffPosition;
 
-    if (lower.shape === NoteShape.Oriscus) lowerGlyph = GlyphCode.OriscusAsc;
+    if (lower.shape === NoteShape.Oriscus)
+      lowerGlyph = Oriscus.getGlyphCode(lower, true);
     else lowerGlyph = GlyphCode.PunctumQuadratum;
 
     var builder = this.build(ctxt).noteAt(lower, lowerGlyph);
@@ -1208,6 +1344,12 @@ export class Punctum extends Neume {
     var note = this.notes[0];
     var glyph: GlyphCode = GlyphCode.PunctumQuadratum;
 
+    if (note.linea) {
+      this.build(ctxt).lineaAt(note);
+      this.finishLayout(ctxt);
+      return;
+    }
+
     // determine the glyph to use
     if (note.liquescent !== LiquescentType.None) {
       if (note.shape === NoteShape.Inclinatum)
@@ -1259,8 +1401,8 @@ export class Salicus extends Neume {
       builder.advanceBy(ctxt.intraNeumeSpacing);
 
     // second note is always an oriscus, which may or may not be stemmed
-    // to the first
-    builder.noteAt(second, GlyphCode.OriscusAsc);
+    // to the first, and points up unless gabc designates otherwise
+    builder.noteAt(second, Oriscus.getGlyphCode(second, true));
 
     // third note can be a punctum quadratum or various liquescent forms
     if (third.liquescent & LiquescentType.Small)
@@ -1307,8 +1449,8 @@ export class SalicusFlexus extends Neume {
       builder.advanceBy(ctxt.intraNeumeSpacing);
 
     // second note is always an oriscus, which may or may not be stemmed
-    // to the first
-    builder.noteAt(second, GlyphCode.OriscusAsc);
+    // to the first, and points up unless gabc designates otherwise
+    builder.noteAt(second, Oriscus.getGlyphCode(second, true));
 
     // third note can be a punctum quadratum or various liquescent forms,
     // ...based on note four though!

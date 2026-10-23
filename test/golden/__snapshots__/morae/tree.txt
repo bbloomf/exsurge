@@ -15,8 +15,8 @@
         <g>
       <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
         <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
-      <g id="OriscusDes" transform="scale(0.0625)" className="glyph">
-        <path d="M-50 30.844v-106.25c0 11.458 3.125 20.052 9.375 25.78 3.125 3.126 7.813 4.69 14.063 4.688 4.687 0 13.41-3.255 26.17-9.765 12.762-6.51 21.746-9.766 26.954-9.766 6.25 0 10.938 1.303 14.063 3.907C46.875-55.874 50-47.02 50-34V72.25c0-11.98-3.125-20.833-9.375-26.563C37.5 42.563 32.812 41 26.562 41 21.875 41 13.023 44.385 0 51.156c-4.167 2.604-8.594 4.948-13.28 7.032-4.69 2.083-9.116 3.124-13.283 3.124-6.25 0-10.937-1.302-14.062-3.906C-46.875 52.198-50 43.344-50 30.844z">
+      <g id="OriscusAsc" transform="scale(0.0625)" className="glyph">
+        <path d="M50 30.25c0 12.5-3.125 21.354-9.375 26.562-3.125 2.605-7.813 3.907-14.063 3.907-3.125 0-5.99-.522-8.593-1.564-2.605-1.04-5.6-2.474-8.986-4.297C5.6 53.035 2.734 51.603.39 50.56c-2.343-1.04-5.338-2.474-8.984-4.296-3.646-1.823-6.77-3.256-9.375-4.297-2.603-1.043-5.468-1.564-8.593-1.564-6.25 0-10.937 1.563-14.062 4.688C-46.875 50.824-50 59.677-50 71.656v-106.25c0-13.02 3.125-21.875 9.375-26.562 3.125-2.604 7.813-3.906 14.063-3.907 3.125 0 5.99.52 8.593 1.563 2.605 1.042 5.73 2.474 9.376 4.297 3.646 1.823 6.51 2.995 8.594 3.516l10.938 5.468c6.25 3.126 11.458 4.69 15.624 4.69 6.25 0 10.938-1.564 14.063-4.69C46.875-55.426 50-64.02 50-76V30.25z">
       <g id="Stropha" transform="scale(0.0625)" className="glyph">
         <path d="M1.22-73.438c4.165 13.02 12.238 27.084 24.217 42.188L49.657 0 34.812 27.344C18.666 55.47-.084 72.396-21.438 78.124c4.687-3.645 7.03-8.593 7.03-14.843 0-8.853-4.947-20.572-14.843-35.155L-48 0 1.22-73.438z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">
@@ -158,7 +158,7 @@
           <tspan source-index=0 style={} className=undefined>
             "o"
         <g className="Notations">
-          <use source-index=109 element-index=26 id="note-27" x=3.125 y=-18.75 source=<Note sourceIndex=109 elementIndex=26 noteIndex=26> className=" note" xlinkHref="#OriscusDes" source-gabc="fo.">
+          <use source-index=109 element-index=26 id="note-27" x=3.125 y=-18.75 source=<Note sourceIndex=109 elementIndex=26 noteIndex=26> className=" note" xlinkHref="#OriscusAsc" source-gabc="fo.">
           <use source-index=undefined element-index=undefined x=6.375 y=-23.4375 source=<Oriscus> className="" xlinkHref="#Mora">
       <g transform="translate(372.2093995374781,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
         <text source-index=114 x=0.8040000000000003 y=14.887 style={} source=<Lyric sourceIndex=114> className="lyric" textAnchor="start" source-gabc="p">

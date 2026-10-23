@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="170" height="766.9713750000001" viewBox="0 0 170 766.9713750000001" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="170" height="768.5713750000001" viewBox="0 0 170 768.5713750000001" >
 <g >
 <defs >
 <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
@@ -292,7 +292,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,365.99)" element-index="3" >
+<g class="chantLine" transform="translate(0,367.59000000000003)" element-index="3" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="170" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -350,7 +350,7 @@
 <text source-index="237" x="-8.3662" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >con</tspan>
 </text>
-<text source-index="242" x="-91.39220312500004" y="-81.715" class="aboveLinesText" text-anchor="start" style="" >
+<text source-index="242" x="-91.39220312500004" y="-83.315" class="aboveLinesText" text-anchor="start" style="" >
 <tspan source-index="0" style="font-style: italic;" >A long text above the</tspan>
 <tspan source-index="0" style="font-style: italic;newLine: true;" dy="1.1em" x="-91.39220312500004" >lines, to the end</tspan>
 </text>
@@ -383,7 +383,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,460.01162500000004)" element-index="4" >
+<g class="chantLine" transform="translate(0,461.61162500000006)" element-index="4" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="170" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -495,7 +495,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,566.634875)" element-index="5" >
+<g class="chantLine" transform="translate(0,568.2348750000001)" element-index="5" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="170" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -583,7 +583,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,654.5081250000001)" element-index="6" >
+<g class="chantLine" transform="translate(0,656.1081250000001)" element-index="6" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="170" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -660,7 +660,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,748.631375)" element-index="7" >
+<g class="chantLine" transform="translate(0,750.2313750000001)" element-index="7" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="170" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>

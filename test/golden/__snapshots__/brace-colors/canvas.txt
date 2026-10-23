@@ -1,0 +1,43 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 600, 93.982125) [matrix=1,0,0,1,0,0]
+beginPath()
+moveTo(0, -43.75)
+lineTo(600, -43.75)
+stroke() [strokeStyle="#222" lineWidth=0.8 matrix=1,0,0,1,0,62.517125]
+beginPath()
+moveTo(0, -31.25)
+lineTo(600, -31.25)
+stroke() [strokeStyle="#222" lineWidth=0.8 matrix=1,0,0,1,0,62.517125]
+beginPath()
+moveTo(0, -18.75)
+lineTo(600, -18.75)
+stroke() [strokeStyle="#222" lineWidth=0.8 matrix=1,0,0,1,0,62.517125]
+beginPath()
+moveTo(0, -6.25)
+lineTo(600, -6.25)
+stroke() [strokeStyle="#222" lineWidth=0.8 matrix=1,0,0,1,0,62.517125]
+stroke(Path2D(path "M 14.06 -50.00 C 17.19 -59.38 29.69 -59.38 32.81 -50.00")) [strokeStyle="#111" lineWidth=0.8 matrix=1,0,0,1,0,62.517125]
+stroke(Path2D(path "M 43.75 0.00 C 45.83 9.38 54.17 9.38 56.25 0.00")) [strokeStyle="#111" lineWidth=0.8 matrix=1,0,0,1,0,62.517125]
+stroke(Path2D(path "M 67.19 -50.00 Q 67.19 -51.88 70.31 -51.25 T 73.44 -53.13 M 79.69 -50.00 Q 79.69 -51.88 76.56 -51.25 T 73.44 -53.13")) [strokeStyle="#111" lineWidth=0.8 matrix=1,0,0,1,0,62.517125]
+fill(Path2D(AcuteAccent[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,73.4876875,7.829625]
+fill(Path2D(DoClef[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,0,18.767125]
+fill(Path2D(PodatusLowerShort[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,17.1875,43.767125]
+fill(Path2D(PodatusUpperShort[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,20.3125,37.517125]
+fillText("a", -1.1230000000000002, 26.136999999999993, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,62.517125]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,29.6875,31.267125000000004]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,46.875,43.767125]
+fill(Path2D(PodatusLowerShort[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,53.125,37.517125]
+fill(Path2D(PodatusUpperShort[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,56.25,31.267125000000004]
+fillText("b", -1.3894000000000002, 26.136999999999993, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,43.75,62.517125]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,70.3125,43.767125]
+fill(Path2D(PodatusLowerShort[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,76.5625,37.517125]
+fill(Path2D(PodatusUpperShort[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,79.6875,31.267125000000004]
+fillText("c", -1.6558000000000002, 26.136999999999993, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,67.1875,62.517125]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,93.75,37.517125]
+fillText("d", 1.1018, 26.136999999999993, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,90.625,62.517125]
+stroke(Path2D(path "M -9.38 -50.00 C -6.25 -59.38 6.25 -59.38 9.38 -50.00")) [strokeStyle="#111" lineWidth=0.8 matrix=1,0,0,1,104.6875,62.517125]
+fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,104.6875,62.517125]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#111" matrix=0.0625,0,0,0.0625,116.425,43.767125]
+fillText("e", 0.8353999999999999, 26.136999999999993, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,113.3,62.517125]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,127.3625,62.517125]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,127.3625,62.517125]

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="77.09" viewBox="0 0 600 77.09" source=<ChantScore>>
+  <g>
+    <defs>
+      <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)">
+        <path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z">
+      <g id="DoClef" class="glyph" transform="scale(0.0625)">
+        <path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z">
+      <style>
+        "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
+    <g class="Titles" source=<Titles>>
+    <g class="chantLine" transform="translate(0,58.75)" element-index="0" source=<ChantLine elementIndex=0>>
+      <g class="staffLines">
+        <line key="-7" x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-5" x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-3" x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-1" x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine">
+      <g class="ChantNotationElement DoClef" transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" source=<DoClef sourceIndex=1 elementIndex=-1>>
+      <g class="ChantNotationElement Punctum" transform="translate(34.171,0)" source=<Punctum>>
+        <text source-index="5" x="-34.171" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=5>>
+          <tspan source-index="0" style="">
+            "Kýrie eléison"
+          <tspan source-index="17" style="newLine: 1;" dy="1.1em" x="-34.171">
+            "Lord have"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="32" element-index="0" id="note-1" x="3.125" y="-18.75" source=<Note sourceIndex=32 elementIndex=0 noteIndex=0>>
+      <g class="ChantNotationElement Punctum" transform="translate(96.85419999999999,0)" source=<Punctum>>
+        <text source-index="35" x="-8.0062" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=35>>
+          <tspan source-index="0" style="">
+            "mer"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="39" element-index="1" id="note-2" x="3.125" y="-25" source=<Note sourceIndex=39 elementIndex=1 noteIndex=1>>
+      <g class="ChantNotationElement Punctum" transform="translate(118.75659999999999,0)" source=<Punctum>>
+        <text source-index="41" x="-11.0302" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=41>>
+          <tspan source-index="0" style="">
+            "cy"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="44" element-index="2" id="note-3" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=44 elementIndex=2 noteIndex=2>>
+      <g class="ChantNotationElement Punctum" transform="translate(141.2566,0)" source=<Punctum>>
+        <text source-index="47" x="-9.799" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=47>>
+          <tspan source-index="0" style="">
+            "Christe"
+          <tspan source-index="11" style="newLine: 1;" dy="1.1em" x="-9.799">
+            "elé"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="64" element-index="3" id="note-4" x="3.125" y="-25" source=<Note sourceIndex=64 elementIndex=3 noteIndex=3>>
+      <g class="ChantNotationElement Punctum" transform="translate(171.7342,0)" source=<Punctum>>
+        <text source-index="66" x="-0.23019999999999996" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=66>>
+          <tspan source-index="0" style="">
+            "i"
+          <tspan source-index="0" style="">
+            "-"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="68" element-index="4" id="note-5" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=68 elementIndex=4 noteIndex=4>>
+      <g class="ChantNotationElement Punctum" transform="translate(187.99179999999998,0)" source=<Punctum>>
+        <text source-index="70" x="-4.795" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=70>>
+          <tspan source-index="0" style="">
+            "son."
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="75" element-index="5" id="note-6" x="3.125" y="-25" source=<Note sourceIndex=75 elementIndex=5 noteIndex=5>>
+      <g class="ChantNotationElement DoubleBar" transform="translate(202.05429999999998,0)" source=<DoubleBar sourceIndex=79 elementIndex=6>>
+        <g class="Notations">
+          <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="79" element-index="6" source=<DoubleBar sourceIndex=79 elementIndex=6>>
+          <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="79" element-index="6" source=<DoubleBar sourceIndex=79 elementIndex=6>>

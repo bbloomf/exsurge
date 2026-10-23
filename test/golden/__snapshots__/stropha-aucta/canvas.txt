@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
 fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.0625,40]
 fillText("a", -1.2480000000000002, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,58.75]
 fill(Path2D(StrophaLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,34.1035625,40]
@@ -52,4 +53,3 @@ fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,253.63556250
 fillText("l", -1.1543999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,235.30343750000006,58.75]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,264.55162500000006,58.75]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,264.55162500000006,58.75]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]

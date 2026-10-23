@@ -41,8 +41,12 @@ import {
   ChoralSign,
   TranslationText,
   DefaultTrailingSpace,
-  GlyphCode
+  GlyphCode,
+  Annotation,
+  Annotations,
+  LyricTieSpecials
 } from "./Exsurge.Drawing.js";
+import { language as languages, type Language } from "./Exsurge.Text.js";
 import {
   Note,
   LiquescentType,
@@ -70,6 +74,7 @@ import type {
   ChantContext,
   ChantNotationElement,
   LyricProtrusion,
+  NeumeSpaceCode,
   TrailingSpace,
   TrailingSpaceFunction
 } from "./Exsurge.Drawing.js";
@@ -132,7 +137,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z|Z|(::|(?:[,`]0?\?|:|[,;][1-8]?|`)_?)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -140,19 +145,64 @@ var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[)$/;
 
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
 
+// a clef with a second clef after it, as in c1@c4 or c3@fb2 (the clefs of
+// __notationsRegex).  The groups are:
+//  1. the first clef
+//  2. c or f, the second clef's type
+//  3. b if the second clef has a flat
+//  4. the line of the second clef
+var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])$/;
+
 // for the brace string inside of [ and ] in notation data
 // the capturing groups are:
 //  1. o or u, to indicate over or under
 //  2. b, cb, or cba, to indicate the brace type
 //  3. 0 or 1 to indicate the attachment point
 //  4. { or } to indicate opening/closing (this group will be null if the metric version is used)
-//  5. a float indicating the millimeter length of the brace (not supported yet)
-var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;(\d*(?:\.\d+)?)mm)/;
+//  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
+var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
+// a TeX length: a number (with TeX's . or , for the decimal point) and a unit
+// in either case, maybe with true before it (the same at TeX's usual
+// magnification), and any stretch and shrink after it (plus …, minus …)
+var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:true\s*)?([a-z]{2})(?:\s*(?:plus|minus).*)?\s*$/i;
+// TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
+var __texUnits: { [unit: string]: number } = {
+  sp: 1,
+  pt: 65536,
+  bp: (65536 * 72.27) / 72,
+  pc: 65536 * 12,
+  in: 65536 * 72.27,
+  cm: (65536 * 72.27) / 2.54,
+  mm: (65536 * 72.27) / 25.4,
+  dd: (65536 * 1238) / 1157,
+  cc: (65536 * 12 * 1238) / 1157,
+  em: 65536 * 10,
+  ex: 65536 * 4.30554
+};
+// a staff interval (from a line to the next space) in scaled points at
+// Gregorio's default staff size, \gre@factor 17: half the distance between
+// lines, (\gre@dimen@interstafflinedistancebase + \gre@dimen@stafflinethicknessbase) * 17
+var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
+
+// a TeX length in staff intervals at Gregorio's default staff size, or
+// undefined if it isn't a length exsurge can read (TeX can take a macro)
+function texLengthToStaffIntervals(length: string) {
+  var results = length.match(__texLengthRegex);
+  var unit = results && results[2].toLowerCase();
+  if (!unit || !__texUnits.hasOwnProperty(unit)) return undefined;
+  return (
+    (Number(results![1].replace(",", ".")) * __texUnits[unit]) /
+    __gregorioStaffIntervalInSp
+  );
+}
 
 const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
 const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * multiplier;
+// a space between neumes, from ctxt.neumeSpaceMultipliers, times factor
+const NeumeSpace = (code: NeumeSpaceCode, factor = 1) => (ctxt: ChantContext) =>
+  ctxt.intraNeumeSpacing * ctxt.neumeSpaceMultipliers[code] * factor;
 
 // the line that ends the header: two or more %s, as Gregorio allows, and the
 // blank lines after it, which Gregorio also takes
@@ -368,6 +418,91 @@ var maskGabc = (gabc: string) =>
 // whether a gabc word is only spaces and comments
 var isEmptyWord = (word: string) => maskGabc(word).replace(__commentMaskRegex, "").trim() === "";
 
+/**
+ * Which headers Gabc.applyHeader() applies.  Each is applied unless it is
+ * set to false, except the legacy ones, which are only applied if legacy is
+ * set to true.
+ */
+export interface ApplyHeaderOptions {
+  /** annotation, as the score's annotation */
+  annotation?: boolean;
+  /**
+   * mode, mode-modifier and mode-differentia, as the score's annotation, if
+   * the header has no annotation
+   */
+  mode?: boolean;
+  /** staff-lines, as the score's staffLineCount */
+  staffLines?: boolean;
+  /** language, as the language of the score's lyrics */
+  language?: boolean;
+  /**
+   * the headers that Gregorio no longer reads: initial-style, as the score's
+   * useDropCap, and centering-scheme, as the language of the score's lyrics
+   */
+  legacy?: boolean;
+}
+
+// the languages of the language header, by their names and their ISO 639
+// codes, in lower case (Church Slavonic's and Hungarian's are the aliases in
+// Gregorio's gregorio-vowels.dat, which also gives Polish, Czech and Slovak
+// Church Slavonic's vowel rules)
+const __languagesByName: { [name: string]: Language } = {
+  latin: languages.latin,
+  la: languages.latin,
+  lat: languages.latin,
+  english: languages.english,
+  en: languages.english,
+  eng: languages.english,
+  spanish: languages.spanish,
+  "español": languages.spanish,
+  es: languages.spanish,
+  spa: languages.spanish,
+  "church slavonic": languages.churchSlavonic,
+  "church slavic": languages.churchSlavonic,
+  "old church slavonic": languages.churchSlavonic,
+  "old slavonic": languages.churchSlavonic,
+  "old bulgarian": languages.churchSlavonic,
+  slavic: languages.churchSlavonic,
+  cu: languages.churchSlavonic,
+  chu: languages.churchSlavonic,
+  polish: languages.churchSlavonic,
+  pl: languages.churchSlavonic,
+  pol: languages.churchSlavonic,
+  czech: languages.churchSlavonic,
+  cs: languages.churchSlavonic,
+  ces: languages.churchSlavonic,
+  cze: languages.churchSlavonic,
+  slovak: languages.churchSlavonic,
+  sk: languages.churchSlavonic,
+  slk: languages.churchSlavonic,
+  slo: languages.churchSlavonic,
+  hungarian: languages.hungarian,
+  hu: languages.hungarian,
+  hun: languages.hungarian
+};
+
+// the languages of the old centering-scheme header, which said how to center
+// the lyrics: on the vowel (latine) or on the whole syllable (english)
+const __languagesByCenteringScheme: { [scheme: string]: Language } = {
+  latine: languages.latin,
+  english: languages.english
+};
+
+// the annotations that Gabc.applyHeader() made, which it replaces when it's
+// called again
+const __headerAnnotations = new WeakSet<Annotation | Annotations>();
+
+const __romanModeNumbers = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"];
+
+// text that starts with punctuation: ASCII's, as Lua's %p has it, and that
+// of Latin-1 and of Unicode's general punctuation
+const __punctuationRegex = /^[!-/:-@[-`{-~\u00a1-\u00bf\u2010-\u205e]/;
+
+// a header value as one line of text: Gregorio's values go into TeX, which
+// reads the line ends of a multi-line value as spaces
+const headerText = (value: string | undefined) =>
+  (value || "").replace(/\s+/g, " ").trim();
+
 var elementCountForNotations = (items: ChantNotationElement[]) =>
   items.reduce((sum, item) => sum + (item.notes ? item.notes.length : 1), 0);
 
@@ -534,6 +669,130 @@ export class Gabc {
     // (a voice that was skipped with || has an empty string)
     for (let p of parts) for (let v = 0; v < p.nabc.length; v++) p.nabc[v] = p.nabc[v] || "";
     return { gabc, cuts, parts: parts.filter((p) => p.nabc.length > 0) };
+  }
+
+  /**
+   * Applies the settings in a gabc header to a score, as Gregorio does.
+   * exsurge doesn't otherwise read them, so call this after making the score,
+   * and again after updating its mappings (so that new lyrics get the
+   * header's language, and changes to the header take effect).  The score
+   * is then laid out again where it needs to be.
+   *
+   * - annotation: the first two, one line each, as the score's annotation.
+   * - mode, mode-modifier and mode-differentia, if there is no annotation
+   *   header: one line, as the score's annotation (see modeText()).
+   * - staff-lines: 2 to 5, as the score's staffLineCount.
+   * - language: Latin, English, Spanish, Church Slavonic (also for Polish,
+   *   Czech and Slovak, as in Gregorio) or Hungarian, by name or ISO 639
+   *   code, as the language of the score's lyrics, so that ctxt.defaultLanguage stays as
+   *   it is for other scores.  A language that exsurge doesn't have leaves
+   *   them as they are.
+   * - with options.legacy, the headers that Gregorio no longer reads:
+   *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
+   *   useDropCap, and centering-scheme (latine or english) as the language
+   *   of the score's lyrics, in place of the language header.
+   *
+   * A score that already has an annotation that this didn't make keeps it,
+   * and gets no mode line, as in Gregorio, where an annotation set in TeX
+   * wins over the header.
+   */
+  static applyHeader(
+    score: ChantScore,
+    ctxt: ChantContext,
+    header: GabcHeader,
+    options: ApplyHeaderOptions = {}
+  ) {
+    var annotations = (header.annotationArray || [header.annotation])
+      .map(headerText)
+      .filter((text) => text)
+      .slice(0, 2);
+    if (!score.annotation || __headerAnnotations.has(score.annotation)) {
+      var annotation: Annotation | Annotations | null = null;
+      if (annotations.length) {
+        if (options.annotation !== false)
+          annotation =
+            annotations.length === 1
+              ? new Annotation(ctxt, annotations[0])
+              : new Annotations(ctxt, ...annotations);
+      } else if (options.mode !== false) {
+        var mode = this.modeText(
+          ctxt,
+          headerText(header.mode),
+          headerText(header["mode-modifier"]),
+          headerText(header["mode-differentia"])
+        );
+        if (mode) annotation = new Annotation(ctxt, mode);
+      }
+      if (annotation) __headerAnnotations.add(annotation);
+      score.annotation = annotation;
+    }
+
+    var staffLineCount = parseInt(headerText(header["staff-lines"]), 10);
+    if (
+      options.staffLines !== false &&
+      staffLineCount >= 2 &&
+      staffLineCount <= 5 &&
+      staffLineCount !== score.staffLineCount
+    ) {
+      score.staffLineCount = staffLineCount;
+      // everything on the staff is laid out for its number of lines
+      for (let notation of score.notations) notation.needsLayout = true;
+    }
+
+    var language =
+      (options.language !== false &&
+        __languagesByName[headerText(header.language).toLowerCase()]) ||
+      null;
+    if (options.legacy)
+      language =
+        __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()] ||
+        language;
+    if (language) {
+      for (let notation of score.notations) {
+        for (let lyric of notation.lyrics) {
+          if (lyric && lyric.language !== language) {
+            lyric.language = language;
+            notation.needsLayout = true;
+          }
+        }
+      }
+    }
+
+    if (options.legacy) {
+      var initialStyle = headerText(header["initial-style"]);
+      if (/^[012]$/.test(initialStyle)) {
+        score.useDropCap = initialStyle !== "0";
+        score.recreateDropCap(ctxt);
+      }
+    }
+
+    score.needsLayout = true;
+  }
+
+  /**
+   * The mode line that Gregorio writes above the initial when there is no
+   * annotation (\GreMode): the mode, then the modifier and the differentia,
+   * each after a space unless it starts with punctuation.  A mode that
+   * starts with a number from 1 to 8 has it written in ctxt.modeNumberSystem
+   * ("8" is VIII, "4A" is IVA); any other mode is written as it is.  With no
+   * mode, the modifier and differentia aren't written either.
+   */
+  static modeText(ctxt: ChantContext, mode: string, modifier = "", differentia = "") {
+    if (!mode) return "";
+    var number = /^[1-8]/.test(mode) ? parseInt(mode[0], 10) : 0;
+    if (number) {
+      var roman = __romanModeNumbers[number - 1];
+      mode =
+        (ctxt.modeNumberSystem === "arabic"
+          ? mode[0]
+          : ctxt.modeNumberSystem === "roman-minuscule"
+          ? roman
+          : roman.toUpperCase()) + mode.slice(1);
+    }
+    for (var part of [modifier, differentia]) {
+      if (part) mode += (__punctuationRegex.test(part) ? "" : " ") + part;
+    }
+    return mode;
   }
 
   // A simple general purpose diff algorithm adapted here for comparing
@@ -1126,9 +1385,17 @@ export class Gabc {
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
 
+      // a ~ is a lyric tie (except in a special character, e.g. <sp>~</sp>),
+      // or a space in verbatim TeX, above-lines text and translations
+      var lyricTieSpecial = LyricTieSpecials[ctxt.lyricTie];
+      var lyricTie = (lyricTieSpecial && ctxt.specials[lyricTieSpecial]) || " ";
       var lyricText = match[1].replace(__commentMaskRegex, "").replace(
         /(^|<\/sp>)([\s\S]*?)($|<sp>)/g,
-        (_, pre, main, post) => `${pre}${main.replace(/~/g, " ")}${post}`
+        (_, pre, main, post) =>
+          `${pre}${main.replace(
+            /(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|\[[^\]]*\])|~/g,
+            (tie: string, notLyric?: string) => (notLyric ? notLyric.replace(/~/g, " ") : lyricTie)
+          )}${post}`
       );
       var alText: AboveLinesText[] = [];
       var translationText: TranslationText[] = [];
@@ -1497,7 +1764,10 @@ export class Gabc {
         // connecting hyphen from ever being drawn before the next syllable,
         // but the syllables are still laid out as part of a single word
         preventConnector = true;
-      } else if (/<\/i>$/.test(text)) {
+      } else if (
+        /<\/e>$/.test(text) ||
+        (ctxt.italicMeansElision && /<\/i>$/.test(text))
+      ) {
         // must be an elision
         elides = true;
       }
@@ -1536,7 +1806,7 @@ export class Gabc {
     var notations: ChantNotationElement[] = [];
     var notes: Note[] = [];
     var trailingSpace: TrailingSpace = DefaultTrailingSpace;
-    // whether the data so far ends with a / or a space after a neume
+    // whether the data so far ends with a / or a space after a neume that the line can break at
     var endsWithSpace = false;
     // what Gregorio's [[, <nlba> and @[ (and a </nlba> before any note) mark on
     // the next note, starting with those that the notes before left (see
@@ -1562,6 +1832,30 @@ export class Gabc {
         notes[notes.length - 1].sourceGabc += gabc;
       }
     };
+    // ends the neume before a space (/0, /!, /, //, /[n] or a space), which
+    // the line can break at only if it is breakable
+    var addSpace = (atom: string, space: TrailingSpaceFunction, breakable: boolean) => {
+      // (a space at the very end that the line can't break at, such as /0
+      // or a backspace, still keeps the neume with the next syllable's)
+      endsWithSpace = breakable && (endsWithSpace || notes.length > 0);
+      let prevNotation = notations[notations.length - 1];
+      if (
+        !notes.length &&
+        data[match!.index - 1] === "!" &&
+        prevNotation &&
+        prevNotation.isNeume
+      ) {
+        // a space after a ! can't be broken: the neume before it
+        // already keeps with the next one, so it only needs the width
+        prevNotation.trailingSpace = space;
+      }
+      let endsNeume = notes.length > 0;
+      trailingSpace = space;
+      addToLastSourceGabc(atom);
+      addNotation(null);
+      if (endsNeume && !breakable)
+        notations[notations.length - 1].allowLineBreakBeforeNext = false;
+    };
     var addNotation = (notation: ChantNotationElement | null) => {
       // first, if we have any notes left over, we create a neume out of them
       if (notes.length > 0) {
@@ -1583,6 +1877,7 @@ export class Gabc {
         notation.sourceGabc = match![0];
         if (notation.isClef) {
           ctxt.activeClef = notation as Clef;
+          if (secondClef) (notation as Clef).secondClef = secondClef;
           if (
             prevNotation &&
             (prevNotation.trailingSpace as TrailingSpaceFunction).isDefault &&
@@ -1612,6 +1907,8 @@ export class Gabc {
 
     var regex = new RegExp(__notationsRegex);
     var match: RegExpExecArray | null;
+    // the second clef of the clef being parsed (gabc c1@c4)
+    var secondClef: Clef | null;
 
     while ((match = regex.exec(data))) {
       sourceIndex = baseSourceIndex + match.index;
@@ -1619,30 +1916,46 @@ export class Gabc {
       var atom = match[0];
       var bar = match[__notationsRegex_group_bar];
 
-      let barWithCarryover = !!bar && bar.endsWith('_');
-      if (barWithCarryover) {
-        atom = atom.slice(0, -1);
+      // a second clef goes on the clef before it, which is parsed below
+      var secondClefMatch = __secondClefRegex.exec(atom);
+      secondClef =
+        secondClefMatch &&
+        this.createClef(secondClefMatch[2], parseInt(secondClefMatch[4], 10), !!secondClefMatch[3]);
+      if (secondClefMatch) atom = secondClefMatch[1];
+
+      // a bar can be followed by _ (a brace carrying the melody over it) and ' (a vertical episema)
+      let barSigns = bar ? /['_]*$/.exec(bar)![0] : "";
+      let barWithCarryover = barSigns.includes("_");
+      if (barSigns) {
+        atom = atom.slice(0, -barSigns.length);
       }
 
-      if (atom === " " || atom[0] === "/")
-        endsWithSpace = endsWithSpace || notes.length > 0;
-      else if (!__noteMarkRegex.test(atom)) endsWithSpace = false;
+      // (addSpace() sets it for a space)
+      if (atom !== " " && atom[0] !== "/" && atom !== "[nocustos]" && !__noteMarkRegex.test(atom))
+        endsWithSpace = false;
 
       // handle the clefs and dividers here
       switch (atom) {
         case ",":
-          addNotation(new Signs.QuarterBar(barWithCarryover));
+        case ",0":
+          addNotation(new Signs.QuarterBar(barWithCarryover, atom === ",0"));
           break;
         case "`":
-          addNotation(new Signs.Virgula(barWithCarryover));
+        case "`0":
+          addNotation(new Signs.Virgula(barWithCarryover, atom === "`0"));
           break;
-        // Gregorio's parenthesized bars (`0? and ,0? are drawn as `? and ,?
-        // are, as `0 and ,0 are drawn as ` and ,)
+        case "^":
+        case "^0":
+          addNotation(new Signs.DivisioMinimis(barWithCarryover, atom === "^0"));
+          break;
+        // Gregorio's parenthesized bars (`0? and ,0? high, as `0 and ,0 are)
         case ",?":
         case ",0?":
         case "`?":
         case "`0?": {
-          let parenthesizedBar = atom[0] === "," ? new Signs.QuarterBar(barWithCarryover) : new Signs.Virgula(barWithCarryover);
+          let high = atom[1] === "0";
+          let parenthesizedBar =
+            atom[0] === "," ? new Signs.QuarterBar(barWithCarryover, high) : new Signs.Virgula(barWithCarryover, high);
           parenthesizedBar.parenthesized = true;
           addNotation(parenthesizedBar);
           break;
@@ -1669,12 +1982,13 @@ export class Gabc {
           addNotation(new Signs.DominicanBar(parseInt(atom[1], 10)));
           break;
         case ":":
-          addNotation(new Signs.FullBar(barWithCarryover));
+        case ":?":
+          addNotation(new Signs.FullBar(barWithCarryover, atom === ":?"));
           break;
         case "::":
           addNotation(new Signs.DoubleBar());
           break;
-        // other gregorio dividers are not supported yet
+        // the parenthesized bars (`? ,? and ,0?) are not supported yet
 
         case "c1":
         case "c2":
@@ -1719,45 +2033,38 @@ export class Gabc {
         case "cb3":
         case "cb4":
         case "cb5":
-          {
-            const line = 2 * parseInt(atom[2], 10) - 1;
-            addNotation(
-              (ctxt.activeClef = new DoClef(
-                line,
-                2,
-                new Signs.Accidental(line - 1, Signs.AccidentalType.Flat)
-              ))
-            );
-          }
-          break;
         case "fb1":
         case "fb2":
         case "fb3":
         case "fb4":
         case "fb5":
-          {
-            // the flat is on the B above the F, or, when that's above a
-            // four-line staff, the B below (as Gregorio puts it)
-            const line = 2 * parseInt(atom[2], 10) - 1;
-            addNotation(
-              (ctxt.activeClef = new FaClef(
-                line,
-                2,
-                new Signs.Accidental(line <= 3 ? line + 3 : line - 4, Signs.AccidentalType.Flat)
-              ))
-            );
-          }
+          addNotation((ctxt.activeClef = this.createClef(atom[0], parseInt(atom[2], 10), true)));
           break;
 
         case "z":
-          addNotation(new ChantLineBreak(true));
-          break;
+        case "z+":
+        case "z-":
         case "Z":
-          addNotation(new ChantLineBreak(false));
+        case "Z+":
+        case "Z-":
+          addNotation(
+            new ChantLineBreak(
+              atom[0] === "z",
+              atom[1] === "+" ? "force" : atom[1] === "-" ? "none" : "auto"
+            )
+          );
           break;
         case "z0":
           addNotation(new Signs.Custos(true));
           break;
+        case "[nocustos]": {
+          // (after a space: it applies to the note before the space, and with
+          // no note before it, to a line break before the next note)
+          let note = lastNote();
+          if (note) note.noCustos = true;
+          else nextNoteMarks.push((note) => (note.noCustosBefore = true));
+          break;
+        }
 
         // Gregorio's marks between notes, which are recorded on the notes
         // after or before them.  Brackets end a neume as ! does, and
@@ -1802,30 +2109,31 @@ export class Gabc {
           addNotation(null);
           break;
         case " ":
-          // fixme: is this correct? logically what is the difference in gabc
-          // between putting a space between notes vs putting '//' between notes?
-          trailingSpace = TrailingSpaceMultiple(2);
-          addToLastSourceGabc(atom);
-          addNotation(null);
+          // (by default the same width as //, see ctxt.neumeSpaceMultipliers)
+          addSpace(atom, NeumeSpace(" "), true);
+          break;
+        case "/0":
+        case "/!":
+          // spaces within a neume, which the line can't break at
+          addSpace(atom, NeumeSpace(atom), false);
           break;
 
         default:
           // might be a number of slashes, a custos, might be an accidental, or might be a note
-          if (atom[0] === "/") {
-            let prevNotation = notations[notations.length - 1];
-            if (
-              !notes.length &&
-              data[match.index - 1] === "!" &&
-              prevNotation &&
-              prevNotation.isNeume
-            ) {
-              // !/ is a space that can't be broken: the neume before it
-              // already keeps with the next one, so it only needs the width
-              prevNotation.trailingSpace = TrailingSpaceMultiple(atom.length);
-            }
-            trailingSpace = TrailingSpaceMultiple(atom.length);
-            addToLastSourceGabc(atom);
-            addNotation(null);
+          if (atom.startsWith("/[")) {
+            // /[n]: n times /, where a negative n moves the next neume back
+            let factor = parseFloat(atom.slice(2, -1));
+            addSpace(atom, NeumeSpace("/", factor), factor > 0);
+          } else if (atom[0] === "/") {
+            // (/// and more: // and then / for each further slash)
+            let slashes = atom.length;
+            addSpace(
+              atom,
+              slashes === 1
+                ? NeumeSpace("/")
+                : (ctxt) => NeumeSpace("//")(ctxt) + NeumeSpace("/", slashes - 2)(ctxt),
+              true
+            );
           } else if (atom.length > 1 && atom.endsWith("+")) {
             // custos
             var custos = new Signs.Custos();
@@ -1915,6 +2223,9 @@ export class Gabc {
           }
           break;
       }
+
+      if (barSigns.includes("'"))
+        (notations[notations.length - 1] as Signs.Divider).hasVerticalEpisema = true;
     }
 
     // finish up any remaining notes we have left
@@ -1938,6 +2249,29 @@ export class Gabc {
     }
 
     return notations;
+  }
+
+  // a do (c) or fa (f) clef on a line from 1 to 5, with or without a flat
+  static createClef(type: string, line: number, flat: boolean): Clef {
+    var staffPosition = 2 * line - 1;
+    if (type === "c")
+      return new DoClef(
+        staffPosition,
+        2,
+        flat ? new Signs.Accidental(staffPosition - 1, Signs.AccidentalType.Flat) : null
+      );
+    // the flat is on the B above the F, or, when that's above a
+    // four-line staff, the B below (as Gregorio puts it)
+    return new FaClef(
+      staffPosition,
+      2,
+      flat
+        ? new Signs.Accidental(
+            staffPosition <= 3 ? staffPosition + 3 : staffPosition - 4,
+            Signs.AccidentalType.Flat
+          )
+        : null
+    );
   }
 
   static createNeumesFromNotes(
@@ -2005,7 +2339,9 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote) {
-        if (currNote.shape === NoteShape.Virga) return virgaState;
+        // a linea (gabc =) is a neume of its own, whatever its shape
+        if (currNote.linea) return createNeume(new Neumes.Punctum(), true);
+        else if (currNote.shape === NoteShape.Virga) return virgaState;
         else if (currNote.shape === NoteShape.Stropha) return apostrophaState;
         else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
         else if (currNote.shape === NoteShape.Inclinatum)
@@ -2026,6 +2362,17 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote, notesRemaining) {
+        // an oriscus scapus is joined to the lower punctum before it, as in
+        // Gregorio (unless either is liquescent)
+        if (
+          currNote.shape === NoteShape.Oriscus &&
+          currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
+          currNote.staffPosition > prevNote.staffPosition &&
+          prevNote.liquescent === LiquescentType.None &&
+          currNote.liquescent === LiquescentType.None
+        )
+          return pesOriscusState;
+
         if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
           var neume = new Neumes.Punctum();
           var state = createNeume(neume, false);
@@ -2046,6 +2393,9 @@ export class Gabc {
         if (currNote.staffPosition > prevNote.staffPosition) {
           if (currNote.ictus)
             currNote.ictus.positionHint = MarkingPositionHint.Above;
+          // a pes quadratum (gabc q) has no more notes, as in Gregorio
+          if (prevNote.quadratum)
+            return createNeume(new Neumes.PesQuadratum(), true);
           return podatusState;
         } else if (currNote.staffPosition < prevNote.staffPosition) {
           if (prevNote.ictus)
@@ -2078,14 +2428,12 @@ export class Gabc {
         return new Neumes.Oriscus();
       },
       handle: function(currNote, prevNote) {
+        // (the oriscus points to the note after it, unless gabc designates its direction)
         if (currNote.shape === NoteShape.Default) {
-          if (currNote.staffPosition > prevNote.staffPosition) {
-            prevNote.shapeModifiers |= NoteShapeModifiers.Ascending;
+          if (currNote.staffPosition > prevNote.staffPosition)
             return createNeume(new Neumes.PesQuassus(), true);
-          } else if (currNote.staffPosition < prevNote.staffPosition) {
-            prevNote.shapeModifiers |= NoteShapeModifiers.Descending;
+          else if (currNote.staffPosition < prevNote.staffPosition)
             return createNeume(new Neumes.Clivis(), true);
-          }
         }
         // stand alone oriscus
         var neume = new Neumes.Oriscus(),
@@ -2102,6 +2450,20 @@ export class Gabc {
         )
           neume.trailingSpace = 0;
         return state;
+      }
+    };
+
+    var pesOriscusState: NeumeState = {
+      neume: function() {
+        return new Neumes.PesOriscus();
+      },
+      handle: function(currNote, prevNote) {
+        if (
+          currNote.shape === NoteShape.Default &&
+          currNote.staffPosition > prevNote.staffPosition
+        )
+          return salicusState;
+        else return createNeume(new Neumes.PesOriscus(), false);
       }
     };
 
@@ -2190,7 +2552,10 @@ export class Gabc {
         return new Neumes.Salicus();
       },
       handle: function(currNote, prevNote) {
-        if (currNote.staffPosition < prevNote.staffPosition)
+        if (
+          currNote.shape === NoteShape.Default &&
+          currNote.staffPosition < prevNote.staffPosition
+        )
           return salicusFlexusState;
         else return createNeume(new Neumes.Salicus(), false);
       }
@@ -2358,12 +2723,17 @@ export class Gabc {
       var prevNote = currNoteIndex > 0 ? notes[currNoteIndex - 1] : null;
       var currNote = notes[currNoteIndex];
 
-      // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
-      state = state.handle(
-        currNote,
-        prevNote!,
-        notes.length - 1 - currNoteIndex
-      );
+      // a linea (gabc =) and the lower note of a pes quadratum (gabc q) start
+      // a new neume, as in Gregorio
+      if ((currNote.linea || currNote.quadratum) && state !== unknownState)
+        state = createNeume(state.neume(), false);
+      else
+        // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
+        state = state.handle(
+          currNote,
+          prevNote!,
+          notes.length - 1 - currNoteIndex
+        );
 
       // if we are on the last note, then try to create a neume if we need to.
       if (currNoteIndex === notes.length - 1 && state !== unknownState)
@@ -2432,6 +2802,19 @@ export class Gabc {
 
     var episemaNoteIndex = notes.length;
     var episemaNote = note;
+
+    // starts a new note at the same pitch after the note so far, for gabc's
+    // repeated notes (gsss, gvvv and gVV)
+    var startRepeatedNote = (sourceGabc: string) => {
+      let newNote = new Note();
+      newNote.sourceIndex = sourceIndex + i;
+      newNote.sourceGabc = sourceGabc;
+      newNote.staffPosition = note.staffPosition;
+      newNote.pitch = note.pitch;
+      notes.push(note);
+      note = newNote;
+      episemaNoteIndex++; // since a new note was added, increase the index here
+    };
 
     // process the modifiers
     for (var i = 1; i < data.length; i++) {
@@ -2597,14 +2980,7 @@ export class Gabc {
           if (note.shape === NoteShape.Stropha) {
             // if we're already a stropha, that means this is gabc's
             // quick stropha feature (e.g., gsss). create a new note
-            let newNote = new Note();
-            newNote.sourceIndex = sourceIndex + i;
-            newNote.sourceGabc = "s";
-            newNote.staffPosition = note.staffPosition;
-            newNote.pitch = note.pitch;
-            notes.push(note);
-            note = newNote;
-            episemaNoteIndex++; // since a new note was added, increase the index here
+            startRepeatedNote("s");
           }
 
           note.shape = NoteShape.Stropha;
@@ -2614,20 +2990,23 @@ export class Gabc {
           if (note.shape === NoteShape.Virga) {
             // if we're already a stropha, that means this is gabc's
             // quick virga feature (e.g., gvvv). create a new note
-            let newNote = new Note();
-            newNote.sourceIndex = sourceIndex + i;
-            newNote.sourceGabc = "v";
-            newNote.staffPosition = note.staffPosition;
-            newNote.pitch = note.pitch;
-            notes.push(note);
-            note = newNote;
-            episemaNoteIndex++; // since a new note was added, increase the index here
+            startRepeatedNote("v");
           }
 
           note.shape = NoteShape.Virga;
           break;
         
         case "V":
+          if (data[i - 1] === "V") {
+            // gabc VV and VVV, which Gregorio reads as vv and vvv: a bivirga
+            // or trivirga of virgas that aren't reversed
+            // (gabc-glyphs-determination.c), so create a new note
+            note.shapeModifiers &= ~NoteShapeModifiers.Reverse;
+            startRepeatedNote("V");
+            note.shape = NoteShape.Virga;
+            break;
+          }
+
           note.shape = NoteShape.Virga;
           note.shapeModifiers |= NoteShapeModifiers.Reverse;
           break;
@@ -2643,7 +3022,7 @@ export class Gabc {
           note.quilismaQuadratum = true;
           break;
 
-        // Gregorio's shapes that are read but not drawn yet
+        // Gregorio's pes quadratum and linea
         case "q":
           note.quadratum = true;
           break;
@@ -2651,12 +3030,14 @@ export class Gabc {
           note.linea = true;
           break;
 
+        // an oriscus's direction: Gregorio's 1 (up) and 0 (down), or
+        // exsurge's own < and >
         case "o":
           note.shape = NoteShape.Oriscus;
-          if (haveLookahead && lookahead === "<") {
+          if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
             note.shapeModifiers |= NoteShapeModifiers.Ascending;
             i++;
-          } else if (haveLookahead && lookahead === ">") {
+          } else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
             note.shapeModifiers |= NoteShapeModifiers.Descending;
             i++;
           }
@@ -2664,11 +3045,11 @@ export class Gabc {
 
         case "O":
           note.shape = NoteShape.Oriscus;
-          if (haveLookahead && lookahead === "<") {
+          if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
             note.shapeModifiers |=
               NoteShapeModifiers.Ascending | NoteShapeModifiers.Stemmed;
             i++;
-          } else if (haveLookahead && lookahead === ">") {
+          } else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
             note.shapeModifiers |=
               NoteShapeModifiers.Descending | NoteShapeModifiers.Stemmed;
             i++;
@@ -2756,6 +3137,11 @@ export class Gabc {
     instruction: string,
     sourceIndexOffset: number
   ) {
+    if (instruction === "nocustos") {
+      note.noCustos = true;
+      return;
+    }
+
     var results = instruction.match(__bracketedCommandRegex);
     if (results === null) return;
     var cmd = results[1];
@@ -2776,6 +3162,19 @@ export class Gabc {
           note,
           note.sourceIndex + sourceIndexOffset
         );
+        return;
+      // Gregorio's shape hints, which replace any before them on the note
+      case "shape":
+        note.shapeHint = data;
+        return;
+      // Gregorio's ledger-line hints, of which the first on the note counts
+      case "ll":
+        if (note.lowLedgerLine === undefined && /^[01]$/.test(data))
+          note.lowLedgerLine = data === "1";
+        return;
+      case "hl":
+        if (note.highLedgerLine === undefined && /^[01]$/.test(data))
+          note.highLedgerLine = data === "1";
         return;
     }
 
@@ -2823,6 +3222,7 @@ export class Gabc {
     // just have the next note end a brace that uses length;
     if (results[5]) {
       note.braceStart!.automatic = true;
+      note.braceStart!.length = texLengthToStaffIntervals(results[5]);
       this.needToEndBrace = note.braceStart;
     }
   }

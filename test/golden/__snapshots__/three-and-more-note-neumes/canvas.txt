@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,40]
 fillRect(5.45, -31.25, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,14.0625,58.75]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,22.6375,27.500000000000004]
@@ -103,7 +104,6 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,580.660
 fillRect(29.796499999999998, -31.25, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,553.1890130236018,58.75]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,586.1105130236018,40]
 fillText("q", 0.6625999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,553.1890130236018,58.75]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
 fill(Path2D(CustosShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,597.265625,33.75]
 beginPath()
 moveTo(0, -43.75)
@@ -121,6 +121,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,145.215]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,101.465]
 fillRect(0, -25, 0.8, 9.756761363636363) [fillStyle="#000" matrix=1,0,0,1,14.0625,145.215]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,120.215]
 fill(Path2D(BeginningDesLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,23.4375,126.465]
@@ -153,4 +154,3 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,176.660
 fillText("w", -0.9357999999999995, 15.1995, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,161.83509991405623,145.215]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,187.59759991405622,145.215]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,187.59759991405622,145.215]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,101.465]

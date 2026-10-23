@@ -28,7 +28,7 @@ import {
   Rect
 } from "./Exsurge.Core.js";
 import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
-import { language, type IgnoredRange, type Language } from "./Exsurge.Text.js";
+import { language, type IgnoredRange, type Language, type VowelSegment } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
@@ -380,8 +380,16 @@ export const DefaultTrailingSpace: TrailingSpaceFunction = (ctxt: ChantContext) 
   ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier;
 DefaultTrailingSpace.isDefault = true;
 
+/**
+ * the gabc for a space between neumes: half a space within the neume ("/0"),
+ * a small space within the neume ("/!"), a small space ("/"), a medium space
+ * ("//") or a large space (" ")
+ */
+export type NeumeSpaceCode = "/0" | "/!" | "/" | "//" | " ";
+
 export const GlyphCode = {
   None: "None",
+  Linea: "Linea",
 
   AcuteAccent: "AcuteAccent",
   GraveAccent: "GraveAccent",
@@ -820,7 +828,10 @@ export interface TextStyle {
   font: string;
   color?: string;
   /**
-   * Currently only used on lyrics, translations, and above lines text
+   * The distance from one line to the next, in ems: between the lines of a
+   * text with line breaks in it; for lyrics, translations and above lines
+   * text, between the lines that ChantLine lays them out on; and, for
+   * annotations, between the annotations of an Annotations.
    * Defaults to 1.1
    */
   lineHeight?: number;
@@ -865,6 +876,27 @@ export type TextTypeStyles = {
 };
 
 export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
+
+/** whether the clefs at the start of lines are drawn (see ChantContext.clefVisibility) */
+export type ClefVisibility = "visible" | "invisible" | "phantom";
+
+/** how the number of a mode is written (see ChantContext.modeNumberSystem) */
+export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
+
+/** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
+export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
+
+/**
+ * the special character (in ChantContext.specials) that a ~ in the lyrics
+ * becomes, for each LyricTie but "space", as Gregorio draws its lyric ties
+ * with the macros of <sp>ut</sp>, <sp>ot</sp> and <sp>dt</sp>
+ */
+export const LyricTieSpecials: { [tie in LyricTie]: string | null } = {
+  space: null,
+  undertie: "ut",
+  overtie: "ot",
+  doubletie: "dt"
+};
 
 /** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
 export type MakeDef = (() => void) & {
@@ -990,7 +1022,71 @@ export class ChantContext {
   dividerLineColor: string;
   negativeFillColor: string;
 
+  /**
+   * whether the clef at the start of each line is drawn, as with Gregorio's
+   * \gresetclef: "invisible" leaves it out, and "phantom" leaves its space
+   * empty.  A change of clef within a line is drawn either way.  Defaults to
+   * "visible".
+   */
+  clefVisibility: ClefVisibility;
+
+  /**
+   * how Gabc.applyHeader() writes the number of the mode header (1 to 8), as
+   * with Gregorio's \gresetmodenumbersystem: "roman-majuscule" (VIII), the
+   * default, "roman-minuscule" (viii) or "arabic" (8)
+   */
+  modeNumberSystem: ModeNumberSystem;
+
   defaultLanguage: Language;
+  /**
+   * What each lyric is centered under its notation on, as Gregorio's
+   * \gresetlyriccentering: "vowel" (the default) centers it on its vowel
+   * segment, found by its language's rules (see defaultLanguage); "syllable"
+   * on the whole syllable; and "firstletter" on its first letter (after any
+   * drop cap).  Centering marked in the gabc with braces (e.g. "f{i}re")
+   * wins over each of these.
+   */
+  lyricCentering: "vowel" | "syllable" | "firstletter";
+  /**
+   * Whether a syllable that ends in italics (e.g. "ri<i>a</i>") elides into
+   * the next one, as a syllable that ends in an elision ("ri<e>a</e>") does.
+   * Defaults to true.
+   */
+  italicMeansElision: boolean;
+  /**
+   * What a ~ in the lyrics becomes.  "space" (the default) is a space that
+   * doesn't break the syllable, so the syllable is centered on the text after
+   * it.  "undertie", "overtie" and "doubletie" are Gregorio's lyric ties,
+   * drawn as the specials ut, ot and dt are (see specials), which join the
+   * words, so the syllable is centered on its first vowel.  Like the rest of
+   * the lyrics, it's read when the gabc is parsed.
+   */
+  lyricTie: LyricTie;
+  /**
+   * Gregorio's firstword, firstsyllable and firstsyllableinitial styles: the
+   * styles of the lyrics of the score's first word, of its first syllable
+   * (after any drop cap), and of that syllable's first letter.  Markup in the
+   * lyrics wins over them.  Each is empty, and so changes nothing, by default.
+   * They're applied by ChantScore.updateNotations().
+   */
+  firstWordStyle: CssProperties;
+  firstSyllableStyle: CssProperties;
+  firstSyllableInitialStyle: CssProperties;
+  /**
+   * Where a translation starts under its syllable, as Gregorio's
+   * \gresettranslationcentering: "left" (the default) at the left of the
+   * syllable's notation, or "center" centered under its lyric.  A
+   * translation that ends at a later syllable ([/]) is centered between the
+   * two either way.
+   */
+  translationCentering: "left" | "center";
+  /**
+   * How much of the text after a <pr> (with no factor of its own, as <pr:0.5>
+   * has) may go past the right end of the staff, from 0 to 1.  It's 1 by
+   * default, as in Gregorio (\gresetprotrusionfactor{default}).  Text past
+   * the end of the staff is outside the width the score is laid out at.
+   */
+  defaultProtrusionFactor: number;
 
   pixelRatio: number;
 
@@ -1016,12 +1112,29 @@ export class ChantContext {
 
   interVerbalMultiplier: number;
 
+  /**
+   * the width of each space between neumes that the gabc gives, in multiples
+   * of this.intraNeumeSpacing.  /[n] is n times "/", and three or more
+   * slashes are "//" and then "/" for each slash after the second.  The
+   * defaults make a large space (" ") the same as "//"; Gregorio's own widths
+   * are about { "/0": 0.5, "/!": 1, "/": 1, "//": 1.58, " ": 3.16 }.
+   */
+  neumeSpaceMultipliers: { [code in NeumeSpaceCode]: number };
+
   drawGuides: boolean;
   drawDebuggingBounds: boolean;
 
   currNotationIndex: number;
 
   condensingTolerance: number;
+
+  /**
+   * which lines end with a custos when the gabc doesn't put one there: "auto"
+   * (the default) for every line that has notes after it, or "manual" for
+   * only the line breaks that ask for one (gabc z+ or Z+), as with Gregorio's
+   * \greseteolcustos
+   */
+  eolCustos: "auto" | "manual";
 
   autoColor: boolean;
 
@@ -1160,7 +1273,18 @@ export class ChantContext {
     // stylesheet.
     this.negativeFillColor = "#fff";
 
+    this.clefVisibility = "visible";
+    this.modeNumberSystem = "roman-majuscule";
+
     this.defaultLanguage = language.latin;
+    this.lyricCentering = "vowel";
+    this.italicMeansElision = true;
+    this.lyricTie = "space";
+    this.firstWordStyle = {};
+    this.firstSyllableStyle = {};
+    this.firstSyllableInitialStyle = {};
+    this.translationCentering = "left";
+    this.defaultProtrusionFactor = 1;
 
     // calculate the pixel ratio for drawing to a canvas
     this.pixelRatio =
@@ -1209,6 +1333,9 @@ export class ChantContext {
     // space added between puncta of different words, in multiples of this.intraNeumeSpacing
     this.interVerbalMultiplier = 1;
 
+    // the width of each space between neumes, in multiples of this.intraNeumeSpacing
+    this.neumeSpaceMultipliers = { "/0": 0.5, "/!": 1, "/": 1, "//": 2, " ": 2 };
+
     this.drawGuides = false;
     this.drawDebuggingBounds = true;
 
@@ -1235,6 +1362,8 @@ export class ChantContext {
     // how much the default spacing can shrink. E.g., a value of 0.20 allows the layout
     // engine to separate two glyphs by only 80% of the normal inter-neume spacing value.
     this.condensingTolerance = 0.3;
+
+    this.eolCustos = "auto";
 
     // if auto color is true, then exsurge tries to automatically colorize
     // some elements of the chant (directives become rubric color, etc.)
@@ -1931,7 +2060,14 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition);
     var y1;
 
-    if (Math.abs(staffPosition % 2) === 0) y1 = y0 + ctxt.staffInterval * 1.8;
+    // a note on a space has a shorter stem than one on a line, as does one on
+    // the bottom line with Gregorio's [ll:0] (as if there's no ledger line
+    // below it, where its stem would end)
+    if (
+      Math.abs(staffPosition % 2) === 0 ||
+      (staffPosition === 1 && note.lowLedgerLine === false)
+    )
+      y1 = y0 + ctxt.staffInterval * 1.8;
     else y1 = y0 + ctxt.staffInterval * 2.7;
 
     this.bounds.x = 0;
@@ -1979,10 +2115,41 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
 }
 
 export class LineaVisualizer extends ChantLayoutElement {
-  constructor(ctxt: ChantContext, note: Note) {
+  /**
+   * the flat bar between the lines of a linea (gabc =), from the top of the
+   * lines, or null for the lines around a punctum (gabc R)
+   */
+  bar: { y: number; height: number } | null;
+
+  /** @param bar whether it's a linea (gabc =), a flat bar between the lines, rather than lines around the note */
+  constructor(ctxt: ChantContext, note: Note, bar = false) {
     super();
 
     var staffPosition = note.staffPosition;
+
+    if (bar) {
+      // Gregorio's Linea glyph: a bar three quarters as tall as a punctum and
+      // 2.4 times as wide, between lines that stand a quarter of a punctum's
+      // height above and below it
+      var punctumHeight = Glyphs.PunctumQuadratum.bounds.height * ctxt.glyphScaling;
+      var barHeight = punctumHeight * 0.75;
+      var overhang = punctumHeight / 4;
+
+      this.bar = { y: overhang, height: barHeight };
+      this.bounds.x = 0;
+      this.bounds.y =
+        ctxt.calculateHeightFromStaffPosition(staffPosition) - barHeight / 2 - overhang;
+      this.bounds.width =
+        Glyphs.PunctumQuadratum.bounds.width * ctxt.glyphScaling * 2.4 +
+        ctxt.neumeLineWeight * 2;
+      this.bounds.height = barHeight + overhang * 2;
+
+      this.origin.x = ctxt.neumeLineWeight;
+      this.origin.y = 0;
+      return;
+    }
+
+    this.bar = null;
 
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition) - note.origin.y;
     var y1 = y0 + note.bounds.height;
@@ -1996,54 +2163,61 @@ export class LineaVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
+  // the rectangles to fill: the line on each side, and the bar if there is one
+  getRects(ctxt: ChantContext) {
+    var rects = [
+      this.bounds.x,
+      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
+    ].map((x) => ({
+      x,
+      y: this.bounds.y,
+      width: ctxt.neumeLineWeight,
+      height: this.bounds.height
+    }));
+
+    if (this.bar)
+      rects.push({
+        x: this.bounds.x + ctxt.neumeLineWeight,
+        y: this.bounds.y + this.bar.y,
+        width: this.bounds.width - ctxt.neumeLineWeight * 2,
+        height: this.bar.height
+      });
+
+    return rects;
+  }
+
   draw(ctxt: ChantContext) {
     var canvasCtxt = ctxt.canvasCtxt!;
 
     canvasCtxt.fillStyle = ctxt.neumeLineColor;
-    canvasCtxt.fillRect(
-      this.bounds.x,
-      this.bounds.y,
-      ctxt.neumeLineWeight,
-      this.bounds.height
-    );
-    canvasCtxt.fillRect(
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight,
-      this.bounds.y,
-      ctxt.neumeLineWeight,
-      this.bounds.height
-    );
+    for (var rect of this.getRects(ctxt))
+      canvasCtxt.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
-  getSvgProps(ctxt: ChantContext, x: number) {
+  getSvgProps(ctxt: ChantContext, rect: { x: number; y: number; width: number; height: number }) {
     return {
-      x,
-      y: this.bounds.y,
-      width: ctxt.neumeLineWeight,
-      height: this.bounds.height,
+      ...rect,
       fill: ctxt.neumeLineColor,
       class: "neumeLine"
     };
   }
 
   createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("g", null, [
-      this.bounds.x,
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-    ].map(x => QuickSvg.createNode("rect", this.getSvgProps(ctxt, x))));
+    return QuickSvg.createNode("g", null, this.getRects(ctxt).map(
+      (rect) => QuickSvg.createNode("rect", this.getSvgProps(ctxt, rect))
+    ));
   }
 
   createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("g", {}, ...[
-      this.bounds.x,
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-    ].map(x => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, x))));
+    return QuickSvg.createSvgTree("g", {}, ...this.getRects(ctxt).map(
+      (rect) => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, rect))
+    ));
   }
 
   createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("g", null, [
-      this.bounds.x,
-      this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-    ].map(x => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, x))).join(''));
+    return QuickSvg.createFragment("g", null, this.getRects(ctxt).map(
+      (rect) => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, rect))
+    ).join(''));
   }
 }
 
@@ -2262,47 +2436,23 @@ export class GlyphVisualizer extends ChantLayoutElement {
   }
 }
 
-export class RoundBraceVisualizer extends ChantLayoutElement {
-  isAbove: boolean;
-  braceHeight: number;
+/** a brace over or under notes, which a canvas strokes along its svg path */
+export abstract class BraceVisualizer extends ChantLayoutElement {
+  isAbove!: boolean;
+  braceHeight!: number;
   accent?: GlyphVisualizer;
 
-  constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove: boolean) {
-    super();
-    this.ignoreBounds = true;
-
-    if (x1 > x2) {
-      // swap the xs
-      var temp = x1;
-      x1 = x2;
-      x2 = temp;
-    }
-
-    this.isAbove = isAbove;
-    this.braceHeight = (3 * ctxt.staffInterval) / 2;
-
-    this.bounds = new Rect(
-      x1,
-      isAbove ? y - this.braceHeight : y,
-      x2 - x1,
-      this.braceHeight
-    );
-
-    this.origin.x = 0;
-    this.origin.y = 0;
-  }
+  // returns svg path d string
+  abstract generatePathString(): string;
 
   draw(ctxt: ChantContext) {
-    /**
-     * @type CanvasRenderingContext2D
-     */
-    var d = ctxt.canvasCtxt!;
+    var canvasCtxt = ctxt.canvasCtxt!;
 
-    const { x1, x2, y, cx1, cx2, cy } = this.getPathPoints();
-    d.beginPath();
-    d.moveTo(x1, y);
-    d.bezierCurveTo(cx1, cy, cx2, cy, x2, y);
-    d.stroke();
+    canvasCtxt.strokeStyle = ctxt.neumeLineColor;
+    canvasCtxt.lineWidth = ctxt.staffLineWeight;
+    canvasCtxt.stroke(new Path2D(this.generatePathString()));
+
+    if (this.accent) this.accent.draw(ctxt);
   }
 
   getSvgPathProps(ctxt: ChantContext) {
@@ -2317,6 +2467,7 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
 
   createSvgNode(ctxt: ChantContext) {
     var node = QuickSvg.createNode("path", this.getSvgPathProps(ctxt));
+
     if (this.accent) {
       return QuickSvg.createNode(
         "g",
@@ -2355,6 +2506,33 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
         fragment
       );
     } else return fragment;
+  }
+}
+
+export class RoundBraceVisualizer extends BraceVisualizer {
+  constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove: boolean) {
+    super();
+    this.ignoreBounds = true;
+
+    if (x1 > x2) {
+      // swap the xs
+      var temp = x1;
+      x1 = x2;
+      x2 = temp;
+    }
+
+    this.isAbove = isAbove;
+    this.braceHeight = (3 * ctxt.staffInterval) / 2;
+
+    this.bounds = new Rect(
+      x1,
+      isAbove ? y - this.braceHeight : y,
+      x2 - x1,
+      this.braceHeight
+    );
+
+    this.origin.x = 0;
+    this.origin.y = 0;
   }
 
   getPathPoints() {
@@ -2408,10 +2586,9 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
   }
 }
 
-export class CurlyBraceVisualizer extends ChantLayoutElement {
-  isAbove: boolean;
-  braceHeight: number;
-  accent?: GlyphVisualizer;
+export class CurlyBraceVisualizer extends BraceVisualizer {
+  /** the brace's own extent, which its path is drawn in (bounds takes in its accent too) */
+  braceBounds: Rect;
 
   constructor(
     ctxt: ChantContext,
@@ -2438,7 +2615,8 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
     // but for a brace under the notes, y is simply the y passed in.
     if (isAbove) y -= this.braceHeight;
 
-    var bounds = new Rect(x1, y, x2 - x1, this.braceHeight);
+    this.braceBounds = new Rect(x1, y, x2 - x1, this.braceHeight);
+    var bounds = this.braceBounds.clone();
 
     if (addAcuteAccent && isAbove) {
       this.accent = new GlyphVisualizer(ctxt, GlyphCode.AcuteAccent);
@@ -2454,75 +2632,22 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  getSvgPathProps(ctxt: ChantContext) {
-    return {
-      d: this.generatePathString(),
-      stroke: ctxt.neumeLineColor,
-      "stroke-width": ctxt.staffLineWeight + "px",
-      fill: "none",
-      class: "brace"
-    };
-  }
-
-  createSvgNode(ctxt: ChantContext) {
-    var node = QuickSvg.createNode("path", this.getSvgPathProps(ctxt));
-
-    if (this.accent) {
-      return QuickSvg.createNode(
-        "g",
-        {
-          class: "accentedBrace"
-        },
-        [node, this.accent.createSvgNode(ctxt)]
-      );
-    } else return node;
-  }
-  createSvgTree(ctxt: ChantContext) {
-    var node = QuickSvg.createSvgTree("path", this.getSvgPathProps(ctxt));
-    if (this.accent) {
-      return QuickSvg.createSvgTree(
-        "g",
-        {
-          class: "accentedBrace"
-        },
-        node,
-        this.accent.createSvgTree(ctxt)
-      );
-    } else return node;
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    var fragment = QuickSvg.createFragment("path", this.getSvgPathProps(ctxt));
-
-    if (this.accent) {
-      fragment += this.accent.createSvgFragment(ctxt);
-
-      return QuickSvg.createFragment(
-        "g",
-        {
-          class: "accentedBrace"
-        },
-        fragment
-      );
-    } else return fragment;
-  }
-
   // code below inspired by: https://gist.github.com/alexhornbake
   // optimized for braces that are only drawn horizontally.
   // returns svg path d string
   generatePathString() {
     var q = 0.6; // .5 is normal, higher q = more expressive bracket
 
-    var x1 = this.bounds.x;
-    var x2 = this.bounds.right();
-    var width = this.bounds.width;
+    var x1 = this.braceBounds.x;
+    var x2 = this.braceBounds.right();
+    var width = this.braceBounds.width;
     var y, h;
 
     if (this.isAbove) {
-      y = this.bounds.bottom();
+      y = this.braceBounds.bottom();
       h = -this.braceHeight;
     } else {
-      y = this.bounds.y;
+      y = this.braceBounds.y;
       h = this.braceHeight;
     }
 
@@ -2758,9 +2883,38 @@ interface BreakMatch {
   forced?: boolean;
 }
 
+// a line of a text element, as it's drawn
+interface TextLine {
+  /** the index in the spans' text where the line starts */
+  start: number;
+  /** the index in the spans' text where the line ends */
+  end: number;
+  /** the index in the element's text where the line starts */
+  textStart: number;
+  /** how far right the line is moved, where the lines are right aligned */
+  xOffset: number;
+}
+
 // the markup in a TextElement's text (see generateSpansFromText()), and the
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
+
+// Gregorio's commands for the symbols in its greextra font (from its
+// gregoriotex-symbols.tex), by their names in lower case
+const __greextraCommands: { [command: string]: string } = {
+  grecross: "Cross",
+  grealtcross: "Cross.alt",
+  gredagger: "Dagger",
+  greheightstar: "StarHeight",
+  gresixstar: "StarSix",
+  grestar: "StarSix",
+  gothrbar: "RWithBarGoth",
+  gothvbar: "VWithBarGoth"
+};
+
+// TeX commands whose arguments aren't text to show: spacing, colors and
+// labels, and Gregorio's own commands
+const __texCommandsWithoutText = /^(?:gre|[hv]space$|[hv]skip$|kern$|rule$|[hv]?phantom$|color$|label$|(?:set|addto)length$)/i;
 
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export class TextElement extends ChantLayoutElement {
@@ -2884,7 +3038,11 @@ export class TextElement extends ChantLayoutElement {
     };
 
     var markupRegex = new RegExp(markupRegexSource, "gi");
-    var vTagRegex = /(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?/gi;
+    // in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
+    // {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped
+    // character, a command with its arguments, or a brace, which is left out
+    // unless it's one of the others (a command's {arguments} may be read again)
+    var vTagRegex = /\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?|\\'\{?([æœaeiouy])\}?|\\([a-z@]+)\*?((?:\s*(?:\[[^\]]*\]|\{(?:[^{}]|\{[^{}]*\})*\}))*)|\\([&%$#_{}])|[{}]/gi;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
@@ -2931,19 +3089,34 @@ export class TextElement extends ChantLayoutElement {
             closeSpan(vTag.slice(lastIndex, vMatch.index), match.index + lastIndex + iOffset);
             iOffset = 3; // length of '<v>'
           }
-          let [, grecross, greextra, accent, diphthong] = vMatch;
+          let [, greextra, accent, diphthong, accentedVowel, command, args, escaped] = vMatch;
           let char = '';
           if (diphthong) {
             char = makeLigature(diphthong);
             if (accent) char = addAccent(char);
             closeSpan(char, match.index + vMatch.index + iOffset)
+          } else if (accentedVowel) {
+            closeSpan(addAccent(accentedVowel), match.index + vMatch.index + iOffset);
+          } else if (escaped) {
+            closeSpan(escaped, match.index + vMatch.index + iOffset);
           } else {
-            if (grecross) {
-              // grecross is just the command for the Cross:
-              // set up greextra so it will get handled with it below:
-              greextra = 'Cross';
-            }    
-            char = (greextraGlyphs as { [name: string]: string })[greextra];
+            if (command) {
+              // \greextra{Name}, or one of Gregorio's commands for a symbol
+              // (e.g. \grecross for the Cross)
+              greextra = /^greextra$/i.test(command)
+                ? (/\{([^{}]*)\}/.exec(args) || [])[1]
+                : __greextraCommands[command.toLowerCase()];
+              // any other command is left out, but the text of its {arguments}
+              // is read again (e.g. the x of \textit{x}), unless it has none
+              let braceIndex = args.indexOf("{");
+              if (
+                !greextra &&
+                braceIndex >= 0 &&
+                !__texCommandsWithoutText.test(command)
+              )
+                vTagRegex.lastIndex -= args.length - braceIndex;
+            }
+            char = greextra && (greextraGlyphs as { [name: string]: string })[greextra];
             if (char) {
               closeSpan(char, match.index + vMatch.index + iOffset, { 'font-family': 'greextra' })
             }
@@ -3029,11 +3202,12 @@ export class TextElement extends ChantLayoutElement {
           markupStack.length > 0 &&
           markupStack[markupStack.length - 1].tagName === tagName
         ) {
-          if (closingTag) {
-            // group close
-            closeCurrentSpan();
-            markupStack.pop();
-          }
+          // (a tag opened again inside itself, e.g. <i> in a translation,
+          // which is already in italics, changes nothing, but the text
+          // before it is kept)
+          closeCurrentSpan();
+          // group close
+          if (closingTag) markupStack.pop();
         } else if (markupStack.filter(filterFrames).length > 0) {
           // trying to open a recursive group (or forgot to close a previous group)
           // in either case, we just unwind to the previous stack frame
@@ -3073,16 +3247,38 @@ export class TextElement extends ChantLayoutElement {
       closeSpan(text.slice(spanStartIndex), spanStartIndex);
   }
 
+  /** the size in px of this element's text in the given properties */
+  fontSizeForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
+    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
+    if (/%$/.test(properties["font-size"] as string)) {
+      fontSize *= this.fontSize(ctxt) / 100;
+    }
+    return fontSize * (this.resize || 1);
+  }
+
+  /** the distance from one line of this element's text to the next, in ems */
+  lineSpacing(ctxt: ChantContext) {
+    return (this.textType && ctxt.textStyles[this.textType.key].lineHeight) || 1.1;
+  }
+
+  /**
+   * how far below the line before it the line that span starts is, in px: the
+   * same as the span's dy in the svg, in its own font size
+   */
+  lineBreakHeight(ctxt: ChantContext, span: TextSpan, properties = span.mergedProperties) {
+    return (
+      this.lineSpacing(ctxt) *
+      this.fontSizeForProperties(ctxt, properties) *
+      (__parseNewLine(span.newLine) || 1)
+    );
+  }
+
   getCanvasFontForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
     var font = "";
     if (properties["font-style"] === "italic") font += "italic ";
     if (properties["font-variant"] === "small-caps") font += "small-caps ";
     if (properties["font-weight"] === "bold") font += "bold ";
-    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
-    if (/%$/.test(properties["font-size"] as string)) {
-      fontSize *= this.fontSize(ctxt) / 100;
-    }
-    font += `${fontSize * (this.resize || 1)}px `;
+    font += `${this.fontSizeForProperties(ctxt, properties)}px `;
     font += properties["font-family"] || this.fontFamily(ctxt);
     return font;
   }
@@ -3131,14 +3327,15 @@ export class TextElement extends ChantLayoutElement {
     var widths: number[] = [];
     var newLineSpans = [this.spans[0]];
     var subStringLength = 0;
-    var numLines = 1;
     var fontSize = this.fontSize(ctxt) * (this.resize || 1);
+    // the y of the current line's baseline
+    var baseline = 0;
     var bbox = new Rect(0, 0, 0, 0);
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i],
         myText = span.text.slice(0, length - subStringLength);
       if (span.newLine) {
-        numLines += __parseNewLine(span.newLine) || 1;
+        baseline += this.lineBreakHeight(ctxt, span);
         if (!lines && this.rightAligned === true && length === Infinity) {
           newLineSpans[newLineSpans.length - 1].xOffset =
             this.firstLineMaxWidth! - width;
@@ -3157,7 +3354,7 @@ export class TextElement extends ChantLayoutElement {
           bbox.union(
             new Rect(
               width - left,
-              fontSize * (numLines - 1) - metrics.actualBoundingBoxAscent,
+              baseline - metrics.actualBoundingBoxAscent,
               metrics.width + left,
               metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent
             )
@@ -3167,7 +3364,7 @@ export class TextElement extends ChantLayoutElement {
           }
         } else {
           bbox.union(
-            new Rect(width, fontSize * (numLines - 2), (metrics as TextMetrics).width, fontSize)
+            new Rect(width, baseline - fontSize, (metrics as TextMetrics).width, fontSize)
           );
         }
         width += metrics.width;
@@ -3175,25 +3372,21 @@ export class TextElement extends ChantLayoutElement {
         strategy === TextMeasuringStrategy.OpenTypeJS &&
         ctxt.fontDictionary
       ) {
-        // get the bounding box for the substring, placing it at x = width, y = fontSize * (numLines - 1)
+        // get the bounding box for the substring, placing it at x = width, y = baseline
         const properties = span.mergedProperties;
         let font = ctxt.getFontForProperties(
           properties,
           properties["font-family"] || this.fontFamily(ctxt)
         )!;
         const smallCaps = properties["font-variant"] === "small-caps";
-        let spanFontSize = parseFloat(properties["font-size"]) || fontSize;
-        if (/%$/.test(properties["font-size"])) {
-          spanFontSize *= fontSize / 100;
-        }
-        const y = fontSize * (numLines - 1);
+        const spanFontSize = this.fontSizeForProperties(ctxt, properties);
         if ('getPath' in font) {
           // opentype.js
           const measured = ctxt.measureOpenTypeText(
             font,
             myText,
             width,
-            y,
+            baseline,
             spanFontSize,
             smallCaps
           );
@@ -3221,7 +3414,7 @@ export class TextElement extends ChantLayoutElement {
           bbox.union(
             new Rect(
               width + subBbox.minX * multiplier,
-              y - subBbox.maxY * multiplier,
+              baseline - subBbox.maxY * multiplier,
               subWidth - subBbox.minX * multiplier,
               (subBbox.height) * multiplier
             )
@@ -3237,7 +3430,7 @@ export class TextElement extends ChantLayoutElement {
         bbox.union(
           new Rect(
             width + subBbox.x,
-            fontSize * (numLines - 1) + subBbox.y,
+            baseline + subBbox.y,
             subBbox.width,
             subBbox.height
           )
@@ -3269,6 +3462,27 @@ export class TextElement extends ChantLayoutElement {
     } else {
       return width;
     }
+  }
+
+  /**
+   * The lines of the text, as they are drawn.  Where setMaxWidth() wrapped
+   * the text, the spans no longer have the whitespace that it broke the line
+   * at, though this.text still does.
+   */
+  getLines() {
+    var lines: TextLine[] = [],
+      index = 0,
+      textIndex = 0;
+    this.spans.forEach((span, i) => {
+      if (!i || span.newLine) {
+        if (span.newLine === true) textIndex += (span.wrappedSpace || " ").length;
+        lines.push({ start: index, end: index, textStart: textIndex, xOffset: span.xOffset || 0 });
+      }
+      index += span.text.length;
+      textIndex += span.text.length;
+      lines[lines.length - 1].end = index;
+    });
+    return lines;
   }
 
   recalculateMetrics(ctxt: ChantContext, resetNewLines = true) {
@@ -3545,23 +3759,20 @@ export class TextElement extends ChantLayoutElement {
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
-      if (span.newLine) {
-        let count = __parseNewLine(span.newLine) || 1;
-        canvasCtxt.translate(
-          translateWidth + xOffset,
-          this.fontSize(ctxt) * count
-        );
-        translateWidth = -xOffset;
-        translateHeight -= this.fontSize(ctxt);
-      } else if (xOffset) {
-        canvasCtxt.translate(translateWidth + xOffset, 0);
-        translateWidth = -xOffset;
-      }
       var properties = Object.assign(
         {},
         extraStyleProperties,
         span.mergedProperties
       );
+      if (span.newLine) {
+        let lineHeight = this.lineBreakHeight(ctxt, span, properties);
+        canvasCtxt.translate(translateWidth + xOffset, lineHeight);
+        translateWidth = -xOffset;
+        translateHeight -= lineHeight;
+      } else if (xOffset) {
+        canvasCtxt.translate(translateWidth + xOffset, 0);
+        translateWidth = -xOffset;
+      }
       var spanFont = this.getCanvasFontForProperties(ctxt, properties);
       if (spanFont !== font) canvasCtxt.font = font = spanFont;
       canvasCtxt.fillStyle = properties.fill || "#000";
@@ -3599,7 +3810,7 @@ export class TextElement extends ChantLayoutElement {
 
     if (span.newLine) {
       var xOffset = span.xOffset || 0;
-      options.dy = 1.1 * (__parseNewLine(span.newLine) || 1) + "em";
+      options.dy = this.lineSpacing(ctxt) * (__parseNewLine(span.newLine) || 1) + "em";
       options.x = this.bounds.x + xOffset;
     } else if (span.xOffset) {
       options.x = this.bounds.x + span.xOffset;
@@ -3610,8 +3821,13 @@ export class TextElement extends ChantLayoutElement {
       options.y = this.bounds.y;
     }
     if (this.resize) {
-      options["font-size"] =
-        properties["font-size"] || this.fontSize(ctxt) * this.resize;
+      options["font-size"] = this.fontSizeForProperties(ctxt, properties);
+      if (properties["font-size"]) {
+        // the span's own font-size, in its style, would win over the attribute
+        const style = span.properties;
+        delete style["font-size"];
+        options.style = useStyleObject ? style : getCssForProperties(style);
+      }
     }
     // if (ctxt.setFontFamilyAttributes) {
     //   options["font-family"] =
@@ -3637,13 +3853,19 @@ export class TextElement extends ChantLayoutElement {
     const extraStyleProperties = this.getExtraStyleProperties(ctxt);
     let textClass = this.getCssClasses().trim();
     if (extraStyleProperties.class) textClass = extraStyleProperties.class + " " + textClass;
+    let style = properties;
+    if (this.resize && properties["font-size"]) {
+      // the span's own font-size, in its style, would win over the attribute
+      style = Object.assign({}, properties);
+      delete style["font-size"];
+    }
     const spanNode = QuickSvg.createNode(
       "tspan",
       {
         class: properties.class,
-        style: getCssForProperties(properties),
+        style: getCssForProperties(style),
         "font-size": this.resize
-          ? properties["font-size"] || this.fontSize(ctxt) * this.resize
+          ? this.fontSizeForProperties(ctxt, properties)
           : undefined
       },
       text
@@ -3750,7 +3972,8 @@ export const LyricArray = {
     return x;
   },
 
-  getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean) {
+  /** (lessProtrusion leaves out how far each lyric may go past the end of the staff) */
+  getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean, lessProtrusion?: boolean) {
     if (lyricArray.length === 0) return NaN;
 
     var x = Number.MIN_VALUE;
@@ -3767,7 +3990,8 @@ export const LyricArray = {
             !l.preventConnector &&
             !l.needsConnector
               ? l.getConnectorWidth()
-              : 0)
+              : 0) -
+            (lessProtrusion ? l.protrusionWidth || 0 : 0)
         );
     }
 
@@ -3832,10 +4056,17 @@ export class Lyric extends TextElement {
   clear?: boolean;
   /** Gregorio's <pr>: how much of the lyric may go into the right margin */
   protrusion?: LyricProtrusion;
+  /** how far the lyric may go past the end of the staff, for its protrusion */
+  protrusionWidth?: number;
   /** which line of lyrics this is */
   lyricIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
   lineWidth?: number;
+  /**
+   * the styles that setFirstWordStyles() gave the lyric: the first word's and
+   * first syllable's, then the first letter's
+   */
+  firstWordStyles?: SpanPropertyDict[];
 
   constructor(
     ctxt: ChantContext,
@@ -3976,6 +4207,32 @@ export class Lyric extends TextElement {
       x2,
       vowelSegmentWidth = this.widthWithoutConnector;
 
+    // svgTextMeasurer still has the current lyric in it...
+    var svgText =
+      ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
+        ? (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement)
+        : null;
+    var lines = this.getLines();
+    // the line that an index of this.text is on
+    var lineAt = (index: number) =>
+      lines.reduce((result, line) => (line.textStart <= index ? line : result));
+    // the x of an index of the spans' text, on its line as it's drawn
+    var measure = (line: TextLine, index: number) =>
+      line.xOffset +
+      (index <= line.start
+        ? 0
+        : svgText
+        ? svgText.getSubStringLength(line.start, index - line.start)
+        : this.measureSubstring(ctxt, index, false, true));
+    // the x of the start and the end of length characters of this.text from
+    // index, on the line that they start on (and so that they end on, at the
+    // latest)
+    var measureOnLine = (index: number, length: number) => {
+      let line = lineAt(index),
+        start = Math.min(line.end, line.start + index - line.textStart);
+      return [measure(line, start), measure(line, Math.min(line.end, start + length))];
+    };
+
     // some simple checks for sanity, and disable manual centering if the numbers are bad
     if (
       this.centerStartIndex >= 0 &&
@@ -3995,23 +4252,7 @@ export class Lyric extends TextElement {
     } else if (this.centerStartIndex >= 0) {
       // if we have manually overriden the centering logic for this lyric,
       // then always use that.
-      if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-        // svgTextMeasurer still has the current lyric in it...
-        x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-          0,
-          this.centerStartIndex
-        );
-        x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-          0,
-          this.centerStartIndex + this.centerLength
-        );
-      } else {
-        x1 = this.measureSubstring(ctxt, this.centerStartIndex);
-        x2 = this.measureSubstring(
-          ctxt,
-          this.centerStartIndex + this.centerLength
-        );
-      }
+      [x1, x2] = measureOnLine(this.centerStartIndex, this.centerLength);
       offset = (x1 + x2) / 2;
       vowelSegmentWidth = x2 - x1;
     } else {
@@ -4031,25 +4272,40 @@ export class Lyric extends TextElement {
           startIndex = 0;
         }
 
-        // find indices of e tags to ignore when finding vowel segment:
-        var ignore: IgnoredRange[] = [];
+        // elisions (<e> tags) count as consonants when finding the vowel
+        // segment, so one at the start is skipped and any later one ignored:
+        var textStartIndex = startIndex;
+        var elisions: IgnoredRange[] = [];
         let index = 0;
-        let indexOffset = startIndex;
         for (var span of this.spans) {
           let endIndex = index + span.text.length;
-          if (span.activeTags.includes('e')) {
+          if (span.activeTags.includes('e') && endIndex > startIndex) {
             if (index <= startIndex) {
               startIndex = endIndex;
             } else {
-              ignore.push({ index: index - indexOffset, endIndex: endIndex - indexOffset });
+              elisions.push({ index, endIndex });
             }
           }
           index = endIndex;
         }
+        // (findVowelSegment counts the ranges from startIndex)
+        var ignore = elisions.map((range) => ({
+          index: range.index - startIndex,
+          endIndex: range.endIndex - startIndex
+        }));
         // Non-directive elements are lined up to the chant notation based on vowel segments,
-        var result = activeLanguage.findVowelSegment(this.text, startIndex, ignore);
+        // or (as ctxt.lyricCentering says) on the whole syllable or its first letter
+        var result: VowelSegment =
+          ctxt.lyricCentering === "syllable"
+            ? { found: true, startIndex: 0, length: this.text.length }
+            : ctxt.lyricCentering === "firstletter"
+            ? { found: true, startIndex: 0, length: Array.from(this.text)[0].length }
+            : activeLanguage.findVowelSegment(this.text, startIndex, ignore);
 
         if (result.found !== true) {
+          // with no vowel, center on the syllable's letters, elisions and all
+          // (as Gregorio centers a syllable with no vowel as a whole)
+          startIndex = textStartIndex;
           var match = this.text.slice(startIndex).match(/[a-z]+/i);
           if (match) {
             result.startIndex = startIndex + match.index!;
@@ -4059,26 +4315,40 @@ export class Lyric extends TextElement {
             result.length = this.text.length - startIndex;
           }
         }
-        if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-          // svgTextMeasurer still has the current lyric in it...
-          x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-            0,
-            result.startIndex
-          );
-          x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-            0,
-            result.startIndex + result.length
-          );
-        } else {
-          x1 = this.measureSubstring(ctxt, result.startIndex);
-          x2 = this.measureSubstring(ctxt, result.startIndex + result.length);
-        }
+        [x1, x2] = measureOnLine(result.startIndex, result.length);
         offset = (x1 + x2) / 2;
         vowelSegmentWidth = x2 - x1;
       }
     }
 
     this.vowelSegmentWidth = vowelSegmentWidth;
+
+    // the width of the text after a <pr>, times how much of it may protrude,
+    // unless a connector would follow it (which Gregorio doesn't protrude)
+    this.protrusionWidth = 0;
+    // (the drop cap took the first letter of the text that the index counts in)
+    let protrusionIndex = this.protrusion
+      ? Math.max(0, this.protrusion.textIndex - (this.dropCap ? 1 : 0))
+      : 0;
+    if (
+      this.protrusion &&
+      protrusionIndex < this.text.length &&
+      !(this.allowsConnector() && !this.preventConnector)
+    ) {
+      let factor = this.protrusion.factor;
+      if (factor === undefined) factor = ctxt.defaultProtrusionFactor;
+      // the right of the text before it: where it starts on its line, unless
+      // a line before that ends further right.  (The width is measured from
+      // the left of the line that's moved right the least.)
+      let line = lineAt(protrusionIndex);
+      let start =
+        Math.max(
+          measureOnLine(protrusionIndex, 0)[0],
+          ...lines.slice(0, lines.indexOf(line)).map((before) => measure(before, before.end))
+        ) - Math.min(...lines.map((each) => each.xOffset));
+      this.protrusionWidth =
+        Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
+    }
 
     this.bounds.x = -offset;
     this.bounds.y = 0;
@@ -4115,6 +4385,83 @@ export class Lyric extends TextElement {
     this.centerStartIndex--; // lost a letter, so adjust centering accordingly
 
     return dropCap;
+  }
+
+  /**
+   * Gives the lyric the styles of the score's first word (part "word"), or of
+   * its first syllable ("syllable", which also styles the first letter after
+   * any drop cap), from ChantContext.firstWordStyle and so on, or takes them
+   * away (null).  Returns whether the lyric's spans changed.
+   */
+  setFirstWordStyles(ctxt: ChantContext, part: "syllable" | "word" | null) {
+    const hasProperties = (style: CssProperties) =>
+      !!style && Object.keys(style).length > 0;
+    let styles: CssProperties[] = [],
+      initialStyle: CssProperties | null = null;
+    if (part) {
+      styles = [ctxt.firstWordStyle];
+      if (part === "syllable") {
+        styles.push(ctxt.firstSyllableStyle);
+        initialStyle = ctxt.firstSyllableInitialStyle;
+      }
+      styles = styles.filter(hasProperties);
+      if (initialStyle && !hasProperties(initialStyle)) initialStyle = null;
+    }
+    const applied = this.firstWordStyles || [];
+    if (
+      applied.length === styles.length + 1 &&
+      styles.every((style, i) => applied[i] === style) &&
+      applied[styles.length] === initialStyle
+    )
+      return false;
+    if (!applied.length && !styles.length && !initialStyle) return false;
+
+    if (applied.length) {
+      // start again from the lyric as it was parsed (less its drop cap), which
+      // was before it had a drop cap, so without its empty spans
+      const dropCap = this.dropCap;
+      this.dropCap = null;
+      this.generateSpansFromText(
+        ctxt,
+        (ctxt.textStyles.lyric.prefix || "") + this.originalText
+      );
+      this.dropCap = dropCap;
+      if (this.dropCap) {
+        this.spans[0].text = this.spans[0].text.slice(1);
+        this.text = this.text.slice(1);
+      }
+    }
+    this.firstWordStyles =
+      styles.length || initialStyle ? [...styles, initialStyle] : undefined;
+    if (!this.firstWordStyles) return true;
+
+    // the lyric's own markup goes last, so that it wins
+    let spans: TextSpan[] = [];
+    for (let span of this.spans) {
+      if (span === this.connectorSpan) continue;
+      let propertyArray = [...styles, ...span.propertyArray];
+      if (initialStyle && span.text) {
+        // the first letter gets a span of its own
+        const initial = Array.from(span.text)[0];
+        const initialSpan = span.clone();
+        initialSpan.text = initial;
+        initialSpan.propertyArray = [...styles, initialStyle, ...span.propertyArray];
+        spans.push(initialSpan);
+        initialStyle = null;
+        if (span.text.length === initial.length) continue;
+        span = span.clone();
+        span.text = span.text.slice(initial.length);
+        span.index += initial.length;
+        delete span.newLine;
+        delete span.wrappedSpace;
+      } else {
+        span = span.clone();
+      }
+      span.propertyArray = propertyArray;
+      spans.push(span);
+    }
+    this.spans = spans;
+    return true;
   }
 
   getCssClasses() {
@@ -4421,7 +4768,11 @@ export class Annotation extends TextElement {
 }
 
 export class Annotations extends ChantLayoutElement {
-  lineHeight: number;
+  /**
+   * the distance from one annotation to the next, in ems, if it's not the
+   * annotation text style's lineHeight
+   */
+  lineHeight?: number;
   annotations: Annotation[];
   padding: number;
 
@@ -4431,7 +4782,6 @@ export class Annotations extends ChantLayoutElement {
   constructor(ctxt: ChantContext, ...texts: string[]) {
     super();
 
-    this.lineHeight = 1.1;
     this.annotations = texts.map(function (text, i) {
       return new Annotation(ctxt, text, i);
     });
@@ -4470,7 +4820,11 @@ export class Annotations extends ChantLayoutElement {
       annotation.bounds.y += y;
       this.bounds.height = annotation.bounds.bottom();
       this.origin.y = this.origin.y || annotation.origin.y;
-      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * this.lineHeight;
+      // past the annotation's line breaks, to the line after its last line
+      annotation.spans.forEach((span) => {
+        if (span.newLine) y += annotation.lineBreakHeight(ctxt, span);
+      });
+      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * (this.lineHeight || annotation.lineSpacing(ctxt));
     }
   }
 

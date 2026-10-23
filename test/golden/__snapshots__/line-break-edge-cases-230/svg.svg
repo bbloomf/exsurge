@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="230" height="589.033125" viewBox="0 0 230 589.033125" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="230" height="590.6331250000001" viewBox="0 0 230 590.6331250000001" >
 <g >
 <defs >
 <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
@@ -204,7 +204,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,262.725)" element-index="2" >
+<g class="chantLine" transform="translate(0,264.32500000000005)" element-index="2" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="230" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -330,7 +330,7 @@
 <tspan source-index="0" style="" >con</tspan>
 <tspan source-index="0" style="" textLength="2.5305624999999896" lengthAdjust="spacingAndGlyphs" y="13.012000000000008" >-</tspan>
 </text>
-<text source-index="242" x="-206.19243749999998" y="-78.11500000000001" class="aboveLinesText" text-anchor="start" style="" >
+<text source-index="242" x="-206.19243749999998" y="-79.715" class="aboveLinesText" text-anchor="start" style="" >
 <tspan source-index="0" style="font-style: italic;" >A long text above the lines,</tspan>
 <tspan source-index="0" style="font-style: italic;newLine: true;" dy="1.1em" x="-206.19243749999998" >to the end</tspan>
 </text>
@@ -342,7 +342,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,369.946625)" element-index="3" >
+<g class="chantLine" transform="translate(0,371.546625)" element-index="3" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="230" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -482,7 +482,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,476.56987499999997)" element-index="4" >
+<g class="chantLine" transform="translate(0,478.169875)" element-index="4" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="230" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -598,7 +598,7 @@
 </use>
 </g>
 </g>
-<g class="chantLine" transform="translate(0,570.693125)" element-index="5" >
+<g class="chantLine" transform="translate(0,572.293125)" element-index="5" >
 <g class="staffLines" >
 <line x1="0" y1="-43.75" x2="230" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>

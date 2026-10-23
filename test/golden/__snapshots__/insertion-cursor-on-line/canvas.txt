@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(300, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,40]
 fillText("KY", -7.8622, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,58.75]
 fillText("-", -7.8622, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,27.1665,58.75]
@@ -67,7 +68,6 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,268.977
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,283.04043750000005,46.25]
 fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,286.29043750000005,46.25]
 fillText("ste", -11.6782, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,279.91543750000005,58.75]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,5.684341886080802e-14,15]
 fill(Path2D(CustosDescLong[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,297.10293750000005,15]
 beginPath()
 moveTo(0, -43.75)
@@ -86,6 +86,7 @@ moveTo(0, -6.25)
 lineTo(300, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,5.684341886080802e-14,145.215]
 fillRect(0, -50, 0.8, 50) [fillStyle="#000" matrix=1,0,0,1,9.756250000000056,145.215]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,5.684341886080802e-14,101.465]
 fill(Path2D(Flat[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,14.127625000000057,107.715]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,29.55731250000006,101.465]
 fillRect(5.45, -43.75, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,26.43231250000006,145.215]
@@ -116,4 +117,3 @@ fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,135.83087244843
 fillText("son.", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,129.4558724484338,145.215]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,146.6433724484338,145.215]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,146.6433724484338,145.215]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,5.684341886080802e-14,101.465]

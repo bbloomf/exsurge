@@ -120,6 +120,14 @@ export class HorizontalEpisema extends ChantLayoutElement {
     var minDistanceAway = ctxt.staffInterval * 0.25; // min distance from neume
     var glyphCode = this.note.glyphVisualizer!.glyphCode;
     var ledgerLine: { staffPosition?: number } = this.note.neume!.ledgerLines[0] || {};
+    // whether there's a ledger line at a step outside the staff (steps go
+    // down from the middle of the staff), or, with Gregorio's [ll:…] or
+    // [hl:…] hint on that side, whether to place the episema as if there were
+    var hasLedgerLineAt = (step: number) => {
+      var hint = step > 0 ? this.note.lowLedgerLine : this.note.highLedgerLine;
+      if (hint !== undefined) return hint;
+      return ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition as number) === -step;
+    };
     var punctumInclinatumShorten = false;
 
     if (isInclinatumGlyph(glyphCode)) {
@@ -156,7 +164,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
         // if it's an odd step, that means we're on a staff line,
         // so we shift to between the staff line
         if (Math.abs(step) % 2 === staffLineCountNonParity) {
-          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition as number) === -step) {
+          if (Math.abs(step) < ctxt.staffLineCount || hasLedgerLineAt(step)) {
             step += 2 / 3;
           } else {
             // no ledger line, but we don't want the episema to be at exactly the same height the ledger line would occupy:
@@ -180,7 +188,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
         // find nearest acceptable third between staff lines (or staff line)
         if (Math.abs(step) % 2 === staffLineCountNonParity) {
           // if it was a staff line, we need to adjust
-          if (Math.abs(step) < ctxt.staffLineCount || ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition as number) === -step) {
+          if (Math.abs(step) < ctxt.staffLineCount || hasLedgerLineAt(step)) {
             step -= 2 / 3;
           } else {
             // no ledger line, but we don't want the episema to be at exactly the same height the ledger line would occupy:
@@ -465,6 +473,12 @@ export class BracePoint extends ChantLayoutElement {
   attachment: BraceAttachment;
   /** whether the brace was given a length (rather than an end), so the next note ends it */
   automatic?: boolean;
+  /**
+   * the length the brace was given (gabc [ob:0;6mm] and the like), in staff
+   * intervals at Gregorio's default staff size, if it's a TeX length that
+   * exsurge can read.  The brace still ends at the next note.
+   */
+  length?: number;
   /** the index of the notation that the brace starts at */
   notationIndex?: number;
 

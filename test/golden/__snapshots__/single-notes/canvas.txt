@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,40]
 fillText("a", -1.1230000000000002, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,58.75]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,37.444233173076924,40]
@@ -48,6 +49,7 @@ fillText("h", -0.08879999999999999, 14.887, undefined) [font="14.4px Fake-{}" fi
 fill(Path2D(OriscusDes[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,227.52524038461536,40]
 fillText("i", -0.23019999999999996, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,224.40024038461536,58.75]
 fill(Path2D(OriscusDes[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,247.78197355769228,40]
+fillRect(0, -18.75, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,244.65697355769228,58.75]
 fillText("j", -0.49659999999999993, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,244.65697355769228,58.75]
 fill(Path2D(Quilisma[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,268.0387067307692,40]
 fillText("k", -0.7629999999999999, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,264.9137067307692,58.75]
@@ -78,8 +80,10 @@ fillText("t", -0.13660000000000005, 14.887, undefined) [font="14.4px Fake-{}" fi
 fill(Path2D(OriscusDes[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,478.60603846153845,40]
 fillText("u", -0.403, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,475.48103846153845,58.75]
 fill(Path2D(OriscusAsc[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,498.86277163461534,40]
+fillRect(0, -18.75, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,495.73777163461534,58.75]
 fillText("v", -0.6694, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,495.73777163461534,58.75]
 fill(Path2D(OriscusDes[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,519.1195048076922,40]
+fillRect(0, -18.75, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,515.9945048076922,58.75]
 fillText("w", -0.9357999999999995, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,515.9945048076922,58.75]
 fill(Path2D(PunctumInclinatumLiquescent[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,539.3762379807692,40]
 fillText("x", -1.2021999999999995, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,536.2512379807692,58.75]
@@ -90,4 +94,3 @@ fillRect(5.45, -18.75, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,576.6182668
 fillText("z", -1.7349999999999994, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,576.618266826923,58.75]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,593.75,58.75]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,593.75,58.75]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]

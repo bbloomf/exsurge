@@ -137,6 +137,12 @@ export type TrailingSpaceFunction = ((ctxt: ChantContext) => number) & {
     isDefault?: boolean;
 };
 export declare const DefaultTrailingSpace: TrailingSpaceFunction;
+/**
+ * the gabc for a space between neumes: half a space within the neume ("/0"),
+ * a small space within the neume ("/!"), a small space ("/"), a medium space
+ * ("//") or a large space (" ")
+ */
+export type NeumeSpaceCode = "/0" | "/!" | "/" | "//" | " ";
 export declare const GlyphCode: {
     readonly None: "None";
     readonly AcuteAccent: "AcuteAccent";
@@ -291,6 +297,20 @@ export type TextTypeStyles = {
     };
 };
 export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
+/** whether the clefs at the start of lines are drawn (see ChantContext.clefVisibility) */
+export type ClefVisibility = "visible" | "invisible" | "phantom";
+/** how the number of a mode is written (see ChantContext.modeNumberSystem) */
+export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
+/** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
+export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
+/**
+ * the special character (in ChantContext.specials) that a ~ in the lyrics
+ * becomes, for each LyricTie but "space", as Gregorio draws its lyric ties
+ * with the macros of <sp>ut</sp>, <sp>ot</sp> and <sp>dt</sp>
+ */
+export declare const LyricTieSpecials: {
+    [tie in LyricTie]: string | null;
+};
 /** remakes a glyph's def in ChantContext.defs (and defsNode) at the current scale */
 export type MakeDef = (() => void) & {
     /** the def as an svg tree */
@@ -330,6 +350,16 @@ export declare class ChantContext {
     specialCharMap: {
         [char: string]: string;
     };
+    /**
+     * What each of Gregorio's special characters, <sp>…</sp>, is shown as, by
+     * the text between the tags, for the specials that exsurge doesn't draw
+     * itself (it draws the ligatures and accented vowels, A/, R/, V/ and ~).
+     * A special shown as "*" or "+" is drawn as a lyric's asterisk or plus
+     * would be, and one that isn't here is shown as its text.
+     */
+    specials: {
+        [special: string]: string;
+    };
     asteriskProperties: CssProperties;
     plusProperties: CssProperties;
     fontStyleDictionary: {
@@ -343,6 +373,14 @@ export declare class ChantContext {
     useExtraTextOnly: boolean;
     /** prefix for the id of each note's svg element; defaults to "note-" */
     noteIdPrefix: string;
+    /**
+     * The number of lines of Gregorio's NABC (St. Gall or Laon neumes) in the
+     * gabc, from its nabc-lines header, which Gabc.createMappingsFromSource()
+     * and updateMappingsFromSource() set.  When it's more than 0, a | in the
+     * notes separates gabc from NABC rather than adding a stem to an
+     * inclinatum.
+     */
+    nabcLines: number;
     minLedgerSeparation: number;
     minSpaceAboveStaff: number;
     minSpaceBelowStaff: number;
@@ -379,7 +417,69 @@ export declare class ChantContext {
     staffLineColor: string;
     dividerLineColor: string;
     negativeFillColor: string;
+    /**
+     * whether the clef at the start of each line is drawn, as with Gregorio's
+     * \gresetclef: "invisible" leaves it out, and "phantom" leaves its space
+     * empty.  A change of clef within a line is drawn either way.  Defaults to
+     * "visible".
+     */
+    clefVisibility: ClefVisibility;
+    /**
+     * how Gabc.applyHeader() writes the number of the mode header (1 to 8), as
+     * with Gregorio's \gresetmodenumbersystem: "roman-majuscule" (VIII), the
+     * default, "roman-minuscule" (viii) or "arabic" (8)
+     */
+    modeNumberSystem: ModeNumberSystem;
     defaultLanguage: Language;
+    /**
+     * What each lyric is centered under its notation on, as Gregorio's
+     * \gresetlyriccentering: "vowel" (the default) centers it on its vowel
+     * segment, found by its language's rules (see defaultLanguage); "syllable"
+     * on the whole syllable; and "firstletter" on its first letter (after any
+     * drop cap).  Centering marked in the gabc with braces (e.g. "f{i}re")
+     * wins over each of these.
+     */
+    lyricCentering: "vowel" | "syllable" | "firstletter";
+    /**
+     * Whether a syllable that ends in italics (e.g. "ri<i>a</i>") elides into
+     * the next one, as a syllable that ends in an elision ("ri<e>a</e>") does.
+     * Defaults to true.
+     */
+    italicMeansElision: boolean;
+    /**
+     * What a ~ in the lyrics becomes.  "space" (the default) is a space that
+     * doesn't break the syllable, so the syllable is centered on the text after
+     * it.  "undertie", "overtie" and "doubletie" are Gregorio's lyric ties,
+     * drawn as the specials ut, ot and dt are (see specials), which join the
+     * words, so the syllable is centered on its first vowel.  Like the rest of
+     * the lyrics, it's read when the gabc is parsed.
+     */
+    lyricTie: LyricTie;
+    /**
+     * Gregorio's firstword, firstsyllable and firstsyllableinitial styles: the
+     * styles of the lyrics of the score's first word, of its first syllable
+     * (after any drop cap), and of that syllable's first letter.  Markup in the
+     * lyrics wins over them.  Each is empty, and so changes nothing, by default.
+     * They're applied by ChantScore.updateNotations().
+     */
+    firstWordStyle: CssProperties;
+    firstSyllableStyle: CssProperties;
+    firstSyllableInitialStyle: CssProperties;
+    /**
+     * Where a translation starts under its syllable, as Gregorio's
+     * \gresettranslationcentering: "left" (the default) at the left of the
+     * syllable's notation, or "center" centered under its lyric.  A
+     * translation that ends at a later syllable ([/]) is centered between the
+     * two either way.
+     */
+    translationCentering: "left" | "center";
+    /**
+     * How much of the text after a <pr> (with no factor of its own, as <pr:0.5>
+     * has) may go past the right end of the staff, from 0 to 1.  It's 1 by
+     * default, as in Gregorio (\gresetprotrusionfactor{default}).  Text past
+     * the end of the staff is outside the width the score is laid out at.
+     */
+    defaultProtrusionFactor: number;
     pixelRatio: number;
     svgTextMeasurer?: QuickSvgRoot;
     canvas?: HTMLCanvasElement;
@@ -395,10 +495,27 @@ export declare class ChantContext {
     interSyllabicMultiplier: number;
     accidentalSpaceMultiplier: number;
     interVerbalMultiplier: number;
+    /**
+     * the width of each space between neumes that the gabc gives, in multiples
+     * of this.intraNeumeSpacing.  /[n] is n times "/", and three or more
+     * slashes are "//" and then "/" for each slash after the second.  The
+     * defaults make a large space (" ") the same as "//"; Gregorio's own widths
+     * are about { "/0": 0.5, "/!": 1, "/": 1, "//": 1.58, " ": 3.16 }.
+     */
+    neumeSpaceMultipliers: {
+        [code in NeumeSpaceCode]: number;
+    };
     drawGuides: boolean;
     drawDebuggingBounds: boolean;
     currNotationIndex: number;
     condensingTolerance: number;
+    /**
+     * which lines end with a custos when the gabc doesn't put one there: "auto"
+     * (the default) for every line that has notes after it, or "manual" for
+     * only the line breaks that ask for one (gabc z+ or Z+), as with Gregorio's
+     * \greseteolcustos
+     */
+    eolCustos: "auto" | "manual";
     autoColor: boolean;
     /** gives each svg text element a font-size attribute in createSvg() */
     setFontFamilyAttributes?: boolean;
@@ -448,7 +565,7 @@ export declare class ChantContext {
      * document.fonts fires loadingdone, and at the start of a ChantScore layout
      * once a font has been added to or removed from document.fonts; call this
      * after changing fontStyleDictionary, specialCharProperties,
-     * asteriskProperties or plusProperties directly once text has been created,
+     * asteriskProperties, plusProperties or specials directly once text has been created,
      * or after any other change to the fonts that text is measured in (such as
      * replacing a face in document.fonts with another, which leaves its size
      * the same).
@@ -627,6 +744,8 @@ export declare class GlyphVisualizer extends ChantLayoutElement {
     /** for a porrectus, the staff positions its notes are apart; otherwise 0 */
     porrectusNoteDiff: number;
     align?: "left" | "right";
+    /** the glyph's size, relative to the other glyphs (set it before setGlyph()) */
+    scale: number;
     constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null);
     setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | ""): void;
     setStaffPosition(ctxt: ChantContext, staffPosition: number): void;
@@ -667,6 +786,7 @@ export declare class CurlyBraceVisualizer extends ChantLayoutElement {
     braceHeight: number;
     accent?: GlyphVisualizer;
     constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove?: boolean, addAcuteAccent?: boolean);
+    draw(ctxt: ChantContext): void;
     getSvgPathProps(ctxt: ChantContext): {
         d: string;
         stroke: string;
@@ -677,6 +797,19 @@ export declare class CurlyBraceVisualizer extends ChantLayoutElement {
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext): string;
+    getPathPoints(): {
+        x1: number;
+        x2: number;
+        y: number;
+        qy1: number;
+        qx2: number;
+        qy2: number;
+        tx1: number;
+        ty1: number;
+        qy3: number;
+        qx4: number;
+        qy4: number;
+    };
     generatePathString(): string;
 }
 /** a group of css properties of a span of text; Object.assign() skips any missing ones */
@@ -840,7 +973,8 @@ export type LyricType = (typeof LyricType)[keyof typeof LyricType];
 /** helpers for the lyrics of a notation, one for each line of lyrics */
 export declare const LyricArray: {
     getLeft: (lyricArray: Lyric[]) => number;
-    getRight: (lyricArray: Lyric[], presumeConnectorNeeded?: boolean) => number;
+    /** (lessProtrusion leaves out how far each lyric may go past the end of the staff) */
+    getRight: (lyricArray: Lyric[], presumeConnectorNeeded?: boolean, lessProtrusion?: boolean) => number;
     hasOnlyOneLyric: (lyricArray: Lyric[]) => boolean;
     indexOfLyric: (lyricArray: Lyric[]) => number;
     mergeIn: (lyricArray: Lyric[], newLyrics: Lyric[]) => void;
@@ -872,10 +1006,21 @@ export declare class Lyric extends TextElement {
     widthWithoutConnector: number;
     vowelSegmentWidth: number;
     elidesToNext?: boolean;
+    /** Gregorio's <clear>: the lyric may not reach back under the previous syllable's notes */
+    clear?: boolean;
+    /** Gregorio's <pr>: how much of the lyric may go into the right margin */
+    protrusion?: LyricProtrusion;
+    /** how far the lyric may go past the end of the staff, for its protrusion */
+    protrusionWidth?: number;
     /** which line of lyrics this is */
     lyricIndex?: number;
     /** the right edge of a line of text-only syllables that starts with this lyric */
     lineWidth?: number;
+    /**
+     * the styles that setFirstWordStyles() gave the lyric: the first word's and
+     * first syllable's, then the first letter's
+     */
+    firstWordStyles?: SpanPropertyDict[];
     constructor(ctxt: ChantContext, text: string, lyricType?: LyricType | null | "", notation?: ChantNotationElement, notations?: ChantNotationElement[], sourceIndex?: number);
     allowsConnector(): boolean;
     setForceConnector(force: boolean): void;
@@ -887,6 +1032,13 @@ export declare class Lyric extends TextElement {
     getRight(): number;
     recalculateMetrics(ctxt: ChantContext, resetNewLines?: boolean): void;
     generateDropCap(ctxt: ChantContext): DropCap | null;
+    /**
+     * Gives the lyric the styles of the score's first word (part "word"), or of
+     * its first syllable ("syllable", which also styles the first letter after
+     * any drop cap), from ChantContext.firstWordStyle and so on, or takes them
+     * away (null).  Returns whether the lyric's spans changed.
+     */
+    setFirstWordStyles(ctxt: ChantContext, part: "syllable" | "word" | null): boolean;
     getCssClasses(): string;
     getExtraStyleProperties(ctxt: ChantContext): CssProperties;
 }
@@ -986,6 +1138,28 @@ export interface SoftAccidentalShift {
     shifted?: number;
 }
 /**
+ * Where one of Gregorio's areas (<eu>…</eu> or <nlba>…</nlba>) starts or
+ * ends.  An area starts at the first notation of the syllable (or, in the
+ * notes, of the note) after its opening tag, and ends at the last notation
+ * of the syllable (or note) before its closing tag, so an area of one
+ * notation both starts and ends there.
+ */
+export interface AreaBoundary {
+    start?: boolean;
+    end?: boolean;
+}
+/** a lyric's Gregorio protrusion, <pr> or <pr:factor> */
+export interface LyricProtrusion {
+    /**
+     * how much of the text after the tag may go into the right margin, from 0
+     * to 1, or undefined for <pr>, which takes the default factor (1 in
+     * Gregorio)
+     */
+    factor?: number;
+    /** where the text that may protrude starts in the lyric's text */
+    textIndex: number;
+}
+/**
  * A notation in a score: a neume, clef, divider, accidental, custos, line
  * break or text with no notes.  The layout tells them apart by the flags
  * isNeume, isClef, isDivider and isAccidental.
@@ -1028,6 +1202,19 @@ export declare class ChantNotationElement extends ChantLayoutElement {
     softAccidentalShift?: SoftAccidentalShift | null;
     /** the css class of the notation's svg element; defaults to its class name */
     cssClass?: string;
+    /** whether a Gregorio euouae area (<eu>…</eu> in the lyrics) starts or ends at this notation */
+    euouae?: AreaBoundary;
+    /**
+     * Gregorio's NABC for the gabc that starts with this notation, a string
+     * for each line (nabc[0] above the staff, nabc[1] below it), which isn't
+     * drawn yet
+     */
+    nabc?: string[];
+    /**
+     * whether a Gregorio no-line-break area (<nlba>…</nlba>, in the lyrics or
+     * in the notes) starts or ends at this notation
+     */
+    noLineBreak?: AreaBoundary;
     isNeume?: boolean;
     isClef?: boolean;
     isDivider?: boolean;

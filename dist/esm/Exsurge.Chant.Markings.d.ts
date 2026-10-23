@@ -6,6 +6,14 @@ export declare class Accent extends GlyphVisualizer {
     constructor(ctxt: ChantContext, note: Note, glyphCode?: GlyphCode);
     performLayout(ctxt: ChantContext): void;
 }
+/**
+ * Gregorio's musica ficta (gabc r6, r7 and r8): a small flat, natural or
+ * sharp above the staff, or above the note if it's higher, as an accent is
+ */
+export declare class MusicaFicta extends Accent {
+    constructor(ctxt: ChantContext, note: Note, glyphCode: GlyphCode);
+    performLayout(ctxt: ChantContext): void;
+}
 export declare const HorizontalEpisemaAlignment: {
     readonly Default: 0;
     readonly Left: 1;

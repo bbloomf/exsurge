@@ -311,8 +311,9 @@ describe("Gregorio note tokens", function() {
     assert.deepStrictEqual(notes.map((note) => !!note.fused), [false, true, true, false, false, false, true, false]);
     assert.deepStrictEqual(notes[3].autoFusion, { start: true });
     assert.deepStrictEqual(notes[5].autoFusion, { end: true });
-    // the @ between two clefs isn't a fusion
-    assert.deepStrictEqual(sources(notations).slice(-2), ["c1", "c4"]);
+    // the @ between two clefs isn't a fusion: c1@c4 is one clef, with a second clef
+    assert.deepStrictEqual(sources(notations).slice(-2), ["@hg", "c1@c4"]);
+    assert.ok((notations[notations.length - 1] as Exsurge.Clef).secondClef instanceof Exsurge.DoClef);
   });
 
   it("records =, q, W and parenthesized accidentals, and r6 to r8 aren't cavum", function() {
@@ -512,6 +513,120 @@ describe("Gregorio inclinatum digits", function() {
     // as is a custos
     const custos = parseNotations("(xp3) a(h0+)").find((notation) => notation instanceof Exsurge.Custos) as Exsurge.Custos;
     assert.strictEqual(custos.staffPositionOffset, -2 / 3);
+  });
+});
+
+describe("Gregorio bars, line breaks and spacing codes", function() {
+  const space = (notation: Exsurge.ChantNotationElement) => {
+    const ctxt = new Exsurge.ChantContext();
+    const trailingSpace = notation.trailingSpace;
+    return (typeof trailingSpace === "function" ? trailingSpace(ctxt) : trailingSpace) / ctxt.intraNeumeSpacing;
+  };
+
+  it("reads the bars, high and dotted, and their vertical episemata", function() {
+    const dividers = parseNotations("(c4) a(f) (^) (^0) (`0) (,0) (:?) (:'_) (::') (;3')").filter(
+      (notation) => notation.isDivider
+    ) as Exsurge.Divider[];
+    assert.deepStrictEqual(
+      dividers.map((divider) => [
+        divider.constructor.name,
+        divider.high,
+        (divider as Exsurge.FullBar).dotted,
+        divider.hasCarryover,
+        divider.hasVerticalEpisema
+      ]),
+      [
+        ["DivisioMinimis", false, undefined, false, false],
+        ["DivisioMinimis", true, undefined, false, false],
+        ["Virgula", true, undefined, false, false],
+        ["QuarterBar", true, undefined, false, false],
+        ["FullBar", false, true, false, false],
+        ["FullBar", false, false, true, true],
+        ["DoubleBar", false, undefined, false, true],
+        ["DominicanBar", false, undefined, false, true]
+      ]
+    );
+    assert.strictEqual((dividers[2] as Exsurge.Virgula).staffPosition, 9);
+  });
+
+  it("reads z+, z-, Z+ and Z- as line breaks that force or leave out the custos", function() {
+    const breaks = parseNotations("(c4) a(f) (z) (z+) (z-) (Z) (Z+) (Z-)").filter(
+      (notation) => notation instanceof Exsurge.ChantLineBreak
+    ) as Exsurge.ChantLineBreak[];
+    assert.deepStrictEqual(
+      breaks.map((lineBreak) => [lineBreak.justify, lineBreak.custos]),
+      [[true, "auto"], [true, "force"], [true, "none"], [false, "auto"], [false, "force"], [false, "none"]]
+    );
+  });
+
+  it("puts [nocustos] on the note before it, or with no note before it, on the next note", function() {
+    const notes = parseNotations("(c4) a(fg[nocustos]) b(h [nocustos]) c([nocustos]) d(g) e([nocustos]f)").flatMap(
+      (notation) => notation.notes || []
+    );
+    assert.deepStrictEqual(
+      notes.map((note) => [note.sourceGabc, !!note.noCustos, !!note.noCustosBefore]),
+      [
+        ["f", false, false],
+        ["g[nocustos]", true, false],
+        ["h ", true, false],
+        ["g", false, true],
+        ["f", false, true]
+      ]
+    );
+  });
+
+  it("reads /0, /!, /[n] and ! before a space, and which of them the line can break at", function() {
+    const notations = parseNotations("(c4) a(f/0g) b(f/!g) c(f/[2]g) d(f/[-1]g) e(f! g) f(f g) g(f///g)");
+    const firsts = notations.filter((_, index) => index % 2 === 0);
+    assert.deepStrictEqual(
+      firsts.map((notation) => [space(notation), !!notation.keepWithNext, !!notation.allowLineBreakBeforeNext]),
+      [
+        [0.5, true, false],
+        [1, true, false],
+        [2, true, true],
+        [-1, true, false],
+        [2, true, false],
+        [2, true, true],
+        [3, true, true]
+      ]
+    );
+  });
+
+  it("keeps a space the line can't break at at the end of the notes, but not one it can", function() {
+    const notations = parseNotations("(c4) a(fg/[-1]) b(h/0) c(f/) d(g)");
+    assert.deepStrictEqual(
+      notations.slice(0, 3).map((notation) => [!!notation.keepWithNext, !!notation.allowLineBreakBeforeNext]),
+      [[true, false], [true, false], [false, false]]
+    );
+  });
+});
+
+describe("Gregorio brace lengths", function() {
+  it("draws a brace given a length in any TeX unit, and reads the length in staff intervals", function() {
+    const braces = parseNotations(
+      "(c4) a(f[ob:1;6mm]g) b(f[ub:1;0.3in]g) c(f[ocb:1;10pt]g) d(f[ob:0;1,5cm]g) e(f[ob:0;-2em]g) " +
+        "f(f[ob:0;267750sp]g) g(f[ob:0;\\gre@dimen]g) h(f[ob:0;]g)"
+    ).flatMap((notation) => (notation.notes || []).map((note) => note.braceStart));
+    // (a staff interval at Gregorio's default staff size is 267750sp)
+    const expected = [4.178554198372262, 5.306763831932773, 2.44765639589169, 10.446385495930656, -4.89531279178338, 1];
+    expected.forEach((length, i) => {
+      const brace = braces[i * 2]!;
+      assert.ok(brace.automatic);
+      assert.ok(Math.abs(brace.length! - length) < 1e-9, `${brace.length} should be ${length}`);
+    });
+    // a length that isn't one exsurge can read still draws the brace, and an empty one doesn't
+    assert.ok(braces[12]!.automatic);
+    assert.strictEqual(braces[12]!.length, undefined);
+    assert.strictEqual(braces[14], undefined);
+  });
+
+  it("reads a unit in either case, with true, and with stretch and shrink, as TeX does", function() {
+    const braces = parseNotations(
+      "(c4) a(f[ob:1;6MM]g) b(f[ob:1;6truemm]g) c(f[ob:1;6 true mm]g) d(f[ob:1;6mm plus 1fil minus 2pt]g)"
+    ).flatMap((notation) => (notation.notes || []).map((note) => note.braceStart));
+    [0, 2, 4, 6].forEach((i) => {
+      assert.ok(Math.abs(braces[i]!.length! - 4.178554198372262) < 1e-9, `${braces[i]!.length} should be 4.178554198372262`);
+    });
   });
 });
 

@@ -60,6 +60,26 @@ export const Glyphs: { [name: string]: Glyph } = {
     },
     align: "left"
   },
+  // a linea's note (gabc =), which draws nothing: its LineaVisualizer draws the linea
+  Linea: {
+    paths: [
+      {
+        type: "positive",
+        data: ""
+      }
+    ],
+    bounds: {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0
+    },
+    origin: {
+      x: 0,
+      y: 0
+    },
+    align: "left"
+  },
   AcuteAccent: {
     paths: [
       {

@@ -113,6 +113,7 @@
             "j"
         <g className="Notations">
           <use source-index=66 element-index=15 id="note-16" x=3.125 y=-18.75 source=<Note sourceIndex=66 elementIndex=15 noteIndex=15> className=" note" xlinkHref="#OriscusDes" source-gabc="fO">
+          <rect x=0 y=-18.75 width=0.8 height=16.875 fill="#000" className="neumeLine">
       <g transform="translate(264.9137067307692,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=70 x=-0.7629999999999999 y=14.887 style={} source=<Lyric sourceIndex=70> className="lyric" textAnchor="start" source-gabc="k">
           <tspan source-index=0 style={} className=undefined>
@@ -191,12 +192,14 @@
             "v"
         <g className="Notations">
           <use source-index=140 element-index=27 id="note-28" x=3.125 y=-18.75 source=<Note sourceIndex=140 elementIndex=27 noteIndex=27> className=" note" xlinkHref="#OriscusAsc" source-gabc="fO<">
+          <rect x=0 y=-18.75 width=0.8 height=16.875 fill="#000" className="neumeLine">
       <g transform="translate(515.9945048076922,0)" source=<Oriscus> className="ChantNotationElement Oriscus">
         <text source-index=145 x=-0.9357999999999995 y=14.887 style={} source=<Lyric sourceIndex=145> className="lyric" textAnchor="start" source-gabc="w">
           <tspan source-index=0 style={} className=undefined>
             "w"
         <g className="Notations">
           <use source-index=147 element-index=28 id="note-29" x=3.125 y=-18.75 source=<Note sourceIndex=147 elementIndex=28 noteIndex=28> className=" note" xlinkHref="#OriscusDes" source-gabc="fO>">
+          <rect x=0 y=-18.75 width=0.8 height=16.875 fill="#000" className="neumeLine">
       <g transform="translate(536.2512379807692,0)" source=<PunctaInclinata> className="ChantNotationElement PunctaInclinata">
         <text source-index=152 x=-1.2021999999999995 y=14.887 style={} source=<Lyric sourceIndex=152> className="lyric" textAnchor="start" source-gabc="x">
           <tspan source-index=0 style={} className=undefined>

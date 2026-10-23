@@ -24,6 +24,7 @@ beginPath()
 moveTo(354.653, -56.25)
 lineTo(368.678, -56.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,60.625]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,16.875]
 fillRect(0, -50, 0.8, 28.506761363636365) [fillStyle="#000" matrix=1,0,0,1,14.0625,60.625]
 fill(Path2D(Porrectus5[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,10.625]
 fillRect(28.116, -50, 0.8, 31.25) [fillStyle="#000" matrix=1,0,0,1,14.062499999999996,60.625]
@@ -88,4 +89,3 @@ fillRect(22.666, -58.83333333333333, 6.25, 1) [fillStyle="#000" matrix=1,0,0,1,4
 fillText("j", -0.49659999999999993, 14.420250000000003, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,416.34399999999994,60.625]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,453.07249999999993,60.625]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,453.07249999999993,60.625]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,-5.684341886080802e-14,16.875]

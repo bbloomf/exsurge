@@ -1,0 +1,36 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 300, 204.73000000000002) [matrix=1,0,0,1,0,0]
+fillText("Ad te levávi", 150, 17.52, undefined) [font="24px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,0]
+fillText("ánimam meam", 150, 17.52, undefined) [font="24px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,31.200000000000003]
+beginPath()
+moveTo(0, -43.75)
+lineTo(300, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,115.83]
+beginPath()
+moveTo(0, -31.25)
+lineTo(300, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,115.83]
+beginPath()
+moveTo(0, -18.75)
+lineTo(300, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,115.83]
+beginPath()
+moveTo(0, -6.25)
+lineTo(300, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,115.83]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,72.08]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,97.08]
+fillText("Ky", -10.339, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,115.83]
+fillText("rie", -10.339, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,137.43]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,34.375,90.83000000000001]
+fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,31.25,115.83000000000001]
+fillText("lé", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,31.25,137.43]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,61.67739999999999,84.58000000000001]
+fillText("son.", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,58.55239999999999,115.83000000000001]
+fillText("A", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,58.55239999999999,159.03000000000003]
+fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,73.74069999999998,115.83000000000003]
+fillText("Here is a very long run of text", -206.6426, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,323.6905999999999,115.83000000000003]
+fillText("only syllables that will not fit", -206.6426, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,289.9225999999999,137.43000000000004]
+fillText("on the line", -50.3856, 77.81200000000001, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,282.6912,115.83000000000004]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,81.2274,115.83000000000004]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,81.2274,115.83000000000004]

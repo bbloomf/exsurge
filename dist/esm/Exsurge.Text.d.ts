@@ -154,9 +154,75 @@ export declare class Spanish extends Language {
      */
     findVowelSegment(s: string, startIndex: number): VowelSegment;
 }
+/** the rules of a VowelRulesLanguage, as Gregorio's vowel files give them */
+export interface VowelRules {
+    /** the characters that are vowels */
+    vowels: string;
+    /**
+     * strings ending in a vowel that aren't part of the vowel segment when a
+     * vowel follows them (e.g. "qu" in English)
+     */
+    prefixes?: string[];
+    /**
+     * strings not starting with a vowel that are part of the vowel segment
+     * when they follow one (e.g. "w" in English)
+     */
+    suffixes?: string[];
+    /**
+     * strings without vowels that a syllable with no vowels is centered on
+     * (e.g. the syllabic "l" and "r" of Czech)
+     */
+    secondary?: string[];
+}
+interface CharacterTrie {
+    next: Map<string, CharacterTrie>;
+    isFinal: boolean;
+}
+/**
+ * A language whose vowel segments are found with rules like those of
+ * Gregorio's vowel files (gregorio-vowels.dat): sets of vowels, prefixes,
+ * suffixes and secondary centers.  It can't split words into syllables.
+ * Like Gregorio, it doesn't fold case, so the rules list upper- and
+ * lower-case characters.
+ */
+export declare class VowelRulesLanguage extends Language {
+    vowels: Set<string>;
+    prefixes: CharacterTrie;
+    suffixes: CharacterTrie;
+    secondary: CharacterTrie;
+    constructor(name: string, rules: VowelRules);
+    /**
+     * Reads the languages in the text of a Gregorio vowel file, by their names
+     * and their aliases.
+     */
+    static fromVowelFile(text: string): {
+        [name: string]: VowelRulesLanguage;
+    };
+    isVowel(char: string | undefined): boolean;
+    /**
+     * Finds the vowel segment as Gregorio does (gregorio_find_vowel_group in
+     * its src/vowel/vowel.c), with the text in each ignored range (an elision)
+     * counting as consonants.
+     */
+    findVowelSegment(s: string, startIndex: number, ignore?: IgnoredRange[]): VowelSegment;
+}
+/**
+ * Church Slavonic, which Gregorio also uses for Polish, Czech and Slovak
+ * (from Gregorio's gregorio-vowels.dat)
+ */
+export declare class ChurchSlavonic extends VowelRulesLanguage {
+    constructor();
+}
+/** Hungarian (from Gregorio's gregorio-vowels.dat) */
+export declare class Hungarian extends VowelRulesLanguage {
+    constructor();
+}
 export declare const language: {
     english: English;
     latin: Latin;
     spanish: Spanish;
+    churchSlavonic: ChurchSlavonic;
+    hungarian: Hungarian;
 };
+export {};
 //# sourceMappingURL=Exsurge.Text.d.ts.map
