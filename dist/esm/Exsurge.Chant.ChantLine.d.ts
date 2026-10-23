@@ -1,9 +1,9 @@
 import { ChantLineBreak } from "./Exsurge.Chant.js";
-import { BracePoint } from "./Exsurge.Chant.Markings.js";
+import { BracePoint, Slur } from "./Exsurge.Chant.Markings.js";
 import { Custos } from "./Exsurge.Chant.Signs.js";
 import { Rect } from "./Exsurge.Core.js";
 import { ChantLayoutElement, CurlyBraceVisualizer, Lyric, RoundBraceVisualizer } from "./Exsurge.Drawing.js";
-import type { ChantScore, Clef } from "./Exsurge.Chant.js";
+import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
 import type { BraceNote } from "./Exsurge.Chant.Markings.js";
 import type { InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import type { ChantContext, ChantNotationElement, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
@@ -47,6 +47,8 @@ export declare class ChantLine extends ChantLayoutElement {
     justify: boolean | undefined;
     ledgerLines: LedgerLine[];
     braces: Array<RoundBraceVisualizer | CurlyBraceVisualizer>;
+    /** Gregorio's slurs on the line */
+    slurs: Slur[];
     nextLine: ChantLine | null;
     previousLine: ChantLine | null;
     lyricLineHeight: number;
@@ -91,7 +93,6 @@ export declare class ChantLine extends ChantLayoutElement {
     createSvgNode(ctxt: ChantContext, top?: number): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext, top?: number): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext, top?: number): string;
-    generateCurlyBraceDrawable(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove: boolean): string;
     buildFromChantNotationIndex(ctxt: ChantContext, newElementStart: number, width: number): void;
     centerDividers(): void;
     isSoftAccidentalVisible(index: number): boolean;
@@ -116,6 +117,12 @@ export declare class ChantLine extends ChantLayoutElement {
         braceEnd?: BracePoint;
     }, i: number): void;
     finishLayout(ctxt: ChantContext): void;
+    startX(start: {
+        x: number | null;
+    }): number;
+    handleCustomLedgerLines(ctxt: ChantContext, note: Note, customLedgerLines: LedgerLine[]): void;
+    alignEpisemaBlocks(notations: ChantNotationElement[]): void;
+    handleSlurs(ctxt: ChantContext, note: Note): void;
     positionNotationElement(ctxt: ChantContext, prevLyrics: Lyric[], prev: ChantNotationElement, curr: ChantNotationElement, rightNotationBoundary: number, condensableSpaces?: CondensableSpaces): boolean;
     /**
      * Find the notation closest to x without going past it

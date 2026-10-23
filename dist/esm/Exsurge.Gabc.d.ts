@@ -143,14 +143,30 @@ export declare class Gabc {
      */
     static updateMappingsFromSource(ctxt: ChantContext, mappings: ChantMapping[], newGabcSource: string, insertionIndex?: number | null, oldInsertionIndex?: number | null): number;
     static createMappingsFromWords(ctxt: ChantContext, words: string[]): ChantMapping[];
+    /**
+     * Sets the automaticLeaning of each punctum inclinatum in a syllable's
+     * notes that has no leaning of its own, as Gregorio does
+     * (gabc_determine_punctum_inclinatum_orientation()).  A run of inclinata
+     * leans the way the line they make goes, counting the steps into and out
+     * of it, unless they're all at one pitch, which leaves them upright; an
+     * inclinatum in the run that has a leaning, or is a liquescent (which
+     * leans down), gives the run its leaning instead.  (Gregorio carries a
+     * run's leaning on into the next syllable; this doesn't look past the
+     * syllable.)
+     */
+    static setAutomaticLeanings(notes: Note[]): void;
     static createMappingFromWord(ctxt: ChantContext, word: string, sourceIndex: number, lastTranslationNeumes: ChantNotationElement[], insertionIndex?: number): ChantMapping;
     static createSyllableLyrics(ctxt: ChantContext, text: string, proposedLyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric[];
     static makeLyric(ctxt: ChantContext, text: string, lyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric;
     static parseNotations(ctxt: ChantContext, data: string, sourceIndex: number, insertionIndex?: number): ChantNotationElement[];
     static createClef(type: string, line: number, flat: boolean): Clef;
     static createNeumesFromNotes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace): Neumes.Neume[];
+    static createFusedNeumes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace, autoFused: Set<Note>): Neumes.Neume[];
     static createNoteFromData(ctxt: ChantContext, clef: Clef, data: string, notes: Note[], sourceIndex: number): void;
     static processInstructionForNote(ctxt: ChantContext, note: Note, instruction: string, sourceIndexOffset: number): void;
+    static processDecorationForNote(note: Note, instruction: string): boolean;
+    static processEpisemaTuning(instruction: string, note: Note | null): boolean;
+    static customLedgerLine(results: RegExpMatchArray): Markings.CustomLedgerLine | null;
     static splitWords(gabcNotations: string): string[];
     static parseSource(gabcSource: string): (ParsedSyllable[] & {
         wordLength: number;
