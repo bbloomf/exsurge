@@ -37,6 +37,7 @@ import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
 import type { BracePoint, LedgerLineStart, SlurStart } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import type { NabcItem } from "./Exsurge.Nabc.js";
 import type { Titles } from "./Exsurge.Titles.js";
 
 /** the css properties of text that choose which face of a font it is in */
@@ -4982,6 +4983,8 @@ export class ChantNotationElement extends ChantLayoutElement {
    * drawn yet
    */
   nabc?: string[];
+  /** the NABC of each line, read with parseNabc(): its neumes, spaces and errors */
+  parsedNabc?: NabcItem[][];
   /**
    * whether a Gregorio no-line-break area (<nlba>…</nlba>, in the lyrics or
    * in the notes) starts or ends at this notation

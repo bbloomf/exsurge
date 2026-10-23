@@ -69,6 +69,7 @@ import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
 import { escapeChar, escapedCharSource, restoreEscapes } from "./gabcEscapes.js";
+import { parseNabc } from "./Exsurge.Nabc.js";
 import type {
   AreaBoundary,
   ChantContext,
@@ -1481,6 +1482,7 @@ export class Gabc {
           let notationNabc = (notation.nabc = notation.nabc || []);
           part.nabc.forEach((line, v) => (notationNabc[v] = joinNabc(notationNabc[v], line)));
         }
+        for (let item of items) if (item.nabc) item.parsedNabc = item.nabc.map(parseNabc);
         // a / that splitNabc() put in isn't in the source of the note before it
         // (unless the source has a / there too)
         let notes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
