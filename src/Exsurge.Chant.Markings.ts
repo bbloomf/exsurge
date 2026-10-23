@@ -231,11 +231,12 @@ export class HorizontalEpisema extends ChantLayoutElement {
     var x = this.note.bounds.x;
 
     // The porrectus requires special handling of the note width,
-    // otherwise the width is just that of the note itself
+    // otherwise the width is just that of the note itself.  (its notes are
+    // each as wide as a punctum drawn at the glyph multiplier)
     if (this.note.glyphVisualizer!.porrectusNoteDiff)
-      width = ctxt.staffInterval;
+      width = ctxt.glyphPunctumWidth * ctxt.glyphScaling;
     else if (glyphCode === GlyphCode.None) {
-      width = ctxt.staffInterval;
+      width = ctxt.glyphPunctumWidth * ctxt.glyphScaling;
       x -= width;
     } else if (punctumInclinatumShorten) {
       width *= 2 / 3;
@@ -367,11 +368,12 @@ export class Ictus extends GlyphVisualizer {
           staffPosition);
 
     // The porrectus requires special handling of the note width,
-    // otherwise the width is just that of the note itself
+    // otherwise the width is just that of the note itself.  (its notes are
+    // each as wide as a punctum drawn at the glyph multiplier)
     if (this.note.glyphVisualizer!.porrectusNoteDiff)
-      horizontalOffset = ctxt.staffInterval / 2;
+      horizontalOffset = (ctxt.glyphPunctumWidth * ctxt.glyphScaling) / 2;
     else if (glyphCode === GlyphCode.None) {
-      horizontalOffset = -ctxt.staffInterval / 2;
+      horizontalOffset = -(ctxt.glyphPunctumWidth * ctxt.glyphScaling) / 2;
     } else {
       horizontalOffset = this.note.bounds.width / 2;
       if (

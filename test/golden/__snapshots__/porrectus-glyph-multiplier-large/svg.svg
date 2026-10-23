@@ -1,0 +1,318 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="80.05875" viewBox="0 0 600 80.05875" >
+<g >
+<defs >
+<g id="VerticalEpisemaAbove" class="glyph" >
+<path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z" >
+</path>
+</g>
+<g id="Mora" class="glyph" >
+<path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z" >
+</path>
+</g>
+<g id="Porrectus1x1.25" class="glyph" >
+<path d="M-50 -52.75C93.538 53.9 184.024 46 212.544 46C221.044 46 244.244 45.5 252.344 16.3L252.344 131.9C252.344 142.7 239.544 142.9 233.644 142.9C161.501 142.9 49.154 139.824 -50 66z" >
+</path>
+</g>
+<g id="None" class="glyph" >
+<g >
+</g>
+</g>
+<g id="PodatusUpperShort" class="glyph" >
+<path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
+</path>
+</g>
+<g id="Porrectus2x1.25" class="glyph" >
+<path d="M-50 -62.35C97.835 92.983 243.064 123.9 292.223 123.9C300.723 123.9 319.243 123.4 327.343 94.2L327.343 209.38C327.343 220.18 314.963 220.8 309.063 220.8C193.958 220.8 27.046 136.298 -50 56.4z" >
+</path>
+</g>
+<g id="PodatusUpper" class="glyph" >
+<path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
+</path>
+</g>
+<g id="Porrectus3x1.25" class="glyph" >
+<path d="M-50 -69.25C75.521 107.258 247.816 202.3 297.544 202.3C306.044 202.3 319.244 200.56 327.344 171.36L327.344 285.94C327.344 296.74 318.364 298.56 312.464 298.56C235.659 298.56 34.529 157.592 -50 49.5z" >
+</path>
+</g>
+<g id="Porrectus5x1.25" class="glyph" >
+<path d="M-50 -70C108.988 154.64 346.123 362 384.856 362C393.356 362 404.556 356.1 412.656 326.9L412.656 441.7C412.656 452.5 408.956 455.8 403.056 455.8C397.337 455.8 271.747 435.448 -50 48.75z" >
+</path>
+</g>
+<g id="Porrectus7x1.25" class="glyph" >
+<path d="M-50 -70C149.729 233.628 432.643 513.9 467.268 513.9C475.768 513.9 489.868 514.5 497.968 485.3L497.968 600.2C497.968 611 493.268 612 487.368 612C485.064 612 338.402 566.94 -50 48.75z" >
+</path>
+</g>
+<g id="PunctumQuadratum" class="glyph" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="VerticalEpisemaBelow" class="glyph" >
+<path d="M-8 56c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z" >
+</path>
+</g>
+<g id="Porrectus1x1.25Cavum" class="glyph" >
+<path d="M-50 -52.75C93.538 53.9 184.024 46 212.544 46C221.044 46 244.244 45.5 252.344 16.3L252.344 131.9C252.344 142.7 239.544 142.9 233.644 142.9C161.501 142.9 49.154 139.824 -50 66z" >
+</path>
+<path d="M-32 -17.943C-6.365 -0.674 17.536 13.009 39.651 23.838C69.839 38.622 96.646 48.062 119.918 54.051C143.203 60.043 162.808 62.544 178.546 63.533C194.033 64.506 206.235 64 212.544 64C216.359 64 224.855 63.983 234.344 60.779L234.344 124.9L233.644 124.9C215.721 124.9 195.635 124.707 173.998 123.304C152.375 121.901 129.296 119.293 105.514 114.49C81.738 109.688 57.293 102.698 32.929 92.545C11.071 83.436 -10.753 71.768 -32 56.812z" fill="#fff" >
+</path>
+</g>
+<g id="ChiRhoClef" class="glyph" >
+<path d="M105.917 147.774c-2.067-3.344.33-5.742 7.093-7.094 9.764-1.953 10.878-8.732 10.878-66.221V23.014l-31.89 18.927c-17.54 10.41-32.33 18.927-32.866 18.927s-6.285 3.525-12.774 7.833c-10.211 6.78-11.65 8.56-10.708 13.24 2.437 12.105 2.353 13.736-.74 14.383-2.058.43-5.723-4.048-10.336-12.629-3.93-7.312-10.92-19.208-15.533-26.436-7.792-12.212-8.838-17.574-3.428-17.574 1.22 0 4.149 2.455 6.509 5.456 3.206 4.075 5.547 5.14 9.257 4.209 4.153-1.043 57.07-30.529 80.73-44.985L108.93.2l-39.828-22.673c-21.905-12.47-42.917-23.84-46.694-25.265-6.542-2.47-7.139-2.258-12.641 4.484-5.147 6.307-6.079 6.71-8.57 3.708-2.384-2.873-1.55-5.313 5.673-16.614 4.657-7.285 11.576-19.204 15.376-26.486 6.447-12.353 10.761-15.93 13.624-11.299.66 1.068.266 4.396-.875 7.396-1.14 3-1.54 6.847-.887 8.549 1.381 3.6 20.012 15.393 60.125 38.062l28.597 16.16.556-77.692c.613-85.706.355-87.62-11.832-87.62-6.286 0-10.966-3.346-10.966-7.838 0-4.44 92.037-3.911 102.811.59 21.627 9.037 33.743 26.842 33.76 49.614.03 37.863-30.53 65.667-72.177 65.667H151.654l-.644 28.499-.644 28.499 5.296-3.53c2.912-1.943 16.734-10.076 30.715-18.075C219.121-64.4 233.238-73.793 234.811-77.894c.694-1.81-.277-7.137-2.158-11.838-2.642-6.603-2.847-9.12-.902-11.059 3.327-3.316 6.53 1.033 24.387 33.12 9.75 17.517 13.444 26.059 11.928 27.574-1.515 1.516-3.723.761-7.126-2.436-6.943-6.522-11.612-5.87-31.58 4.41C207.227-26.73 166.254-2.377 166.254-.616c0 1.199 13.66 9.394 43.425 26.054 17.366 9.72 39.944 20.601 42.746 20.601 1.44 0 5.28-3.336 8.533-7.414 5.798-7.267 11.8-9.485 14.378-5.313.714 1.155-1.527 5.683-4.98 10.061-3.452 4.38-11.1 16.541-16.996 27.027-5.896 10.485-11.563 20.488-12.594 22.227-1.564 2.64-2.43 2.7-5.24.369-2.669-2.215-2.895-3.831-1.09-7.794 1.254-2.75 1.706-6.493 1.005-8.319-.7-1.825-9.166-8.384-18.813-14.576-17.64-11.321-62.464-37.45-64.246-37.45-2.144 0-.858 101.326 1.367 107.709 1.688 4.841 4.15 7.137 9.003 8.394 3.674.952 6.68 3.1 6.68 4.774 0 2.48-5.75 3.151-31.086 3.628-19.604.37-31.582-.218-32.43-1.589M183.434-94.909c10.38-3.663 19.694-11.631 24.662-21.101 5.14-9.799 4.065-30.404-2.313-44.336-7.44-16.251-18.35-23.003-39-24.132l-15.357-.84v93.668h11.384c6.262 0 15.542-1.466 20.624-3.26" >
+</path>
+</g>
+<g id="Porrectus1.333x1.25" class="glyph" >
+<path d="M-50 -53.812C109.098 79.069 206.734 72.408 238.037 72.408C246.537 72.408 269.219 71.908 277.319 42.708L277.319 158.261C277.319 169.061 264.565 169.308 258.665 169.308C181.081 169.308 62.184 159.658 -50 64.938z" >
+</path>
+</g>
+<g id="DoClef" class="glyph" >
+<path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,61.71875)" element-index="0" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<line x1="168.92044746245745" y1="-56.25" x2="214.85544746245745" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="214.85544746245745" y1="-56.25" x2="217.98044746245745" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(14.707560695069304,0)" >
+<text source-index="5" x="-0.3417500000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="16.883451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus1x1.25" class=" note porrectus porrectus-start" source-index="7" element-index="0" id="note-1" x="50" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="8" element-index="1" id="note-2" x="302.344" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="9" element-index="2" id="note-3" x="302.344" y="-399.99999999999994" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(47.98127066816634,0)" >
+<text source-index="12" x="-0.6081500000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >b</tspan>
+</text>
+<rect x="0" y="-43.75" width="0.8" height="16.883451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus2x1.25" class=" note porrectus porrectus-start" source-index="14" element-index="3" id="note-4" x="50" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="15" element-index="4" id="note-5" x="377.343" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="28.679921875" y="-43.75" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="16" element-index="5" id="note-6" x="377.343" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(87.11427751626337,0)" >
+<text source-index="19" x="-0.8745500000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >c</tspan>
+</text>
+<rect x="0" y="-43.75" width="0.8" height="23.133451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus3x1.25" class=" note porrectus porrectus-start" source-index="21" element-index="6" id="note-7" x="50" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="22" element-index="7" id="note-8" x="377.344" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="28.68" y="-43.75" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="23" element-index="8" id="note-9" x="377.344" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(126.2473624893604,0)" >
+<text source-index="26" x="1.88305" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >d</tspan>
+</text>
+<rect x="0" y="-50" width="0.8" height="29.383451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus5x1.25" class=" note porrectus porrectus-start" source-index="28" element-index="9" id="note-10" x="50" y="-640" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="29" element-index="10" id="note-11" x="462.65600000000006" y="-240" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="35.345000000000006" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="30" element-index="11" id="note-12" x="462.65600000000006" y="-640" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(172.04544746245745,0)" >
+<text source-index="33" x="1.61665" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >e</tspan>
+</text>
+<rect x="0" y="-56.25" width="0.8" height="29.383451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus7x1.25" class=" note porrectus porrectus-start" source-index="35" element-index="12" id="note-13" x="50" y="-720" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="36" element-index="13" id="note-14" x="547.9680000000001" y="-160" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="42.010000000000005" y="-56.25" width="0.8" height="43.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="37" element-index="14" id="note-15" x="547.9680000000001" y="-720" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement PorrectusFlexus" transform="translate(224.50853243555446,0)" >
+<text source-index="40" x="1.35025" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >f</tspan>
+</text>
+<rect x="0" y="-43.75" width="0.8" height="16.883451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus2x1.25" class=" note porrectus porrectus-start" source-index="42" element-index="15" id="note-16" x="50" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="43" element-index="16" id="note-17" x="377.343" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="28.679921875" y="-43.75" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="44" element-index="17" id="note-18" x="417.10300000000007" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="45" element-index="18" id="note-19" x="517.1030000000001" y="-480" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement TorculusResupinus" transform="translate(278.46653928365146,0)" >
+<text source-index="48" x="1.08385" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >g</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="50" element-index="19" id="note-20" x="50" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="7.0125" y="-43.75" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus2x1.25" class=" note porrectus porrectus-start" source-index="51" element-index="20" id="note-21" x="139.76" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="52" element-index="21" id="note-22" x="467.10300000000007" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="35.69242187500001" y="-43.75" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="53" element-index="22" id="note-23" x="467.10300000000007" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement TorculusResupinus" transform="translate(324.6120461317485,0)" >
+<text source-index="56" x="0.81745" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >h</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="58" element-index="23" id="note-24" x="50" y="-240" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="7.0125" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus5x1.25" class=" note porrectus porrectus-start" source-index="59" element-index="24" id="note-25" x="139.76" y="-640" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="60" element-index="25" id="note-26" x="552.416" y="-240" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="42.35750000000001" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="61" element-index="26" id="note-27" x="552.416" y="-640" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(377.42263110484555,0)" >
+<text source-index="64" x="0.55105" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >i</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="16.883451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus1x1.25" class=" note porrectus porrectus-start" source-index="66" element-index="27" id="note-28" x="50" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="68" element-index="28" id="note-29" x="302.344" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="70" element-index="29" id="note-30" x="302.344" y="-399.99999999999994" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="0" y="-40.083333333333336" width="15.808125000000018" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+<rect x="15.808125" y="-40.083333333333336" width="0.6714062499999613" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+<rect x="16.47953125" y="-40.083333333333336" width="7.1410937500000005" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(410.6963410779426,0)" >
+<text source-index="74" x="0.28465000000000007" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >j</tspan>
+</text>
+<rect x="0" y="-43.75" width="0.8" height="23.133451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus3x1.25" class=" note porrectus porrectus-start" source-index="76" element-index="30" id="note-31" x="50" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="77" element-index="31" id="note-32" x="377.344" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="28.68" y="-43.75" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="80" element-index="32" id="note-33" x="377.344" y="-560" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="21.6675" y="-15.083333333333334" width="7.8125" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+<use xlink:href="#VerticalEpisemaBelow" class="" x="327.344" y="-184" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(449.82942605103966,0)" >
+<text source-index="83" x="0.0182500000000001" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >k</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="16.883451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus1x1.25" class=" note porrectus porrectus-start" source-index="85" element-index="33" id="note-34" x="50" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="86" element-index="34" id="note-35" x="302.344" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="88" element-index="35" id="note-36" x="302.344" y="-399.99999999999994" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#Mora" class="" x="294.344" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#Mora" class="" x="294.344" y="-460" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(486.44832145732005,0)" >
+<text source-index="92" x="-0.24814999999999987" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >l</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="16.883451704545454" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus1x1.25Cavum" class=" note porrectus porrectus-start" source-index="94" element-index="36" id="note-37" x="50" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="96" element-index="37" id="note-38" x="302.344" y="-320" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="97" element-index="38" id="note-39" x="302.344" y="-399.99999999999994" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(516.9640071523894,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="101" element-index="39" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="101" element-index="39" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement ChiRhoClef" transform="translate(530.1090678474587,0)" >
+<use xlink:href="#ChiRhoClef" class="" source-index="106" element-index="40" x="0" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(561.2831684455557,0)" >
+<text source-index="111" x="-0.5145499999999998" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >m</tspan>
+</text>
+<rect x="0" y="-31.25" width="0.8" height="12.71678503787879" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus1.333x1.25" class=" note porrectus porrectus-start" source-index="113" element-index="41" id="note-40" x="50" y="-400" transform="scale(0.078125,0.078125)" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="114" element-index="42" id="note-41" x="327.318667" y="-293.3333333333333" transform="scale(0.078125,0.078125)" >
+</use>
+<rect x="24.771770859375" y="-31.25" width="0.8" height="8.333333333333336" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="115" element-index="43" id="note-42" x="327.318667" y="-399.99999999999994" transform="scale(0.078125,0.078125)" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(593.75,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="119" element-index="44" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="119" element-index="44" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>

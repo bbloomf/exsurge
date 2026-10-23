@@ -27,7 +27,7 @@ import {
   getCssForProperties, Point,
   Rect
 } from "./Exsurge.Core.js";
-import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
+import { Glyphs, porrectusSwash, porrectusSwashWidth, type Glyph } from "./Exsurge.Glyphs.js";
 import { language, type IgnoredRange, type Language, type VowelSegment } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
@@ -426,8 +426,10 @@ export const GlyphCode = {
   PodatusLowerShort: "PodatusLowerShort",
   PodatusUpperShort: "PodatusUpperShort",
 
-  Porrectus1: "Porrectus1", // 1 staff line difference,
-  Porrectus2: "Porrectus2", // 2 lines difference, etc...
+  // a porrectus's swash falling 1 staff position, 2, and so on.  (it can fall
+  // any distance: see porrectusGlyphCode())
+  Porrectus1: "Porrectus1",
+  Porrectus2: "Porrectus2",
   Porrectus3: "Porrectus3",
   Porrectus4: "Porrectus4",
   Porrectus5: "Porrectus5",
@@ -484,7 +486,40 @@ export const GlyphCode = {
   TerminatingAscLiquescentCavum: "TerminatingAscLiquescentCavum",
   TerminatingDesLiquescentCavum: "TerminatingDesLiquescentCavum"
 } as const; // GlyphCode
-export type GlyphCode = (typeof GlyphCode)[keyof typeof GlyphCode];
+export type GlyphCode =
+  | (typeof GlyphCode)[keyof typeof GlyphCode]
+  | `Porrectus${number}`
+  | `Porrectus${number}Cavum`;
+
+/**
+ * The glyph code of a porrectus's swash, falling interval staff positions (a
+ * whole number for the clefs that exsurge shares with Gregorio, or with the
+ * Chi-Rho clef's offsets, in thirds): Porrectus followed by the interval, to
+ * three decimal places, and Cavum if it's hollow.  The swash is drawn for it
+ * when it's first used.
+ */
+export function porrectusGlyphCode(interval: number, hollow = false): GlyphCode {
+  return `Porrectus${Math.round(interval * 1000) / 1000}${hollow ? "Cavum" : ""}` as GlyphCode;
+}
+
+// the glyphs of the porrectus swashes other than those in Glyphs, by their ids
+// (see GlyphVisualizer.glyphId)
+const porrectusGlyphs: { [glyphId: string]: Glyph } = {};
+
+// the glyph of a porrectus's swash falling interval staff positions under
+// glyphMultiplier: one that falls as far, whatever size the notes are, and is
+// as wide as they are, as the other glyphs are
+function porrectusGlyph(glyphId: string, interval: number, glyphMultiplier: number, hollow: boolean) {
+  return (
+    Glyphs[glyphId] ||
+    porrectusGlyphs[glyphId] ||
+    (porrectusGlyphs[glyphId] = porrectusSwash(
+      (100 * interval) / glyphMultiplier,
+      porrectusSwashWidth(interval),
+      hollow
+    ))
+  );
+}
 
 /** the hollow form of each note glyph, for a note with a cavum (gabc r) */
 export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } = {
@@ -2228,6 +2263,12 @@ export class LineaVisualizer extends ChantLayoutElement {
 export class GlyphVisualizer extends ChantLayoutElement {
   glyph: Glyph;
   glyphCode!: GlyphCode;
+  /**
+   * the id of the glyph's svg def: its code, but for a porrectus's swash
+   * under a glyph multiplier other than 1, which has a glyph of its own, its
+   * code with x and the multiplier after the interval (e.g. Porrectus2x0.8)
+   */
+  glyphId!: string;
   /** for a porrectus, the staff positions its notes are apart; otherwise 0 */
   porrectusNoteDiff!: number;
   align?: "left" | "right";
@@ -2246,24 +2287,27 @@ export class GlyphVisualizer extends ChantLayoutElement {
   }
 
   setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | "") {
-    if (this.glyphCode !== glyphCode) {
-      if (
-        typeof glyphCode === "undefined" ||
-        glyphCode === null ||
-        glyphCode === ""
-      )
-        glyphCode = this.glyphCode = GlyphCode.None;
-      else this.glyphCode = glyphCode;
+    if (typeof glyphCode === "undefined" || glyphCode === null || glyphCode === "")
+      glyphCode = GlyphCode.None;
+    const swash = /^Porrectus([\d.]+)(Cavum)?$/.exec(glyphCode);
+    const glyphId =
+      swash && ctxt.glyphMultiplier !== 1
+        ? `Porrectus${swash[1]}x${ctxt.glyphMultiplier}${swash[2] || ""}`
+        : glyphCode;
+    if (this.glyphId !== glyphId) {
+      this.glyphCode = glyphCode;
+      this.glyphId = glyphId;
 
-      let glyph = this.glyph = Glyphs[glyphCode];
-      const porrectusResult = /^Porrectus([1-9])(?:Cavum)?$/.exec(glyphCode);
-      this.porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
+      let glyph = (this.glyph = swash
+        ? porrectusGlyph(glyphId, Number(swash[1]), ctxt.glyphMultiplier, !!swash[2])
+        : Glyphs[glyphCode]);
+      this.porrectusNoteDiff = swash ? Number(swash[1]) : 0;
 
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing
-      if (!ctxt.defs.hasOwnProperty(glyphCode)) {
+      if (!ctxt.defs.hasOwnProperty(glyphId)) {
         var getDefProps = () => {
           var options: SvgAttributes = {
-            id: glyphCode,
+            id: glyphId,
             class: "glyph"
           };
           if (ctxt.scaleDefs === true) {
@@ -2274,7 +2318,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
         const makeDef = () => {
           let options = getDefProps();
           // create the ref
-          ctxt.defs[glyphCode as GlyphCode] = QuickSvg.createFragment(
+          ctxt.defs[glyphId] = QuickSvg.createFragment(
             "g",
             options,
             QuickSvg.svgFragmentForGlyph(glyph, ctxt.negativeFillColor)
@@ -2304,7 +2348,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
             )
           );
         };
-        makeDef.glyphCode = glyphCode;
+        makeDef.glyphCode = glyphCode as GlyphCode;
         makeDef();
         ctxt.makeDefs.push(makeDef);
       }
@@ -2330,18 +2374,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
   draw(ctxt: ChantContext) {
     var canvasCtxt = ctxt.canvasCtxt!;
 
-    const porrectusNoteDiff = this.porrectusNoteDiff;
-
     var x = this.bounds.x + this.origin.x;
     var y = this.bounds.y + this.origin.y;
-    var scaleX = ctxt.glyphScaling * this.scale;
-    var scaleY = ctxt.glyphScaling * this.scale;
-    // a porrectus is drawn taller by 1 / glyphMultiplier.  (unlike the svg's
-    // x and y, which are in the glyph's scaled units, the translation here
-    // comes before the scaling, so y isn't divided by it)
-    if (porrectusNoteDiff) scaleY /= ctxt.glyphMultiplier;
+    var scale = ctxt.glyphScaling * this.scale;
     canvasCtxt.translate(x, y);
-    canvasCtxt.scale(scaleX, scaleY);
+    canvasCtxt.scale(scale, scale);
 
     for (var i = 0; i < this.glyph.paths.length; i++) {
       var path = this.glyph.paths[i];
@@ -2354,7 +2391,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
       canvasCtxt.fill(path.path2d || (path.path2d = new Path2D(path.data)));
     }
 
-    canvasCtxt.scale(1 / scaleX, 1 / scaleY);
+    canvasCtxt.scale(1 / scale, 1 / scale);
     canvasCtxt.translate(-x, -y);
   }
 
@@ -2379,7 +2416,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
       className = isSelected ? "selected" : "";
     }
     var result: SvgAttributes = {
-      "xlink:href": "#" + this.glyphCode,
+      "xlink:href": "#" + this.glyphId,
       class: className
     };
     if (source) {
@@ -2406,20 +2443,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
         result.x /= this.scale;
         result.y /= this.scale;
       }
-      if (porrectusNoteDiff) {
-        // result.transform = "scale(" + (porrectusNoteDiff / (porrectusNoteDiff + 1)) + ")";
-        const scaleGlyph = 1 / ctxt.glyphMultiplier;
-        result.transform = "scale(1," + scaleGlyph + ")";
-        result.y /= scaleGlyph;
-      }
     } else {
       const glyphScaling = ctxt.glyphScaling * this.scale;
-      const scaleGlyph = porrectusNoteDiff
-        ? glyphScaling / ctxt.glyphMultiplier
-        : glyphScaling;
       result.x = (this.bounds.x + this.origin.x) / glyphScaling;
-      result.y = (this.bounds.y + this.origin.y) / scaleGlyph;
-      result.transform = "scale(" + glyphScaling + "," + scaleGlyph + ")";
+      result.y = (this.bounds.y + this.origin.y) / glyphScaling;
+      result.transform = "scale(" + glyphScaling + "," + glyphScaling + ")";
     }
     return result;
   }

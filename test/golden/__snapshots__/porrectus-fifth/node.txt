@@ -4,7 +4,7 @@
       <g id="VerticalEpisemaAbove" class="glyph" transform="scale(0.0625)">
         <path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z">
       <g id="Porrectus5" class="glyph" transform="scale(0.0625)">
-        <path d="M390.625 547.188C332.513 512.427 258.437 441.718 168.396 335.061 105.177 260.673 32.379 165.236-50 48.75V-70C-4.66 8.397 69.416 111.918 172.229 240.563 239.279 324.622 303.458 392.704 364.762 444.81c6.386 5.004 12.133 8.051 17.242 9.138 13.409 2.853 23.628-6.692 30.652-28.635V540.158c0 9.373-3.514 13.312-10.536 11.818-3.195-.679-7.025-2.274-11.495-4.788z">
+        <path d="M-50 -70C115.675 202.428 352.485 453.9 381.956 453.9C390.456 453.9 404.556 454.5 412.656 425.3L412.656 540.2C412.656 551 407.956 552 402.056 552C400.097 552 275.787 511.74 -50 48.75z">
       <g id="None" class="glyph" transform="scale(0.0625)">
         <g>
       <g id="PodatusUpper" class="glyph" transform="scale(0.0625)">
@@ -12,8 +12,8 @@
       <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)">
         <path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z">
       <g id="Porrectus5Cavum" class="glyph" transform="scale(0.0625)">
-        <path d="M390.625 547.188C332.513 512.427 258.437 441.718 168.396 335.061 105.177 260.673 32.379 165.236-50 48.75V-70C-4.66 8.397 69.416 111.918 172.229 240.563 239.279 324.622 303.458 392.704 364.762 444.81c6.386 5.004 12.133 8.051 17.242 9.138 13.409 2.853 23.628-6.692 30.652-28.635V540.158c0 9.373-3.514 13.312-10.536 11.818-3.195-.679-7.025-2.274-11.495-4.788z">
-        <path d="M-32-6.2v49.007c0 1.214 14.52 20.635 16.402 23.268 15.605 21.833 31.346 43.57 47.249 65.187 63.484 86.293 129.442 171.041 201.381 250.498 32.525 35.923 66.35 70.92 103.064 102.605 12.365 10.672 25.084 20.952 38.328 30.515 4.325 3.122 8.706 6.167 13.154 9.111 1.529 1.012 3.066 2.012 4.611 2.999 .21.135 2.467 1.446 2.467 1.353l-.235-56.768c-.001-.333-.652.14-.979.204-.818.158-1.642.288-2.469.39-2.482.305-4.994.349-7.487.151-7.187-.571-14.018-3.176-20.218-6.77-16.122-9.344-39.268-32.524-53.379-45.912-74.007-70.214-138.28-149.512-200.674-229.987-32.885-42.415-65.11-85.362-96.012-129.248-10.269-14.583-20.386-29.273-30.3-44.1-3.335-4.989-6.647-9.993-9.932-15.015-1.096-1.673-2.188-3.349-3.277-5.027-.362-.557-.705-1.136-1.089-1.678-.19-.269-.605-1.113-.605-.783z" fill="#fff">
+        <path d="M-50 -70C115.675 202.428 352.485 453.9 381.956 453.9C390.456 453.9 404.556 454.5 412.656 425.3L412.656 540.2C412.656 551 407.956 552 402.056 552C400.097 552 275.787 511.74 -50 48.75z">
+        <path d="M-32 -7.457C0.389 42.64 34.58 91.454 68.792 137.522C115.022 199.772 161.351 257.087 203.424 305.867C245.465 354.61 283.398 394.993 312.849 423.323C338.386 447.888 365.335 471.9 381.956 471.9C384.164 471.9 388.922 472.087 394.656 470.815L394.656 528.916C392.532 527.497 389.773 525.682 386.186 523.361C370.278 513.072 345.23 494.299 309.813 460.901C274.408 427.513 228.753 379.618 171.618 311.172C115.259 243.655 47.781 156.202 -32 43.047z" fill="#fff">
       <g id="TerminatingAscLiquescent" class="glyph" transform="scale(0.0625)">
         <path d="M-9.375 40.22c0-11.98-4.948-17.97-14.844-17.97-10.936 0-19.53 3.646-25.78 10.938v-53.126c0-6.77 2.604-12.76 7.813-17.968 5.208-5.21 10.677-8.594 16.406-10.157 2.603-.52 5.207-.78 7.81-.78 3.647 0 7.032.78 10.157 2.343C-2.603-43.896 0-39.73 0-34V73.03h-9.375V40.22z">
       <g id="VerticalEpisemaBelow" class="glyph" transform="scale(0.0625)">
@@ -40,7 +40,7 @@
             "a"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="7" element-index="0" id="note-1" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="7" element-index="0" id="note-1" x="3.125" y="-50" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="8" element-index="1" id="note-2" x="28.916" y="-18.75" source=<Note sourceIndex=8 elementIndex=1 noteIndex=1>>
           <rect x="28.116" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="9" element-index="2" id="note-3" x="28.916" y="-50" source=<Note sourceIndex=9 elementIndex=2 noteIndex=2>>
@@ -50,7 +50,7 @@
             "b"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="14" element-index="3" id="note-4" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=14 elementIndex=3 noteIndex=3>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="14" element-index="3" id="note-4" x="3.125" y="-50" source=<Note sourceIndex=14 elementIndex=3 noteIndex=3>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="15" element-index="4" id="note-5" x="28.916" y="-18.75" source=<Note sourceIndex=15 elementIndex=4 noteIndex=4>>
           <rect x="28.116" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="16" element-index="5" id="note-6" x="31.241" y="-50" source=<Note sourceIndex=16 elementIndex=5 noteIndex=5>>
@@ -63,7 +63,7 @@
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="22" element-index="7" id="note-8" x="3.125" y="-6.25" source=<Note sourceIndex=22 elementIndex=7 noteIndex=7>>
           <rect x="5.45" y="-50" width="0.8" height="43.75" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="23" element-index="8" id="note-9" x="8.575" y="-50" transform="scale(1,1)" source=<Note sourceIndex=23 elementIndex=8 noteIndex=8>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="23" element-index="8" id="note-9" x="8.575" y="-50" source=<Note sourceIndex=23 elementIndex=8 noteIndex=8>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="24" element-index="9" id="note-10" x="34.366" y="-18.75" source=<Note sourceIndex=24 elementIndex=9 noteIndex=9>>
           <rect x="33.566" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="25" element-index="10" id="note-11" x="34.366" y="-50" source=<Note sourceIndex=25 elementIndex=10 noteIndex=10>>
@@ -74,7 +74,7 @@
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="30" element-index="11" id="note-12" x="3.125" y="-6.25" source=<Note sourceIndex=30 elementIndex=11 noteIndex=11>>
           <rect x="5.45" y="-50" width="0.8" height="43.75" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="31" element-index="12" id="note-13" x="8.575" y="-50" transform="scale(1,1)" source=<Note sourceIndex=31 elementIndex=12 noteIndex=12>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="31" element-index="12" id="note-13" x="8.575" y="-50" source=<Note sourceIndex=31 elementIndex=12 noteIndex=12>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="32" element-index="13" id="note-14" x="34.366" y="-18.75" source=<Note sourceIndex=32 elementIndex=13 noteIndex=13>>
           <rect x="33.566" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="33" element-index="14" id="note-15" x="36.691" y="-50" source=<Note sourceIndex=33 elementIndex=14 noteIndex=14>>
@@ -86,7 +86,7 @@
             "e"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5Cavum" class=" note porrectus porrectus-start" source-index="39" element-index="16" id="note-17" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=39 elementIndex=16 noteIndex=16>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5Cavum" class=" note porrectus porrectus-start" source-index="39" element-index="16" id="note-17" x="3.125" y="-50" source=<Note sourceIndex=39 elementIndex=16 noteIndex=16>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="40" element-index="17" id="note-18" x="28.916" y="-18.75" source=<Note sourceIndex=40 elementIndex=17 noteIndex=17>>
           <rect x="28.116" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="42" element-index="18" id="note-19" x="28.916" y="-50" source=<Note sourceIndex=42 elementIndex=18 noteIndex=18>>
@@ -96,7 +96,7 @@
             "f"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="47" element-index="19" id="note-20" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=47 elementIndex=19 noteIndex=19>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="47" element-index="19" id="note-20" x="3.125" y="-50" source=<Note sourceIndex=47 elementIndex=19 noteIndex=19>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="48" element-index="20" id="note-21" x="28.916" y="-18.75" source=<Note sourceIndex=48 elementIndex=20 noteIndex=20>>
           <rect x="28.116" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#TerminatingAscLiquescent" class=" note" source-index="49" element-index="21" id="note-22" x="28.916" y="-50" source=<Note sourceIndex=49 elementIndex=21 noteIndex=21>>
@@ -106,7 +106,7 @@
             "g"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="55" element-index="22" id="note-23" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=55 elementIndex=22 noteIndex=22>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="55" element-index="22" id="note-23" x="3.125" y="-50" source=<Note sourceIndex=55 elementIndex=22 noteIndex=22>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="56" element-index="23" id="note-24" x="28.916" y="-18.75" source=<Note sourceIndex=56 elementIndex=23 noteIndex=23>>
           <rect x="28.116" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="57" element-index="24" id="note-25" x="28.916" y="-50" source=<Note sourceIndex=57 elementIndex=24 noteIndex=24>>
@@ -116,7 +116,7 @@
             "h"
         <g class="Notations">
           <rect x="0" y="-56.25" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="63" element-index="25" id="note-26" x="3.125" y="-56.25" transform="scale(1,1)" source=<Note sourceIndex=63 elementIndex=25 noteIndex=25>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="63" element-index="25" id="note-26" x="3.125" y="-56.25" source=<Note sourceIndex=63 elementIndex=25 noteIndex=25>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="64" element-index="26" id="note-27" x="28.916" y="-25" source=<Note sourceIndex=64 elementIndex=26 noteIndex=26>>
           <rect x="28.116" y="-56.25" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="65" element-index="27" id="note-28" x="31.241" y="-56.25" source=<Note sourceIndex=65 elementIndex=27 noteIndex=27>>
@@ -128,7 +128,7 @@
             "i"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="71" element-index="29" id="note-30" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=71 elementIndex=29 noteIndex=29>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="71" element-index="29" id="note-30" x="3.125" y="-50" source=<Note sourceIndex=71 elementIndex=29 noteIndex=29>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="72" element-index="30" id="note-31" x="28.916" y="-18.75" source=<Note sourceIndex=72 elementIndex=30 noteIndex=30>>
           <rect x="28.116" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="74" element-index="31" id="note-32" x="28.916" y="-50" source=<Note sourceIndex=74 elementIndex=31 noteIndex=31>>
@@ -139,7 +139,7 @@
             "j"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="79" element-index="32" id="note-33" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=79 elementIndex=32 noteIndex=32>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus5" class=" note porrectus porrectus-start" source-index="79" element-index="32" id="note-33" x="3.125" y="-50" source=<Note sourceIndex=79 elementIndex=32 noteIndex=32>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="81" element-index="33" id="note-34" x="28.916" y="-18.75" source=<Note sourceIndex=81 elementIndex=33 noteIndex=33>>
           <rect x="28.116" y="-50" width="0.8" height="31.25" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="83" element-index="34" id="note-35" x="28.916" y="-50" source=<Note sourceIndex=83 elementIndex=34 noteIndex=34>>

@@ -297,7 +297,7 @@ describe('Staff position offsets', function() {
 });
 
 describe('Canvas drawing', function() {
-  [1, 0.8].forEach(function(glyphMultiplier) {
+  [1, 0.8, 1.25].forEach(function(glyphMultiplier) {
     it('draws a porrectus where the svg does, with a glyph multiplier of ' + glyphMultiplier, function() {
       // the porrectus's y used to be divided by its scale before the translation, so it was drawn far off
       var g = globalThis as any;
@@ -319,11 +319,24 @@ describe('Canvas drawing', function() {
       } finally {
         if (!hadPath2D) delete g.Path2D;
       }
-      // where the svg puts it too: its y in the glyph's scaled units, times that scale
+      // where the svg puts it too (its x and y), at the glyphs' scale: a
+      // swash drawn for the glyph multiplier, rather than one stretched
+      assert.equal(glyph.glyphId, glyphMultiplier === 1 ? 'Porrectus2' : 'Porrectus2x' + glyphMultiplier);
       assert.deepEqual(calls.slice(0, 2), [
         ['translate', glyph.bounds.x + glyph.origin.x, glyph.bounds.y + glyph.origin.y],
-        ['scale', ctxt.glyphScaling, ctxt.glyphScaling / glyphMultiplier]
+        ['scale', ctxt.glyphScaling, ctxt.glyphScaling]
       ]);
+    });
+
+    it('draws a porrectus swash that falls as far as its notes, at their size, with a glyph multiplier of ' + glyphMultiplier, function() {
+      var ctxt = new Drawing.ChantContext();
+      ctxt.setStaffHeight(37.5, glyphMultiplier);
+      var glyph = new Drawing.GlyphVisualizer(ctxt, Drawing.GlyphCode.Porrectus2).glyph;
+      // its lowest point is under the second note, two staff positions down,
+      // by about half a punctum at the multiplier (52 to 63 glyph units)
+      var belowSecondNote = (glyph.bounds.height - glyph.origin.y) * ctxt.glyphScaling - 2 * ctxt.staffInterval;
+      assert(belowSecondNote > 52 * ctxt.glyphScaling && belowSecondNote < 63 * ctxt.glyphScaling,
+        'the swash ends ' + belowSecondNote + ' below its second note');
     });
   });
 });

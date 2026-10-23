@@ -205,7 +205,7 @@ The upper and lower positions are each a sixth of the line spacing from the midd
 
 - **Clef.** `xp1` to `xp5`, or the sans-serif `xp-1` to `xp-5`. Prefer `xp3` or `xp5`: on lines 1, 2 and 4, some offset notes get a wrong pitch or none (see the pitch bullet below).
 - **Where the digit goes.** It must come straight after the pitch letter. In `fv0` the `0` is ignored. `f.0`, `f_0` and `f'0` keep their Gregorio meaning: a mora, episema or ictus below the note. An initio debilis is fine: `-f0g`.
-- **In neumes.** It works on any note of any neume: `(g0h9)` is a pes, and `(h9g0)` a clivis.
+- **In neumes.** It works on any note of any neume: `(g0h9)` is a pes, and `(h9g0)` a clivis. A porrectus's stroke is drawn for the fall it has, such as the 1⅓ staff positions of `(hgh)` under `(xp3)`, where `g` is at the bottom of its space (golden case `porrectus-any-fall`).
 - **Custodes.** `f9+` puts a custos at the offset position. An automatic custos at the end of a line copies the offset of the note it announces (`Signs.ts:55-65`).
 - **Outside the staff.** It works on ledger-line notes too: `a0`, `l9`, `m9`.
 - **Pitch.** The note keeps the pitch of its letter: under `(xp3)`, `f9` is still La, as under `(c3)`. Only the drawing moves. (But see [the bug](#limits-and-bugs-found-while-checking): under `xp1`, `xp2` and `xp4`, `g9` gets no pitch, and under `xp1`, `d9` is an octave low.)
@@ -650,6 +650,8 @@ The `staff-lines` header isn't read (`gregorio-feature-gap.md` §1).
 | **Not in Gregorio** | `ctxt.setStaffHeight(staffHeight, glyphMultiplier)` and `ctxt.setGlyphScaling(scaling, glyphMultiplier)`, `Drawing.ts:1415-1449` | `glyph-multiplier` (`cases.ts:426`) |
 
 **What it does.** The second argument of `setStaffHeight()` scales the neumes, clefs and other glyphs against a staff whose size the first argument sets. `ctxt.setStaffHeight(48, 0.8)` draws the notes at 80% of their usual size on the same staff. This came in with exsurge 1.25.0 and 1.25.1.
+
+A porrectus's stroke is drawn for the multiplier: as thick and as wide as its notes are at that size, but falling as far as the staff says. Its svg def has the multiplier in its id, as in `Porrectus2x0.8` (golden cases `porrectus-glyph-multiplier` and `porrectus-glyph-multiplier-large`). It used to be the stroke drawn at 1, scaled to the multiplier and then stretched upright by its inverse, which kept the fall but made it too thick and too steep under a multiplier below 1, and too thin above 1.
 
 **How to use it.**
 

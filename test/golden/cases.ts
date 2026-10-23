@@ -56,6 +56,11 @@ const salveRegina =
 const resizedLyricWithSizedText =
   "(c4) Ky(f)ri(g)e(h) (,) A long run of text only words, too wide for the line<br><e>and a smaller line</e>() (::)";
 
+// porrectus strokes of several falls, for drawing at glyph multipliers
+const porrectusAtMultipliers =
+  "(c4) a(hgh) b(jhj) c(jgj) d(kfk) e(lel) f(jhji) g(gjhj) h(fkfk) i(h_g_h_) j(jg_'j) k(hg.h.) l(hrgh) (::) " +
+  "(xp3) m(hgh) (::)";
+
 // headers for Gabc.applyHeader()
 const headerSettings =
   "name: Ave Maria;\noffice-part: Antiphona;\nannotation: Ant.;\nannotation: VIII\nG;;\n" +
@@ -399,13 +404,21 @@ export const featureCases: GoldenCase[] = [
     gabc: "(c4) a(G) b(G0) c(G1) d(G2) e(hGF) f(hG0F0) g(fG1H1) h(gG2G2) i(-G0) (::) (xp3) j(H0) k(h0) l(H9) (::)"
   },
   {
-    // a porrectus stroke of a fifth has its own glyph (a, c and e to h), but
-    // one wider (or between nudged notes, as a note on a space is under a
-    // Chi-Rho clef) has none, so its notes are drawn as puncta joined by a
-    // line, and the note after it follows them rather than standing on the
-    // last (k is a torculus resupinus)
+    // a porrectus stroke of a fifth (a, c and e to h), and wider ones (b, d),
+    // and one between nudged notes, as a note on a space is under a Chi-Rho
+    // clef (j, and k, a torculus resupinus), each drawn for the fall it has
     name: "porrectus-wide",
     gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
+  },
+  {
+    // a porrectus's stroke drawn for any fall: wider than a fifth, in a
+    // porrectus (a), a torculus resupinus (b) and a porrectus flexus (c); and
+    // under a Chi-Rho clef, of 1⅓ (d, i, j), ⅔ (e, f, k), 3⅓ (g) and 2⅔ (h)
+    // staff positions, hollow (j, k) and in a porrectus flexus (l)
+    name: "porrectus-any-fall",
+    gabc:
+      "(c4) a(mcm) b(dkdk) c(lclk) (::) " +
+      "(xp3) d(hgh) e(hg9h) f(h0gh) g(jgj) h(ifh) i(fhgh) j(hgr0h) k(hg9rh) l(jgjh) (::)"
   },
 
   // Gregorio: Phase 2
@@ -917,6 +930,26 @@ export const settingCases: GoldenCase[] = [
   // ---- staff
   { name: "staff-height", gabc: puer, useDropCap: true, setupContext: (ctxt) => ctxt.setStaffHeight(90) },
   { name: "glyph-multiplier", outputs: ["svg", "canvas"], gabc: puer, useDropCap: true, setupContext: (ctxt) => ctxt.setStaffHeight(37.5, 0.8) },
+  // a porrectus (a to e), porrectus flexus (f) and torculus resupinus (g, h)
+  // falling 1 to 7 staff positions, and one under a Chi-Rho clef (m), drawn
+  // with the notes' size at the glyph multiplier but falling as far, with
+  // episemata (i, j), morae (k), an ictus (j) and a cavum (l) on their notes
+  {
+    name: "porrectus-glyph-multiplier",
+    outputs: ["svg", "canvas"],
+    gabc: porrectusAtMultipliers,
+    setupContext: (ctxt) => ctxt.setStaffHeight(37.5, 0.8)
+  },
+  {
+    // (with the svg's glyphs scaled where they're used, rather than in their defs)
+    name: "porrectus-glyph-multiplier-large",
+    outputs: ["svg", "canvas"],
+    gabc: porrectusAtMultipliers,
+    setupContext: (ctxt) => {
+      ctxt.setScaleDefs(false);
+      ctxt.setStaffHeight(37.5, 1.25);
+    }
+  },
   {
     name: "scale-uses",
     outputs: allOutputs,

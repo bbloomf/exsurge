@@ -6,15 +6,15 @@
       <g id="Mora" transform="scale(0.0625)" className="glyph">
         <path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z">
       <g id="Porrectus1" transform="scale(0.0625)" className="glyph">
-        <path d="M233.594 162.875c-58.855 0-107.032-6.25-144.53-18.75C34.895 125.895-11.46 99.855-50 66V-52.75C-21.354-24.625 26.302 6.885 92.97 41.78 123.697 57.928 163.54 66 212.5 66c21.354 0 34.635-9.896 39.844-29.688V151.94c0 7.29-6.25 10.937-18.75 10.937z">
+        <path d="M-50 -52.75C101.027 75.5 185.549 66 212.544 66C221.044 66 244.244 65.5 252.344 36.3L252.344 151.9C252.344 162.7 239.544 162.9 233.644 162.9C165.791 162.9 59.452 159.024 -50 66z">
       <g id="None" transform="scale(0.0625)" className="glyph">
         <g>
       <g id="Porrectus2" transform="scale(0.0625)" className="glyph">
-        <path d="M309.375 259.375c-50.52 0-110.938-22.396-181.25-67.188C48.437 141.667-10.938 94.272-50 50V-68.75C0-3.125 60.417 52.083 131.25 96.875c58.333 36.98 110.677 58.854 157.03 65.625h7.033c16.145 0 26.822-9.896 32.03-29.688v114.844c0 7.812-5.99 11.72-17.968 11.72z">
+        <path d="M-50 -68.75C67.148 86.188 235.669 162.5 295.343 162.5C303.843 162.5 319.243 162 327.343 132.8L327.343 247.7C327.343 258.5 315.243 259.4 309.343 259.4C175.789 259.4 -21.816 85.598 -50 50z">
       <g id="Porrectus3" transform="scale(0.0625)" className="glyph">
-        <path d="M309.375 355.78c-48.96-16.666-109.115-55.468-180.47-116.405C79.428 198.23 19.793 134.687-50 48.75V-70C20 40 94.104 103.79 135.25 148.063 190 200 230 230 288.28 258.906c4.168 2.083 8.334 3.125 12.5 3.125 12.5 0 21.355-10.937 26.564-32.81v114.06c0 9.376-3.386 14.063-10.156 14.064-2.084 0-4.688-.522-7.813-1.563z">
+        <path d="M-50 -70C87.698 135.84 264.794 262 300.844 262C309.344 262 319.244 258.4 327.344 229.2L327.344 343.3C327.344 354.1 323.044 357.3 317.144 357.3C303.617 357.3 152.66 304.847 -50 48.75z">
       <g id="Porrectus4" transform="scale(0.0625)" className="glyph">
-        <path d="M350 453.438c-52.754-22.397-120-77.345-201.74-164.844C90.87 227.656 24.784 147.708-50 48.75V-70C-8.84-1.25 58.406 86.51 151.74 193.28c60.868 69.793 119.13 124.22 174.782 163.282 5.797 3.646 11.014 5.47 15.652 5.47 12.173 0 21.45-11.72 27.826-35.157V441.72c0 9.373-3.19 14.06-9.565 14.06-2.9 0-6.377-.78-10.435-2.342z">
+        <path d="M-50 -70C92.206 154.64 306.582 362 342.2 362C350.7 362 361.9 356.1 370 326.9L370 441.7C370 452.5 366.3 455.8 360.4 455.8C355.18 455.8 240.708 435.448 -50 48.75z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
       <g id="BeginningDesLiquescent" transform="scale(0.0625)" className="glyph">
@@ -45,7 +45,7 @@
             "a"
         <g className="Notations">
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
-          <use source-index=7 element-index=0 id="note-1" x=3.125 y=-25 transform="scale(1,1)" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
+          <use source-index=7 element-index=0 id="note-1" x=3.125 y=-25 source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
           <use source-index=8 element-index=1 id="note-2" x=18.8965 y=-18.75 source=<Note sourceIndex=8 elementIndex=1 noteIndex=1> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f[shape:stroke]">
       <g transform="translate(43.8965,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=25 x=-1.3894000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=25> className="lyric" textAnchor="start" source-gabc="b">
@@ -53,7 +53,7 @@
             "b"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=27 element-index=2 id="note-3" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=27 elementIndex=2 noteIndex=2> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h">
+          <use source-index=27 element-index=2 id="note-3" x=3.125 y=-31.25 source=<Note sourceIndex=27 elementIndex=2 noteIndex=2> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h">
           <use source-index=28 element-index=3 id="note-4" x=23.5839375 y=-18.75 source=<Note sourceIndex=28 elementIndex=3 noteIndex=3> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f[shape:stroke]">
       <g transform="translate(78.41793750000001,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=45 x=-1.6558000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=45> className="lyric" textAnchor="start" source-gabc="c">
@@ -61,7 +61,7 @@
             "c"
         <g className="Notations">
           <rect x=0 y=-37.5 width=0.8 height=22.256761363636365 fill="#000" className="neumeLine">
-          <use source-index=47 element-index=4 id="note-5" x=3.125 y=-37.5 transform="scale(1,1)" source=<Note sourceIndex=47 elementIndex=4 noteIndex=4> className=" note porrectus porrectus-start" xlinkHref="#Porrectus3" source-gabc="i">
+          <use source-index=47 element-index=4 id="note-5" x=3.125 y=-37.5 source=<Note sourceIndex=47 elementIndex=4 noteIndex=4> className=" note porrectus porrectus-start" xlinkHref="#Porrectus3" source-gabc="i">
           <use source-index=48 element-index=5 id="note-6" x=23.584 y=-18.75 source=<Note sourceIndex=48 elementIndex=5 noteIndex=5> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f[shape:stroke]">
       <g transform="translate(112.93943750000001,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=65 x=1.1018 y=13.012000000000008 style={} source=<Lyric sourceIndex=65> className="lyric" textAnchor="start" source-gabc="d">
@@ -69,7 +69,7 @@
             "d"
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=28.506761363636365 fill="#000" className="neumeLine">
-          <use source-index=67 element-index=6 id="note-7" x=3.125 y=-43.75 transform="scale(1,1)" source=<Note sourceIndex=67 elementIndex=6 noteIndex=6> className=" note porrectus porrectus-start" xlinkHref="#Porrectus4" source-gabc="j">
+          <use source-index=67 element-index=6 id="note-7" x=3.125 y=-43.75 source=<Note sourceIndex=67 elementIndex=6 noteIndex=6> className=" note porrectus porrectus-start" xlinkHref="#Porrectus4" source-gabc="j">
           <use source-index=68 element-index=7 id="note-8" x=26.25 y=-18.75 source=<Note sourceIndex=68 elementIndex=7 noteIndex=7> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f[shape:stroke]">
       <g transform="translate(150.1269375,0)" source=<Porrectus> className="ChantNotationElement Porrectus">
         <text source-index=85 x=0.8353999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=85> className="lyric" textAnchor="start" source-gabc="e">
@@ -77,7 +77,7 @@
             "e"
         <g className="Notations">
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
-          <use source-index=87 element-index=8 id="note-9" x=3.125 y=-25 transform="scale(1,1)" source=<Note sourceIndex=87 elementIndex=8 noteIndex=8> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
+          <use source-index=87 element-index=8 id="note-9" x=3.125 y=-25 source=<Note sourceIndex=87 elementIndex=8 noteIndex=8> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
           <use source-index=88 element-index=9 id="note-10" x=18.8965 y=-18.75 source=<Note sourceIndex=88 elementIndex=9 noteIndex=9> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f">
           <use source-index=89 element-index=10 id="note-11" x=18.8965 y=-25 source=<Note sourceIndex=89 elementIndex=10 noteIndex=10> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="g">
       <g transform="translate(179.9609375,0)" source=<Clivis> className="ChantNotationElement Clivis">
@@ -109,7 +109,7 @@
             "i"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=156 element-index=17 id="note-18" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=156 elementIndex=17 noteIndex=17> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h">
+          <use source-index=156 element-index=17 id="note-18" x=3.125 y=-31.25 source=<Note sourceIndex=156 elementIndex=17 noteIndex=17> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h">
           <use source-index=157 element-index=18 id="note-19" x=23.5839375 y=-18.75 source=<Note sourceIndex=157 elementIndex=18 noteIndex=18> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f[shape:x,stroke]">
       <g transform="translate(278.544875,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=176 x=-0.49659999999999993 y=13.012000000000008 style={} source=<Lyric sourceIndex=176> className="lyric" textAnchor="start" source-gabc="j">
@@ -117,7 +117,7 @@
             "j"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=178 element-index=19 id="note-20" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=178 elementIndex=19 noteIndex=19> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h_">
+          <use source-index=178 element-index=19 id="note-20" x=3.125 y=-31.25 source=<Note sourceIndex=178 elementIndex=19 noteIndex=19> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h_">
           <use source-index=180 element-index=20 id="note-21" x=23.5839375 y=-18.75 source=<Note sourceIndex=180 elementIndex=20 noteIndex=20> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f_[shape:stroke]">
           <rect x=0 y=-39.3671875 width=17.33393749999999 height=1 fill="#000" className="horizontalEpisema">
           <rect x=17.3339375 y=-39.3671875 width=6.25 height=1 fill="#000" className="horizontalEpisema">
@@ -127,7 +127,7 @@
             "k"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=200 element-index=21 id="note-22" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=200 elementIndex=21 noteIndex=21> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h'">
+          <use source-index=200 element-index=21 id="note-22" x=3.125 y=-31.25 source=<Note sourceIndex=200 elementIndex=21 noteIndex=21> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h'">
           <use source-index=202 element-index=22 id="note-23" x=23.5839375 y=-18.75 source=<Note sourceIndex=202 elementIndex=22 noteIndex=22> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f.[shape:stroke]">
           <use source-index=undefined element-index=undefined x=3.125 y=-36.25 source=<Clivis> className="" xlinkHref="#VerticalEpisemaAbove">
           <use source-index=undefined element-index=undefined x=23.7089375 y=-23.4375 source=<Clivis> className="" xlinkHref="#Mora">
