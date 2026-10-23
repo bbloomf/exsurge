@@ -3,7 +3,7 @@ import { type Glyph } from "./Exsurge.Glyphs.js";
 import { type Language } from "./Exsurge.Text.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
-import type { BracePoint } from "./Exsurge.Chant.Markings.js";
+import type { BracePoint, LedgerLineStart, SlurStart } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type { Titles } from "./Exsurge.Titles.js";
 /** the css properties of text that choose which face of a font it is in */
@@ -145,6 +145,7 @@ export declare const DefaultTrailingSpace: TrailingSpaceFunction;
 export type NeumeSpaceCode = "/0" | "/!" | "/" | "//" | " ";
 export declare const GlyphCode: {
     readonly None: "None";
+    readonly Linea: "Linea";
     readonly AcuteAccent: "AcuteAccent";
     readonly GraveAccent: "GraveAccent";
     readonly Circle: "Circle";
@@ -178,12 +179,16 @@ export declare const GlyphCode: {
     readonly Porrectus2: "Porrectus2";
     readonly Porrectus3: "Porrectus3";
     readonly Porrectus4: "Porrectus4";
+    readonly Porrectus5: "Porrectus5";
     readonly PunctumCavum: "PunctumCavum";
     readonly PunctumQuadratum: "PunctumQuadratum";
     readonly PunctumQuadratumLiquescent: "PunctumQuadratumLiquescent";
     readonly PunctumQuadratumAscLiquescent: "PunctumQuadratumAscLiquescent";
     readonly PunctumQuadratumDesLiquescent: "PunctumQuadratumDesLiquescent";
     readonly PunctumInclinatum: "PunctumInclinatum";
+    readonly PunctumInclinatumAscendens: "PunctumInclinatumAscendens";
+    readonly PunctumInclinatumDescendens: "PunctumInclinatumDescendens";
+    readonly PunctumInclinatumAuctus: "PunctumInclinatumAuctus";
     readonly PunctumInclinatumLiquescent: "PunctumInclinatumLiquescent";
     readonly Quilisma: "Quilisma";
     readonly Sharp: "Sharp";
@@ -194,9 +199,56 @@ export declare const GlyphCode: {
     readonly VirgaLong: "VirgaLong";
     readonly VirgaShort: "VirgaShort";
     readonly Virgula: "Virgula";
+    readonly OpenParenthesis: "OpenParenthesis";
+    readonly CloseParenthesis: "CloseParenthesis";
     readonly UpperBrace: "UpperBrace";
+    readonly OriscusAscCavum: "OriscusAscCavum";
+    readonly OriscusDesCavum: "OriscusDesCavum";
+    readonly OriscusLiquescentCavum: "OriscusLiquescentCavum";
+    readonly PodatusLowerCavum: "PodatusLowerCavum";
+    readonly PodatusUpperCavum: "PodatusUpperCavum";
+    readonly PodatusLowerShortCavum: "PodatusLowerShortCavum";
+    readonly PodatusUpperShortCavum: "PodatusUpperShortCavum";
+    readonly Porrectus1Cavum: "Porrectus1Cavum";
+    readonly Porrectus2Cavum: "Porrectus2Cavum";
+    readonly Porrectus3Cavum: "Porrectus3Cavum";
+    readonly Porrectus4Cavum: "Porrectus4Cavum";
+    readonly Porrectus5Cavum: "Porrectus5Cavum";
+    readonly PunctumQuadratumLiquescentCavum: "PunctumQuadratumLiquescentCavum";
+    readonly PunctumQuadratumAscLiquescentCavum: "PunctumQuadratumAscLiquescentCavum";
+    readonly PunctumQuadratumDesLiquescentCavum: "PunctumQuadratumDesLiquescentCavum";
+    readonly PunctumInclinatumCavum: "PunctumInclinatumCavum";
+    readonly PunctumInclinatumAscendensCavum: "PunctumInclinatumAscendensCavum";
+    readonly PunctumInclinatumDescendensCavum: "PunctumInclinatumDescendensCavum";
+    readonly PunctumInclinatumAuctusCavum: "PunctumInclinatumAuctusCavum";
+    readonly PunctumInclinatumLiquescentCavum: "PunctumInclinatumLiquescentCavum";
+    readonly QuilismaCavum: "QuilismaCavum";
+    readonly StrophaCavum: "StrophaCavum";
+    readonly StrophaLiquescentCavum: "StrophaLiquescentCavum";
+    readonly TerminatingAscLiquescentCavum: "TerminatingAscLiquescentCavum";
+    readonly TerminatingDesLiquescentCavum: "TerminatingDesLiquescentCavum";
 };
-export type GlyphCode = (typeof GlyphCode)[keyof typeof GlyphCode];
+export type GlyphCode = (typeof GlyphCode)[keyof typeof GlyphCode] | `Porrectus${number}` | `Porrectus${number}Cavum`;
+/**
+ * The glyph code of a porrectus's swash, falling interval staff positions (a
+ * whole number for the clefs that exsurge shares with Gregorio, or with the
+ * Chi-Rho clef's offsets, in thirds): Porrectus followed by the interval, to
+ * three decimal places, and Cavum if it's hollow.  The swash is drawn for it
+ * when it's first used.
+ */
+export declare function porrectusGlyphCode(interval: number, hollow?: boolean): GlyphCode;
+/** the hollow form of each note glyph, for a note with a cavum (gabc r) */
+export declare const CavumGlyphCode: {
+    readonly [glyphCode in GlyphCode]?: GlyphCode;
+};
+/**
+ * the glyphs of a punctum inclinatum (other than a deminutus), solid or
+ * hollow, and which way each is turned: 1 as in an ascending line, -1 as in
+ * a descending one, and 0 if it's upright
+ */
+export declare const InclinatumGlyphTurn: {
+    readonly [glyphCode in GlyphCode]?: number;
+};
 /** attributes of an svg element, by name; undefined ones are left out */
 export interface SvgAttributes {
     [name: string]: any;
@@ -255,7 +307,10 @@ export interface TextStyle {
     font: string;
     color?: string;
     /**
-     * Currently only used on lyrics, translations, and above lines text
+     * The distance from one line to the next, in ems: between the lines of a
+     * text with line breaks in it; for lyrics, translations and above lines
+     * text, between the lines that ChantLine lays them out on; and, for
+     * annotations, between the annotations of an Annotations.
      * Defaults to 1.1
      */
     lineHeight?: number;
@@ -389,6 +444,13 @@ export declare class ChantContext {
     minSyllablesLastLine: number;
     glyphPunctumWidth: number;
     glyphPunctumHeight: number;
+    /**
+     * Whether puncta inclinata lean as Gregorio's do: as their gabc says (G0
+     * descending, G1 ascending, G2 upright), or else the way the notes around
+     * them go (see Note.automaticLeaning).  On by default; set it false to draw
+     * every inclinatum upright.
+     */
+    inclinatumLeaning: boolean;
     glyphMultiplier: number;
     glyphScaling: number;
     staffInterval: number;
@@ -413,6 +475,16 @@ export declare class ChantContext {
     activeNotations: ChantNotationElement[] | null;
     /** a brace that has started, but not yet ended, in the score being laid out */
     lastStartBrace?: BracePoint;
+    /** Gregorio's slurs from note to note that have started, but not yet ended, in the score being laid out */
+    openSlurs?: {
+        above?: SlurStart;
+        below?: SlurStart;
+    };
+    /** Gregorio's custom ledger lines from note to note that have started, but not yet ended, in the score being laid out */
+    openLedgerLines?: {
+        above?: LedgerLineStart;
+        below?: LedgerLineStart;
+    };
     neumeLineColor: string;
     staffLineColor: string;
     dividerLineColor: string;
@@ -724,15 +796,35 @@ export declare class VirgaLineVisualizer extends ChantLayoutElement {
     createSvgFragment(ctxt: ChantContext): string;
 }
 export declare class LineaVisualizer extends ChantLayoutElement {
-    constructor(ctxt: ChantContext, note: Note);
-    draw(ctxt: ChantContext): void;
-    getSvgProps(ctxt: ChantContext, x: number): {
+    /**
+     * the flat bar between the lines of a linea (gabc =), from the top of the
+     * lines, or null for the lines around a punctum (gabc R)
+     */
+    bar: {
+        y: number;
+        height: number;
+    } | null;
+    /** @param bar whether it's a linea (gabc =), a flat bar between the lines, rather than lines around the note */
+    constructor(ctxt: ChantContext, note: Note, bar?: boolean);
+    getRects(ctxt: ChantContext): {
         x: number;
         y: number;
         width: number;
         height: number;
+    }[];
+    draw(ctxt: ChantContext): void;
+    getSvgProps(ctxt: ChantContext, rect: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }): {
         fill: string;
         class: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
     };
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext): SvgTreeNode;
@@ -741,6 +833,12 @@ export declare class LineaVisualizer extends ChantLayoutElement {
 export declare class GlyphVisualizer extends ChantLayoutElement {
     glyph: Glyph;
     glyphCode: GlyphCode;
+    /**
+     * the id of the glyph's svg def: its code, but for a porrectus's swash
+     * under a glyph multiplier other than 1, which has a glyph of its own, its
+     * code with x and the multiplier after the interval (e.g. Porrectus2x0.8)
+     */
+    glyphId: string;
     /** for a porrectus, the staff positions its notes are apart; otherwise 0 */
     porrectusNoteDiff: number;
     align?: "left" | "right";
@@ -755,11 +853,12 @@ export declare class GlyphVisualizer extends ChantLayoutElement {
     createSvgTree(ctxt: ChantContext, source?: GlyphSource): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext, source?: GlyphSource): string;
 }
-export declare class RoundBraceVisualizer extends ChantLayoutElement {
+/** a brace over or under notes, which a canvas strokes along its svg path */
+export declare abstract class BraceVisualizer extends ChantLayoutElement {
     isAbove: boolean;
     braceHeight: number;
     accent?: GlyphVisualizer;
-    constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove: boolean);
+    abstract generatePathString(): string;
     draw(ctxt: ChantContext): void;
     getSvgPathProps(ctxt: ChantContext): {
         d: string;
@@ -771,6 +870,9 @@ export declare class RoundBraceVisualizer extends ChantLayoutElement {
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext): string;
+}
+export declare class RoundBraceVisualizer extends BraceVisualizer {
+    constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove: boolean);
     getPathPoints(): {
         x1: number;
         x2: number;
@@ -781,35 +883,10 @@ export declare class RoundBraceVisualizer extends ChantLayoutElement {
     };
     generatePathString(): string;
 }
-export declare class CurlyBraceVisualizer extends ChantLayoutElement {
-    isAbove: boolean;
-    braceHeight: number;
-    accent?: GlyphVisualizer;
+export declare class CurlyBraceVisualizer extends BraceVisualizer {
+    /** the brace's own extent, which its path is drawn in (bounds takes in its accent too) */
+    braceBounds: Rect;
     constructor(ctxt: ChantContext, x1: number, x2: number, y: number, isAbove?: boolean, addAcuteAccent?: boolean);
-    draw(ctxt: ChantContext): void;
-    getSvgPathProps(ctxt: ChantContext): {
-        d: string;
-        stroke: string;
-        "stroke-width": string;
-        fill: string;
-        class: string;
-    };
-    createSvgNode(ctxt: ChantContext): SvgElementWithSource;
-    createSvgTree(ctxt: ChantContext): SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
-    getPathPoints(): {
-        x1: number;
-        x2: number;
-        y: number;
-        qy1: number;
-        qx2: number;
-        qy2: number;
-        tx1: number;
-        ty1: number;
-        qy3: number;
-        qx4: number;
-        qy4: number;
-    };
     generatePathString(): string;
 }
 /** a group of css properties of a span of text; Object.assign() skips any missing ones */
@@ -879,6 +956,16 @@ interface BreakMatch {
     /** whether the line has to break here */
     forced?: boolean;
 }
+interface TextLine {
+    /** the index in the spans' text where the line starts */
+    start: number;
+    /** the index in the spans' text where the line ends */
+    end: number;
+    /** the index in the element's text where the line starts */
+    textStart: number;
+    /** how far right the line is moved, where the lines are right aligned */
+    xOffset: number;
+}
 /** A piece of text in a score, e.g. a Lyric, Title, DropCap or Annotation. */
 export declare class TextElement extends ChantLayoutElement {
     fontFamily: (ctxt: ChantContext) => string;
@@ -915,6 +1002,15 @@ export declare class TextElement extends ChantLayoutElement {
      */
     getFromScore(score: ChantScore): TextElement | null | undefined;
     generateSpansFromText(ctxt: ChantContext, text: string): void;
+    /** the size in px of this element's text in the given properties */
+    fontSizeForProperties(ctxt: ChantContext, properties?: CssProperties | TextSpanProperties): number;
+    /** the distance from one line of this element's text to the next, in ems */
+    lineSpacing(ctxt: ChantContext): number;
+    /**
+     * how far below the line before it the line that span starts is, in px: the
+     * same as the span's dy in the svg, in its own font size
+     */
+    lineBreakHeight(ctxt: ChantContext, span: TextSpan, properties?: CssProperties): number;
     getCanvasFontForProperties(ctxt: ChantContext, properties?: CssProperties | TextSpanProperties): string;
     measureSubstringBBox(ctxt: ChantContext, length?: number): TextBBox;
     /**
@@ -929,6 +1025,12 @@ export declare class TextElement extends ChantLayoutElement {
      */
     measureSubstring(ctxt: ChantContext, length?: number, returnBBox?: false, lastLineOnly?: boolean): number;
     measureSubstring(ctxt: ChantContext, length: number | undefined, returnBBox: true, lastLineOnly?: boolean): TextBBox;
+    /**
+     * The lines of the text, as they are drawn.  Where setMaxWidth() wrapped
+     * the text, the spans no longer have the whitespace that it broke the line
+     * at, though this.text still does.
+     */
+    getLines(): TextLine[];
     recalculateMetrics(ctxt: ChantContext, resetNewLines?: boolean): void;
     setMaxWidth(ctxt: ChantContext, maxWidth: number, firstLineMaxWidth?: number): void;
     /**
@@ -1116,7 +1218,11 @@ export declare class Annotation extends TextElement {
     constructor(ctxt: ChantContext, text: string, elementIndex?: number);
 }
 export declare class Annotations extends ChantLayoutElement {
-    lineHeight: number;
+    /**
+     * the distance from one annotation to the next, in ems, if it's not the
+     * annotation text style's lineHeight
+     */
+    lineHeight?: number;
     annotations: Annotation[];
     padding: number;
     /**

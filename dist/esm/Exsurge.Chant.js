@@ -25,7 +25,7 @@
 import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import { InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import { Pitch, Rect, Step } from "./Exsurge.Core.js";
-import { Annotation, ChantLayoutElement, ChantNotationElement, GlyphCode, GlyphVisualizer, Lyric, LyricType, QuickSvg, TextLeftRight, TextMeasuringStrategy, TextSpan } from "./Exsurge.Drawing.js";
+import { Annotation, CavumGlyphCode, ChantLayoutElement, ChantNotationElement, GlyphCode, GlyphVisualizer, Lyric, LyricType, QuickSvg, TextLeftRight, TextMeasuringStrategy, TextSpan } from "./Exsurge.Drawing.js";
 import { Gabc } from "./Exsurge.Gabc.js";
 import { Titles } from "./Exsurge.Titles.js";
 export const LiquescentType = {
@@ -98,6 +98,9 @@ export class Note extends ChantLayoutElement {
         // this.braceEnd
     }
     setGlyph(ctxt, glyphCode) {
+        // (a cavum, gabc r, is drawn with the hollow form of its glyph)
+        if (this.shapeModifiers & NoteShapeModifiers.Cavum)
+            glyphCode = CavumGlyphCode[glyphCode] || glyphCode;
         if (this.glyphVisualizer)
             this.glyphVisualizer.setGlyph(ctxt, glyphCode);
         else
@@ -582,6 +585,43 @@ export class ChantScore {
             }
         }
     }
+    // Gregorio's brackets (gabc [[ and ]]) go round the notes from a [[ to the
+    // ]] that closes it, which can be in other notations.  This records the
+    // lowest and highest staff positions of those notes on the notes that the
+    // brackets start and end at, and has a notation laid out again when the
+    // brackets at its notes change.  As in Gregorio, a [[ inside brackets is
+    // ignored, and so are brackets that aren't closed.
+    updateBrackets() {
+        var ranges = new Map();
+        var start = null, range = { low: 0, high: 0 };
+        for (let notation of this.notations) {
+            for (let note of notation.notes || []) {
+                if (note.bracketStart && !start) {
+                    start = note;
+                    range = { low: note.staffPosition, high: note.staffPosition };
+                }
+                if (!start)
+                    continue;
+                range.low = Math.min(range.low, note.staffPosition);
+                range.high = Math.max(range.high, note.staffPosition);
+                if (note.bracketEnd) {
+                    ranges.set(start, Object.assign(Object.assign({}, ranges.get(start)), { start: range }));
+                    ranges.set(note, Object.assign(Object.assign({}, ranges.get(note)), { end: range }));
+                    start = null;
+                }
+            }
+        }
+        var sameRange = (a, b) => a === b || (!!a && !!b && a.low === b.low && a.high === b.high);
+        for (let notation of this.notations) {
+            for (let note of notation.notes || []) {
+                let before = note.bracketRanges || {}, after = ranges.get(note) || {};
+                if (sameRange(before.start, after.start) && sameRange(before.end, after.end))
+                    continue;
+                note.bracketRanges = ranges.get(note);
+                notation.needsLayout = true;
+            }
+        }
+    }
     /**
      * Gives the lyrics of the first word ctxt.firstWordStyle, and the first
      * syllable (after any drop cap) ctxt.firstSyllableStyle and
@@ -620,6 +660,7 @@ export class ChantScore {
         ctxt.notations = this.notations;
         ctxt.currNotationIndex = 0;
         ctxt.staffLineCount = this.staffLineCount;
+        this.updateBrackets();
         if (this.dropCap)
             this.dropCap.recalculateMetrics(ctxt);
         if (this.annotation)

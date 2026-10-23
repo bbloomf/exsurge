@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 import { getCssForProperties, Point, Rect } from "./Exsurge.Core.js";
-import { Glyphs } from "./Exsurge.Glyphs.js";
+import { Glyphs, porrectusSwash, porrectusSwashWidth } from "./Exsurge.Glyphs.js";
 import { language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
@@ -176,6 +176,7 @@ export const DefaultTrailingSpace = (ctxt) => ctxt.intraNeumeSpacing * ctxt.inte
 DefaultTrailingSpace.isDefault = true;
 export const GlyphCode = {
     None: "None",
+    Linea: "Linea",
     AcuteAccent: "AcuteAccent",
     GraveAccent: "GraveAccent",
     Circle: "Circle",
@@ -206,16 +207,22 @@ export const GlyphCode = {
     PodatusUpper: "PodatusUpper",
     PodatusLowerShort: "PodatusLowerShort",
     PodatusUpperShort: "PodatusUpperShort",
-    Porrectus1: "Porrectus1", // 1 staff line difference,
-    Porrectus2: "Porrectus2", // 2 lines difference, etc...
+    // a porrectus's swash falling 1 staff position, 2, and so on.  (it can fall
+    // any distance: see porrectusGlyphCode())
+    Porrectus1: "Porrectus1",
+    Porrectus2: "Porrectus2",
     Porrectus3: "Porrectus3",
     Porrectus4: "Porrectus4",
+    Porrectus5: "Porrectus5",
     PunctumCavum: "PunctumCavum",
     PunctumQuadratum: "PunctumQuadratum",
     PunctumQuadratumLiquescent: "PunctumQuadratumLiquescent",
     PunctumQuadratumAscLiquescent: "PunctumQuadratumAscLiquescent",
     PunctumQuadratumDesLiquescent: "PunctumQuadratumDesLiquescent",
     PunctumInclinatum: "PunctumInclinatum",
+    PunctumInclinatumAscendens: "PunctumInclinatumAscendens",
+    PunctumInclinatumDescendens: "PunctumInclinatumDescendens",
+    PunctumInclinatumAuctus: "PunctumInclinatumAuctus",
     PunctumInclinatumLiquescent: "PunctumInclinatumLiquescent",
     Quilisma: "Quilisma",
     Sharp: "Sharp",
@@ -226,8 +233,103 @@ export const GlyphCode = {
     VirgaLong: "VirgaLong",
     VirgaShort: "VirgaShort",
     Virgula: "Virgula",
-    UpperBrace: "UpperBrace"
+    OpenParenthesis: "OpenParenthesis",
+    CloseParenthesis: "CloseParenthesis",
+    UpperBrace: "UpperBrace",
+    // the hollow (cavum) forms of the note glyphs (see CavumGlyphCode)
+    OriscusAscCavum: "OriscusAscCavum",
+    OriscusDesCavum: "OriscusDesCavum",
+    OriscusLiquescentCavum: "OriscusLiquescentCavum",
+    PodatusLowerCavum: "PodatusLowerCavum",
+    PodatusUpperCavum: "PodatusUpperCavum",
+    PodatusLowerShortCavum: "PodatusLowerShortCavum",
+    PodatusUpperShortCavum: "PodatusUpperShortCavum",
+    Porrectus1Cavum: "Porrectus1Cavum",
+    Porrectus2Cavum: "Porrectus2Cavum",
+    Porrectus3Cavum: "Porrectus3Cavum",
+    Porrectus4Cavum: "Porrectus4Cavum",
+    Porrectus5Cavum: "Porrectus5Cavum",
+    PunctumQuadratumLiquescentCavum: "PunctumQuadratumLiquescentCavum",
+    PunctumQuadratumAscLiquescentCavum: "PunctumQuadratumAscLiquescentCavum",
+    PunctumQuadratumDesLiquescentCavum: "PunctumQuadratumDesLiquescentCavum",
+    PunctumInclinatumCavum: "PunctumInclinatumCavum",
+    PunctumInclinatumAscendensCavum: "PunctumInclinatumAscendensCavum",
+    PunctumInclinatumDescendensCavum: "PunctumInclinatumDescendensCavum",
+    PunctumInclinatumAuctusCavum: "PunctumInclinatumAuctusCavum",
+    PunctumInclinatumLiquescentCavum: "PunctumInclinatumLiquescentCavum",
+    QuilismaCavum: "QuilismaCavum",
+    StrophaCavum: "StrophaCavum",
+    StrophaLiquescentCavum: "StrophaLiquescentCavum",
+    TerminatingAscLiquescentCavum: "TerminatingAscLiquescentCavum",
+    TerminatingDesLiquescentCavum: "TerminatingDesLiquescentCavum"
 }; // GlyphCode
+/**
+ * The glyph code of a porrectus's swash, falling interval staff positions (a
+ * whole number for the clefs that exsurge shares with Gregorio, or with the
+ * Chi-Rho clef's offsets, in thirds): Porrectus followed by the interval, to
+ * three decimal places, and Cavum if it's hollow.  The swash is drawn for it
+ * when it's first used.
+ */
+export function porrectusGlyphCode(interval, hollow = false) {
+    return `Porrectus${Math.round(interval * 1000) / 1000}${hollow ? "Cavum" : ""}`;
+}
+// the glyphs of the porrectus swashes other than those in Glyphs, by their ids
+// (see GlyphVisualizer.glyphId)
+const porrectusGlyphs = {};
+// the glyph of a porrectus's swash falling interval staff positions under
+// glyphMultiplier: one that falls as far, whatever size the notes are, and is
+// as wide as they are, as the other glyphs are
+function porrectusGlyph(glyphId, interval, glyphMultiplier, hollow) {
+    return (Glyphs[glyphId] ||
+        porrectusGlyphs[glyphId] ||
+        (porrectusGlyphs[glyphId] = porrectusSwash((100 * interval) / glyphMultiplier, porrectusSwashWidth(interval), hollow)));
+}
+/** the hollow form of each note glyph, for a note with a cavum (gabc r) */
+export const CavumGlyphCode = {
+    [GlyphCode.BeginningAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum, // (the same outline)
+    [GlyphCode.BeginningDesLiquescent]: GlyphCode.PunctumQuadratumDesLiquescentCavum, // (the same outline)
+    [GlyphCode.OriscusAsc]: GlyphCode.OriscusAscCavum,
+    [GlyphCode.OriscusDes]: GlyphCode.OriscusDesCavum,
+    [GlyphCode.OriscusLiquescent]: GlyphCode.OriscusLiquescentCavum,
+    [GlyphCode.PodatusLower]: GlyphCode.PodatusLowerCavum,
+    [GlyphCode.PodatusUpper]: GlyphCode.PodatusUpperCavum,
+    [GlyphCode.PodatusLowerShort]: GlyphCode.PodatusLowerShortCavum,
+    [GlyphCode.PodatusUpperShort]: GlyphCode.PodatusUpperShortCavum,
+    [GlyphCode.Porrectus1]: GlyphCode.Porrectus1Cavum,
+    [GlyphCode.Porrectus2]: GlyphCode.Porrectus2Cavum,
+    [GlyphCode.Porrectus3]: GlyphCode.Porrectus3Cavum,
+    [GlyphCode.Porrectus4]: GlyphCode.Porrectus4Cavum,
+    [GlyphCode.Porrectus5]: GlyphCode.Porrectus5Cavum,
+    [GlyphCode.PunctumQuadratum]: GlyphCode.PunctumCavum,
+    [GlyphCode.PunctumQuadratumLiquescent]: GlyphCode.PunctumQuadratumLiquescentCavum,
+    [GlyphCode.PunctumQuadratumAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum,
+    [GlyphCode.PunctumQuadratumDesLiquescent]: GlyphCode.PunctumQuadratumDesLiquescentCavum,
+    [GlyphCode.PunctumInclinatum]: GlyphCode.PunctumInclinatumCavum,
+    [GlyphCode.PunctumInclinatumAscendens]: GlyphCode.PunctumInclinatumAscendensCavum,
+    [GlyphCode.PunctumInclinatumDescendens]: GlyphCode.PunctumInclinatumDescendensCavum,
+    [GlyphCode.PunctumInclinatumAuctus]: GlyphCode.PunctumInclinatumAuctusCavum,
+    [GlyphCode.PunctumInclinatumLiquescent]: GlyphCode.PunctumInclinatumLiquescentCavum,
+    [GlyphCode.Quilisma]: GlyphCode.QuilismaCavum,
+    [GlyphCode.Stropha]: GlyphCode.StrophaCavum,
+    [GlyphCode.StrophaLiquescent]: GlyphCode.StrophaLiquescentCavum,
+    [GlyphCode.TerminatingAscLiquescent]: GlyphCode.TerminatingAscLiquescentCavum,
+    [GlyphCode.TerminatingDesLiquescent]: GlyphCode.TerminatingDesLiquescentCavum
+};
+/**
+ * the glyphs of a punctum inclinatum (other than a deminutus), solid or
+ * hollow, and which way each is turned: 1 as in an ascending line, -1 as in
+ * a descending one, and 0 if it's upright
+ */
+export const InclinatumGlyphTurn = {
+    [GlyphCode.PunctumInclinatum]: 0,
+    [GlyphCode.PunctumInclinatumAscendens]: 1,
+    [GlyphCode.PunctumInclinatumDescendens]: -1,
+    [GlyphCode.PunctumInclinatumAuctus]: 0,
+    [GlyphCode.PunctumInclinatumCavum]: 0,
+    [GlyphCode.PunctumInclinatumAscendensCavum]: 1,
+    [GlyphCode.PunctumInclinatumDescendensCavum]: -1,
+    [GlyphCode.PunctumInclinatumAuctusCavum]: 0
+};
 export const QuickSvg = {
     // namespaces
     ns: "http://www.w3.org/2000/svg",
@@ -525,6 +627,7 @@ export class ChantContext {
         // everything depends on the scale of the punctum
         this.glyphPunctumWidth = Glyphs.PunctumQuadratum.bounds.width;
         this.glyphPunctumHeight = Glyphs.PunctumQuadratum.bounds.height;
+        this.inclinatumLeaning = true;
         // max space to add between notations when justifying, in multiples of this.staffInterval
         this.maxExtraSpaceInStaffIntervals = 0.5;
         // for keeping track of the clef
@@ -1133,7 +1236,11 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
         var staffPosition = note.staffPosition;
         var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition);
         var y1;
-        if (Math.abs(staffPosition % 2) === 0)
+        // a note on a space has a shorter stem than one on a line, as does one on
+        // the bottom line with Gregorio's [ll:0] (as if there's no ledger line
+        // below it, where its stem would end)
+        if (Math.abs(staffPosition % 2) === 0 ||
+            (staffPosition === 1 && note.lowLedgerLine === false))
             y1 = y0 + ctxt.staffInterval * 1.8;
         else
             y1 = y0 + ctxt.staffInterval * 2.7;
@@ -1170,9 +1277,30 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     }
 }
 export class LineaVisualizer extends ChantLayoutElement {
-    constructor(ctxt, note) {
+    /** @param bar whether it's a linea (gabc =), a flat bar between the lines, rather than lines around the note */
+    constructor(ctxt, note, bar = false) {
         super();
         var staffPosition = note.staffPosition;
+        if (bar) {
+            // Gregorio's Linea glyph: a bar three quarters as tall as a punctum and
+            // 2.4 times as wide, between lines that stand a quarter of a punctum's
+            // height above and below it
+            var punctumHeight = Glyphs.PunctumQuadratum.bounds.height * ctxt.glyphScaling;
+            var barHeight = punctumHeight * 0.75;
+            var overhang = punctumHeight / 4;
+            this.bar = { y: overhang, height: barHeight };
+            this.bounds.x = 0;
+            this.bounds.y =
+                ctxt.calculateHeightFromStaffPosition(staffPosition) - barHeight / 2 - overhang;
+            this.bounds.width =
+                Glyphs.PunctumQuadratum.bounds.width * ctxt.glyphScaling * 2.4 +
+                    ctxt.neumeLineWeight * 2;
+            this.bounds.height = barHeight + overhang * 2;
+            this.origin.x = ctxt.neumeLineWeight;
+            this.origin.y = 0;
+            return;
+        }
+        this.bar = null;
         var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition) - note.origin.y;
         var y1 = y0 + note.bounds.height;
         this.bounds.x = 0;
@@ -1182,39 +1310,43 @@ export class LineaVisualizer extends ChantLayoutElement {
         this.origin.x = ctxt.neumeLineWeight * 2.5;
         this.origin.y = 0;
     }
-    draw(ctxt) {
-        var canvasCtxt = ctxt.canvasCtxt;
-        canvasCtxt.fillStyle = ctxt.neumeLineColor;
-        canvasCtxt.fillRect(this.bounds.x, this.bounds.y, ctxt.neumeLineWeight, this.bounds.height);
-        canvasCtxt.fillRect(this.bounds.x + this.bounds.width - ctxt.neumeLineWeight, this.bounds.y, ctxt.neumeLineWeight, this.bounds.height);
-    }
-    getSvgProps(ctxt, x) {
-        return {
+    // the rectangles to fill: the line on each side, and the bar if there is one
+    getRects(ctxt) {
+        var rects = [
+            this.bounds.x,
+            this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
+        ].map((x) => ({
             x,
             y: this.bounds.y,
             width: ctxt.neumeLineWeight,
-            height: this.bounds.height,
-            fill: ctxt.neumeLineColor,
-            class: "neumeLine"
-        };
+            height: this.bounds.height
+        }));
+        if (this.bar)
+            rects.push({
+                x: this.bounds.x + ctxt.neumeLineWeight,
+                y: this.bounds.y + this.bar.y,
+                width: this.bounds.width - ctxt.neumeLineWeight * 2,
+                height: this.bar.height
+            });
+        return rects;
+    }
+    draw(ctxt) {
+        var canvasCtxt = ctxt.canvasCtxt;
+        canvasCtxt.fillStyle = ctxt.neumeLineColor;
+        for (var rect of this.getRects(ctxt))
+            canvasCtxt.fillRect(rect.x, rect.y, rect.width, rect.height);
+    }
+    getSvgProps(ctxt, rect) {
+        return Object.assign(Object.assign({}, rect), { fill: ctxt.neumeLineColor, class: "neumeLine" });
     }
     createSvgNode(ctxt) {
-        return QuickSvg.createNode("g", null, [
-            this.bounds.x,
-            this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-        ].map(x => QuickSvg.createNode("rect", this.getSvgProps(ctxt, x))));
+        return QuickSvg.createNode("g", null, this.getRects(ctxt).map((rect) => QuickSvg.createNode("rect", this.getSvgProps(ctxt, rect))));
     }
     createSvgTree(ctxt) {
-        return QuickSvg.createSvgTree("g", {}, ...[
-            this.bounds.x,
-            this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-        ].map(x => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, x))));
+        return QuickSvg.createSvgTree("g", {}, ...this.getRects(ctxt).map((rect) => QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt, rect))));
     }
     createSvgFragment(ctxt) {
-        return QuickSvg.createFragment("g", null, [
-            this.bounds.x,
-            this.bounds.x + this.bounds.width - ctxt.neumeLineWeight
-        ].map(x => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, x))).join(''));
+        return QuickSvg.createFragment("g", null, this.getRects(ctxt).map((rect) => QuickSvg.createFragment("rect", this.getSvgProps(ctxt, rect))).join(''));
     }
 }
 export class GlyphVisualizer extends ChantLayoutElement {
@@ -1226,21 +1358,24 @@ export class GlyphVisualizer extends ChantLayoutElement {
         this.setGlyph(ctxt, glyphCode);
     }
     setGlyph(ctxt, glyphCode) {
-        if (this.glyphCode !== glyphCode) {
-            if (typeof glyphCode === "undefined" ||
-                glyphCode === null ||
-                glyphCode === "")
-                glyphCode = this.glyphCode = GlyphCode.None;
-            else
-                this.glyphCode = glyphCode;
-            let glyph = this.glyph = Glyphs[glyphCode];
-            const porrectusResult = /^Porrectus([1-9])$/.exec(glyphCode);
-            this.porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
+        if (typeof glyphCode === "undefined" || glyphCode === null || glyphCode === "")
+            glyphCode = GlyphCode.None;
+        const swash = /^Porrectus([\d.]+)(Cavum)?$/.exec(glyphCode);
+        const glyphId = swash && ctxt.glyphMultiplier !== 1
+            ? `Porrectus${swash[1]}x${ctxt.glyphMultiplier}${swash[2] || ""}`
+            : glyphCode;
+        if (this.glyphId !== glyphId) {
+            this.glyphCode = glyphCode;
+            this.glyphId = glyphId;
+            let glyph = (this.glyph = swash
+                ? porrectusGlyph(glyphId, Number(swash[1]), ctxt.glyphMultiplier, !!swash[2])
+                : Glyphs[glyphCode]);
+            this.porrectusNoteDiff = swash ? Number(swash[1]) : 0;
             // if this glyph hasn't been used yet, then load it up in the defs section for sharing
-            if (!ctxt.defs.hasOwnProperty(glyphCode)) {
+            if (!ctxt.defs.hasOwnProperty(glyphId)) {
                 var getDefProps = () => {
                     var options = {
-                        id: glyphCode,
+                        id: glyphId,
                         class: "glyph"
                     };
                     if (ctxt.scaleDefs === true) {
@@ -1251,7 +1386,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
                 const makeDef = () => {
                     let options = getDefProps();
                     // create the ref
-                    ctxt.defs[glyphCode] = QuickSvg.createFragment("g", options, QuickSvg.svgFragmentForGlyph(glyph, ctxt.negativeFillColor));
+                    ctxt.defs[glyphId] = QuickSvg.createFragment("g", options, QuickSvg.svgFragmentForGlyph(glyph, ctxt.negativeFillColor));
                     if (ctxt.defsNode)
                         ctxt.defsNode.appendChild(QuickSvg.createNode("g", options, QuickSvg.nodesForGlyph(glyph, "createNode", ctxt.negativeFillColor)));
                 };
@@ -1278,18 +1413,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
     }
     draw(ctxt) {
         var canvasCtxt = ctxt.canvasCtxt;
-        const porrectusNoteDiff = this.porrectusNoteDiff;
         var x = this.bounds.x + this.origin.x;
         var y = this.bounds.y + this.origin.y;
-        var scaleX = ctxt.glyphScaling * this.scale;
-        var scaleY = ctxt.glyphScaling * this.scale;
-        // a porrectus is drawn taller by 1 / glyphMultiplier.  (unlike the svg's
-        // x and y, which are in the glyph's scaled units, the translation here
-        // comes before the scaling, so y isn't divided by it)
-        if (porrectusNoteDiff)
-            scaleY /= ctxt.glyphMultiplier;
+        var scale = ctxt.glyphScaling * this.scale;
         canvasCtxt.translate(x, y);
-        canvasCtxt.scale(scaleX, scaleY);
+        canvasCtxt.scale(scale, scale);
         for (var i = 0; i < this.glyph.paths.length; i++) {
             var path = this.glyph.paths[i];
             if (!path.data)
@@ -1301,7 +1429,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
             // glyph paths are shared module-level objects, so the parsed Path2D is cached on them
             canvasCtxt.fill(path.path2d || (path.path2d = new Path2D(path.data)));
         }
-        canvasCtxt.scale(1 / scaleX, 1 / scaleY);
+        canvasCtxt.scale(1 / scale, 1 / scale);
         canvasCtxt.translate(-x, -y);
     }
     getSvgAttributes(ctxt, source) {
@@ -1323,7 +1451,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
             className = isSelected ? "selected" : "";
         }
         var result = {
-            "xlink:href": "#" + this.glyphCode,
+            "xlink:href": "#" + this.glyphId,
             class: className
         };
         if (source) {
@@ -1351,21 +1479,12 @@ export class GlyphVisualizer extends ChantLayoutElement {
                 result.x /= this.scale;
                 result.y /= this.scale;
             }
-            if (porrectusNoteDiff) {
-                // result.transform = "scale(" + (porrectusNoteDiff / (porrectusNoteDiff + 1)) + ")";
-                const scaleGlyph = 1 / ctxt.glyphMultiplier;
-                result.transform = "scale(1," + scaleGlyph + ")";
-                result.y /= scaleGlyph;
-            }
         }
         else {
             const glyphScaling = ctxt.glyphScaling * this.scale;
-            const scaleGlyph = porrectusNoteDiff
-                ? glyphScaling / ctxt.glyphMultiplier
-                : glyphScaling;
             result.x = (this.bounds.x + this.origin.x) / glyphScaling;
-            result.y = (this.bounds.y + this.origin.y) / scaleGlyph;
-            result.transform = "scale(" + glyphScaling + "," + scaleGlyph + ")";
+            result.y = (this.bounds.y + this.origin.y) / glyphScaling;
+            result.transform = "scale(" + glyphScaling + "," + glyphScaling + ")";
         }
         return result;
     }
@@ -1384,34 +1503,13 @@ export class GlyphVisualizer extends ChantLayoutElement {
         return QuickSvg.createFragment("use", this.getSvgAttributes(ctxt, source));
     }
 }
-export class RoundBraceVisualizer extends ChantLayoutElement {
-    constructor(ctxt, x1, x2, y, isAbove) {
-        super();
-        this.ignoreBounds = true;
-        if (x1 > x2) {
-            // swap the xs
-            var temp = x1;
-            x1 = x2;
-            x2 = temp;
-        }
-        this.isAbove = isAbove;
-        this.braceHeight = (3 * ctxt.staffInterval) / 2;
-        this.bounds = new Rect(x1, isAbove ? y - this.braceHeight : y, x2 - x1, this.braceHeight);
-        this.origin.x = 0;
-        this.origin.y = 0;
-    }
+/** a brace over or under notes, which a canvas strokes along its svg path */
+export class BraceVisualizer extends ChantLayoutElement {
     draw(ctxt) {
-        /**
-         * @type CanvasRenderingContext2D
-         */
-        var d = ctxt.canvasCtxt;
-        const { x1, x2, y, cx1, cx2, cy } = this.getPathPoints();
-        d.strokeStyle = ctxt.neumeLineColor;
-        d.lineWidth = ctxt.staffLineWeight;
-        d.beginPath();
-        d.moveTo(x1, y);
-        d.bezierCurveTo(cx1, cy, cx2, cy, x2, y);
-        d.stroke();
+        var canvasCtxt = ctxt.canvasCtxt;
+        canvasCtxt.strokeStyle = ctxt.neumeLineColor;
+        canvasCtxt.lineWidth = ctxt.staffLineWeight;
+        canvasCtxt.stroke(new Path2D(this.generatePathString()));
         if (this.accent)
             this.accent.draw(ctxt);
     }
@@ -1454,6 +1552,23 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
         }
         else
             return fragment;
+    }
+}
+export class RoundBraceVisualizer extends BraceVisualizer {
+    constructor(ctxt, x1, x2, y, isAbove) {
+        super();
+        this.ignoreBounds = true;
+        if (x1 > x2) {
+            // swap the xs
+            var temp = x1;
+            x1 = x2;
+            x2 = temp;
+        }
+        this.isAbove = isAbove;
+        this.braceHeight = (3 * ctxt.staffInterval) / 2;
+        this.bounds = new Rect(x1, isAbove ? y - this.braceHeight : y, x2 - x1, this.braceHeight);
+        this.origin.x = 0;
+        this.origin.y = 0;
     }
     getPathPoints() {
         var x1 = this.bounds.x;
@@ -1499,7 +1614,7 @@ export class RoundBraceVisualizer extends ChantLayoutElement {
             y.toFixed(dp));
     }
 }
-export class CurlyBraceVisualizer extends ChantLayoutElement {
+export class CurlyBraceVisualizer extends BraceVisualizer {
     constructor(ctxt, x1, x2, y, isAbove = true, addAcuteAccent = false) {
         super();
         if (x1 > x2) {
@@ -1515,7 +1630,8 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
         // but for a brace under the notes, y is simply the y passed in.
         if (isAbove)
             y -= this.braceHeight;
-        var bounds = new Rect(x1, y, x2 - x1, this.braceHeight);
+        this.braceBounds = new Rect(x1, y, x2 - x1, this.braceHeight);
+        var bounds = this.braceBounds.clone();
         if (addAcuteAccent && isAbove) {
             this.accent = new GlyphVisualizer(ctxt, GlyphCode.AcuteAccent);
             this.accent.bounds.x += bounds.x + (x2 - x1) / 2;
@@ -1526,78 +1642,21 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
         this.origin.x = 0;
         this.origin.y = 0;
     }
-    draw(ctxt) {
-        var d = ctxt.canvasCtxt;
-        const { x1, x2, y, qy1, qx2, qy2, tx1, ty1, qy3, qx4, qy4 } = this.getPathPoints();
-        d.strokeStyle = ctxt.neumeLineColor;
-        d.lineWidth = ctxt.staffLineWeight;
-        d.beginPath();
-        // the svg path's T reflects the previous control point through the
-        // current point, which the canvas has to be given explicitly
-        d.moveTo(x1, y);
-        d.quadraticCurveTo(x1, qy1, qx2, qy2);
-        d.quadraticCurveTo(2 * qx2 - x1, 2 * qy2 - qy1, tx1, ty1);
-        d.moveTo(x2, y);
-        d.quadraticCurveTo(x2, qy3, qx4, qy4);
-        d.quadraticCurveTo(2 * qx4 - x2, 2 * qy4 - qy3, tx1, ty1);
-        d.stroke();
-        if (this.accent)
-            this.accent.draw(ctxt);
-    }
-    getSvgPathProps(ctxt) {
-        return {
-            d: this.generatePathString(),
-            stroke: ctxt.neumeLineColor,
-            "stroke-width": ctxt.staffLineWeight + "px",
-            fill: "none",
-            class: "brace"
-        };
-    }
-    createSvgNode(ctxt) {
-        var node = QuickSvg.createNode("path", this.getSvgPathProps(ctxt));
-        if (this.accent) {
-            return QuickSvg.createNode("g", {
-                class: "accentedBrace"
-            }, [node, this.accent.createSvgNode(ctxt)]);
-        }
-        else
-            return node;
-    }
-    createSvgTree(ctxt) {
-        var node = QuickSvg.createSvgTree("path", this.getSvgPathProps(ctxt));
-        if (this.accent) {
-            return QuickSvg.createSvgTree("g", {
-                class: "accentedBrace"
-            }, node, this.accent.createSvgTree(ctxt));
-        }
-        else
-            return node;
-    }
-    createSvgFragment(ctxt) {
-        var fragment = QuickSvg.createFragment("path", this.getSvgPathProps(ctxt));
-        if (this.accent) {
-            fragment += this.accent.createSvgFragment(ctxt);
-            return QuickSvg.createFragment("g", {
-                class: "accentedBrace"
-            }, fragment);
-        }
-        else
-            return fragment;
-    }
     // code below inspired by: https://gist.github.com/alexhornbake
     // optimized for braces that are only drawn horizontally.
-    getPathPoints() {
+    // returns svg path d string
+    generatePathString() {
         var q = 0.6; // .5 is normal, higher q = more expressive bracket
-        var x1 = this.bounds.x;
-        var x2 = this.bounds.right();
-        var width = this.bounds.width;
+        var x1 = this.braceBounds.x;
+        var x2 = this.braceBounds.right();
+        var width = this.braceBounds.width;
         var y, h;
         if (this.isAbove) {
-            y = this.bounds.bottom();
+            y = this.braceBounds.bottom();
             h = -this.braceHeight;
         }
         else {
-            y = this.bounds.y;
+            y = this.braceBounds.y;
             h = this.braceHeight;
         }
         // calculate Control Points of path
@@ -1609,11 +1668,6 @@ export class CurlyBraceVisualizer extends ChantLayoutElement {
         var qy3 = y + q * h;
         var qx4 = x1 + 0.75 * width;
         var qy4 = y + (1 - q) * h;
-        return { x1, x2, y, qy1, qx2, qy2, tx1, ty1, qy3, qx4, qy4 };
-    }
-    // returns svg path d string
-    generatePathString() {
-        const { x1, x2, y, qy1, qx2, qy2, tx1, ty1, qy3, qx4, qy4 } = this.getPathPoints();
         // two decimal points should be enough, but if we need more precision, we can
         // up it here.
         var dp = 2;
@@ -2018,6 +2072,27 @@ export class TextElement extends ChantLayoutElement {
         if (spanStartIndex < text.length || this.spans.length === 0)
             closeSpan(text.slice(spanStartIndex), spanStartIndex);
     }
+    /** the size in px of this element's text in the given properties */
+    fontSizeForProperties(ctxt, properties = {}) {
+        let fontSize = parseFloat(properties["font-size"]) || this.fontSize(ctxt);
+        if (/%$/.test(properties["font-size"])) {
+            fontSize *= this.fontSize(ctxt) / 100;
+        }
+        return fontSize * (this.resize || 1);
+    }
+    /** the distance from one line of this element's text to the next, in ems */
+    lineSpacing(ctxt) {
+        return (this.textType && ctxt.textStyles[this.textType.key].lineHeight) || 1.1;
+    }
+    /**
+     * how far below the line before it the line that span starts is, in px: the
+     * same as the span's dy in the svg, in its own font size
+     */
+    lineBreakHeight(ctxt, span, properties = span.mergedProperties) {
+        return (this.lineSpacing(ctxt) *
+            this.fontSizeForProperties(ctxt, properties) *
+            (__parseNewLine(span.newLine) || 1));
+    }
     getCanvasFontForProperties(ctxt, properties = {}) {
         var font = "";
         if (properties["font-style"] === "italic")
@@ -2026,11 +2101,7 @@ export class TextElement extends ChantLayoutElement {
             font += "small-caps ";
         if (properties["font-weight"] === "bold")
             font += "bold ";
-        let fontSize = parseFloat(properties["font-size"]) || this.fontSize(ctxt);
-        if (/%$/.test(properties["font-size"])) {
-            fontSize *= this.fontSize(ctxt) / 100;
-        }
-        font += `${fontSize * (this.resize || 1)}px `;
+        font += `${this.fontSizeForProperties(ctxt, properties)}px `;
         font += properties["font-family"] || this.fontFamily(ctxt);
         return font;
     }
@@ -2052,13 +2123,14 @@ export class TextElement extends ChantLayoutElement {
         var widths = [];
         var newLineSpans = [this.spans[0]];
         var subStringLength = 0;
-        var numLines = 1;
         var fontSize = this.fontSize(ctxt) * (this.resize || 1);
+        // the y of the current line's baseline
+        var baseline = 0;
         var bbox = new Rect(0, 0, 0, 0);
         for (var i = 0; i < this.spans.length; i++) {
             var span = this.spans[i], myText = span.text.slice(0, length - subStringLength);
             if (span.newLine) {
-                numLines += __parseNewLine(span.newLine) || 1;
+                baseline += this.lineBreakHeight(ctxt, span);
                 if (!lines && this.rightAligned === true && length === Infinity) {
                     newLineSpans[newLineSpans.length - 1].xOffset =
                         this.firstLineMaxWidth - width;
@@ -2073,30 +2145,26 @@ export class TextElement extends ChantLayoutElement {
                 let metrics = ctxt.measureCanvasText(this.getCanvasFontForProperties(ctxt, span.mergedProperties), myText);
                 if ("actualBoundingBoxAscent" in metrics) {
                     let left = metrics.actualBoundingBoxLeft;
-                    bbox.union(new Rect(width - left, fontSize * (numLines - 1) - metrics.actualBoundingBoxAscent, metrics.width + left, metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent));
+                    bbox.union(new Rect(width - left, baseline - metrics.actualBoundingBoxAscent, metrics.width + left, metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent));
                     if (this instanceof DropCap) {
                         width += Math.max(0, left);
                     }
                 }
                 else {
-                    bbox.union(new Rect(width, fontSize * (numLines - 2), metrics.width, fontSize));
+                    bbox.union(new Rect(width, baseline - fontSize, metrics.width, fontSize));
                 }
                 width += metrics.width;
             }
             else if (strategy === TextMeasuringStrategy.OpenTypeJS &&
                 ctxt.fontDictionary) {
-                // get the bounding box for the substring, placing it at x = width, y = fontSize * (numLines - 1)
+                // get the bounding box for the substring, placing it at x = width, y = baseline
                 const properties = span.mergedProperties;
                 let font = ctxt.getFontForProperties(properties, properties["font-family"] || this.fontFamily(ctxt));
                 const smallCaps = properties["font-variant"] === "small-caps";
-                let spanFontSize = parseFloat(properties["font-size"]) || fontSize;
-                if (/%$/.test(properties["font-size"])) {
-                    spanFontSize *= fontSize / 100;
-                }
-                const y = fontSize * (numLines - 1);
+                const spanFontSize = this.fontSizeForProperties(ctxt, properties);
                 if ('getPath' in font) {
                     // opentype.js
-                    const measured = ctxt.measureOpenTypeText(font, myText, width, y, spanFontSize, smallCaps);
+                    const measured = ctxt.measureOpenTypeText(font, myText, width, baseline, spanFontSize, smallCaps);
                     let subBbox = measured.bbox;
                     let subWidth = measured.advanceWidth;
                     bbox.union(new Rect(width + subBbox.x1, subBbox.y1, subWidth - subBbox.x1, subBbox.y2 - subBbox.y1));
@@ -2112,7 +2180,7 @@ export class TextElement extends ChantLayoutElement {
                     const multiplier = spanFontSize / unitsPerEm;
                     let subBbox = run.bbox;
                     let subWidth = run.advanceWidth * multiplier;
-                    bbox.union(new Rect(width + subBbox.minX * multiplier, y - subBbox.maxY * multiplier, subWidth - subBbox.minX * multiplier, (subBbox.height) * multiplier));
+                    bbox.union(new Rect(width + subBbox.minX * multiplier, baseline - subBbox.maxY * multiplier, subWidth - subBbox.minX * multiplier, (subBbox.height) * multiplier));
                     width += subWidth;
                     if (this instanceof DropCap) {
                         width -= subBbox.minX * multiplier;
@@ -2122,7 +2190,7 @@ export class TextElement extends ChantLayoutElement {
             else if (strategy === TextMeasuringStrategy.Svg) {
                 const measured = ctxt.measureSvgText(this.createSvgNodeToMeasure(ctxt, span, myText));
                 const subBbox = measured.bbox;
-                bbox.union(new Rect(width + subBbox.x, fontSize * (numLines - 1) + subBbox.y, subBbox.width, subBbox.height));
+                bbox.union(new Rect(width + subBbox.x, baseline + subBbox.y, subBbox.width, subBbox.height));
                 width += measured.advanceWidth;
                 if (this instanceof DropCap) {
                     width -= Math.min(0, subBbox.x);
@@ -2150,6 +2218,25 @@ export class TextElement extends ChantLayoutElement {
         else {
             return width;
         }
+    }
+    /**
+     * The lines of the text, as they are drawn.  Where setMaxWidth() wrapped
+     * the text, the spans no longer have the whitespace that it broke the line
+     * at, though this.text still does.
+     */
+    getLines() {
+        var lines = [], index = 0, textIndex = 0;
+        this.spans.forEach((span, i) => {
+            if (!i || span.newLine) {
+                if (span.newLine === true)
+                    textIndex += (span.wrappedSpace || " ").length;
+                lines.push({ start: index, end: index, textStart: textIndex, xOffset: span.xOffset || 0 });
+            }
+            index += span.text.length;
+            textIndex += span.text.length;
+            lines[lines.length - 1].end = index;
+        });
+        return lines;
     }
     recalculateMetrics(ctxt, resetNewLines = true) {
         if (resetNewLines) {
@@ -2370,17 +2457,17 @@ export class TextElement extends ChantLayoutElement {
         for (var i = 0; i < this.spans.length; i++) {
             var span = this.spans[i];
             var xOffset = span.xOffset || 0;
+            var properties = Object.assign({}, extraStyleProperties, span.mergedProperties);
             if (span.newLine) {
-                let count = __parseNewLine(span.newLine) || 1;
-                canvasCtxt.translate(translateWidth + xOffset, this.fontSize(ctxt) * count);
+                let lineHeight = this.lineBreakHeight(ctxt, span, properties);
+                canvasCtxt.translate(translateWidth + xOffset, lineHeight);
                 translateWidth = -xOffset;
-                translateHeight -= this.fontSize(ctxt);
+                translateHeight -= lineHeight;
             }
             else if (xOffset) {
                 canvasCtxt.translate(translateWidth + xOffset, 0);
                 translateWidth = -xOffset;
             }
-            var properties = Object.assign({}, extraStyleProperties, span.mergedProperties);
             var spanFont = this.getCanvasFontForProperties(ctxt, properties);
             if (spanFont !== font)
                 canvasCtxt.font = font = spanFont;
@@ -2411,7 +2498,7 @@ export class TextElement extends ChantLayoutElement {
         };
         if (span.newLine) {
             var xOffset = span.xOffset || 0;
-            options.dy = 1.1 * (__parseNewLine(span.newLine) || 1) + "em";
+            options.dy = this.lineSpacing(ctxt) * (__parseNewLine(span.newLine) || 1) + "em";
             options.x = this.bounds.x + xOffset;
         }
         else if (span.xOffset) {
@@ -2423,8 +2510,13 @@ export class TextElement extends ChantLayoutElement {
             options.y = this.bounds.y;
         }
         if (this.resize) {
-            options["font-size"] =
-                properties["font-size"] || this.fontSize(ctxt) * this.resize;
+            options["font-size"] = this.fontSizeForProperties(ctxt, properties);
+            if (properties["font-size"]) {
+                // the span's own font-size, in its style, would win over the attribute
+                const style = span.properties;
+                delete style["font-size"];
+                options.style = useStyleObject ? style : getCssForProperties(style);
+            }
         }
         // if (ctxt.setFontFamilyAttributes) {
         //   options["font-family"] =
@@ -2449,11 +2541,17 @@ export class TextElement extends ChantLayoutElement {
         let textClass = this.getCssClasses().trim();
         if (extraStyleProperties.class)
             textClass = extraStyleProperties.class + " " + textClass;
+        let style = properties;
+        if (this.resize && properties["font-size"]) {
+            // the span's own font-size, in its style, would win over the attribute
+            style = Object.assign({}, properties);
+            delete style["font-size"];
+        }
         const spanNode = QuickSvg.createNode("tspan", {
             class: properties.class,
-            style: getCssForProperties(properties),
+            style: getCssForProperties(style),
             "font-size": this.resize
-                ? properties["font-size"] || this.fontSize(ctxt) * this.resize
+                ? this.fontSizeForProperties(ctxt, properties)
                 : undefined
         }, text);
         return QuickSvg.createNode("text", { class: textClass, style: getCssForProperties(extraStyleProperties) }, spanNode);
@@ -2667,6 +2765,27 @@ export class Lyric extends TextElement {
         // but the logic below allows for smarter lyric alignment based
         // on manual override or language control.
         var offset = this.widthWithoutConnector / 2, x1, x2, vowelSegmentWidth = this.widthWithoutConnector;
+        // svgTextMeasurer still has the current lyric in it...
+        var svgText = ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
+            ? ctxt.svgTextMeasurer.firstChild
+            : null;
+        var lines = this.getLines();
+        // the line that an index of this.text is on
+        var lineAt = (index) => lines.reduce((result, line) => (line.textStart <= index ? line : result));
+        // the x of an index of the spans' text, on its line as it's drawn
+        var measure = (line, index) => line.xOffset +
+            (index <= line.start
+                ? 0
+                : svgText
+                    ? svgText.getSubStringLength(line.start, index - line.start)
+                    : this.measureSubstring(ctxt, index, false, true));
+        // the x of the start and the end of length characters of this.text from
+        // index, on the line that they start on (and so that they end on, at the
+        // latest)
+        var measureOnLine = (index, length) => {
+            let line = lineAt(index), start = Math.min(line.end, line.start + index - line.textStart);
+            return [measure(line, start), measure(line, Math.min(line.end, start + length))];
+        };
         // some simple checks for sanity, and disable manual centering if the numbers are bad
         if (this.centerStartIndex >= 0 &&
             (this.centerStartIndex >= this.text.length ||
@@ -2684,15 +2803,7 @@ export class Lyric extends TextElement {
         else if (this.centerStartIndex >= 0) {
             // if we have manually overriden the centering logic for this lyric,
             // then always use that.
-            if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-                // svgTextMeasurer still has the current lyric in it...
-                x1 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(0, this.centerStartIndex);
-                x2 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(0, this.centerStartIndex + this.centerLength);
-            }
-            else {
-                x1 = this.measureSubstring(ctxt, this.centerStartIndex);
-                x2 = this.measureSubstring(ctxt, this.centerStartIndex + this.centerLength);
-            }
+            [x1, x2] = measureOnLine(this.centerStartIndex, this.centerLength);
             offset = (x1 + x2) / 2;
             vowelSegmentWidth = x2 - x1;
         }
@@ -2752,15 +2863,7 @@ export class Lyric extends TextElement {
                         result.length = this.text.length - startIndex;
                     }
                 }
-                if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-                    // svgTextMeasurer still has the current lyric in it...
-                    x1 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(0, result.startIndex);
-                    x2 = ctxt.svgTextMeasurer.firstChild.getSubStringLength(0, result.startIndex + result.length);
-                }
-                else {
-                    x1 = this.measureSubstring(ctxt, result.startIndex);
-                    x2 = this.measureSubstring(ctxt, result.startIndex + result.length);
-                }
+                [x1, x2] = measureOnLine(result.startIndex, result.length);
                 offset = (x1 + x2) / 2;
                 vowelSegmentWidth = x2 - x1;
             }
@@ -2779,10 +2882,11 @@ export class Lyric extends TextElement {
             let factor = this.protrusion.factor;
             if (factor === undefined)
                 factor = ctxt.defaultProtrusionFactor;
-            let start = ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
-                ? // svgTextMeasurer still has the current lyric in it...
-                    ctxt.svgTextMeasurer.firstChild.getSubStringLength(0, protrusionIndex)
-                : this.measureSubstring(ctxt, protrusionIndex);
+            // the right of the text before it: where it starts on its line, unless
+            // a line before that ends further right.  (The width is measured from
+            // the left of the line that's moved right the least.)
+            let line = lineAt(protrusionIndex);
+            let start = Math.max(measureOnLine(protrusionIndex, 0)[0], ...lines.slice(0, lines.indexOf(line)).map((before) => measure(before, before.end))) - Math.min(...lines.map((each) => each.xOffset));
             this.protrusionWidth =
                 Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
         }
@@ -3011,7 +3115,6 @@ export class Annotations extends ChantLayoutElement {
      */
     constructor(ctxt, ...texts) {
         super();
-        this.lineHeight = 1.1;
         this.annotations = texts.map(function (text, i) {
             return new Annotation(ctxt, text, i);
         });
@@ -3043,7 +3146,12 @@ export class Annotations extends ChantLayoutElement {
             annotation.bounds.y += y;
             this.bounds.height = annotation.bounds.bottom();
             this.origin.y = this.origin.y || annotation.origin.y;
-            y += annotation.fontSize(ctxt) * (annotation.resize || 1) * this.lineHeight;
+            // past the annotation's line breaks, to the line after its last line
+            annotation.spans.forEach((span) => {
+                if (span.newLine)
+                    y += annotation.lineBreakHeight(ctxt, span);
+            });
+            y += annotation.fontSize(ctxt) * (annotation.resize || 1) * (this.lineHeight || annotation.lineSpacing(ctxt));
         }
     }
     draw(ctxt) {
