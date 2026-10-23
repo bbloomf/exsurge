@@ -694,3 +694,156 @@ describe("Gregorio inclinatum leaning", function() {
     ]);
   });
 });
+
+describe("Gregorio slurs and custom ledger lines", function() {
+  const notesOf = (gabc: string) => parseNotations(gabc).flatMap((notation) => notation.notes || []);
+  // a TeX length in staff intervals, at Gregorio's default staff size
+  const mm = (length: number) => (length * 72.27) / 25.4 / ((31500 / 2) * 17 / 65536);
+  const rounded = (value: any) => JSON.parse(JSON.stringify(value), (key, v) => (typeof v === "number" ? Math.round(v * 1000) / 1000 : v));
+
+  it("reads slurs of a given size, and slurs from note to note", function() {
+    const notes = notesOf("(c4) a(g[oslur:0;5mm,-0.5mm]) b(f[uslur:2{]g[uslur:1}]) c(f[oslur:0;\\slurwidth,1mm]) d(f[oslur:3;1mm,1mm])");
+    assert.deepStrictEqual(
+      rounded(notes.map((note) => note.slurs)),
+      rounded([
+        [{ isAbove: true, shift: 0, kind: "fixed", width: mm(5), height: mm(-0.5) }],
+        [{ isAbove: false, shift: 2, kind: "start" }],
+        [{ isAbove: false, shift: 1, kind: "end" }],
+        // (a length that's a TeX macro isn't understood, and there's no shift 3)
+        undefined,
+        undefined
+      ])
+    );
+  });
+
+  it("reads ledger lines drawn or left out at notes, and custom ledger lines", function() {
+    const notes = notesOf("(c4) a(g[oll:1]m[oll:0]d[ull:1]b[ull:0]) b(g[oll:1;2mm]h[ull:2mm{1]) c([ull:0{0]f) d(g[ull:}])");
+    assert.deepStrictEqual(
+      notes.map((note) => [note.ledgerLineAbove, note.ledgerLineBelow]),
+      [[true, undefined], [false, undefined], [undefined, true], [undefined, false], [undefined, undefined], [undefined, undefined], [undefined, undefined], [undefined, undefined]]
+    );
+    assert.deepStrictEqual(
+      rounded(notes.map((note) => note.customLedgerLines)),
+      rounded([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [{ isAbove: true, kind: "fixed", left: "overhang", right: mm(2) }],
+        [{ isAbove: false, kind: "start", left: mm(2), right: "overhang" }],
+        // one that isn't after a note is introduced just before the next note
+        [{ isAbove: false, kind: "start", left: 0, right: 0, before: true }],
+        [{ isAbove: false, kind: "end" }]
+      ])
+    );
+  });
+
+  it("doesn't take the ] of an instruction that isn't after a note as the end of a fusion", function() {
+    const notes = notesOf("(c4) a(f) b([cs:x]g) c(f[[) d([oll:1;1mm]g]])");
+    assert.deepStrictEqual(
+      notes.map((note) => [note.autoFusion, !!note.bracketStart, !!note.bracketEnd]),
+      [[undefined, false, false], [undefined, false, false], [undefined, false, false], [undefined, true, true]]
+    );
+    assert.strictEqual(notes[3].customLedgerLines![0].before, true);
+  });
+});
+
+describe("Gregorio episema tuning", function() {
+  const mm = (length: number) => (length * 72.27) / 25.4 / ((31500 / 2) * 17 / 65536);
+  const notesOfMappings = (mappings: Exsurge.ChantMapping[]) =>
+    mappings.flatMap((mapping) => mapping.notations).flatMap((notation) => notation.notes || []);
+
+  it("reads a note's own tuning, and a block's for the notes between its start and end", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const notes = notesOfMappings(
+      Exsurge.Gabc.createMappingsFromSource(
+        ctxt,
+        "(c4) a(g_[oh:m]) b(g_0[uh:ol+1mm]) c(g_[oh:{]h_) d(i_[oh:h]j_[oh}]) e(f_) f([uh{]g_0) g(h_0[uh:}]) h(g_[oh:] g_[oh:m}])"
+      )
+    );
+    const block = notes[3].episemaTuning!.above;
+    assert.deepStrictEqual(
+      notes.map((note) => note.episemaTuning),
+      [
+        { above: { position: "m" } },
+        { below: { position: "ol", nudge: mm(1) } },
+        // (the block starts after the note it follows)
+        undefined,
+        { above: { block: true }, below: undefined },
+        // (as in Gregorio, a note in a block has the block's tuning, not its own)
+        { above: block, below: undefined },
+        { above: block, below: undefined },
+        undefined,
+        { above: undefined, below: { block: true } },
+        { above: undefined, below: notes[7].episemaTuning!.below },
+        // ([oh:] and [oh:m}] aren't Gregorio's)
+        undefined,
+        undefined
+      ]
+    );
+    assert.strictEqual(notes[5].episemaTuning!.above, block);
+  });
+
+  it("puts the notes of words that are kept, as the gabc is changed, in the blocks that they're now in", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const mappings = Exsurge.Gabc.createMappingsFromSource(ctxt, "(c4) a(f_[oh:{]g_) b(h_) c(g_[oh}]) d(f_)");
+    const inBlock = () => notesOfMappings(mappings).map((note) => !!(note.episemaTuning && note.episemaTuning.above));
+    assert.deepStrictEqual(inBlock(), [false, true, true, true, false]);
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, mappings, "(c4) a(f_[oh:{]g_) b(h_) c(g_) d(f_)");
+    assert.deepStrictEqual(inBlock(), [false, true, true, true, true]);
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, mappings, "(c4) a(f_g_) b(h_) c(g_) d(f_)");
+    assert.deepStrictEqual(inBlock(), [false, false, false, false, false]);
+  });
+});
+
+describe("Gregorio brackets", function() {
+  // the staff positions that the brackets of the score's neumes reach, after
+  // a layout
+  const bracketTops = (score: Exsurge.ChantScore) =>
+    score.notations.flatMap((notation) =>
+      notation.visualizers
+        .filter((visualizer) => visualizer instanceof Exsurge.NoteBracket)
+        .map((bracket) => [bracket.bounds.y, bracket.bounds.bottom()])
+    );
+  const laidOut = (ctxt: Exsurge.ChantContext, gabc: string) => {
+    const score = new Exsurge.ChantScore(ctxt, Exsurge.Gabc.createMappingsFromSource(ctxt, gabc), false);
+    score.performLayout(ctxt);
+    return score;
+  };
+
+  it("draws the brackets again when the notes in them change in other notations", function() {
+    for (const [before, after] of [
+      ["(c4) ad([[ef) te(g]]) (::)", "(c4) ad([[cf) te(g]]) (::)"],
+      ["(c4) ad([[ef) te(g]]) (::)", "(c4) ad([[ef) te(k]]) (::)"],
+      ["(c4) a(f) ad([[ef) te(g]]) (::)", "(c4) a(f) ad([[ef) te([[g]]) (::)"]
+    ]) {
+      const ctxt = new Exsurge.ChantContext();
+      const score = laidOut(ctxt, before);
+      Exsurge.Gabc.updateMappingsFromSource(ctxt, score.mappings, after);
+      score.updateNotations(ctxt);
+      score.performLayout(ctxt);
+      assert.deepStrictEqual(bracketTops(score), bracketTops(laidOut(new Exsurge.ChantContext(), after)), after);
+    }
+  });
+
+  it("keeps brackets open after a ]] with no notes since the [[, as Gregorio does", function() {
+    const score = laidOut(new Exsurge.ChantContext(), "(c4) k(f[[]]g) l(h]]) (::)");
+    assert.strictEqual(bracketTops(score).length, 2);
+  });
+
+  it("puts a right bracket after the mora", function() {
+    const score = laidOut(new Exsurge.ChantContext(), "(c4) a([[g.]]) (::)");
+    const neume = score.notations[0];
+    const mora = neume.visualizers.find((visualizer) => visualizer instanceof Exsurge.Mora)!;
+    const brackets = neume.visualizers.filter((visualizer) => visualizer instanceof Exsurge.NoteBracket);
+    assert.ok(brackets[1].bounds.x >= mora.bounds.right());
+  });
+
+  it("draws ledger lines above and below a note that asks for both", function() {
+    const score = laidOut(new Exsurge.ChantContext(), "(c4) a(g[oll:1][ull:1]) (::)");
+    assert.deepStrictEqual(
+      (score.notations[0] as Exsurge.Neume).ledgerLines.map((line) => line.staffPosition),
+      [9, -1]
+    );
+  });
+});

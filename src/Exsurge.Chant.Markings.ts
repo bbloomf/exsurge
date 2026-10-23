@@ -90,6 +90,33 @@ export const HorizontalEpisemaAlignment = {
 export type HorizontalEpisemaAlignment =
   (typeof HorizontalEpisemaAlignment)[keyof typeof HorizontalEpisemaAlignment];
 
+/**
+ * Where Gregorio's episema tuning puts an episema in its space: m in the
+ * middle, l low or h high (as for an episema over the note, or under it, as
+ * the episema is), or ol, oh, ul or uh, low or high as for one over (o) or
+ * under (u) the note
+ */
+export type EpisemaTuningPosition = "m" | "l" | "h" | "ol" | "oh" | "ul" | "uh";
+
+/**
+ * Gregorio's tuning of the episema over a note (gabc [oh:…]) or under it
+ * ([uh:…]), or of the episemata of a block of notes ([oh:…{] … [oh}])
+ */
+export interface EpisemaTuning {
+  position?: EpisemaTuningPosition;
+  /** how far to move the episema up, in staff intervals */
+  nudge?: number;
+  /** whether the tuning is a block's, whose episemata are put on one level */
+  block?: boolean;
+}
+
+// how far GregorioTeX puts an episema up from the middle of its space for
+// each position, in staff intervals: its hepisemamiddleshift,
+// overhepisemalowshift and so on (0.07206cm, 0.02287cm, 0.10066cm,
+// 0.02763cm and 0.10981cm at its default staff size, from 70 of the 157.5
+// font units of a step below the middle of the space)
+const episemaTuningShifts = { m: 0.057, ol: -0.285, oh: 0.257, ul: -0.252, uh: 0.32 };
+
 /*
  * HorizontalEpisema
  *
@@ -233,6 +260,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
       width *= 0.8;
     }
 
+    y = this.tunedY(ctxt, y);
+
     this.bounds.x = x;
     this.bounds.y = y - ctxt.episemaLineWeight / 2;
     this.bounds.width = width;
@@ -240,6 +269,32 @@ export class HorizontalEpisema extends ChantLayoutElement {
 
     this.origin.x = 0;
     this.origin.y = 0;
+  }
+
+  // y, the middle of the episema, as Gregorio's episema tuning of its note
+  // ([oh:…] or [uh:…]) moves it: to a position in the space that Gregorio
+  // puts it in, which is the space above (or below) the note, or the one
+  // beyond that if that's a staff line or ledger line, and then by the nudge
+  tunedY(ctxt: ChantContext, y: number) {
+    var isAbove = this.positionHint !== MarkingPositionHint.Below;
+    var tuning = this.note.episemaTuning && this.note.episemaTuning[isAbove ? "above" : "below"];
+    if (!tuning) return y;
+
+    if (tuning.position) {
+      let staffPosition = isAbove ? Math.floor(this.note.staffPosition) + 1 : Math.ceil(this.note.staffPosition) - 1;
+      let isOnLine =
+        Math.abs(staffPosition) % 2 === 1 &&
+        ((staffPosition > 0 && staffPosition < 2 * ctxt.staffLineCount) ||
+          this.note.neume!.ledgerLines.some((ledgerLine) => ledgerLine.staffPosition === staffPosition));
+      if (isOnLine) staffPosition += isAbove ? 1 : -1;
+      let position = tuning.position;
+      if (position === "l" || position === "h") position = ((isAbove ? "o" : "u") + position) as EpisemaTuningPosition;
+      y = ctxt.calculateHeightFromStaffPosition(
+        staffPosition + episemaTuningShifts[position as keyof typeof episemaTuningShifts]
+      );
+    }
+    if (tuning.nudge) y -= tuning.nudge * ctxt.staffInterval;
+    return y;
   }
 
   draw(ctxt: ChantContext) {
@@ -447,6 +502,318 @@ export class Mora extends GlyphVisualizer {
     }
     this.bounds.x = this.horizontalOffset + this.note.bounds.right();
     this.bounds.y += verticalOffset;
+  }
+}
+
+/*
+ * NoteBracket
+ *
+ * One of Gregorio's square brackets around notes (gabc [[ and ]]): a line at
+ * the left or right of the notes with a hook at each end, from below the
+ * lowest note in the brackets to above the highest.  The lengths are those
+ * of GregorioTeX's bracket glyphs (\GreBracket), in staff intervals: its
+ * step is 157.5 font units, and its bracketupshift and bracketdownshift are
+ * 0.03cm and 0.04cm at its default staff size, where a step is 0.1436cm.
+ */
+export class NoteBracket extends ChantLayoutElement {
+  isRight: boolean;
+  /** the width of the line and hooks */
+  lineWeight: number;
+
+  constructor(ctxt: ChantContext, isRight: boolean, lowStaffPosition: number, highStaffPosition: number) {
+    super();
+
+    this.isRight = isRight;
+    this.lineWeight = ctxt.neumeLineWeight;
+
+    let low = Math.round(lowStaffPosition),
+      high = Math.round(highStaffPosition);
+    let isOnLine = (staffPosition: number) => Math.abs(staffPosition) % 2 === 1;
+    let isBelowStaff = (staffPosition: number) => staffPosition <= 0;
+    let isAboveStaff = (staffPosition: number) => staffPosition >= 2 * ctxt.staffLineCount;
+
+    // Gregorio picks a short, normal or long top so that the ends don't fall on staff lines
+    let top = 1.556;
+    if (!isBelowStaff(low) && !isOnLine(low)) {
+      if (!isAboveStaff(high) && !isOnLine(high)) top = 2.056;
+    } else if (isAboveStaff(high) || isOnLine(high)) {
+      top = 1.056;
+    }
+    // and raises it a little from a low note on a staff line or below the
+    // staff, or lowers it from one in a space
+    let lowIsOnStaffLine = isOnLine(low) && !isBelowStaff(low) && !isAboveStaff(low);
+    let shift = lowIsOnStaffLine || isBelowStaff(low) ? 0.209 : -0.279;
+
+    let y0 = ctxt.calculateHeightFromStaffPosition(high + top + shift);
+    let y1 = ctxt.calculateHeightFromStaffPosition(low - 1.444 + shift);
+
+    this.bounds.x = 0;
+    this.bounds.y = y0;
+    this.bounds.width = (83 / 157.5) * ctxt.staffInterval;
+    this.bounds.height = y1 - y0;
+
+    this.origin.x = 0;
+    this.origin.y = 0;
+  }
+
+  // the outline, from the top of the line clockwise for a left bracket
+  getPoints() {
+    let { x, y, width, height } = this.bounds;
+    let w = this.lineWeight;
+    let points = [
+      [0, 0],
+      [width, 0],
+      [width, w],
+      [w, w],
+      [w, height - w],
+      [width, height - w],
+      [width, height],
+      [0, height]
+    ];
+    return points.map(([px, py]) => [x + (this.isRight ? width - px : px), y + py]);
+  }
+
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
+    var points = this.getPoints();
+
+    canvasCtxt.fillStyle = ctxt.neumeLineColor;
+    canvasCtxt.beginPath();
+    canvasCtxt.moveTo(points[0][0], points[0][1]);
+    for (var i = 1; i < points.length; i++) canvasCtxt.lineTo(points[i][0], points[i][1]);
+    canvasCtxt.closePath();
+    canvasCtxt.fill();
+  }
+
+  getSvgProps(ctxt: ChantContext) {
+    return {
+      d: "M " + this.getPoints().map(([x, y]) => x.toFixed(2) + " " + y.toFixed(2)).join(" L ") + " Z",
+      fill: ctxt.neumeLineColor,
+      class: "bracket"
+    };
+  }
+
+  createSvgNode(ctxt: ChantContext) {
+    return QuickSvg.createNode("path", this.getSvgProps(ctxt));
+  }
+  createSvgTree(ctxt: ChantContext) {
+    return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
+  }
+
+  createSvgFragment(ctxt: ChantContext) {
+    return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
+  }
+}
+
+/**
+ * How far a custom ledger line goes beyond where it's introduced: a length in
+ * staff intervals (Gregorio's 0 is 0), or, for Gregorio's 1, "overhang", as
+ * far as a ledger line goes beyond a note
+ */
+export type LedgerLineExtent = number | "overhang";
+
+/** the staff position of the first ledger line above the staff, or below it */
+export function ledgerLinePosition(ctxt: ChantContext, isAbove: boolean) {
+  return isAbove ? ctxt.staffLineCount * 2 + 1 : -1;
+}
+
+/**
+ * A Gregorio custom ledger line (gabc [oll:…] or [ull:…]), or its start or
+ * end, introduced just after a note, or just before it if nothing comes
+ * between them
+ */
+export interface CustomLedgerLine {
+  isAbove: boolean;
+  /** whether it's introduced at the left of the note rather than its right */
+  before?: boolean;
+  kind: "fixed" | "start" | "end";
+  /** how far the line starts to the left of where it's introduced */
+  left?: LedgerLineExtent;
+  /** a fixed line's length to the right, or how far one from note to note goes beyond its end */
+  right?: LedgerLineExtent;
+}
+
+/**
+ * Where a custom ledger line from note to note started, while the layout
+ * looks for its end (x is null if it started on an earlier line)
+ */
+export interface LedgerLineStart {
+  x: number | null;
+  right: LedgerLineExtent;
+}
+
+/**
+ * A Gregorio slur on a note (gabc [oslur:…] or [uslur:…]): one of its own,
+ * with its width and height, or the start or end of one to another note.
+ */
+export interface SlurMark {
+  isAbove: boolean;
+  /**
+   * where the slur starts or ends: 0 at the right of the note, 1 a punctum's
+   * width to the left of that, or 2 half a punctum's width to the left
+   */
+  shift: 0 | 1 | 2;
+  kind: "fixed" | "start" | "end";
+  /** a fixed slur's width, in staff intervals */
+  width?: number;
+  /** a fixed slur's height from its start to its end (up), in staff intervals */
+  height?: number;
+}
+
+/**
+ * Where a slur from note to note started, while the layout looks for its end:
+ * x is null if it started on an earlier line, so that it goes on from the
+ * start of this one
+ */
+export interface SlurStart {
+  x: number | null;
+  y: number;
+}
+
+/*
+ * Slur
+ *
+ * A slur from one point to another, drawn as GregorioTeX draws its slurs
+ * (\GreSlur): a crescent that bulges 0.20 to 0.22 of the em of Gregorio's
+ * music font (6.35 staff intervals) at the control points, above the line
+ * between its ends or below it, outlined with a 0.3bp pen (0.074 staff
+ * intervals).  The slur is drawn by the chant line.
+ */
+export class Slur extends ChantLayoutElement {
+  isAbove: boolean;
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+
+  constructor(ctxt: ChantContext, x0: number, y0: number, x1: number, y1: number, isAbove: boolean) {
+    super();
+
+    this.isAbove = isAbove;
+    this.start = { x: x0, y: y0 };
+    this.end = { x: x1, y: y1 };
+
+    // (the ends of the outer curve and where it turns, which contain the
+    // inner curve too, and half the pen above and below them, which the line
+    // makes room for; across, as for staff lines, the pen isn't counted, so
+    // that a slur to the end of the staff doesn't make the score wider)
+    var [c1, c2] = this.getControlPoints(ctxt, true);
+    var points = [0, 1]
+      .concat(Slur.cubicTurningPoints(x0, c1.x, c2.x, x1), Slur.cubicTurningPoints(y0, c1.y, c2.y, y1))
+      .map((t) => this.pointOnOuterCurve(ctxt, t));
+    var xs = points.map((p) => p.x),
+      ys = points.map((p) => p.y);
+    var pen = this.getPenWidth(ctxt) / 2;
+    this.bounds.x = Math.min(...xs);
+    this.bounds.y = Math.min(...ys) - pen;
+    this.bounds.width = Math.max(...xs) - this.bounds.x;
+    this.bounds.height = Math.max(...ys) + pen - this.bounds.y;
+  }
+
+  // the values of t between 0 and 1 where the cubic Bézier coordinate with
+  // control values p0 to p3 turns: where its derivative, a t² + b t + c, is 0
+  static cubicTurningPoints(p0: number, p1: number, p2: number, p3: number) {
+    var a = -p0 + 3 * p1 - 3 * p2 + p3,
+      b = 2 * (p0 - 2 * p1 + p2),
+      c = p1 - p0;
+    var roots: number[];
+    if (Math.abs(a) < 1e-9) roots = Math.abs(b) < 1e-9 ? [] : [-c / b];
+    else {
+      let discriminant = b * b - 4 * a * c;
+      if (discriminant < 0) return [];
+      let root = Math.sqrt(discriminant);
+      roots = [(-b - root) / (2 * a), (-b + root) / (2 * a)];
+    }
+    return roots.filter((t) => t > 0 && t < 1);
+  }
+
+  // where a slur that the mark puts on the note starts or ends, in the
+  // coordinates of the chant line: GregorioTeX raises a slur from the pitch
+  // above the note (or the pitch below), by its overslurshift (0.05cm) or
+  // underslurshift (0.01cm)
+  static pointOnNote(ctxt: ChantContext, note: Note, mark: SlurMark) {
+    // (a punctum is a staff interval wide)
+    var x = note.neume!.bounds.x + note.bounds.right() - [0, 1, 0.5][mark.shift] * ctxt.staffInterval;
+    var y = ctxt.calculateHeightFromStaffPosition(note.staffPosition + (mark.isAbove ? 0.904 : -1.375));
+    return { x, y };
+  }
+
+  // the control points of the slur's inner curve (at 0.20 em) or outer curve (0.22 em)
+  getControlPoints(ctxt: ChantContext, outer: boolean) {
+    var { start, end } = this;
+    var length = Math.hypot(end.x - start.x, end.y - start.y) || 1;
+    var ux = (end.x - start.x) / length,
+      uy = (end.y - start.y) / length;
+    // (the normal, pointing up for a slur above the notes)
+    var direction = this.isAbove ? 1 : -1;
+    var nx = uy * direction,
+      ny = -ux * direction;
+    var offset = (outer ? 0.22 : 0.2) * (1000 / 157.5) * ctxt.staffInterval;
+    return [0.3, 0.7].map((t) => ({
+      x: start.x + t * length * ux + offset * nx,
+      y: start.y + t * length * uy + offset * ny
+    }));
+  }
+
+  pointOnOuterCurve(ctxt: ChantContext, t: number) {
+    var [c1, c2] = this.getControlPoints(ctxt, true);
+    var { start, end } = this;
+    var bezier = (p0: number, p1: number, p2: number, p3: number) =>
+      (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3;
+    return { x: bezier(start.x, c1.x, c2.x, end.x), y: bezier(start.y, c1.y, c2.y, end.y) };
+  }
+
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!;
+    var [c1, c2] = this.getControlPoints(ctxt, false);
+    var [d1, d2] = this.getControlPoints(ctxt, true);
+
+    var lineWidth = canvasCtxt.lineWidth,
+      lineJoin = canvasCtxt.lineJoin;
+
+    canvasCtxt.fillStyle = canvasCtxt.strokeStyle = ctxt.neumeLineColor;
+    canvasCtxt.lineWidth = this.getPenWidth(ctxt);
+    canvasCtxt.lineJoin = "round";
+    canvasCtxt.beginPath();
+    canvasCtxt.moveTo(this.start.x, this.start.y);
+    canvasCtxt.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, this.end.x, this.end.y);
+    canvasCtxt.bezierCurveTo(d2.x, d2.y, d1.x, d1.y, this.start.x, this.start.y);
+    canvasCtxt.closePath();
+    canvasCtxt.fill();
+    canvasCtxt.stroke();
+    canvasCtxt.lineWidth = lineWidth;
+    canvasCtxt.lineJoin = lineJoin;
+  }
+
+  getPenWidth(ctxt: ChantContext) {
+    return 0.074 * ctxt.staffInterval;
+  }
+
+  getSvgProps(ctxt: ChantContext) {
+    var [c1, c2] = this.getControlPoints(ctxt, false);
+    var [d1, d2] = this.getControlPoints(ctxt, true);
+    var point = (p: { x: number; y: number }) => p.x.toFixed(2) + " " + p.y.toFixed(2);
+    return {
+      d:
+        "M " + point(this.start) +
+        " C " + [c1, c2, this.end].map(point).join(" ") +
+        " C " + [d2, d1, this.start].map(point).join(" ") +
+        " Z",
+      fill: ctxt.neumeLineColor,
+      stroke: ctxt.neumeLineColor,
+      "stroke-width": this.getPenWidth(ctxt),
+      "stroke-linejoin": "round",
+      class: "slur"
+    };
+  }
+
+  createSvgNode(ctxt: ChantContext) {
+    return QuickSvg.createNode("path", this.getSvgProps(ctxt));
+  }
+  createSvgTree(ctxt: ChantContext) {
+    return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
+  }
+
+  createSvgFragment(ctxt: ChantContext) {
+    return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
   }
 }
 
