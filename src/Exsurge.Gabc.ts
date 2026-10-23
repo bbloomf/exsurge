@@ -2345,11 +2345,11 @@ export class Gabc {
   // glyphs: the neumes, and the parts that Gregorio makes into glyphs of
   // their own (src/gabc/gabc-glyphs-determination.c), which end after a
   // liquescent note and between notes more than a fifth apart, before a
-  // quilisma or an oriscus after other notes (but not in a salicus or a pes),
-  // and where inclinata start or end; a scandicus flexus is a scandicus and a punctum
+  // quilisma, a virga or an oriscus after other notes (but not in a bivirga
+  // or trivirga, or a salicus or a pes), and where inclinata start or end; a scandicus flexus is a scandicus and a punctum
   // (which makes a flexus with a lower punctum after it), and a scandicus
-  // starting with a quilisma is a quilisma pes and what comes after it.  A
-  // glyph starts an element, except that a stropha
+  // or porrectus starting with a quilisma is a quilisma pes or flexus and
+  // what comes after it.  A glyph starts an element, except that a stropha
   // and descending inclinata join the glyph before them, a glyph joins an
   // inclinatum (or ascending inclinata) before it, a single note at the same
   // pitch, inclinata less than a third away or a pes it rises from as a
@@ -2367,9 +2367,12 @@ export class Gabc {
     type Glyph = { notes: Note[]; neume: Neumes.Neume; flexusTop?: boolean };
     var glyphs: Glyph[] = [];
     for (let neume of neumes) {
-      let isScandicus = isA(neume, Neumes.Scandicus, Neumes.ScandicusFlexus);
-      let quilismaPes = isScandicus && neume.notes[0].shape === NoteShape.Quilisma;
+      // (a quilisma pes, or a quilisma flexus, ends after its second note)
+      let quilismaPes =
+        isA(neume, Neumes.Scandicus, Neumes.ScandicusFlexus, Neumes.Porrectus, Neumes.PorrectusFlexus) &&
+        neume.notes[0].shape === NoteShape.Quilisma;
       let oriscusStartsGlyph = !isA(neume, Neumes.Salicus, Neumes.SalicusFlexus, Neumes.PesOriscus, Neumes.PesQuassus);
+      let virgaStartsGlyph = !isA(neume, Neumes.Bivirga, Neumes.Trivirga);
       neume.notes.forEach((note, i) => {
         let previous = neume.notes[i - 1];
         let flexusTop = !quilismaPes && isA(neume, Neumes.ScandicusFlexus) && i === 3;
@@ -2379,6 +2382,7 @@ export class Gabc {
           Math.abs(note.staffPosition - previous.staffPosition) > 5 ||
           isInclinatum(note) !== isInclinatum(previous) ||
           note.shape === NoteShape.Quilisma ||
+          (note.shape === NoteShape.Virga && virgaStartsGlyph) ||
           (note.shape === NoteShape.Oriscus && oriscusStartsGlyph) ||
           (quilismaPes && i === 2) ||
           flexusTop
@@ -2405,6 +2409,12 @@ export class Gabc {
         Neumes.Tristropha
       );
     var isInclinata = (glyph: Glyph) => isInclinatum(glyph.notes[0]);
+    // (a pes of its own, or the first notes of a scandicus that make one, and a virga)
+    var isPes = (glyph: Glyph) =>
+      glyph.notes.length === 2 && !isInclinata(glyph) && glyph.notes[1].staffPosition > glyph.notes[0].staffPosition;
+    var isVirga = (glyph: Glyph) => glyph.notes.length === 1 && glyph.notes[0].shape === NoteShape.Virga;
+    // (a stropha of its own, which is so even where exsurge makes a distropha of it and an inclinatum)
+    var isStropha = (glyph: Glyph) => glyph.notes.length === 1 && glyph.notes[0].shape === NoteShape.Stropha;
     var isDescending = (glyph: Glyph) =>
       glyph.notes.length > 1 && glyph.notes[glyph.notes.length - 1].staffPosition < glyph.notes[0].staffPosition;
     var last = (glyph: Glyph) => glyph.notes[glyph.notes.length - 1];
@@ -2422,9 +2432,9 @@ export class Gabc {
       if (isInclinata(glyph) && !isDescending(glyph)) {
         if (!doNotCut) cut = true;
         doNotCut = true;
-      } else if (isWhole(glyph, Neumes.Apostropha) || (isInclinata(glyph) && isDescending(glyph))) {
+      } else if (isStropha(glyph) || (isInclinata(glyph) && isDescending(glyph))) {
         doNotCut = false;
-        if (isWhole(glyph, Neumes.Apostropha) && last(glyph).liquescent & (LiquescentType.Ascending | LiquescentType.Descending))
+        if (isStropha(glyph) && last(glyph).liquescent & (LiquescentType.Ascending | LiquescentType.Descending))
           forceCut = true;
       } else {
         let step = previous ? glyph.notes[0].staffPosition - last(previous).staffPosition : 0;
@@ -2442,7 +2452,7 @@ export class Gabc {
           !(last(previous).liquescent & tailLiquescence) &&
           ((isSingleNote(previous) && step === 0) ||
             (isInclinata(previous) && isSingleNote(glyph) && Math.abs(step) < 2) ||
-            (isWhole(previous, Neumes.Podatus) && isWhole(glyph, Neumes.Virga) && step >= 0))
+            (isPes(previous) && isVirga(glyph) && step >= 0))
         )
           doNotCut = false;
         else if (doNotCut) doNotCut = false;
