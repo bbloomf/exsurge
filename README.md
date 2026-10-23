@@ -43,6 +43,19 @@ score.performLayout(ctxt, function() {
 });
 ```
 
+### St. Gall neumes (NABC)
+
+exsurge draws Gregorio's NABC, the St. Gall neumes that gabc with a `nabc-lines` header has after `|`s in its notes, above the staff (and a second line of it below the staff), given a font to draw it with.  Its glyphs are converted from Gregorio's gregall font, and since they're under the SIL Open Font License (see below), they aren't in exsurge's bundle: import them from `exsurge-ts/nabc-gregall`, or load `dist/nabc-gregall.min.js` after exsurge, which defines `exsurgeNabcGregall`.
+
+```javascript
+import { gregall } from "exsurge-ts/nabc-gregall";
+
+ctxt.nabcFonts = [gregall];
+var gabc = "nabc-lines: 1;\n%%\n(f3) AL(ef~|ta>)le(fg/hggf|peclhgpi)lú(ef~|ta>)ia.(f.|ta-) (,)";
+```
+
+`ctxt.nabcSize`, `ctxt.nabcAlignment` and `ctxt.nabcVisibility` change its size, how it lines up with the notes and whether each line of it is drawn, as Gregorio's `\gresetnabcfont`, `\gresetnabcalignment` and `\gresetnabc` do.
+
 ## Motivation
 
 Very few good chant layout software exist for developers. exsurge allows web developers to insert beautiful chant into their workflow with the simplicity of a little JavaScript.

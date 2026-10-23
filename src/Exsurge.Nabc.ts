@@ -312,3 +312,283 @@ const glyphNameCharacters: { [char: string]: string } = { B: ">", N: "-", E: "!"
  */
 export const nabcNameOfGlyph = (glyphName: string) =>
   glyphName.replace(/[BNET]/g, (char) => glyphNameCharacters[char]);
+
+const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+
+/**
+ * The name of a font's glyph for a NABC name: the glyph of that name, or
+ * else the glyph that Gregorio's alias of it names (but for grelaon, which
+ * Gregorio doesn't give the aliases), or undefined if the font has neither.
+ */
+export function nabcGlyphName(font: NabcFont, name: string) {
+  // (an alias can name another: ta>ppt1 is sc~, which is pe>2.  GregorioTeX
+  // follows these or not depending on the order of a Lua table.)
+  for (let i = 0; i < 4; i++) {
+    if (has(font.glyphs, name)) return name;
+    if (font.name === "grelaon" || !has(nabcAliases, name)) break;
+    name = nabcAliases[name];
+  }
+  return undefined;
+}
+
+/** a glyph that layoutNabc() places: the name of the font's glyph, and where it goes */
+export interface NabcPlacedGlyph {
+  name: string;
+  /** from the start of the NABC */
+  x: number;
+  /** up from its baseline */
+  y: number;
+}
+
+/** NABC laid out with a font's glyphs (see layoutNabc()), all in the font's units */
+export interface NabcLayout {
+  glyphs: NabcPlacedGlyph[];
+  /** where each error is, which Gregorio draws as ERR (see NabcLayoutOptions.errorWidth) */
+  errors: number[];
+  /** how far it goes: where what came after it would start */
+  width: number;
+  /** where its leftmost glyph starts, if that's before the start (which 'neume' alignment can make it), or 0 */
+  left: number;
+  /** how far its glyphs go above and below its baseline, by their heights and depths */
+  height: number;
+  depth: number;
+  /** the most that h and a pitch raises a neume, and the most that it lowers one, or 0 */
+  raised: number;
+  lowered: number;
+}
+
+export interface NabcLayoutOptions {
+  /** the room that / and ` (nabcinterelementspace) and // and `` (nabclargerspace) make, in the font's units */
+  interElementSpace: number;
+  largerSpace: number;
+  /**
+   * full, Gregorio's default, to start each neume with its letters, or
+   * neume, to start it with the neume, the letters on its left hanging back
+   * (\gresetnabcalignment)
+   */
+  alignment?: "full" | "neume";
+  /**
+   * the room that an error takes, where ERR is drawn: none by default, as in
+   * Gregorio, which draws ERR in the NABC font, which has no E or R
+   */
+  errorWidth?: number;
+}
+
+// what GregorioTeX makes of NABC: kerns, glyphs and boxes (raised, and as
+// wide as what's in them), and errors
+type NabcOp = { kern: number } | { glyph: string; raise: number } | { box: NabcOp[]; raise: number } | { error: true };
+
+/**
+ * Lays NABC out with a font's glyphs, as GregorioTeX does
+ * (gregallparse_neumes, :305-479): for each neume, it draws the glyph with
+ * as much of the neume and its puncta and letters in it as the font has,
+ * with the prepunctis and subpunctis that aren't in it before and after it,
+ * and the letters that aren't on a 3×3 grid around it, raised by its pitch.
+ * A neume that the font can't draw is an error, as Gregorio's ERR is.
+ */
+export function layoutNabc(items: NabcItem[], font: NabcFont, options: NabcLayoutOptions): NabcLayout {
+  let layout: NabcLayout = { glyphs: [], errors: [], width: 0, left: 0, height: 0, depth: 0, raised: 0, lowered: 0 };
+  let ops: NabcOp[] = [];
+  for (let item of items) {
+    if (item.type === "space")
+      ops.push({ kern: item.direction * (item.size === "larger" ? options.largerSpace : options.interElementSpace) });
+    else if (item.type === "error") ops.push({ error: true });
+    else ops.push(...neumeOps(item, font, options.alignment || "full", layout));
+  }
+  // (each box is as wide as what's in it)
+  const place = (ops: NabcOp[], x: number, raise: number) => {
+    for (let op of ops) {
+      if ("kern" in op) x += op.kern;
+      else if ("error" in op) {
+        layout.errors.push(x);
+        x += options.errorWidth || 0;
+      }
+      else if ("box" in op) x = place(op.box, x, raise + op.raise);
+      else {
+        let [width, height, depth] = font.glyphs[op.glyph];
+        let y = raise + op.raise;
+        layout.glyphs.push({ name: op.glyph, x, y });
+        layout.left = Math.min(layout.left, x);
+        layout.height = Math.max(layout.height, y + height);
+        layout.depth = Math.max(layout.depth, depth - y);
+        x += width;
+      }
+    }
+    return x;
+  };
+  layout.width = place(ops, 0, 0);
+  return layout;
+}
+
+/** what GregorioTeX makes of a neume (:329-473), or an error */
+function neumeOps(neume: NabcNeume, font: NabcFont, alignment: "full" | "neume", layout: NabcLayout): NabcOp[] {
+  const glyph = (name: string) => font.glyphs[nabcGlyphName(font, name)!];
+  const found = (name: string) => (nabcGlyphName(font, name) ? name : null);
+  const error: NabcOp[] = [{ error: true }];
+  // the font must have each letter (:331), and those inside the neume (5)
+  // must be in the neume's glyph
+  if (neume.letters.some((letter) => !nabcGlyphName(font, letter.name))) return error;
+  let inside = neume.letters
+    .filter((letter) => letter.position === 5)
+    .map((letter) => letter.name + letter.position)
+    .join("");
+  // the others, by name and position ("" for those inside, as in the Lua)
+  let letters = neume.letters.map((letter) => (letter.position === 5 ? "" : letter.name + letter.position));
+  let { base } = neume;
+  let pp = neume.prepunctis;
+  let su = neume.subpunctis;
+
+  // the glyph of the neume with parts (0 to 2) of its prepunctis and
+  // subpunctis and some letters (l.try, :340-348), taking the puncta that
+  // it has in it off pp and su
+  const tryGlyph = (parts: number, ls: string) => {
+    let name: string | null;
+    if (parts === 2 && pp && su && (name = found(base + pp + su + inside + ls))) {
+      pp = su = "";
+      return name;
+    }
+    // (subpunctis before prepunctis)
+    if (parts === 1 && su && (name = found(base + su + inside + ls))) {
+      su = "";
+      return name;
+    }
+    if (parts === 1 && pp && (name = found(base + pp + inside + ls))) {
+      pp = "";
+      return name;
+    }
+    // (and subpunctis before letters)
+    if (parts === 0 && su && ls && found(base + su + inside)) return null;
+    if (parts === 0) return found(base + inside + ls);
+    return null;
+  };
+  // the glyph with as many of the parts as there's a glyph for, taking a
+  // glyph with letters only if it has all of them (:349-407)
+  const ppsuParts = (pp ? 1 : 0) + (su ? 1 : 0);
+  const count = letters.length;
+  const position = (letter: string) => letter.slice(-1);
+  let name: string | null = null;
+  for (let parts = ppsuParts + Math.min(count, 3); parts >= 0; parts--) {
+    if (count === 3 && parts >= 3 && parts <= 3 + ppsuParts) {
+      let [a, b, c] = letters;
+      name = tryGlyph(parts - 3, a + b + c);
+      // (in another order, if they're at different positions)
+      if (!name && a && b && c && position(a) !== position(b) && position(a) !== position(c) && position(b) !== position(c))
+        for (let order of [[b, a, c], [a, c, b], [b, c, a], [c, a, b], [c, b, a]])
+          if (!name) name = tryGlyph(parts - 3, order.join(""));
+      if (name) {
+        letters = ["", "", ""];
+        break;
+      }
+    }
+    if (count === 2 && parts >= 2 && parts <= 2 + ppsuParts) {
+      let [a, b] = letters;
+      name = tryGlyph(parts - 2, a + b);
+      if (!name && a && b && position(a) !== position(b)) name = tryGlyph(parts - 2, b + a);
+      if (name) {
+        letters = ["", ""];
+        break;
+      }
+    }
+    if (count === 1 && parts >= 1 && parts <= 1 + ppsuParts) {
+      name = tryGlyph(parts - 1, letters[0]);
+      if (name) {
+        letters = [""];
+        break;
+      }
+    }
+    name = tryGlyph(parts, "");
+    if (name) break;
+  }
+  if (!name || (pp && !found(pp)) || (su && !found(su))) return error;
+
+  // the glyph, with the prepunctis before it and the subpunctis after it
+  // that aren't in it (:410-430), and the box of all of them, which the
+  // letters go around
+  let [width, height, depth] = glyph(name);
+  let ops: NabcOp[] = [{ glyph: nabcGlyphName(font, name)!, raise: 0 }];
+  for (let puncta of [pp, su]) {
+    if (!puncta) continue;
+    let metrics = glyph(puncta);
+    let op = { glyph: nabcGlyphName(font, puncta)!, raise: 0 };
+    if (puncta === pp) ops.unshift(op);
+    else ops.push(op);
+    width += metrics[0];
+    height = Math.max(height, metrics[1]);
+    // (GregorioTeX takes the larger of this and the height here, :423 and
+    // :429, which can only be a mistake: it puts the letters below the
+    // neume a glyph's height below it)
+    depth = Math.max(depth, metrics[2]);
+  }
+  let box = { width, height, depth };
+  // raised by its pitch, a quarter of the clivis's height for each step from f (:431-438)
+  let raise = 0;
+  if (neume.glyphs[0].height !== 5) {
+    raise = ((neume.glyphs[0].height - 5) * (glyph("cl") || [0, 0])[1]) / 4;
+    ops = [{ box: ops, raise }];
+    layout.raised = Math.max(layout.raised, raise);
+    layout.lowered = Math.max(layout.lowered, -raise);
+  }
+
+  // the letters on a 3×3 grid around the box (add_ls, :225-284, and
+  // :439-461): those at each position side by side in the order written,
+  // in columns at the left (1, 4 and 7, by its index 10 in widths) and the
+  // right (3, 6 and 9, by 12), and centered above and below (2 and 8, by 11)
+  let widths = Array<number>(13).fill(0);
+  let placed = Array<number>(13).fill(0);
+  for (let letter of letters) if (letter) widths[+position(letter)] += glyph(letter.slice(0, -1))[0];
+  widths[10] = Math.max(widths[1], widths[4], widths[7]);
+  widths[11] = Math.max(widths[2], widths[8]);
+  widths[12] = Math.max(widths[3], widths[6], widths[9]);
+  let before: NabcOp[] = [];
+  let after: NabcOp[] = [];
+  for (let letter of letters) {
+    if (!letter) continue;
+    let at = +position(letter);
+    let [letterWidth, letterHeight, letterDepth] = glyph(letter.slice(0, -1));
+    let op = { glyph: nabcGlyphName(font, letter.slice(0, -1))!, raise };
+    if (at === 2 || at === 8) {
+      op.raise += at === 2 ? box.height + letterDepth : -box.depth - letterHeight;
+      let kern = -Math.max(box.width, widths[11]) / 2 - widths[at] / 2 + placed[at];
+      placed[at] += letterWidth;
+      let kernAfter = -kern - letterWidth;
+      // (the first moves the neume to the middle of letters wider than it)
+      if (placed[11] === 0 && box.width < widths[11]) {
+        placed[11] = 1;
+        ops.unshift({ kern: (widths[11] - box.width) / 2 });
+        kern += (widths[11] - box.width) / 2;
+      }
+      ops.push({ kern }, op, { kern: kernAfter });
+      continue;
+    }
+    // (at the top, the middle or the bottom)
+    op.raise +=
+      at <= 3
+        ? box.height - (letterHeight - letterDepth) / 2
+        : at <= 6
+        ? (box.height - box.depth) / 2 - (letterHeight + letterDepth) / 2
+        : -box.depth - (letterHeight + letterDepth) / 2;
+    if (at % 3 === 0) {
+      let kern = placed[at] - widths[12];
+      placed[at] += letterWidth;
+      let kernAfter = widths[12] - placed[at];
+      if (placed[12] === 0) {
+        placed[12] = 1;
+        kern = 0;
+      }
+      after.push({ kern }, op, { kern: kernAfter });
+    } else {
+      let kern = placed[at] - widths[at];
+      placed[at] += letterWidth;
+      let kernAfter = widths[at] - placed[at];
+      if (placed[10] === 0) {
+        placed[10] = 1;
+        kern = widths[10] - widths[at];
+      }
+      before.push({ kern }, op, { kern: kernAfter });
+    }
+  }
+  ops = [...before, ...ops, ...after];
+  // with 'neume' alignment, the letters on the left hang back (:462-472)
+  if (alignment === "neume" && widths[10] > 0) ops.unshift({ kern: -widths[10] });
+  return ops;
+}

@@ -5,16 +5,22 @@
 
 import assert from "node:assert";
 import { describe, it } from "vitest";
+import * as Exsurge from "../src/index.js";
 import {
   ChantContext,
   type ChantNotationElement,
   Gabc,
+  layoutNabc,
   nabcAliases,
+  NabcDimensions,
   type NabcFont,
+  nabcGlyphName,
   nabcNameOfGlyph,
   parseNabc
 } from "../src/index.js";
 import { gregall } from "../src/nabc/gregall.js";
+import { featureCases } from "./golden/cases";
+import { render } from "./golden/harness";
 
 // each item in brief: a neume as its glyph names (base, prepunctis,
 // subpunctis and letters) and its pitch if it isn't f, a space as it's
@@ -256,6 +262,136 @@ describe("the NABC fonts", function() {
       .map(([alias, name]) => `${alias} ${name}`);
     // (gresgmodern has sf>, sfG and sfM1, and sc~ is an alias itself)
     assert.deepStrictEqual(missing, ["ta>ppt1 sc~", "cl>pp2 sf>", "toppt1 sfG", "clMpp2 sfM1", "clpp2lsc2 sflsc2"]);
+  });
+});
+
+describe("layoutNabc", function() {
+  // the glyphs that it places, as [name, x, y], and where the errors are
+  const laidOut = (nabc: string, alignment: "full" | "neume" = "full") => {
+    let layout = layoutNabc(parseNabc(nabc), gregall, { interElementSpace: 100, largerSpace: 150, alignment });
+    return {
+      glyphs: layout.glyphs.map((glyph) => [glyph.name, glyph.x, glyph.y]),
+      errors: layout.errors,
+      width: layout.width
+    };
+  };
+
+  // (what GregorioTeX's own Lua lays out with gregall's metrics, with 100
+  // and 150 for its two spaces)
+  it("draws a neume with the glyph that has the most of it in it, as GregorioTeX does", function() {
+    assert.deepStrictEqual(laidOut("vilsc3"), { glyphs: [["vilsc3", 0, 0]], errors: [], width: 797 });
+    assert.deepStrictEqual(laidOut("vi-hhppu2su1sut1"), {
+      glyphs: [["ppu2", 0, 286.5], ["vi-su1sut1", 909, 286.5]],
+      errors: [],
+      width: 2136
+    });
+  });
+
+  it("draws the glyphs of Gregorio's aliases", function() {
+    assert.strictEqual(nabcGlyphName(gregall, "ci~"), "cl>");
+    assert.deepStrictEqual(laidOut("ci~"), { glyphs: [["cl>", 0, 0]], errors: [], width: 995 });
+    assert.deepStrictEqual(laidOut("clppt2lsc6lst8"), {
+      glyphs: [["sfS", 0, 0], ["lst", 518, -296], ["lsc", 1924, 462.5]],
+      errors: [],
+      width: 2368
+    });
+    // (through sc~, which is itself an alias, which GregorioTeX may or may not do)
+    assert.strictEqual(nabcGlyphName(gregall, "ta>ppt1"), "pe>2");
+    assert.strictEqual(nabcGlyphName({ ...gregall, name: "grelaon" }, "ci~"), undefined);
+  });
+
+  it("puts letters around the neume, those at one position side by side", function() {
+    assert.deepStrictEqual(laidOut("pfhhlsl2lsc2"), {
+      glyphs: [["pf", 0, 286.5], ["lsl", 134, 1091.5], ["lsc", 584, 1091.5]],
+      errors: [],
+      width: 1162
+    });
+    assert.deepStrictEqual(laidOut("vippt1lsc2"), {
+      glyphs: [["ppt1", 0, 0], ["vi", 488, 0], ["lsc", 388, 568]],
+      errors: [],
+      width: 1220
+    });
+    assert.deepStrictEqual(laidOut("vilst1lsc4lsx7"), {
+      glyphs: [["lst", 0, 433], ["lsc", 444, 125], ["lsx", 138, -250], ["vi", 888, 0]],
+      errors: [],
+      width: 1620
+    });
+    assert.deepStrictEqual(laidOut("tolse4lsc6"), {
+      glyphs: [["lse", 0, 93.5], ["to", 724, 0], ["lsc", 1453, 105.5]],
+      errors: [],
+      width: 1897
+    });
+  });
+
+  it("hangs the letters on the left back, with 'neume' alignment", function() {
+    assert.deepStrictEqual(laidOut("vilst1lsc4lsx7", "neume"), {
+      glyphs: [["lst", -888, 433], ["lsc", -444, 125], ["lsx", -750, -250], ["vi", 0, 0]],
+      errors: [],
+      width: 732
+    });
+    assert.deepStrictEqual(laidOut("tolse4lsc6", "neume"), {
+      glyphs: [["lse", -724, 93.5], ["to", 0, 0], ["lsc", 729, 105.5]],
+      errors: [],
+      width: 1173
+    });
+  });
+
+  it("makes the spaces, raises neumes by their pitch, and measures them", function() {
+    assert.deepStrictEqual(laidOut("cl/pe//vi`to``pu"), {
+      glyphs: [["cl", 0, 0], ["pe", 708, 0], ["vi", 1874, 0], ["to", 2506, 0], ["pu", 3085, 0]],
+      errors: [],
+      width: 3441
+    });
+    let layout = layoutNabc(parseNabc("vihk"), gregall, { interElementSpace: 100, largerSpace: 150 });
+    assert.deepStrictEqual(layout.glyphs, [{ name: "vi", x: 0, y: 716.25 }]);
+    assert.deepStrictEqual(
+      [layout.height, layout.depth, layout.raised, layout.lowered],
+      [716.25 + gregall.glyphs.vi[1], 0, 716.25, 0]
+    );
+  });
+
+  it("puts the letters below a neume with puncta below its glyphs, not its height below them", function() {
+    // (GregorioTeX takes the height for the depth there, which puts this
+    // letter 700 below the baseline)
+    let [, , suDepth] = gregall.glyphs.su1;
+    let [, , clDepth] = gregall.glyphs["cl>"];
+    let [, lsiHeight, lsiDepth] = gregall.glyphs.lsi;
+    let letter = laidOut("ci~su1lsi7").glyphs[0];
+    assert.deepStrictEqual(letter, ["lsi", 0, -Math.max(suDepth, clDepth) - (lsiHeight + lsiDepth) / 2]);
+  });
+
+  it("makes an error of a neume that the font can't draw, which takes the room it's given", function() {
+    assert.deepStrictEqual(laidOut("pv"), { glyphs: [], errors: [0], width: 0 });
+    assert.deepStrictEqual(laidOut("vilspulcre2"), { glyphs: [], errors: [0], width: 0 });
+    let layout = layoutNabc(parseNabc("vixx"), gregall, { interElementSpace: 100, largerSpace: 150, errorWidth: 500 });
+    assert.deepStrictEqual([layout.errors, layout.width], [[732], 1232]);
+  });
+});
+
+describe("NABC on the staff", function() {
+  it("goes where GregorioTeX puts it, further from the staff for low notes and neumes", async function() {
+    const goldenCase = featureCases.find((c) => c.name === "nabc-two-voices")!;
+    const { score, ctxt } = await render(Exsurge as any, goldenCase.gabc, goldenCase, ["svg"]);
+    let baselines = score.lines.map((line: any) => {
+      let voices: number[][] = [[], []];
+      for (let i = line.notationsStartIndex; i < line.notationsStartIndex + line.numNotationsOnLine; i++)
+        for (let nabc of score.notations[i].nabcNeumes || []) if (nabc) voices[nabc.voice].push(nabc.baseline / ctxt.staffInterval);
+      return voices.map((voice) => [...new Set(voice.map((baseline) => +baseline.toFixed(6)))]);
+    });
+    let above = -7 - NabcDimensions.aboveLinesRaise;
+    let below = -1 + NabcDimensions.belowLinesHeight;
+    assert.deepStrictEqual(baselines[0], [[+above.toFixed(6)], [+below.toFixed(6)]]);
+    // (its vihb reaches further than a staff interval less than the room
+    // above the staff, and its b is two staff intervals below the staff)
+    assert.ok(baselines[1][0][0] < above);
+    assert.deepStrictEqual(baselines[1][1], [+(below + 1).toFixed(6)]);
+  });
+
+  it("isn't drawn without a font", async function() {
+    const goldenCase = featureCases.find((c) => c.name === "nabc-st-gall-basic")!;
+    const { score } = await render(Exsurge as any, goldenCase.gabc, { ...goldenCase, setupContext: undefined }, ["svg"]);
+    assert.ok(score.notations.every((notation: ChantNotationElement) => !notation.nabcNeumes));
+    assert.ok(score.notations.some((notation: ChantNotationElement) => notation.parsedNabc));
   });
 });
 

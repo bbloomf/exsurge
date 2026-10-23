@@ -37,7 +37,7 @@ import { Point, Rect } from "./Exsurge.Core.js";
 import {
   ChantLayoutElement, CurlyBraceVisualizer, GlyphCode, Lyric,
   LyricArray,
-  LyricType, MarkingPositionHint, QuickSvg, RoundBraceVisualizer
+  LyricType, MarkingPositionHint, NabcDimensions, QuickSvg, RoundBraceVisualizer
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
@@ -47,6 +47,7 @@ import type { Accidental, InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import type {
   ChantContext,
   ChantNotationElement,
+  NabcNeumes,
   SvgAttributes,
   SvgElementWithSource,
   SvgTreeNode,
@@ -63,6 +64,77 @@ const hasBackspace = (ctxt: ChantContext, notation: ChantNotationElement) =>
   (typeof notation.trailingSpace === "function"
     ? notation.trailingSpace(ctxt)
     : notation.trailingSpace) < 0;
+
+// how far right Gregorio's NABC goes on a notation and on those before it in
+// its syllable on the line, or -Infinity if they have none
+function nabcRight(line: ChantLine, notation: ChantNotationElement) {
+  let notations = line.score.notations;
+  let index = notation.notationIndex!;
+  // (the clef at the start of the line isn't one of them)
+  if (notations[index] !== notation) return -Infinity;
+  let right = -Infinity;
+  for (let i = index; i >= line.notationsStartIndex; i--) {
+    for (let nabc of notations[i].nabcNeumes || [])
+      if (nabc) right = Math.max(right, notations[i].bounds.x + nabc.bounds.right());
+    if (notations[i].firstOfParentheses) break;
+  }
+  return right;
+}
+
+/**
+ * Puts Gregorio's NABC on a line (see NabcNeumes) where GregorioTeX does
+ * (adjust_additional_spaces() in tex/gregoriotex.lua): the first line of it
+ * with its baseline abovelinesnabcraise above the top line, and the second
+ * belowlinesnabcheight below the bottom line, each further from the staff
+ * where notes go far above or below the staff or the NABC's glyphs reach
+ * towards it.  It makes room for them in the line's notationBounds, so that
+ * text above the lines goes above the first, and the lyrics below the
+ * second.
+ */
+function layoutNabcLines(ctxt: ChantContext, line: ChantLine, notations: ChantNotationElement[]) {
+  // the NABC on each line of it
+  let voices: Array<Array<[ChantNotationElement, NabcNeumes]>> = [[], []];
+  for (let notation of notations)
+    for (let nabc of notation.nabcNeumes || []) if (nabc) voices[nabc.voice].push([notation, nabc]);
+  if (!voices[0].length && !voices[1].length) return;
+  let interval = ctxt.staffInterval;
+  // the staff positions of the highest and lowest notes (0 is c, below the bottom line)
+  let high = -Infinity;
+  let low = Infinity;
+  for (let notation of notations)
+    for (let note of notation.notes || []) {
+      high = Math.max(high, note.staffPosition);
+      low = Math.min(low, note.staffPosition);
+    }
+  let topLine = 2 * line.score.staffLineCount - 1;
+  let bounds = line.notationBounds!;
+  const most = (nabcs: Array<[ChantNotationElement, NabcNeumes]>, measure: (nabc: NabcNeumes) => number) =>
+    Math.max(0, ...nabcs.map(([, nabc]) => measure(nabc) * nabc.unit));
+  if (voices[0].length) {
+    // (keeping a staff interval clear between the glyphs and the staff)
+    let baseline =
+      -topLine * interval -
+      NabcDimensions.aboveLinesRaise * interval -
+      Math.max(0, high - topLine - NabcDimensions.aboveThreshold) * interval -
+      Math.max(0, most(voices[0], (nabc) => nabc.layout.depth) - Math.max(0, (NabcDimensions.aboveLinesHeight - 1) * interval));
+    for (let [, nabc] of voices[0]) nabc.setBaseline(baseline);
+    let height = NabcDimensions.aboveLinesHeight * interval + most(voices[0], (nabc) => nabc.layout.raised);
+    bounds.union(new Rect(0, baseline - height, 0, height));
+  }
+  if (voices[1].length) {
+    // (keeping half a staff interval clear)
+    let baseline =
+      -interval +
+      NabcDimensions.belowLinesHeight * interval +
+      Math.max(0, 1 - low - NabcDimensions.belowThreshold) * interval +
+      Math.max(0, most(voices[1], (nabc) => nabc.layout.height) - Math.max(0, (NabcDimensions.belowLinesHeight - 0.5) * interval));
+    for (let [, nabc] of voices[1]) nabc.setBaseline(baseline);
+    bounds.union(new Rect(0, baseline, 0, most(voices[1], (nabc) => nabc.layout.lowered)));
+  }
+  // and room for all of their glyphs
+  for (let [notation, nabc] of [...voices[0], ...voices[1]])
+    bounds.union(new Rect(notation.bounds.x + nabc.bounds.x, nabc.bounds.y, nabc.bounds.width, nabc.bounds.height));
+}
 
 /** a ledger line on a chant line */
 export interface LedgerLine {
@@ -279,6 +351,8 @@ export class ChantLine extends ChantLayoutElement {
       this.notationBounds.union(this.braces[i].bounds);
     for (i = 0; i < this.slurs.length; i++)
       this.notationBounds.union(this.slurs[i].bounds);
+    // and Gregorio's NABC, above and below the staff
+    layoutNabcLines(ctxt, this, notations.slice(this.notationsStartIndex, lastNeumeIndex));
 
     // finalize the lyrics placement
     var notationBoundsOffset =
@@ -2422,7 +2496,20 @@ export class ChantLine extends ChantLayoutElement {
       space.condensable = hasBackspace(ctxt, prev)
         ? 0
         : space.total * ctxt.condensingTolerance;
+
+      // Gregorio's NABC widens its syllable, where it's wider than the notes,
+      // so that the next syllable starts after it.  (Here, the next NABC in
+      // a syllable starts after it too.)  With "neume" alignment, the notes
+      // make room for the letters that hang back before the NABC on them.
+      if (curr.firstOfParentheses || curr.nabcNeumes) {
+        let shift = Math.max(0, nabcRight(this, prev) - prev.bounds.right());
+        shift += Math.max(0, ...(curr.nabcNeumes || []).map((nabc) => (nabc ? -nabc.bounds.x : 0)));
+        curr.bounds.x += shift;
+        space.total += shift;
+      }
     }
+    // (as far right as it or the NABC of its syllable goes)
+    const currRight = () => Math.max(curr.bounds.right(), nabcRight(this, curr));
 
     // Gregorio's <clear>: a lyric's text may not start before the previous
     // notation's notes end, nor its notation's notes before the previous
@@ -2451,7 +2538,7 @@ export class ChantLine extends ChantLayoutElement {
     // if the previous notation has no lyrics, then we simply make sure the
     // current notation with lyrics is in the bounds of the line
     if (prevLyrics.length === 0) {
-      var maxRight = curr.bounds.right() + curr.calculatedTrailingSpace;
+      var maxRight = currRight() + curr.calculatedTrailingSpace;
 
       // if the lyric left is negative, then offset the neume appropriately
       for (i = 0; i < curr.lyrics.length; i++) {
@@ -2498,7 +2585,7 @@ export class ChantLine extends ChantLayoutElement {
     // if the curr notation has no lyrics, then simply check whether there is enough room
     if (curr.hasLyrics() === false) {
       if (
-        curr.bounds.right() + curr.calculatedTrailingSpace >
+        currRight() + curr.calculatedTrailingSpace >
         rightNotationBoundary + condensableSpaces.sum + space.condensable
       )
         return false;
@@ -2650,7 +2737,7 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     if (
-      curr.bounds.right() + curr.calculatedTrailingSpace <
+      currRight() + curr.calculatedTrailingSpace <
         rightNotationBoundary + condensableSpaces.sum + space.condensable &&
       LyricArray.getRight(curr.lyrics, true, true) <=
         this.staffRight + condensableSpaces.sum + space.condensable

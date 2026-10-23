@@ -1,0 +1,292 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="105.35542546285926" viewBox="0 0 600 105.35542546285926" >
+<g >
+<defs >
+<g id="Mora" class="glyph" transform="scale(0.0625)" >
+<path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z" >
+</path>
+</g>
+<g id="Nabc-gregall-ta" class="glyph" transform="scale(0.0625)" >
+<path d="m1-41c47-59 47-59 202-66 5 0 5 0 9 0 64 0 64 0 65 34 0 1 0 1 0 2 0 32 0 32-63 32-4 0-4 0-9 0-8-1-8-1-16-1-71 0-71 0-149 40-27 14-27 14-42 14-15 0-15 0-19-12-1-1-1-1-1-3 0-11 0-11 23-40z" >
+</path>
+</g>
+<g id="Nabc-gregall-lsi" class="glyph" transform="scale(0.0625)" >
+<path d="m129-250c2-23 2-23 90-42 10-2 10-2 17-2 21 0 21 0 21 18 0 2 0 2 0 3 0 42 0 42-24 71-64 78-64 78-64 86 1 40 1 40 8 48 13 9 13 9 24 24 3 4 3 4 3 7 0 11 0 11-29 17-43 9-43 9-74 9-22 0-22 0-38-5-21-6-21-6-21-18 0-9 0-9 13-22 52-52 52-52 100-118 14-20 14-20 14-32 0-9 0-9-8-14-33-20-33-20-33-28 0-1 0-1 1-2z" >
+</path>
+</g>
+<g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="Nabc-gregall-pe" class="glyph" transform="scale(0.0625)" >
+<path d="m76-181c1 2 1 2 1 5 0 17 0 17-23 48-5 7-5 7-5 22 0 14 0 14 4 34 5 25 5 25 38 25 7 0 7 0 16-1 44-6 44-6 74-43 253-306 253-306 655-528 58-32 58-32 74-34 8-1 8-1 13-1 22 0 22 0 22 11 0 5 0 5-4 12-3 4-3 4-73 47-418 254-418 254-732 589-32 24-32 24-72 25-2 0-2 0-3 0-39 0-39 0-68-23-54-43-54-43-54-76 0 0 0 0 0-1 1-33 1-33 55-82 47-42 47-42 67-42 12 0 12 0 15 13z" >
+</path>
+</g>
+<g id="PodatusLower" class="glyph" transform="scale(0.0625)" >
+<path d="M-50 42.17V-50q0-5.42 3.61-5.42h2.41q19.28 3.61 35.55 3.61 4.21 0 10.84-.3t9.04-.3q13.25 0 20.48-4.82t7.23-12.65L50-75.3V41.57q0 3.61-11.14 6.92-11.15 3.32-24.4 3.32-3.01 0-7.83-.3-4.82-.31-12.05-.31-19.88 0-28.31-1.2Q-50 46.99-50 42.17" >
+</path>
+</g>
+<g id="PodatusUpper" class="glyph" transform="scale(0.0625)" >
+<path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
+</path>
+</g>
+<g id="Nabc-gregall-vilsc3" class="glyph" transform="scale(0.0625)" >
+<path d="m713-767c-59 45-59 45-120 45-25 0-25 0-50-7-67-17-67-17-67-73 0-5 0-5 1-11 19-139 19-139 186-168 6-1 6-1 11-1 19 0 19 0 23 12 2 6 2 6 2 11 0 13 0 13-17 14-84 3-84 3-119 58-20 32-20 32-20 59 0 28 0 28 20 52 11 12 11 12 38 12 37 0 37 0 104-22 8-1 8-1 13-1 9 0 9 0 9 3 0 5 0 5-14 17zm-713 729c195-230 195-230 492-344 25-10 25-10 39-10 13 0 13 0 17 8 3 6 3 6 3 11 0 18 0 18-35 35-418 202-418 202-472 338-7 19-7 19-31 19-10 0-10 0-24-4-12-3-12-3-12-13 0-13 0-13 23-40z" >
+</path>
+</g>
+<g id="Nabc-gregall-vi" class="glyph" transform="scale(0.0625)" >
+<path d="m641-517c-24 13-24 13-79 48-138 87-138 87-388 312-140 127-140 127-169 168-7 10-7 10-16 11 0 0 0 0-1 0l-13-14c-1-2-1-2-1-4 0-11 0-11 17-29 410-434 410-434 607-510 38-15 38-15 52-22 15-8 15-8 27-10 5-1 5-1 5 4 0 1 0 1 0 1 0 1 0 1 0 2 0 5 0 5-9 19-7 10-7 10-32 24z" >
+</path>
+</g>
+<g id="Nabc-gregall-lsl" class="glyph" transform="scale(0.0625)" >
+<path d="m51-28c-2 0-2 0-2 0-1 0-1 0-2 0-22 0-22 0-22-58 0-5 0-5 0-7 0-4 0-4 0-8 0-36 0-36 22-85 18-40 18-40 46-366 11-77 11-77 22-92 44-59 44-59 118-78 4-1 4-1 8-1 1 0 1 0 2 0 18 0 18 0 18 35 0 12 0 12-28 98-100 307-100 307-110 326-24 47-24 47-30 61-3 8-3 8-3 19 0 21 0 21 13 52 15 35 15 35 37 35 11-1 11-1 23-5 88-29 88-29 92-30 29-7 29-7 42-7 10 0 10 0 10 4-1 9-1 9-38 33-114 74-114 74-218 74z" >
+</path>
+</g>
+<g id="Nabc-gregall-lsc" class="glyph" transform="scale(0.0625)" >
+<path d="m47-34c-36-24-36-24-36-54 0-14 0-14 8-30 75-138 75-138 166-166 42-12 42-12 55-12 5 0 5 0 5 2 0 0 0 0 0 0-8 65-8 65-41 65-4 0-4 0-9-1-5-1-5-1-10-1-32 0-32 0-56 41-3 5-3 5-34 64-4 8-4 8-4 16 0 20 0 20 30 34 27 13 27 13 58 13 19 0 19 0 40-5l56-8c15 6 15 6 15 13 0 8 0 8-15 17-47 31-47 31-98 34-14 1-14 1-27 1-69 0-69 0-103-23z" >
+</path>
+</g>
+<g id="Nabc-gregall-lst" class="glyph" transform="scale(0.0625)" >
+<path d="m261-32c-3 0-3 0-6 0-33 0-33 0-33-21 0-2 0-2 0-4 6-43 6-43 11-69 0-2 0-2 0-3 0-12 0-12-11-24-12-13-12-13-38-15l-164 6c-17-2-17-2-17-10 0-5 0-5 9-14 20-20 20-20 59-26 309-46 309-46 607-58 2 0 2 0 4 0 43 0 43 0 45 19 0 0 0 0 0 1 0 14 0 14-46 18-186 14-186 14-327 40-39 7-39 7-56 26-8 9-8 9-10 42 0 2 0 2 0 3 0 22 0 22 28 29 33 8 33 8 49 8 5 0 5 0 8-1 14-4 14-4 22-4 7 0 7 0 7 4 0 6 0 6-21 22-36 28-36 28-120 31z" >
+</path>
+</g>
+<g id="Nabc-gregall-lsx" class="glyph" transform="scale(0.0625)" >
+<path d="m91-14c-52-23-52-23-55-75 0-1 0-1 0-1 0-26 0-26 36-46 10-6 10-6 19-6 12 0 12 0 19 13 8 14 8 14 8 30 0 4 0 4 0 7 0 11 0 11 8 11 8 0 8 0 24-10 38-25 38-25 154-147 13-14 13-14 14-30 0-2 0-2 0-3 0-20 0-20-11-31-13-13-13-13-88-59-22-15-22-15-22-29 0-4 0-4 3-9 5-2 5-2 47-26 18-10 18-10 31-10 8 0 8 0 13 4 61 55 61 55 89 65 21 8 21 8 34 8 7 0 7 0 11-2 28-13 28-13 126-86 15-10 15-10 31-10 14 0 14 0 30 8 18 9 18 9 18 28 0 5 0 5-2 12-10 39-10 39-44 67-11 10-11 10-21 10-9 0-9 0-17-10-7-9-7-9-7-22 0-1 0-1 0-3 0-1 0-1 0-1 0-11 0-11-8-11-6 0-6 0-16 5-41 22-41 22-74 59-11 12-11 12-11 28 0 4 0 4 1 9 5 26 5 26 25 38 39 23 39 23 69 31 12 3 12 3 12 7 0 5 0 5-22 12-35 10-35 10-74 10-6 0-6 0-13 0-47-3-47-3-52-19-6-17-6-17-12-24-2-3-2-3-6-3-10 0-10 0-29 17l-192 182c-17 15-17 15-33 15-7 0-7 0-13-3z" >
+</path>
+</g>
+<g id="Nabc-gregall-pf" class="glyph" transform="scale(0.0625)" >
+<path d="m14 46c-50-17-50-17-50-77 0-3 0-3 0-5 0-31 0-31 52-128 108-203 108-203 324-408 20-19 20-19 42-19 24 0 24 0 52 21 32 24 32 24 40 100 4 36 4 36 4 63 0 61 0 61-20 77 0 9 0 9 0 9 0 4 0 4 0 8 0 59 0 59 14 73 6 6 6 6 11 6 15-1 15-1 33-32 67-114 67-114 164-274 104-171 104-171 272-252 27-13 27-13 47-13 22 0 22 0 35 17 30 39 30 39 30 77-1 14-1 14-4 27-9 41-9 41-152 360l-18 105c-26 58-26 58-64 73-11 4-11 4-19 4-26-1-26-1-33-36-1-5-1-5-1-10 1-32 1-32 29-84 55-104 55-104 96-217 19-53 19-53 19-86 0-17 0-17-5-29-14-34-14-34-44-34-1 0-1 0-2 0-1 0-1 0-2 0-22 0-22 0-60 54-149 214-149 214-172 262-25 51-25 51-182 232-27 31-27 31-58 31-5 0-5 0-10-1-38-8-38-8-38-48 0-2 0-2 0-4 0-82 0-82 12-148 4-22 4-22 4-47 0-30 0-30-6-63-6-33-6-33-52-50-8-3-8-3-16-3-31 0-31 0-66 41-90 106-90 106-116 208-3 13-3 13-3 26 1 48 1 48 19 74 3 4 3 4 2 8-3 25-3 25-46 74-34 39-34 39-54 39-1 0-1 0-1 0-4 0-4 0-7-1z" >
+</path>
+</g>
+<g id="Nabc-gregall-lse" class="glyph" transform="scale(0.0625)" >
+<path d="m159-196c48-7 48-7 48-20 0-29 0-29-18-34-29 1-29 1-46 10-24 13-24 13-30 38 0 1 0 1 0 1 0 7 0 7 19 7 11 0 11 0 27-2zm-148 116c0-7 0-7 0-14 0-68 0-68 34-114 49-66 49-66 140-102 25-10 25-10 50-10 28 0 28 0 56 14 15 8 15 8 15 32 0 11 0 11-3 24-4 18-4 18-10 30l244-48c10-1 10-1 18-1 28 0 28 0 40 13 8 9 8 9 8 15 0 13 0 13-26 19-394 55-394 55-448 78-28 12-28 12-34 22-3 7-3 7-3 14 0 20 0 20 33 32 9 3 9 3 22 3 25 0 25 0 62-13 81-30 81-30 96-34 37-10 37-10 50-10 7 0 7 0 7 3 0 8 0 8-49 35-81 46-81 46-164 60-22 4-22 4-41 4-42 0-42 0-75-16-19-9-19-9-22-36z" >
+</path>
+</g>
+<g id="Nabc-gregall-cl" class="glyph" transform="scale(0.0625)" >
+<path d="m-27-25c3-18 3-18 17-40 159-306 159-306 413-467 62-41 62-41 92-41 0 0 0 0 1 0 40 1 40 1 45 40 1 6 1 6 1 13 0 35 0 35-22 81-72 153-72 153-187 353-17 28-17 28-35 33-3 1-3 1-5 1-8 0-8 0-8-10 0-5 0-5 2-13 3-13 3-13 34-56 85-118 85-118 116-264 3-15 3-15 3-28 0-27 0-27-13-45-10-15-10-15-25-15-10 0-10 0-22 8-79 49-79 49-174 172-136 178-136 178-167 289-8 27-8 27-31 27-9 0-9 0-20-4-16-6-16-6-16-24 0-5 0-5 1-10z" >
+</path>
+</g>
+<g id="Nabc-gregall-to" class="glyph" transform="scale(0.0625)" >
+<path d="m12-155c7 37 7 37 7 52 1 28 1 28 40 46 43 17 43 17 72 17 18 0 18 0 31-7 46-20 46-20 58-63 36-144 36-144 67-211 42-85 42-85 97-125 90-69 90-69 168-95 11-4 11-4 21-4 29 0 29 0 56 25 22 22 22 22 22 51 0 13 0 13-4 28-39 140-39 140-123 293-11 20-11 20-27 20-9 0-9 0-18-5-10-4-10-4-10-13 0-9 0-9 10-23 63-89 63-89 70-129 6-33 6-33 6-55 0-21 0-21-5-32-13-28-13-28-32-41-7-4-7-4-18-4-26 0-26 0-76 24-73 35-73 35-117 209-35 143-35 143-73 183-51 52-51 52-124 52-17 0-17 0-34-3-104-17-104-17-122-61-9-26-9-26-9-50 0-24 0-24 10-46 15-35 15-35 42-35 7 0 7 0 15 2z" >
+</path>
+</g>
+<g id="Nabc-gregall-lss" class="glyph" transform="scale(0.0625)" >
+<path d="m63-14c-16-10-16-10-16-22 0-8 0-8 7-17 31-42 31-42 43-103 0-1 0-1 0-2 0-11 0-11-16-34-36-49-36-49-36-64 0-33 0-33 36-72 32-34 32-34 55-34 0 0 0 0 1 0 11 1 11 1 19 1 16 0 16 0 19-3 6-5 6-5 96-108 29-34 29-34 55-34 26 0 26 0 49 32 14 19 14 19 14 61 0 36 0 36-10 89-7 38-7 38-40 42 0 0 0 0 0 0-8 0-8 0-10-36-2-47-2-47-2-52-2-22-2-22-30-26-6-1-6-1-11-1-24 0-24 0-42 15-25 23-25 23-46 71l-105 283c-8 17-8 17-20 17-4 0-4 0-10-3z" >
+</path>
+</g>
+<g id="Nabc-gregall-ppt1" class="glyph" transform="scale(0.0625)" >
+<path d="m94 183c-22-1-22-1-13-30 5-22 5-22 70-57 20-11 20-11 61-14 103-7 103-7 152 0 57 7 57 7 76 29 17 21 17 21-14 46-19 15-19 15-66 19-154 12-154 12-266 7z" >
+</path>
+</g>
+<g id="Nabc-gregall-sfS" class="glyph" transform="scale(0.0625)" >
+<path d="m1171-566c-31-14-31-14-27-24 129-312 129-312 538-628 50-39 50-39 86 2 36 42 36 42 10 108-92 231-92 231-264 528-23 39-23 39-54 22-24-13-24-13 4-50 130-174 130-174 184-350 9-29 9-29-7-89-12-52-12-52-47-43-21 4-21 4-64 50-229 245-229 245-310 462-11 30-11 30-49 12zm-775 232c-44-23-44-23-32-68 9-35 9-35 64-56 23-9 23-9 72 4 166 43 166 43 226 74 37 19 37 19 22 52-14 32-14 32-68 54-27 11-27 11-70 2-161-34-161-34-214-62zm-142 352c-219-41-219-41-236-50-30-15-30-15 14-64 36-40 36-40 76-36 140 16 140 16 272 50 39 11 39 11 12 56-19 32-19 32-76 50-11 4-11 4-62-6z" >
+</path>
+</g>
+<g id="DoClef" class="glyph" transform="scale(0.0625)" >
+<path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,73.50866409922288)" element-index="0" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-31.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
+<text source-index="5" x="-7.8766" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >FAc</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-ta" class="" x="2" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsi" class="" x="0" y="-242.7470552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="9" element-index="0" id="note-1" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(38.4705,0)" >
+<text source-index="18" x="-6.9262" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >tus</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-pe" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PodatusLower" class=" note" source-index="22" element-index="1" id="note-2" x="3.125" y="-12.5" >
+</use>
+<rect x="5.45" y="-37.5" width="0.8" height="25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PodatusUpper" class=" note" source-index="23" element-index="2" id="note-3" x="6.25" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(61.842094491129785,0)" >
+<text source-index="29" x="0.8353999999999999" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >est</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-vilsc3" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="33" element-index="3" id="note-4" x="3.125" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(89.37489449112978,0)" >
+<text source-index="43" x="-4.622199999999999" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >re</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-vi" class="" x="5.0625" y="-279.9033052934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsl" class="" x="0" y="-315.4033052934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsc" class="" x="28.125" y="-315.4033052934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="46" element-index="4" id="note-5" x="3.125" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(108.12841858076564,0)" >
+<text source-index="61" x="-5.4574" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >pén</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-lst" class="" x="0" y="-289.0595552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsc" class="" x="27.75" y="-269.8095552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsx" class="" x="8.625" y="-246.37205529340613" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-vi" class="" x="55.5" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="65" element-index="5" id="note-6" x="3.125" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(135.76693538748833,0)" >
+<text source-index="82" x="-5.687799999999999" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >te</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-ta" class="" x="0" y="-270.9501802934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsi" class="" x="20.25" y="-260.8876802934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="85" element-index="6" id="note-7" x="3.125" y="-12.5" >
+</use>
+<use xlink:href="#Mora" class="" x="6.375" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement QuarterBar" transform="translate(153.70443538748833,0)" >
+<rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="99" element-index="7" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(161.56693538748834,0)" >
+<text source-index="102" x="-3.2110000000000003" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >de</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-pf" class="" x="0" y="-279.9033052934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsl" class="" x="8.375" y="-330.2158052934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsc" class="" x="36.5" y="-330.2158052934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="105" element-index="8" id="note-8" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(186.72531904761905,0)" >
+<text source-index="121" x="-9.8278" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >cæ</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-lse" class="" x="0" y="-251.1845552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-cl" class="" x="45.25" y="-261.99705529340616" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsc" class="" x="83.24999999999999" y="-288.5595552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="124" element-index="9" id="note-9" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(216.27300784313726,0)" >
+<text source-index="137" x="-7.113399999999999" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >lo</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-lsc" class="" x="0" y="-250.3720552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-to" class="" x="32.71875" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lst" class="" x="27.75" y="-296.0595552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lss" class="" x="83.24999999999999" y="-243.8095552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="140" element-index="10" id="note-10" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(249.90028263305322,0)" >
+<text source-index="158" x="-4.795" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >so</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-ppt1" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-vi" class="" x="30.5" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsc" class="" x="24.25" y="-297.4970552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="161" element-index="11" id="note-11" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(272.6434866479925,0)" >
+<text source-index="174" x="-9.7774" y="26.518761363636372" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >nus,</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gregall-sfS" class="" x="0" y="-261.99705529340605" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lst" class="" x="32.375" y="-243.4970552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gregall-lsc" class="" x="120.25" y="-290.9033052934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<rect x="0" y="-6.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="179" element-index="12" id="note-12" x="3.125" y="-6.25" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="180" element-index="13" id="note-13" x="9.375" y="0" >
+</use>
+<use xlink:href="#Mora" class="" x="12.625" y="-10.9375" >
+</use>
+<use xlink:href="#Mora" class="" x="12.625" y="0" >
+</use>
+</g>
+<g class="ChantNotationElement HalfBar" transform="translate(307.9362383753501,0)" >
+<rect x="0" y="-37.5" width="0.8" height="25" fill="#000" class="dividerLine" source-index="201" element-index="14" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>

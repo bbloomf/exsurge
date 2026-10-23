@@ -3,7 +3,8 @@ dist/nabc-<font>.min.js bundles and the exsurge-ts/nabc-<font> entry points)
 is converted from Gregorio's NABC fonts
 (https://github.com/gregorio-project/gregorio).  It is licensed under the SIL
 Open Font License, Version 1.1, below, not under exsurge's MIT license
-(LICENSE).
+(LICENSE).  So are the outlines in the snapshots of the tests that draw it
+(test/golden/__snapshots__/nabc-*/).
 
 gregall (src/nabc/gregall.ts):
 Copyright (C) 2014-2026 Jakub Jelinek <jakub@redhat.com>
