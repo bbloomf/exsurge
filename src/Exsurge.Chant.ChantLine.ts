@@ -25,7 +25,7 @@
 
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
 import {
-  BraceAttachment, BracePoint, BraceShape, HorizontalEpisemaAlignment, Slur
+  BraceAttachment, BracePoint, BraceShape, HorizontalEpisemaAlignment, Slur, ledgerLinePosition
 } from "./Exsurge.Chant.Markings.js";
 import {
   AccidentalType,
@@ -2230,8 +2230,7 @@ export class ChantLine extends ChantLayoutElement {
     for (let side of ["above", "below"] as const) {
       let start = openSlurs[side];
       if (!start || lastIndex >= notations.length) continue;
-      let x = start.x === null ? this.startingClef.bounds.right() : start.x;
-      this.slurs.push(new Slur(ctxt, x, start.y, this.staffRight, start.y, side === "above"));
+      this.slurs.push(new Slur(ctxt, this.startX(start), start.y, this.staffRight, start.y, side === "above"));
       start.x = null;
     }
 
@@ -2241,9 +2240,9 @@ export class ChantLine extends ChantLayoutElement {
       let start = openLedgerLines[side];
       if (!start || lastIndex >= notations.length) continue;
       customLedgerLines.push({
-        x1: start.x === null ? this.startingClef.bounds.right() : start.x,
+        x1: this.startX(start),
         x2: this.staffRight,
-        staffPosition: side === "above" ? this.score.staffLineCount * 2 + 1 : -1
+        staffPosition: ledgerLinePosition(ctxt, side === "above")
       });
       start.x = null;
     }
@@ -2252,6 +2251,13 @@ export class ChantLine extends ChantLayoutElement {
       line.x2 = Math.min(line.x2, this.staffRight);
       this.ledgerLines.push(line);
     }
+  }
+
+  // where a slur or custom ledger line from note to note that started at
+  // start begins on this line: where it started, or after the clef if that
+  // was on an earlier line
+  startX(start: { x: number | null }) {
+    return start.x === null ? this.startingClef.bounds.right() : start.x;
   }
 
   // Gregorio's ledger lines of a given length next to the note (gabc [oll:…]
@@ -2263,7 +2269,7 @@ export class ChantLine extends ChantLayoutElement {
     var extent = (e: LedgerLineExtent) => (e === "overhang" ? ctxt.intraNeumeSpacing : e * ctxt.staffInterval);
     for (let line of note.customLedgerLines!) {
       let side = line.isAbove ? ("above" as const) : ("below" as const);
-      let staffPosition = line.isAbove ? this.score.staffLineCount * 2 + 1 : -1;
+      let staffPosition = ledgerLinePosition(ctxt, line.isAbove);
       // (where the line is introduced)
       let x = note.neume!.bounds.x + (line.before ? note.bounds.x : note.bounds.right());
       let start = openLedgerLines[side];
@@ -2273,7 +2279,7 @@ export class ChantLine extends ChantLayoutElement {
         if (!start) openLedgerLines[side] = { x: x - extent(line.left!), right: line.right! };
       } else if (start) {
         customLedgerLines.push({
-          x1: start.x === null ? this.startingClef.bounds.right() : start.x,
+          x1: this.startX(start),
           x2: x + extent(start.right),
           staffPosition
         });
@@ -2327,8 +2333,8 @@ export class ChantLine extends ChantLayoutElement {
         if (!start) openSlurs[side] = point;
       } else if (start) {
         // (one that started on an earlier line goes on from the start of this one, level with its end)
-        if (start.x === null) this.slurs.push(new Slur(ctxt, this.startingClef.bounds.right(), point.y, point.x, point.y, mark.isAbove));
-        else this.slurs.push(new Slur(ctxt, start.x, start.y, point.x, point.y, mark.isAbove));
+        let y = start.x === null ? point.y : start.y;
+        this.slurs.push(new Slur(ctxt, this.startX(start), y, point.x, point.y, mark.isAbove));
         delete openSlurs[side];
       }
     }

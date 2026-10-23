@@ -38,7 +38,7 @@ import {
   type ChantContext
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
-import { NoteBracket } from "./Exsurge.Chant.Markings.js";
+import { NoteBracket, ledgerLinePosition } from "./Exsurge.Chant.Markings.js";
 
 /** a ledger line that a neume needs, from one of its notes to another */
 export interface NeumeLedgerLine {
@@ -575,7 +575,9 @@ export class Neume extends ChantNotationElement {
   }
 
   finishLayout(ctxt: ChantContext) {
-    var bracketWidth = this.layoutBrackets(ctxt);
+    var bracketWidth = this.layoutLeftBracket(ctxt);
+    // (where a right bracket goes, unless a mora goes further)
+    var rightBracketX = this.bounds.right();
     this.ledgerLines = this.requiresLedgerLine(ctxt);
 
     // allow subclasses an opportunity to position their own markings...
@@ -594,6 +596,7 @@ export class Neume extends ChantNotationElement {
       for (j = 0; j < note.morae.length; j++) {
         note.morae[j].performLayout(ctxt);
         this.addVisualizer(note.morae[j]);
+        rightBracketX = Math.max(rightBracketX, note.morae[j].bounds.right());
       }
 
       // if the note has an ictus, then add it here
@@ -618,6 +621,8 @@ export class Neume extends ChantNotationElement {
       // markings rather than note level markings
     }
 
+    this.layoutRightBracket(ctxt, rightBracketX);
+
     this.origin.x = this.notes[0].origin.x + bracketWidth;
     this.origin.y = this.notes[0].origin.y;
 
@@ -626,85 +631,27 @@ export class Neume extends ChantNotationElement {
 
   // Gregorio's brackets (gabc [[ and ]]): one at the left of the first note
   // if it starts brackets, which moves the notes to the right to make room for
-  // it, and one at the right of the last note if it ends them.  Returns the
-  // width of the one at the left, if any.
-  layoutBrackets(ctxt: ChantContext) {
-    var first = this.notes[0],
-      last = this.notes[this.notes.length - 1];
-    var leftRange = first.bracketStart ? this.bracketRange(ctxt, first, 1) : null;
-    var rightRange = last.bracketEnd ? this.bracketRange(ctxt, last, -1) : null;
-    var bracket,
-      width = 0;
+  // it.  Returns its width, if there is one.
+  layoutLeftBracket(ctxt: ChantContext) {
+    var ranges = this.notes[0].bracketRanges;
+    if (!ranges || !ranges.start) return 0;
 
-    if (leftRange) {
-      bracket = new NoteBracket(ctxt, false, leftRange.low, leftRange.high);
-      width = bracket.bounds.width;
-      for (var i = 0; i < this.visualizers.length; i++) this.visualizers[i].bounds.x += width;
-      this.bounds.x += width;
-      this.addVisualizer(bracket);
-    }
-
-    if (rightRange) {
-      bracket = new NoteBracket(ctxt, true, rightRange.low, rightRange.high);
-      bracket.bounds.x = this.bounds.right();
-      this.addVisualizer(bracket);
-    }
-
+    var bracket = new NoteBracket(ctxt, false, ranges.start.low, ranges.start.high);
+    var width = bracket.bounds.width;
+    for (var i = 0; i < this.visualizers.length; i++) this.visualizers[i].bounds.x += width;
+    this.bounds.x += width;
+    this.addVisualizer(bracket);
     return width;
   }
 
-  // the lowest and highest staff positions of the notes in the brackets that
-  // note starts (direction 1) or ends (direction -1), which can go on into
-  // other neumes, or null if the brackets aren't closed.  As in Gregorio, a [[
-  // inside brackets is ignored.
-  bracketRange(ctxt: ChantContext, note: Note, direction: 1 | -1) {
-    var notations: ChantNotationElement[] = ctxt.notations || [];
-    var index =
-      notations[ctxt.currNotationIndex] === this ? ctxt.currNotationIndex : notations.indexOf(this);
-    if (index < 0) {
-      notations = [this];
-      index = 0;
-    }
+  // and one at x, after the last note and its morae, if the note ends them
+  layoutRightBracket(ctxt: ChantContext, x: number) {
+    var ranges = this.notes[this.notes.length - 1].bracketRanges;
+    if (!ranges || !ranges.end) return;
 
-    // calls visit with each note after (or before) note, until it returns true
-    var visitNotes = (direction: 1 | -1, visit: (n: Note) => boolean | undefined | void) => {
-      for (var i = index; i >= 0 && i < notations.length; i += direction) {
-        var notes = notations[i].notes || [];
-        var j = i === index ? notes.indexOf(note) + direction : direction > 0 ? 0 : notes.length - 1;
-        for (; j >= 0 && j < notes.length; j += direction) if (visit(notes[j])) return;
-      }
-    };
-
-    var notes = [note];
-    var closed = false;
-    if (direction > 0) {
-      // (a [[ after another, with no ]] between them, is inside its brackets)
-      var nested = false;
-      visitNotes(-1, (n) => {
-        nested = !!n.bracketStart && !n.bracketEnd;
-        return n.bracketStart || n.bracketEnd;
-      });
-      if (nested) return null;
-      closed = !!note.bracketEnd;
-      if (!closed)
-        visitNotes(1, (n) => {
-          notes.push(n);
-          return (closed = !!n.bracketEnd);
-        });
-    } else {
-      // back to the first [[ since the brackets before
-      visitNotes(-1, (n) => {
-        if (n.bracketEnd) return true;
-        notes.push(n);
-      });
-      var start = notes.map((n) => !!n.bracketStart).lastIndexOf(true);
-      closed = start >= 0;
-      notes = notes.slice(0, start + 1);
-    }
-    if (!closed) return null;
-
-    var staffPositions = notes.map((n) => n.staffPosition);
-    return { low: Math.min(...staffPositions), high: Math.max(...staffPositions) };
+    var bracket = new NoteBracket(ctxt, true, ranges.end.low, ranges.end.high);
+    bracket.bounds.x = x;
+    this.addVisualizer(bracket);
   }
 
   requiresLedgerLine(ctxt: ChantContext) {
@@ -718,49 +665,58 @@ export class Neume extends ChantNotationElement {
 
     if (!this.notes) return result;
 
-    for (var i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
-      var staffPosition = this.ledgerLineStaffPosition(ctxt, note);
-      if (staffPosition >= ledgerLinePositionAbove - 1) {
-        needsAbove = needsAbove || staffPosition >= ledgerLinePositionAbove - 0.9;
-        if (firstAbove === false) firstAbove = Math.max(0, i - 1);
-        if (staffPosition >= ledgerLinePositionAbove) continue;
-      } else if (staffPosition <= 0) {
-        needsBelow = needsBelow || staffPosition < -0.1;
-        if (firstBelow === false) firstBelow = Math.max(0, i - 1);
-        if (staffPosition <= -1) continue;
+    // (the notes are looked at for the ledger lines above the staff, and then
+    // for those below it, as Gregorio's [oll:1] and [ull:1] can draw both at
+    // a note)
+    for (let isAbove of [true, false]) {
+      for (var i = 0; i < this.notes.length; ++i) {
+        var note = this.notes[i];
+        var staffPosition = this.ledgerLineStaffPosition(ctxt, note, isAbove);
+        if (isAbove && staffPosition >= ledgerLinePositionAbove - 1) {
+          needsAbove = needsAbove || staffPosition >= ledgerLinePositionAbove - 0.9;
+          if (firstAbove === false) firstAbove = Math.max(0, i - 1);
+          if (staffPosition >= ledgerLinePositionAbove) continue;
+        } else if (!isAbove && staffPosition <= 0) {
+          needsBelow = needsBelow || staffPosition < -0.1;
+          if (firstBelow === false) firstBelow = Math.max(0, i - 1);
+          if (staffPosition <= -1) continue;
+        }
+        if (needsAbove || needsBelow) {
+          var endI = i; // Math.abs(staffPosition) >= 4? i : i - 1;
+          result.push({
+            element: this.notes[firstAbove || firstBelow || 0],
+            endElem: this.notes[endI],
+            staffPosition: needsAbove ? ledgerLinePositionAbove : -1
+          });
+          firstAbove = firstBelow = needsAbove = needsBelow = false;
+        }
+        // isPorrectus = /^Porrectus\d$/.test(note.glyphVisualizer.glyphCode);
       }
       if (needsAbove || needsBelow) {
-        var endI = i; // Math.abs(staffPosition) >= 4? i : i - 1;
         result.push({
           element: this.notes[firstAbove || firstBelow || 0],
-          endElem: this.notes[endI],
+          endElem: this.notes[this.notes.length - 1],
           staffPosition: needsAbove ? ledgerLinePositionAbove : -1
         });
         firstAbove = firstBelow = needsAbove = needsBelow = false;
       }
-      // isPorrectus = /^Porrectus\d$/.test(note.glyphVisualizer.glyphCode);
-    }
-    if (needsAbove || needsBelow) {
-      result.push({
-        element: this.notes[firstAbove || firstBelow || 0],
-        endElem: this.notes[this.notes.length - 1],
-        staffPosition: needsAbove ? ledgerLinePositionAbove : -1
-      });
     }
     return result;
   }
 
-  // the staff position that requiresLedgerLine() takes the note to be at:
-  // its own, or, where Gregorio's [oll:1] or [ull:1] draws a ledger line at
-  // it, on the ledger line, or where [oll:0] or [ull:0] leaves one out, on
-  // the nearest staff line
-  ledgerLineStaffPosition(ctxt: ChantContext, note: Note) {
-    var topLine = ctxt.staffLineCount * 2 - 1;
-    if (note.ledgerLineAbove === true) return Math.max(note.staffPosition, topLine + 2);
-    if (note.ledgerLineAbove === false && note.staffPosition > topLine) return topLine;
-    if (note.ledgerLineBelow === true) return Math.min(note.staffPosition, -1);
-    if (note.ledgerLineBelow === false && note.staffPosition < 1) return 1;
+  // the staff position that requiresLedgerLine() takes the note to be at, for
+  // the ledger lines above the staff or below it: its own, or, where
+  // Gregorio's [oll:1] or [ull:1] draws a ledger line at it, on the ledger
+  // line, or where [oll:0] or [ull:0] leaves one out, on the nearest staff line
+  ledgerLineStaffPosition(ctxt: ChantContext, note: Note, isAbove: boolean) {
+    var ledgerLine = ledgerLinePosition(ctxt, isAbove);
+    if (isAbove) {
+      if (note.ledgerLineAbove === true) return Math.max(note.staffPosition, ledgerLine);
+      if (note.ledgerLineAbove === false && note.staffPosition > ledgerLine - 2) return ledgerLine - 2;
+    } else {
+      if (note.ledgerLineBelow === true) return Math.min(note.staffPosition, ledgerLine);
+      if (note.ledgerLineBelow === false && note.staffPosition < ledgerLine + 2) return ledgerLine + 2;
+    }
     return note.staffPosition;
   }
 

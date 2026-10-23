@@ -2114,11 +2114,10 @@ export class Gabc {
           if (spaceBeforeNextNote === null) spaceBeforeNextNote = 0;
           break;
         case "]]": {
-          // (brackets with no notes in them aren't drawn, as in Gregorio)
+          // (as in Gregorio, a ]] with no notes since the [[ doesn't close
+          // the brackets, which start at the next note)
           let note = lastNote();
-          if (nextNoteMarks.includes(markBracketStart))
-            nextNoteMarks = nextNoteMarks.filter((mark) => mark !== markBracketStart);
-          else if (note) note.bracketEnd = true;
+          if (note && !nextNoteMarks.includes(markBracketStart)) note.bracketEnd = true;
           if (spaceBeforeNextNote === null) spaceBeforeNextNote = 0;
           break;
         }
@@ -3345,7 +3344,8 @@ export class Gabc {
         this.marksForNext = { ...this.marksForNext, episemaBlocks: { ...blocks, [side]: { ...tuning, block: true } } };
     } else if (results[4] === "}") {
       if (!hasPositionOrNudge) this.marksForNext = { ...this.marksForNext, episemaBlocks: { ...blocks, [side]: undefined } };
-    } else if (note && hasPositionOrNudge) {
+    } else if (note && hasPositionOrNudge && !blocks[side]) {
+      // (as in Gregorio, a note in a block has the block's tuning, not its own)
       note.episemaTuning = { ...note.episemaTuning, [side]: tuning };
     }
     return true;

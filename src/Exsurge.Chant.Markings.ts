@@ -610,6 +610,11 @@ export class NoteBracket extends ChantLayoutElement {
  */
 export type LedgerLineExtent = number | "overhang";
 
+/** the staff position of the first ledger line above the staff, or below it */
+export function ledgerLinePosition(ctxt: ChantContext, isAbove: boolean) {
+  return isAbove ? ctxt.staffLineCount * 2 + 1 : -1;
+}
+
 /**
  * A Gregorio custom ledger line (gabc [oll:…] or [ull:…]), or its start or
  * end, introduced just after a note, or just before it if nothing comes
@@ -684,13 +689,38 @@ export class Slur extends ChantLayoutElement {
     this.start = { x: x0, y: y0 };
     this.end = { x: x1, y: y1 };
 
-    var points = [0, 0.25, 0.5, 0.75, 1].map((t) => this.pointOnOuterCurve(ctxt, t));
+    // (the ends of the outer curve and where it turns, which contain the
+    // inner curve too, and half the pen above and below them, which the line
+    // makes room for; across, as for staff lines, the pen isn't counted, so
+    // that a slur to the end of the staff doesn't make the score wider)
+    var [c1, c2] = this.getControlPoints(ctxt, true);
+    var points = [0, 1]
+      .concat(Slur.cubicTurningPoints(x0, c1.x, c2.x, x1), Slur.cubicTurningPoints(y0, c1.y, c2.y, y1))
+      .map((t) => this.pointOnOuterCurve(ctxt, t));
     var xs = points.map((p) => p.x),
       ys = points.map((p) => p.y);
+    var pen = this.getPenWidth(ctxt) / 2;
     this.bounds.x = Math.min(...xs);
-    this.bounds.y = Math.min(...ys);
+    this.bounds.y = Math.min(...ys) - pen;
     this.bounds.width = Math.max(...xs) - this.bounds.x;
-    this.bounds.height = Math.max(...ys) - this.bounds.y;
+    this.bounds.height = Math.max(...ys) + pen - this.bounds.y;
+  }
+
+  // the values of t between 0 and 1 where the cubic Bézier coordinate with
+  // control values p0 to p3 turns: where its derivative, a t² + b t + c, is 0
+  static cubicTurningPoints(p0: number, p1: number, p2: number, p3: number) {
+    var a = -p0 + 3 * p1 - 3 * p2 + p3,
+      b = 2 * (p0 - 2 * p1 + p2),
+      c = p1 - p0;
+    var roots: number[];
+    if (Math.abs(a) < 1e-9) roots = Math.abs(b) < 1e-9 ? [] : [-c / b];
+    else {
+      let discriminant = b * b - 4 * a * c;
+      if (discriminant < 0) return [];
+      let root = Math.sqrt(discriminant);
+      roots = [(-b - root) / (2 * a), (-b + root) / (2 * a)];
+    }
+    return roots.filter((t) => t > 0 && t < 1);
   }
 
   // where a slur that the mark puts on the note starts or ends, in the
@@ -734,10 +764,12 @@ export class Slur extends ChantLayoutElement {
     var [c1, c2] = this.getControlPoints(ctxt, false);
     var [d1, d2] = this.getControlPoints(ctxt, true);
 
-    var lineWidth = canvasCtxt.lineWidth;
+    var lineWidth = canvasCtxt.lineWidth,
+      lineJoin = canvasCtxt.lineJoin;
 
     canvasCtxt.fillStyle = canvasCtxt.strokeStyle = ctxt.neumeLineColor;
     canvasCtxt.lineWidth = this.getPenWidth(ctxt);
+    canvasCtxt.lineJoin = "round";
     canvasCtxt.beginPath();
     canvasCtxt.moveTo(this.start.x, this.start.y);
     canvasCtxt.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, this.end.x, this.end.y);
@@ -746,6 +778,7 @@ export class Slur extends ChantLayoutElement {
     canvasCtxt.fill();
     canvasCtxt.stroke();
     canvasCtxt.lineWidth = lineWidth;
+    canvasCtxt.lineJoin = lineJoin;
   }
 
   getPenWidth(ctxt: ChantContext) {

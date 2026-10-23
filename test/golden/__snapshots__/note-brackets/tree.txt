@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=600 height=88.55875 viewBox="0 0 600 88.55875" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
   <g>
     <defs>
+      <g id="Mora" transform="scale(0.0625)" className="glyph">
+        <path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z">
       <g id="PodatusLowerShort" transform="scale(0.0625)" className="glyph">
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
@@ -154,22 +156,33 @@
           <use source-index=128 element-index=27 id="note-28" x=3.125 y=-18.75 source=<Note sourceIndex=128 elementIndex=27 noteIndex=27> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
       <g transform="translate(341.42491746031743,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <g className="Notations">
-          <use source-index=133 element-index=28 id="note-29" x=3.125 y=-25 source=<Note sourceIndex=133 elementIndex=28 noteIndex=28> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(358.61241746031743,0)" source=<Punctum> className="ChantNotationElement Punctum">
-        <text source-index=136 x=-1.0293999999999999 y=24.48075 style={} source=<Lyric sourceIndex=136> className="lyric" textAnchor="start" source-gabc="l">
+          <use source-index=133 element-index=28 id="note-29" x=6.418650793650794 y=-25 source=<Note sourceIndex=133 elementIndex=28 noteIndex=28> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
+          <path d="M 0.00 -36.11 L 3.29 -36.11 L 3.29 -35.31 L 0.80 -35.31 L 0.80 -15.03 L 3.29 -15.03 L 3.29 -14.23 L 0.00 -14.23 Z" fill="#000" className="bracket">
+          <path d="M 12.84 -36.11 L 9.54 -36.11 L 9.54 -35.31 L 12.04 -35.31 L 12.04 -15.03 L 9.54 -15.03 L 9.54 -14.23 L 12.84 -14.23 Z" fill="#000" className="bracket">
+      <g transform="translate(365.199719047619,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=138 x=-1.0293999999999999 y=24.48075 style={} source=<Lyric sourceIndex=138> className="lyric" textAnchor="start" source-gabc="l">
           <tspan source-index=0 style={} className=undefined>
             "l"
         <g className="Notations">
-          <use source-index=138 element-index=29 id="note-30" x=3.125 y=-25 source=<Note sourceIndex=138 elementIndex=29 noteIndex=29> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(364.86241746031743,0)" source=<Punctum> className="ChantNotationElement Punctum">
+          <use source-index=140 element-index=29 id="note-30" x=3.125 y=-25 source=<Note sourceIndex=140 elementIndex=29 noteIndex=29> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
+      <g transform="translate(371.449719047619,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <g className="Notations">
-          <use source-index=141 element-index=30 id="note-31" x=6.418650793650794 y=-31.249999999999996 source=<Note sourceIndex=141 elementIndex=30 noteIndex=30> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
+          <use source-index=143 element-index=30 id="note-31" x=6.418650793650794 y=-31.249999999999996 source=<Note sourceIndex=143 elementIndex=30 noteIndex=30> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <path d="M 0.00 -48.53 L 3.29 -48.53 L 3.29 -47.73 L 0.80 -47.73 L 0.80 -24.33 L 3.29 -24.33 L 3.29 -23.53 L 0.00 -23.53 Z" fill="#000" className="bracket">
-      <g transform="translate(374.4060682539682,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(380.9933698412698,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <g className="Notations">
-          <use source-index=144 element-index=31 id="note-32" x=3.125 y=-37.5 source=<Note sourceIndex=144 elementIndex=31 noteIndex=31> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="i">
+          <use source-index=146 element-index=31 id="note-32" x=3.125 y=-37.5 source=<Note sourceIndex=146 elementIndex=31 noteIndex=31> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="i">
           <path d="M 9.54 -48.53 L 6.25 -48.53 L 6.25 -47.73 L 8.74 -47.73 L 8.74 -24.33 L 6.25 -24.33 L 6.25 -23.53 L 9.54 -23.53 Z" fill="#000" className="bracket">
-      <g transform="translate(391.762219047619,0)" source=<DoubleBar sourceIndex=150 elementIndex=32> className="ChantNotationElement DoubleBar" source-gabc="::">
+      <g transform="translate(401.47452063492057,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=151 x=1.9978507936507945 y=24.48075 style={} source=<Lyric sourceIndex=151> className="lyric" textAnchor="start" source-gabc="m">
+          <tspan source-index=0 style={} className=undefined>
+            "m"
         <g className="Notations">
-          <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=150 element-index=32 source=<DoubleBar sourceIndex=150 elementIndex=32> className="dividerLine" source-gabc="::">
-          <rect x=5.45 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=150 element-index=32 source=<DoubleBar sourceIndex=150 elementIndex=32> className="dividerLine" source-gabc="::">
+          <use source-index=155 element-index=32 id="note-33" x=6.418650793650794 y=-25 source=<Note sourceIndex=155 elementIndex=32 noteIndex=32> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g.">
+          <path d="M 0.00 -36.11 L 3.29 -36.11 L 3.29 -35.31 L 0.80 -35.31 L 0.80 -15.03 L 3.29 -15.03 L 3.29 -14.23 L 0.00 -14.23 Z" fill="#000" className="bracket">
+          <use source-index=undefined element-index=undefined x=9.668650793650794 y=-25 source=<Punctum> className="" xlinkHref="#Mora">
+          <path d="M 17.46 -36.11 L 14.17 -36.11 L 14.17 -35.31 L 16.66 -35.31 L 16.66 -15.03 L 14.17 -15.03 L 14.17 -14.23 L 17.46 -14.23 Z" fill="#000" className="bracket">
+      <g transform="translate(425.24932222222213,0)" source=<DoubleBar sourceIndex=162 elementIndex=33> className="ChantNotationElement DoubleBar" source-gabc="::">
+        <g className="Notations">
+          <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=162 element-index=33 source=<DoubleBar sourceIndex=162 elementIndex=33> className="dividerLine" source-gabc="::">
+          <rect x=5.45 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=162 element-index=33 source=<DoubleBar sourceIndex=162 elementIndex=33> className="dividerLine" source-gabc="::">

@@ -770,8 +770,8 @@ describe("Gregorio episema tuning", function() {
         // (the block starts after the note it follows)
         undefined,
         { above: { block: true }, below: undefined },
-        // a note's own tuning is kept, rather than its block's
-        { above: { position: "h" }, below: undefined },
+        // (as in Gregorio, a note in a block has the block's tuning, not its own)
+        { above: block, below: undefined },
         { above: block, below: undefined },
         undefined,
         { above: undefined, below: { block: true } },
@@ -793,5 +793,57 @@ describe("Gregorio episema tuning", function() {
     assert.deepStrictEqual(inBlock(), [false, true, true, true, true]);
     Exsurge.Gabc.updateMappingsFromSource(ctxt, mappings, "(c4) a(f_g_) b(h_) c(g_) d(f_)");
     assert.deepStrictEqual(inBlock(), [false, false, false, false, false]);
+  });
+});
+
+describe("Gregorio brackets", function() {
+  // the staff positions that the brackets of the score's neumes reach, after
+  // a layout
+  const bracketTops = (score: Exsurge.ChantScore) =>
+    score.notations.flatMap((notation) =>
+      notation.visualizers
+        .filter((visualizer) => visualizer instanceof Exsurge.NoteBracket)
+        .map((bracket) => [bracket.bounds.y, bracket.bounds.bottom()])
+    );
+  const laidOut = (ctxt: Exsurge.ChantContext, gabc: string) => {
+    const score = new Exsurge.ChantScore(ctxt, Exsurge.Gabc.createMappingsFromSource(ctxt, gabc), false);
+    score.performLayout(ctxt);
+    return score;
+  };
+
+  it("draws the brackets again when the notes in them change in other notations", function() {
+    for (const [before, after] of [
+      ["(c4) ad([[ef) te(g]]) (::)", "(c4) ad([[cf) te(g]]) (::)"],
+      ["(c4) ad([[ef) te(g]]) (::)", "(c4) ad([[ef) te(k]]) (::)"],
+      ["(c4) a(f) ad([[ef) te(g]]) (::)", "(c4) a(f) ad([[ef) te([[g]]) (::)"]
+    ]) {
+      const ctxt = new Exsurge.ChantContext();
+      const score = laidOut(ctxt, before);
+      Exsurge.Gabc.updateMappingsFromSource(ctxt, score.mappings, after);
+      score.updateNotations(ctxt);
+      score.performLayout(ctxt);
+      assert.deepStrictEqual(bracketTops(score), bracketTops(laidOut(new Exsurge.ChantContext(), after)), after);
+    }
+  });
+
+  it("keeps brackets open after a ]] with no notes since the [[, as Gregorio does", function() {
+    const score = laidOut(new Exsurge.ChantContext(), "(c4) k(f[[]]g) l(h]]) (::)");
+    assert.strictEqual(bracketTops(score).length, 2);
+  });
+
+  it("puts a right bracket after the mora", function() {
+    const score = laidOut(new Exsurge.ChantContext(), "(c4) a([[g.]]) (::)");
+    const neume = score.notations[0];
+    const mora = neume.visualizers.find((visualizer) => visualizer instanceof Exsurge.Mora)!;
+    const brackets = neume.visualizers.filter((visualizer) => visualizer instanceof Exsurge.NoteBracket);
+    assert.ok(brackets[1].bounds.x >= mora.bounds.right());
+  });
+
+  it("draws ledger lines above and below a note that asks for both", function() {
+    const score = laidOut(new Exsurge.ChantContext(), "(c4) a(g[oll:1][ull:1]) (::)");
+    assert.deepStrictEqual(
+      (score.notations[0] as Exsurge.Neume).ledgerLines.map((line) => line.staffPosition),
+      [9, -1]
+    );
   });
 });

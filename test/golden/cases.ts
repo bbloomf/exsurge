@@ -730,12 +730,12 @@ export const featureCases: GoldenCase[] = [
   {
     // a bracket at each side of the notes in it, from below the lowest to
     // above the highest, with a short, normal or long top as Gregorio picks
-    // it; brackets can span syllables, and empty brackets and a [[ inside
-    // brackets are ignored
+    // it, and after a mora; brackets can span syllables, a ]] with no notes
+    // since the [[ doesn't close them, and a [[ inside brackets is ignored
     name: "note-brackets",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c([[g]]) d([[fh]]) e([[fg]]) f([[eg]]) g([[eh]]) h([[ce]]) i([[jk]]) " +
-      "j(e[[ghg]]f) ad([[ef) te(g]]) k(f[[]]g) l(g[[h[[i]]) (::)"
+      "j(e[[ghg]]f) ad([[ef) te(g]]) k(f[[]]g]]) l(g[[h[[i]]) m([[g.]]) (::)"
   },
   {
     // slurs of a given width and height, over or under the notes, and from
