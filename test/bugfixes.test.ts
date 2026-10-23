@@ -340,3 +340,32 @@ describe('Canvas drawing', function() {
     });
   });
 });
+
+describe('Glyph scaling', function() {
+  it('keeps the glyph multiplier whether setScaleDefs() is called before setStaffHeight() or after', function() {
+    // setScaleDefs() used to set the glyph scaling again without the
+    // multiplier, folding it into the scaling, so calling it after
+    // setStaffHeight() lost the multiplier
+    var contexts = [
+      function(ctxt: Drawing.ChantContext) { ctxt.setScaleDefs(false); ctxt.setStaffHeight(37.5, 1.25); },
+      function(ctxt: Drawing.ChantContext) { ctxt.setStaffHeight(37.5, 1.25); ctxt.setScaleDefs(false); }
+    ].map(function(setupContext) {
+      var ctxt = new Drawing.ChantContext();
+      setupContext(ctxt);
+      return ctxt;
+    });
+    var svgs = contexts.map(function(ctxt) {
+      var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) a(hgh) (::)'), false);
+      score.performLayout(ctxt);
+      score.layoutChantLines(ctxt, 400);
+      return score.createSvg(ctxt);
+    });
+    contexts.forEach(function(ctxt) {
+      assert.equal(ctxt.glyphMultiplier, 1.25);
+      assert.equal(ctxt.glyphScaling, (37.5 / 600) * 1.25);
+      assert.equal(ctxt.scaleDefs, false);
+    });
+    assert.match(svgs[0], /id="Porrectus1x1\.25"/);
+    assert.equal(svgs[1], svgs[0]);
+  });
+});
