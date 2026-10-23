@@ -32,6 +32,7 @@ import {
   type ChantLayoutElement
 } from "./Exsurge.Drawing.js";
 import type { BracePoint } from "./Exsurge.Chant.Markings.js";
+import type { LedgerLineStates } from "./ledgerLines.js";
 
 // adds a sign to a notation between parentheses (Gregorio's parenthesized
 // accidentals and bars): an open one at the sign's left, which moves right
@@ -355,6 +356,8 @@ export class Accidental extends ChantNotationElement {
   /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn between parentheses */
   parenthesized?: boolean;
   pitch?: Pitch;
+  /** whether it has a ledger line above the staff and below it, as a note can (see determineLedgerLines()) */
+  ledgerLineState?: LedgerLineStates;
 
   constructor(staffPosition: number, accidentalType: AccidentalType, soft = false) {
     super();

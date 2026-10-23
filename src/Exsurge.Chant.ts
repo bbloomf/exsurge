@@ -36,6 +36,7 @@ import {
 } from "./Exsurge.Drawing.js";
 import { Gabc } from "./Exsurge.Gabc.js";
 import { Titles } from "./Exsurge.Titles.js";
+import { determineLedgerLines, type LedgerLineStates } from "./ledgerLines.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
 import type {
   Accent,
@@ -182,6 +183,18 @@ export class Note extends ChantLayoutElement {
   ledgerLineBelow?: boolean;
   /** Gregorio's ledger lines of a given length (gabc [oll:…] and [ull:…]) next to the note, which the chant line draws */
   customLedgerLines?: CustomLedgerLine[];
+  /**
+   * whether a new one of Gregorio's elements starts at the note, although it
+   * isn't the first of its neume, as where Gregorio makes the notes around it
+   * into glyphs of their own (see ChantNotationElement.continuesElement)
+   */
+  startsElement?: boolean;
+  /**
+   * whether the note has a ledger line above the staff and below it, and how
+   * that was set, as Gregorio decides it from the note's pitch, the notes
+   * around it and the settings above (see determineLedgerLines())
+   */
+  ledgerLineState?: LedgerLineStates;
   /**
    * Gregorio's tuning of the episema over the note (gabc [oh:…]) and under
    * it ([uh:…]), the note's own or its block's
@@ -1088,6 +1101,7 @@ export class ChantScore {
     ctxt.currNotationIndex = 0;
     ctxt.staffLineCount = this.staffLineCount;
     this.updateBrackets();
+    determineLedgerLines(ctxt, this.notations);
 
     if (this.dropCap) this.dropCap.recalculateMetrics(ctxt);
 

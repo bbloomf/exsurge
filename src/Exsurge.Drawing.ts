@@ -4965,6 +4965,13 @@ export class ChantNotationElement extends ChantLayoutElement {
   firstOfSyllable?: boolean;
   /** whether the notation is the first in its parentheses */
   firstOfParentheses?: boolean;
+  /**
+   * whether the notation is in the same one of Gregorio's elements as the
+   * notation before it: the neumes and accidentals that a ledger line can run
+   * through (see determineLedgerLines()), which are joined by gabc !, /! and
+   * /0, and some by the notes themselves (see Gabc.joinElements())
+   */
+  continuesElement?: boolean;
   /** whether the accidentals were reset (at a new word) just before this notation */
   resetsAccidentalsBefore?: boolean;
   /** whether the notation is in a group in braces that takes up no width */
