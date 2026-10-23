@@ -902,8 +902,8 @@ export const settingCases: GoldenCase[] = [
     outputs: ["svg", "canvas"],
     gabc: porrectusAtMultipliers,
     setupContext: (ctxt) => {
-      ctxt.setScaleDefs(false);
       ctxt.setStaffHeight(37.5, 1.25);
+      ctxt.setScaleDefs(false);
     }
   },
   {

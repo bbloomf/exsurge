@@ -1025,6 +1025,9 @@ export class ChantContext {
   // set by setGlyphScaling() (and so by setStaffHeight()):
   glyphMultiplier!: number;
   glyphScaling!: number;
+  // (glyphScaling before the multiplier, kept apart so setScaleDefs() can
+  // set them again as they were)
+  private baseGlyphScaling!: number;
   staffInterval!: number;
   staffLineWeight!: number;
   neumeLineWeight!: number;
@@ -1646,7 +1649,7 @@ export class ChantContext {
     scaleDefs = !!scaleDefs;
     if (this.scaleDefs !== scaleDefs) {
       this.scaleDefs = scaleDefs;
-      this.setGlyphScaling(this.glyphScaling);
+      this.setGlyphScaling(this.baseGlyphScaling, this.glyphMultiplier);
     }
   }
 
@@ -1703,6 +1706,7 @@ export class ChantContext {
   }
 
   setGlyphScaling(glyphScaling: number, glyphMultiplier = 1) {
+    this.baseGlyphScaling = glyphScaling;
     this.glyphMultiplier = glyphMultiplier;
     this.glyphScaling = glyphScaling * glyphMultiplier;
 
