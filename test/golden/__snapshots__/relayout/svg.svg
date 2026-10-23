@@ -814,13 +814,13 @@
 </use>
 </g>
 <g class="ChantNotationElement FullBar" transform="translate(194.3707372409689,0)" >
-<text source-index="452" x="-2.868799999999985" y="14.018761363636365" class="directive lyric" text-anchor="start" style="fill: #d00;" >
+<text source-index="452" x="-2.8687999999999905" y="14.018761363636365" class="directive lyric" text-anchor="start" style="fill: #d00;" >
 <tspan source-index="0" style="" >*</tspan>
 </text>
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="454" element-index="131" source="[object Object]" >
 </rect>
 </g>
-<g class="ChantNotationElement Clivis" transform="translate(218.1273372409689,0)" >
+<g class="ChantNotationElement Clivis" transform="translate(218.12733724096893,0)" >
 <text source-index="457" x="-12.210999999999999" y="14.018761363636365" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >qui</tspan>
 <tspan source-index="0" style="" >-</tspan>
@@ -834,7 +834,7 @@
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="462" element-index="133" id="note-126" x="8.575" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement Podatus" transform="translate(236.7857675651078,0)" >
+<g class="ChantNotationElement Podatus" transform="translate(236.78576756510782,0)" >
 <text source-index="464" x="-1.1230000000000002" y="14.018761363636365" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >a</tspan>
 </text>

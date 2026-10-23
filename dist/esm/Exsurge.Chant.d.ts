@@ -3,7 +3,7 @@ import { Pitch, Rect } from "./Exsurge.Core.js";
 import { Annotation, ChantLayoutElement, ChantNotationElement, GlyphCode, GlyphVisualizer, Lyric, TextLeftRight } from "./Exsurge.Drawing.js";
 import { Titles } from "./Exsurge.Titles.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
-import type { Accent, BracePoint, HorizontalEpisema, Ictus, Mora } from "./Exsurge.Chant.Markings.js";
+import type { Accent, BracePoint, CustomLedgerLine, EpisemaTuning, HorizontalEpisema, Ictus, Mora, SlurMark } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type { AboveLinesText, Annotations, AreaBoundary, ChantContext, ChoralSign, DropCap, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
 export declare const LiquescentType: {
@@ -74,6 +74,20 @@ export declare class Note extends ChantLayoutElement {
     alText?: AboveLinesText;
     /** the number of stems of a punctum inclinatum (gabc |) */
     inclinataFlags?: number;
+    /**
+     * Gregorio's shape hints for the neume the note ends (gabc [shape:…]), as
+     * a list separated by commas.  The one there is, stroke, draws a clivis as
+     * the stroke a porrectus starts with.
+     */
+    shapeHint?: string;
+    /**
+     * Gregorio's ledger-line hint below the note (gabc [ll:1] or [ll:0]):
+     * whether to draw its virga stem and place its episemata as if there were
+     * a ledger line below it, whatever ledger lines there are
+     */
+    lowLedgerLine?: boolean;
+    /** the same above the note (gabc [hl:1] or [hl:0]), for its episemata */
+    highLedgerLine?: boolean;
     /** leaves out the custos of a line that breaks after the note (gabc [nocustos]) */
     noCustos?: boolean;
     /**
@@ -81,10 +95,38 @@ export declare class Note extends ChantLayoutElement {
      * [nocustos] with no note before it in its notes
      */
     noCustosBefore?: boolean;
-    /** a bracket (gabc [[) starts at the note */
+    /** Gregorio's square brackets (gabc [[) start at the note (see ChantScore.updateBrackets()) */
     bracketStart?: boolean;
-    /** a bracket (gabc ]]) ends at the note */
+    /** Gregorio's square brackets (gabc ]]) end at the note */
     bracketEnd?: boolean;
+    /**
+     * the lowest and highest staff positions of the notes in the brackets
+     * that start at the note, and in those that end at it, where the neume
+     * draws them (see ChantScore.updateBrackets())
+     */
+    bracketRanges?: {
+        start?: BracketRange;
+        end?: BracketRange;
+    };
+    /** Gregorio's slurs (gabc [oslur:…] and [uslur:…]) on the note, which the chant line draws */
+    slurs?: SlurMark[];
+    /**
+     * whether Gregorio's [oll:1] or [oll:0] draws a ledger line above the
+     * staff at the note, or leaves one out (see Neume.requiresLedgerLine())
+     */
+    ledgerLineAbove?: boolean;
+    /** whether Gregorio's [ull:1] or [ull:0] draws a ledger line below the staff at the note, or leaves one out */
+    ledgerLineBelow?: boolean;
+    /** Gregorio's ledger lines of a given length (gabc [oll:…] and [ull:…]) next to the note, which the chant line draws */
+    customLedgerLines?: CustomLedgerLine[];
+    /**
+     * Gregorio's tuning of the episema over the note (gabc [oh:…]) and under
+     * it ([uh:…]), the note's own or its block's
+     */
+    episemaTuning?: {
+        above?: EpisemaTuning;
+        below?: EpisemaTuning;
+    };
     /**
      * whether a no-line-break area (<nlba>…</nlba> in the notes) starts at
      * the note after <nlba> or ends at the note before </nlba>.  The note's
@@ -96,14 +138,26 @@ export declare class Note extends ChantLayoutElement {
     fused?: boolean;
     /** whether an automatic fusion (gabc @[…]) starts or ends at the note */
     autoFusion?: AreaBoundary;
-    /** a linea (gabc =), drawn as a punctum for now */
+    /** a linea (gabc =), a flat bar between two lines, a neume of its own */
     linea?: boolean;
     /** the first note of a pes quadratum (gabc q) */
     quadratum?: boolean;
-    /** a quilisma quadratum (gabc W), drawn as a punctum for now */
+    /**
+     * a quilisma quadratum (gabc W): a quilisma, with a higher note in its pes
+     * beside it, joined by a stem, rather than above it
+     */
     quilismaQuadratum?: boolean;
-    /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
+    /**
+     * the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn
+     * unless ChantContext.inclinatumLeaning is turned off
+     */
     leaning?: InclinatumLeaning;
+    /**
+     * the leaning that Gregorio gives a punctum inclinatum without one, from
+     * the notes around it in its syllable (see Gabc.setAutomaticLeanings()),
+     * drawn unless ChantContext.inclinatumLeaning is turned off
+     */
+    automaticLeaning?: InclinatumLeaning;
     /** where the note is in the gabc source */
     sourceIndex: number;
     sourceGabc: string;
@@ -205,6 +259,16 @@ export interface MarksForNext {
         euouae?: AreaBoundary;
         noLineBreak?: AreaBoundary;
     };
+    /** the tunings of Gregorio's blocks of episemata ([oh:…{] … [oh}]) that the next notes are in */
+    episemaBlocks?: {
+        above?: EpisemaTuning;
+        below?: EpisemaTuning;
+    };
+}
+/** the lowest and highest staff positions of the notes in Gregorio's brackets (gabc [[ and ]]) */
+export interface BracketRange {
+    low: number;
+    high: number;
 }
 export declare class ChantMapping {
     source: string;
@@ -298,6 +362,7 @@ export declare class ChantScore {
     updateSelection(selection?: Selection): void;
     updateNotations(ctxt: ChantContext): void;
     recreateDropCap(ctxt: ChantContext): void;
+    private updateBrackets;
     /**
      * Gives the lyrics of the first word ctxt.firstWordStyle, and the first
      * syllable (after any drop cap) ctxt.firstSyllableStyle and

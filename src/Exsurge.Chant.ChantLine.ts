@@ -1015,8 +1015,16 @@ export class ChantLine extends ChantLayoutElement {
         textOnlyStartIndex = i;
       }
 
-      if (curr.hasLyrics() && curr.lyrics[0].needsLayout) {
-        curr.lyrics[0].recalculateMetrics(ctxt);
+      // lyrics that an earlier layout of the lines wrapped (in setMaxWidth()) or
+      // moved (in centerDividers()) go back to where the notation's layout put them
+      if (curr.hasLyrics() && curr.lyrics.some((lyric) => lyric.needsLayout)) {
+        for (let lyric of curr.lyrics) {
+          if (lyric.needsLayout) {
+            lyric.recalculateMetrics(ctxt);
+            lyric.needsLayout = false;
+          }
+        }
+        curr.alignLyrics(ctxt);
       }
 
       // try to fit the curr element on this line.

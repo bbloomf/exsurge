@@ -30,6 +30,251 @@ import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
 import { escapeChar, escapedCharSource, restoreEscapes } from "./gabcEscapes.js";
+var gabcStaffPosition = Neumes.gabcStaffPosition;
+// a linea (gabc =), or a punctum linea (R or r0)
+var isLinea = (note) => note.shape === NoteShape.Default &&
+    (!!(note.shapeModifiers & NoteShapeModifiers.Linea) || !!note.linea);
+// the glyph that Gregorio fuses that a neume is, if it's one
+var fusedGlyphOfNeume = (neume, fused) => {
+    var kind;
+    if (neume instanceof Neumes.Punctum || neume instanceof Neumes.Oriscus)
+        kind = Neumes.FusedGlyphKind.Punctum;
+    else if (neume instanceof Neumes.Virga)
+        kind =
+            neume.notes[0].shapeModifiers & NoteShapeModifiers.Reverse
+                ? Neumes.FusedGlyphKind.VirgaReversa
+                : Neumes.FusedGlyphKind.Virga;
+    else if (neume instanceof Neumes.Clivis)
+        kind = Neumes.FusedGlyphKind.Flexus;
+    else if (neume instanceof Neumes.Podatus || neume instanceof Neumes.PesQuassus)
+        kind = Neumes.FusedGlyphKind.Pes;
+    else if (neume instanceof Neumes.Porrectus)
+        kind = Neumes.FusedGlyphKind.Porrectus;
+    else
+        return undefined;
+    return { kind, notes: neume.notes, fused };
+};
+// the notes that Gregorio fuses in @[…]: puncta (but not lineae), oriscus
+// notes, quilismata and virgae (but not virgae reversae)
+var isAutoFusible = (note) => {
+    switch (note.shape) {
+        case NoteShape.Default:
+            return !isLinea(note);
+        case NoteShape.Oriscus:
+        case NoteShape.Quilisma:
+            return true;
+        case NoteShape.Virga:
+            return !(note.shapeModifiers & NoteShapeModifiers.Reverse);
+        default:
+            return false;
+    }
+};
+// whether a note in @[…] starts a new fused glyph rather than continuing one:
+// all but a punctum do, as does an @ or an initio debilis
+var startsAutoFusedGlyph = (note) => !!note.fused ||
+    note.shape !== NoteShape.Default ||
+    !!note.quadratum ||
+    !!note.quilismaQuadratum ||
+    !!(note.liquescent & LiquescentType.InitioDebilis);
+// a liquescent other than an initio debilis, which ends a fused glyph
+var isTailLiquescent = (note) => !!(note.liquescent & ~LiquescentType.InitioDebilis);
+// a note that Gregorio doesn't fuse to the glyph before, even after an @: a
+// stropha or a linea
+var isNeverFused = (note) => note.shape === NoteShape.Stropha || isLinea(note);
+// a punctum that isn't a linea or the first note of a pes quadratum
+var isPlainPunctum = (note) => note.shape === NoteShape.Default && !isLinea(note) && !note.quadratum && !note.quilismaQuadratum;
+// Gregorio's glyphs that can't have more notes
+var __completeGregorioGlyphs = [
+    "scandicus",
+    "pesQuadratum",
+    "salicusFlexus",
+    "ancus",
+    "torculusLiquescens",
+    "torculusResupinusFlexus",
+    "porrectusFlexus"
+];
+// Gregorio's glyph that starts with the note at index (add_note_to_a_glyph()
+// in gabc-glyphs-determination.c): how many notes it has, its kind if it's a
+// glyph that Gregorio fuses, and whether Gregorio fuses the next glyph to it.
+// Gregorio's glyphs either side of an @ are the ones that it fuses, where
+// exsurge's neumes can be other groups (a distropha of two puncta at the
+// unison, say).
+var nextGregorioGlyph = (notes, index) => {
+    var first = notes[index];
+    var position = (i) => gabcStaffPosition(notes[i]);
+    // (an @ or an initio debilis starts a glyph)
+    var canAdd = (i) => i < notes.length && !notes[i].fused && !(notes[i].liquescent & LiquescentType.InitioDebilis);
+    var end = index + 1;
+    switch (first.shape) {
+        case NoteShape.Inclinatum:
+            while (canAdd(end) &&
+                notes[end].shape === NoteShape.Inclinatum &&
+                position(end) !== position(end - 1))
+                end++;
+            return { length: end - index };
+        case NoteShape.Stropha:
+            while (end - index < 3 &&
+                canAdd(end) &&
+                notes[end].shape === NoteShape.Stropha &&
+                position(end) === position(index))
+                end++;
+            return { length: end - index };
+        case NoteShape.Virga:
+            if (first.shapeModifiers & NoteShapeModifiers.Reverse)
+                return { length: 1, kind: Neumes.FusedGlyphKind.VirgaReversa };
+            while (end - index < 3 &&
+                canAdd(end) &&
+                notes[end].shape === NoteShape.Virga &&
+                !(notes[end].shapeModifiers & NoteShapeModifiers.Reverse) &&
+                position(end) === position(index))
+                end++;
+            return end - index === 1
+                ? { length: 1, kind: Neumes.FusedGlyphKind.Virga }
+                : { length: end - index };
+    }
+    if (isLinea(first))
+        return { length: 1 };
+    if (isTailLiquescent(first))
+        return { length: 1, kind: Neumes.FusedGlyphKind.Punctum };
+    // a punctum, oriscus, quilisma or the first note of a pes quadratum, and
+    // the notes that Gregorio adds to it
+    var isNormalPunctum = first.shape === NoteShape.Default && !(first.liquescent & LiquescentType.InitioDebilis);
+    var type = first.quadratum ? "quadratum" : first.quilismaQuadratum ? "quilismaQuadratum" : "punctum";
+    for (; canAdd(end); end++) {
+        var note = notes[end];
+        var interval = position(end) - position(end - 1);
+        var next = null;
+        if (Math.abs(interval) > 5)
+            break;
+        if (note.shape === NoteShape.Oriscus && note.shapeModifiers & NoteShapeModifiers.Stemmed) {
+            if (type === "punctum" && interval > 0)
+                next = "pesOriscus";
+        }
+        else if (isPlainPunctum(note) && interval !== 0) {
+            switch (type) {
+                case "punctum":
+                    next = interval > 0 ? "pes" : "flexus";
+                    break;
+                case "pes":
+                    if (interval < 0)
+                        next = "torculus";
+                    else if (isNormalPunctum)
+                        next = "scandicus";
+                    break;
+                case "quadratum":
+                    next = interval > 0 ? "pesQuadratum" : "flexus";
+                    break;
+                case "quilismaQuadratum":
+                    if (interval > 0)
+                        next = "pesQuadratum";
+                    break;
+                case "pesOriscus":
+                    if (interval > 0)
+                        next = "salicus";
+                    break;
+                case "salicus":
+                    if (interval < 0)
+                        next = "salicusFlexus";
+                    break;
+                case "flexus":
+                    if (interval > 0) {
+                        if (isNormalPunctum)
+                            next = "porrectus";
+                    }
+                    else if (note.liquescent & LiquescentType.Small)
+                        next = "ancus";
+                    break;
+                case "torculus":
+                    if (interval > 0)
+                        next = "torculusResupinus";
+                    else if (note.liquescent === LiquescentType.Small)
+                        next = "torculusLiquescens";
+                    break;
+                case "torculusResupinus":
+                case "porrectus":
+                    if (interval < 0)
+                        next = type + "Flexus";
+                    break;
+            }
+        }
+        if (next === null)
+            break;
+        type = next;
+        // (these glyphs, and a liquescent, end the glyph)
+        if (__completeGregorioGlyphs.indexOf(type) >= 0 || isTailLiquescent(note)) {
+            end++;
+            break;
+        }
+    }
+    // (Gregorio has no torculus that starts with an oriscus, and fuses the
+    // oriscus and a flexus instead, as close_glyph() does)
+    if (type === "torculus" && first.shape === NoteShape.Oriscus)
+        return { length: 1, kind: Neumes.FusedGlyphKind.Punctum, fusesNext: true };
+    var kinds = {
+        punctum: Neumes.FusedGlyphKind.Punctum,
+        quadratum: Neumes.FusedGlyphKind.Punctum,
+        quilismaQuadratum: Neumes.FusedGlyphKind.Punctum,
+        pes: Neumes.FusedGlyphKind.Pes,
+        flexus: Neumes.FusedGlyphKind.Flexus,
+        porrectus: Neumes.FusedGlyphKind.Porrectus
+    };
+    return { length: end - index, kind: kinds[type] };
+};
+// Gregorio's split of the notes of a fused glyph in @[…] into the glyphs it
+// fuses (close_fusion_glyph() in gabc-glyphs-determination.c): a pes or
+// flexus of the last two notes, a porrectus of the last three, a flexus
+// before a higher note (which it draws as a porrectus's stroke), and single
+// notes.  The first glyph is fused if fused is, and the others are.
+// previousInterval is the interval up to the first note from a note before it
+// that Gregorio counts (a virga reversa or stropha), or else 0.
+var splitFusion = (notes, fused, previousInterval) => {
+    var pieces = [];
+    var add = (kind, glyphNotes) => {
+        var glyphFused = fused || pieces.length > 0;
+        pieces.push({ glyph: { kind, notes: glyphNotes, fused: glyphFused }, fused: glyphFused });
+    };
+    var interval = (i) => gabcStaffPosition(notes[i + 1]) - gabcStaffPosition(notes[i]);
+    for (var i = 0; i < notes.length;) {
+        if (i === notes.length - 1) {
+            add(notes[i].shape === NoteShape.Virga ? Neumes.FusedGlyphKind.Virga : Neumes.FusedGlyphKind.Punctum, [notes[i]]);
+            break;
+        }
+        var shift = interval(i);
+        if (shift !== 0 && i + 1 === notes.length - 1) {
+            add(shift < 0 ? Neumes.FusedGlyphKind.Flexus : Neumes.FusedGlyphKind.Pes, notes.slice(i));
+            break;
+        }
+        // (with two notes left, a flexus would have ended the notes above)
+        if (previousInterval >= 0 && shift < 0 && interval(i + 1) > 0) {
+            if (i + 2 === notes.length - 1) {
+                add(Neumes.FusedGlyphKind.Porrectus, notes.slice(i));
+                break;
+            }
+            add(Neumes.FusedGlyphKind.Flexus, notes.slice(i, i + 2));
+            previousInterval = interval(i + 1);
+            i += 2;
+            continue;
+        }
+        add(Neumes.FusedGlyphKind.Punctum, [notes[i]]);
+        previousInterval = shift;
+        i++;
+    }
+    return pieces;
+};
+// gives the last of a syllable's neumes the space after it
+var setFinalTrailingSpace = (ctxt, neumes, finalTrailingSpace) => {
+    if (neumes.length > 0) {
+        if (!finalTrailingSpace.isDefault) {
+            neumes[neumes.length - 1].trailingSpace = finalTrailingSpace;
+            neumes[neumes.length - 1].keepWithNext = true;
+            // finalTrailingSpace is either 0 or a function of the context
+            if (typeof finalTrailingSpace === "function"
+                ? finalTrailingSpace(ctxt) > 0
+                : finalTrailingSpace > 0)
+                neumes[neumes.length - 1].allowLineBreakBeforeNext = neumes[neumes.length - 1].keepWithNext = true;
+        }
+    }
+};
 // what Gregorio's comments are masked with (see maskGabc() below)
 var __commentMask = "\uFDD0";
 // reusable reg exps
@@ -59,11 +304,12 @@ var __lyricProtrusionRegex = /<\s*pr\s*(?::\s*(\d*\.?\d+|\d+\.)\s*)?\/?\s*>/g;
 // those controls at the start of a lyric
 var __leadingControlsRegex = new RegExp("^(?:" + [__lyricAreaTagRegex, __lyricClearRegex, __lyricProtrusionRegex].map((regex) => regex.source).join("|") + ")*");
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\[[^\[\]]*\]|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
-// Gregorio's marks between notes, which are recorded on the notes after or before them
-var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[)$/;
+// Gregorio's marks between notes, which are recorded on the notes after or
+// before them (and the instructions in [ and ] that aren't after a note)
+var __noteMarkRegex = /^(?:\[\[|\]\]?|<\/?nlba>|@\[|\[[^\[\]]*\])$/;
 var __bracketedCommandRegex = /^([a-z]+):(.*)/;
 // a clef with a second clef after it, as in c1@c4 or c3@fb2 (the clefs of
 // __notationsRegex).  The groups are:
@@ -78,8 +324,69 @@ var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])
 //  2. b, cb, or cba, to indicate the brace type
 //  3. 0 or 1 to indicate the attachment point
 //  4. { or } to indicate opening/closing (this group will be null if the metric version is used)
-//  5. a float indicating the millimeter length of the brace (not supported yet)
-var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;(\d*(?:\.\d+)?)mm)/;
+//  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
+var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
+// a TeX length: a number (with TeX's . or , for the decimal point) and a unit
+// in either case, maybe with true before it (the same at TeX's usual
+// magnification), and any stretch and shrink after it (plus …, minus …)
+var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:true\s*)?([a-z]{2})(?:\s*(?:plus|minus).*)?\s*$/i;
+// TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
+var __texUnits = {
+    sp: 1,
+    pt: 65536,
+    bp: (65536 * 72.27) / 72,
+    pc: 65536 * 12,
+    in: 65536 * 72.27,
+    cm: (65536 * 72.27) / 2.54,
+    mm: (65536 * 72.27) / 25.4,
+    dd: (65536 * 1238) / 1157,
+    cc: (65536 * 12 * 1238) / 1157,
+    em: 65536 * 10,
+    ex: 65536 * 4.30554
+};
+// a staff interval (from a line to the next space) in scaled points at
+// Gregorio's default staff size, \gre@factor 17: half the distance between
+// lines, (\gre@dimen@interstafflinedistancebase + \gre@dimen@stafflinethicknessbase) * 17
+var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
+// a TeX length in staff intervals at Gregorio's default staff size, or
+// undefined if it isn't a length exsurge can read (TeX can take a macro)
+function texLengthToStaffIntervals(length) {
+    var results = length.match(__texLengthRegex);
+    var unit = results && results[2].toLowerCase();
+    if (!unit || !__texUnits.hasOwnProperty(unit))
+        return undefined;
+    return ((Number(results[1].replace(",", ".")) * __texUnits[unit]) /
+        __gregorioStaffIntervalInSp);
+}
+// Gregorio's slurs, inside [ and ] after a note: [oslur:s;w,h], or [oslur:s{]
+// and [oslur:s}] for one from note to note (and uslur under the notes).  The
+// capturing groups are:
+//  1. o or u, for over or under
+//  2. the shift: 0, 1 or 2
+//  3. and 4. the width and height, as TeX lengths
+//  5. { or } for the start or end of a slur from note to note
+var __slurRegex = /^([ou])slur:([012])(?:;([^,]+),(.+)|([{}]))$/;
+// Gregorio's custom ledger lines, inside [ and ]: [oll:1] or [oll:0] after a
+// note, to draw a ledger line at the note or leave it out, [oll:l;r], one of
+// a given length, and [oll:l{r] … [oll:}], one from the first to the second
+// (and ull under the staff).  The capturing groups are:
+//  1. o or u, for over or under
+//  2. 1 or 0, to draw a ledger line at the note or leave it out
+//  3. }, for the end of one from note to note
+//  4. how far the line starts to the left: 0, 1 or a TeX length
+//  5. ; for a line of a given length, or { for the start of one from note to note
+//  6. its length to the right, or how far it goes past its end (0, 1 or a TeX length)
+var __ledgerLineRegex = /^([ou])ll:(?:([01])|(\})|([^;{]+)([;{])(.+))$/;
+// Gregorio's episema tuning, inside [ and ]: [oh:p] after a note, where p is
+// a position in the space (m, l, h, ol, oh, ul or uh) or a nudge (a TeX
+// length starting with + or -), or both, and [oh:p{] … [oh}] for the notes
+// between them, where p can be left out (and uh for the episema under the
+// note).  The capturing groups are:
+//  1. o or u, for the episema over or under the note
+//  2. the position
+//  3. the nudge
+//  4. { or }, for the start or end of a block
+var __episemaTuningRegex = /^([ou])h(?::(m|[ou]?[lh])?([+-][^{}]+)?)?([{}])?$/;
 const TrailingSpaceForAccidental = (ctxt) => ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
 const TrailingSpaceMultiple = (multiplier) => (ctxt) => ctxt.intraNeumeSpacing * multiplier;
 // a space between neumes, from ctxt.neumeSpaceMultipliers, times factor
@@ -326,7 +633,9 @@ var mergeAreas = (a, b) => {
 // no marks for the next word
 var noMarksForNext = { noteMarks: [], areas: {} };
 // whether marks has any marks
-var hasMarks = (marks) => marks.noteMarks.length > 0 || hasAreas(marks.areas);
+var hasMarks = (marks) => marks.noteMarks.length > 0 ||
+    hasAreas(marks.areas) ||
+    !!(marks.episemaBlocks && (marks.episemaBlocks.above || marks.episemaBlocks.below));
 // the areas that Gregorio's closing tags after the last word's notes end, which end at its last notation
 var endTrailingAreas = (mappings, areas) => {
     let notations = mappings.length ? mappings[mappings.length - 1].notations : [];
@@ -337,8 +646,12 @@ var endTrailingAreas = (mappings, areas) => {
         noLineBreak: areas.noLineBreak && areas.noLineBreak.end ? { end: true } : undefined
     });
 };
+// what Gregorio's [[ marks on the note after it
+var markBracketStart = (note) => (note.bracketStart = true);
 // what Gregorio's <nlba> in the notes marks on the note, or other notation, after it
 var markNoLineBreakStart = (element) => (element.noLineBreak = Object.assign(Object.assign({}, element.noLineBreak), { start: true }));
+// what Gregorio's @[ marks on the note after it
+var markAutoFusionStart = (note) => (note.autoFusion = Object.assign(Object.assign({}, note.autoFusion), { start: true }));
 // the NABC for one notation of two of Gregorio's elements, the second after a space ("/")
 var joinNabc = (first, second) => first && second ? first + "/" + second : (first || "") + second;
 // marks the start of an area on the first of a syllable's notations and its end on the last
@@ -907,6 +1220,80 @@ export class Gabc {
         }
         return mappings;
     }
+    /**
+     * Sets the automaticLeaning of each punctum inclinatum in a syllable's
+     * notes that has no leaning of its own, as Gregorio does
+     * (gabc_determine_punctum_inclinatum_orientation()).  A run of inclinata
+     * leans the way the line they make goes, counting the steps into and out
+     * of it, unless they're all at one pitch, which leaves them upright; an
+     * inclinatum in the run that has a leaning, or is a liquescent (which
+     * leans down), gives the run its leaning instead.  (Gregorio carries a
+     * run's leaning on into the next syllable; this doesn't look past the
+     * syllable.)
+     */
+    static setAutomaticLeanings(notes) {
+        // the inclinata in the run that have no leaning of their own, and the
+        // leaning that an inclinatum in the run that has one gives them
+        let run = [];
+        let leaning;
+        // the steps up less the steps down, the number of inclinata, and whether they're at one pitch
+        let rising = 0, count = 0, unison = true;
+        let previous;
+        const endRun = () => {
+            let runLeaning = leaning ||
+                (unison && (count > 1 || (count === 1 && rising === 0))
+                    ? "unison"
+                    : rising > 0
+                        ? "ascending"
+                        : "descending");
+            for (let note of run)
+                note.automaticLeaning = runLeaning;
+            run = [];
+            unison = true;
+        };
+        for (let note of notes) {
+            let isInclinatum = note.shape === NoteShape.Inclinatum;
+            // (a deminutus or an auctus, not an initio debilis)
+            let isLiquescent = isInclinatum &&
+                (note.liquescent & (LiquescentType.Small | LiquescentType.Ascending | LiquescentType.Descending)) !== 0;
+            let step = previous ? Math.sign(note.staffPosition - previous.staffPosition) : 0;
+            delete note.automaticLeaning;
+            if (isInclinatum && !note.leaning && !isLiquescent) {
+                if (leaning)
+                    note.automaticLeaning = leaning;
+                else {
+                    rising += step;
+                    if (step && count > 0)
+                        unison = false;
+                    run.push(note);
+                }
+                count++;
+            }
+            else {
+                if (isLiquescent) {
+                    unison = false;
+                    leaning = "descending";
+                }
+                else if (isInclinatum)
+                    leaning = note.leaning;
+                if (run.length) {
+                    if (!isInclinatum)
+                        rising += step;
+                    endRun();
+                }
+                if (isInclinatum)
+                    count++;
+                else {
+                    rising = count = 0;
+                    unison = true;
+                    leaning = undefined;
+                }
+            }
+            previous = note;
+        }
+        if (run.length)
+            endRun();
+    }
     // takes a gabc word (like those returned by splitWords below) and returns
     // a ChantMapping object that contains the gabc word source text as well
     // as the generated notations.
@@ -1001,6 +1388,7 @@ export class Gabc {
             }
             if (items.length === 0)
                 continue;
+            this.setAutomaticLeanings([].concat(...items.map((item) => item.notes || [])));
             // (and the areas that the word before left for its next syllable)
             setAreaBoundaries(items, this.marksForNext.areas);
             this.marksForNext = Object.assign(Object.assign({}, this.marksForNext), { areas: {} });
@@ -1281,6 +1669,9 @@ export class Gabc {
         this.marksForNext = Object.assign(Object.assign({}, this.marksForNext), { noteMarks: [] });
         // the space before the next note, where a mark between notes ends the neume
         var spaceBeforeNextNote = null;
+        // the notes in Gregorio's automatic fusions (@[…]), which end with the notes
+        var autoFused = new Set();
+        var autoFusing = false;
         // the last note before a mark, if any (the marks after it are recorded on it)
         var lastNote = () => {
             if (notes.length)
@@ -1323,7 +1714,9 @@ export class Gabc {
             // first, if we have any notes left over, we create a neume out of them
             if (notes.length > 0) {
                 // create neume(s)
-                var neumes = this.createNeumesFromNotes(ctxt, notes, trailingSpace);
+                var neumes = notes.some((note) => note.fused || autoFused.has(note))
+                    ? this.createFusedNeumes(ctxt, notes, trailingSpace, autoFused)
+                    : this.createNeumesFromNotes(ctxt, notes, trailingSpace);
                 for (var i = 0; i < neumes.length; i++)
                     notations.push(neumes[i]);
                 notes = [];
@@ -1402,6 +1795,17 @@ export class Gabc {
                 case "^0":
                     addNotation(new Signs.DivisioMinimis(barWithCarryover, atom === "^0"));
                     break;
+                // Gregorio's parenthesized bars (`0? and ,0? high, as `0 and ,0 are)
+                case ",?":
+                case ",0?":
+                case "`?":
+                case "`0?": {
+                    let high = atom[1] === "0";
+                    let parenthesizedBar = atom[0] === "," ? new Signs.QuarterBar(barWithCarryover, high) : new Signs.Virgula(barWithCarryover, high);
+                    parenthesizedBar.parenthesized = true;
+                    addNotation(parenthesizedBar);
+                    break;
+                }
                 case ";":
                     addNotation(new Signs.HalfBar(barWithCarryover));
                     break;
@@ -1507,13 +1911,15 @@ export class Gabc {
                 // no-line-break areas as / does, as they end Gregorio's glyphs and
                 // elements, so that their marks are where neumes start or end.
                 case "[[":
-                    nextNoteMarks.push((note) => (note.bracketStart = true));
+                    nextNoteMarks.push(markBracketStart);
                     if (spaceBeforeNextNote === null)
                         spaceBeforeNextNote = 0;
                     break;
                 case "]]": {
+                    // (as in Gregorio, a ]] with no notes since the [[ doesn't close
+                    // the brackets, which start at the next note)
                     let note = lastNote();
-                    if (note)
+                    if (note && !nextNoteMarks.includes(markBracketStart))
                         note.bracketEnd = true;
                     if (spaceBeforeNextNote === null)
                         spaceBeforeNextNote = 0;
@@ -1535,12 +1941,15 @@ export class Gabc {
                     break;
                 }
                 case "@[":
-                    nextNoteMarks.push((note) => (note.autoFusion = Object.assign(Object.assign({}, note.autoFusion), { start: true })));
+                    nextNoteMarks.push(markAutoFusionStart);
                     break;
                 case "]": {
                     let note = lastNote();
                     if (note)
                         note.autoFusion = Object.assign(Object.assign({}, note.autoFusion), { end: true });
+                    autoFusing = false;
+                    // (an @[ with no notes before the ] fuses none after it)
+                    nextNoteMarks = nextNoteMarks.filter((mark) => mark !== markAutoFusionStart);
                     break;
                 }
                 // spacing indicators
@@ -1571,6 +1980,20 @@ export class Gabc {
                         addSpace(atom, slashes === 1
                             ? NeumeSpace("/")
                             : (ctxt) => NeumeSpace("//")(ctxt) + NeumeSpace("/", slashes - 2)(ctxt), true);
+                    }
+                    else if (atom[0] === "[") {
+                        // Gregorio's instructions that aren't after a note: the start or
+                        // end of a block of episema tuning, and a custom ledger line,
+                        // which is introduced just before the next note
+                        let instruction = atom.slice(1, -1);
+                        let results = instruction.match(__ledgerLineRegex);
+                        let line = results && !results[2] && this.customLedgerLine(results);
+                        if (line) {
+                            let lineBefore = Object.assign(Object.assign({}, line), { before: true });
+                            nextNoteMarks.push((note) => (note.customLedgerLines = (note.customLedgerLines || []).concat(lineBefore)));
+                        }
+                        else
+                            this.processEpisemaTuning(instruction, null);
                     }
                     else if (atom.length > 1 && atom.endsWith("+")) {
                         // custos
@@ -1636,6 +2059,11 @@ export class Gabc {
                         for (let mark of nextNoteMarks)
                             mark(notes[firstNewNote]);
                         nextNoteMarks = [];
+                        if (notes[firstNewNote].autoFusion && notes[firstNewNote].autoFusion.start)
+                            autoFusing = true;
+                        if (autoFusing)
+                            for (let i = firstNewNote; i < notes.length; i++)
+                                autoFused.add(notes[i]);
                         --insertionIndex;
                     }
                     break;
@@ -1726,7 +2154,10 @@ export class Gabc {
                 return new Neumes.Punctum();
             },
             handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Virga)
+                // a linea (gabc =) is a neume of its own, whatever its shape
+                if (currNote.linea)
+                    return createNeume(new Neumes.Punctum(), true);
+                else if (currNote.shape === NoteShape.Virga)
                     return virgaState;
                 else if (currNote.shape === NoteShape.Stropha)
                     return apostrophaState;
@@ -1734,7 +2165,10 @@ export class Gabc {
                     return oriscusState;
                 else if (currNote.shape === NoteShape.Inclinatum)
                     return punctaInclinataState;
-                else if (currNote.shapeModifiers & NoteShapeModifiers.Cavum)
+                // (a cavum goes into a neume like any other note, and is drawn hollow
+                // there, but a punctum cavum between lines, r0, stands alone)
+                else if (currNote.shapeModifiers & NoteShapeModifiers.Cavum &&
+                    currNote.shapeModifiers & NoteShapeModifiers.Linea)
                     return createNeume(new Neumes.Punctum(), true);
                 else
                     return punctumState;
@@ -1745,6 +2179,14 @@ export class Gabc {
                 return new Neumes.Punctum();
             },
             handle: function (currNote, prevNote, notesRemaining) {
+                // an oriscus scapus is joined to the lower punctum before it, as in
+                // Gregorio (unless either is liquescent)
+                if (currNote.shape === NoteShape.Oriscus &&
+                    currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
+                    currNote.staffPosition > prevNote.staffPosition &&
+                    prevNote.liquescent === LiquescentType.None &&
+                    currNote.liquescent === LiquescentType.None)
+                    return pesOriscusState;
                 if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
                     var neume = new Neumes.Punctum();
                     var state = createNeume(neume, false);
@@ -1762,6 +2204,9 @@ export class Gabc {
                 if (currNote.staffPosition > prevNote.staffPosition) {
                     if (currNote.ictus)
                         currNote.ictus.positionHint = MarkingPositionHint.Above;
+                    // a pes quadratum (gabc q) has no more notes, as in Gregorio
+                    if (prevNote.quadratum)
+                        return createNeume(new Neumes.PesQuadratum(), true);
                     return podatusState;
                 }
                 else if (currNote.staffPosition < prevNote.staffPosition) {
@@ -1796,15 +2241,12 @@ export class Gabc {
                 return new Neumes.Oriscus();
             },
             handle: function (currNote, prevNote) {
+                // (the oriscus points to the note after it, unless gabc designates its direction)
                 if (currNote.shape === NoteShape.Default) {
-                    if (currNote.staffPosition > prevNote.staffPosition) {
-                        prevNote.shapeModifiers |= NoteShapeModifiers.Ascending;
+                    if (currNote.staffPosition > prevNote.staffPosition)
                         return createNeume(new Neumes.PesQuassus(), true);
-                    }
-                    else if (currNote.staffPosition < prevNote.staffPosition) {
-                        prevNote.shapeModifiers |= NoteShapeModifiers.Descending;
+                    else if (currNote.staffPosition < prevNote.staffPosition)
                         return createNeume(new Neumes.Clivis(), true);
-                    }
                 }
                 // stand alone oriscus
                 var neume = new Neumes.Oriscus(), state = createNeume(neume, false);
@@ -1818,6 +2260,18 @@ export class Gabc {
                         prevNote.morae.length === 0))
                     neume.trailingSpace = 0;
                 return state;
+            }
+        };
+        var pesOriscusState = {
+            neume: function () {
+                return new Neumes.PesOriscus();
+            },
+            handle: function (currNote, prevNote) {
+                if (currNote.shape === NoteShape.Default &&
+                    currNote.staffPosition > prevNote.staffPosition)
+                    return salicusState;
+                else
+                    return createNeume(new Neumes.PesOriscus(), false);
             }
         };
         var podatusState = {
@@ -1904,7 +2358,8 @@ export class Gabc {
                 return new Neumes.Salicus();
             },
             handle: function (currNote, prevNote) {
-                if (currNote.staffPosition < prevNote.staffPosition)
+                if (currNote.shape === NoteShape.Default &&
+                    currNote.staffPosition < prevNote.staffPosition)
                     return salicusFlexusState;
                 else
                     return createNeume(new Neumes.Salicus(), false);
@@ -2025,13 +2480,9 @@ export class Gabc {
             handle: function (currNote, prevNote) {
                 if (currNote.shape === NoteShape.Default &&
                     currNote.staffPosition > prevNote.staffPosition) {
-                    let prevNoteButOne = notes[currNoteIndex - 2];
-                    if (prevNoteButOne &&
-                        prevNoteButOne.staffPosition - prevNote.staffPosition <= 4) {
-                        if (currNote.ictus)
-                            currNote.ictus.positionHint = MarkingPositionHint.Above;
-                        return torculusResupinusState;
-                    }
+                    if (currNote.ictus)
+                        currNote.ictus.positionHint = MarkingPositionHint.Above;
+                    return torculusResupinusState;
                 }
                 return createNeume(new Neumes.Torculus(), false);
             }
@@ -2052,24 +2503,231 @@ export class Gabc {
         while (currNoteIndex < notes.length) {
             var prevNote = currNoteIndex > 0 ? notes[currNoteIndex - 1] : null;
             var currNote = notes[currNoteIndex];
-            // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
-            state = state.handle(currNote, prevNote, notes.length - 1 - currNoteIndex);
+            // a linea (gabc =) and the lower note of a pes quadratum (gabc q) start
+            // a new neume, as in Gregorio
+            if ((currNote.linea || currNote.quadratum) && state !== unknownState)
+                state = createNeume(state.neume(), false);
+            else
+                // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
+                state = state.handle(currNote, prevNote, notes.length - 1 - currNoteIndex);
             // if we are on the last note, then try to create a neume if we need to.
             if (currNoteIndex === notes.length - 1 && state !== unknownState)
                 createNeume(state.neume(), true);
             currNoteIndex++;
         }
-        if (neumes.length > 0) {
-            if (!finalTrailingSpace.isDefault) {
-                neumes[neumes.length - 1].trailingSpace = finalTrailingSpace;
-                neumes[neumes.length - 1].keepWithNext = true;
-                // finalTrailingSpace is either 0 or a function of the context
-                if (typeof finalTrailingSpace === "function"
-                    ? finalTrailingSpace(ctxt) > 0
-                    : finalTrailingSpace > 0)
-                    neumes[neumes.length - 1].allowLineBreakBeforeNext = neumes[neumes.length - 1].keepWithNext = true;
+        setFinalTrailingSpace(ctxt, neumes, finalTrailingSpace);
+        return neumes;
+    }
+    // makes neumes of notes that Gregorio fuses (gabc @ before a note, and
+    // @[…]), as createNeumesFromNotes() makes them of other notes.  Gregorio's
+    // glyphs end at each @, which fuses the glyph after it to the glyph before,
+    // and at each end of @[…], in which it splits the notes into glyphs and
+    // fuses each to the one before.  Glyphs that Gregorio fuses (see
+    // fusedGlyphOfNeume()), fused one to the next, make a FusedNeume, and a
+    // fused glyph of another kind (a torculus, say) is a neume of its own, right
+    // after the neume before it with no space.
+    static createFusedNeumes(ctxt, notes, finalTrailingSpace, autoFused) {
+        var pieces = [];
+        // (the first note of @[…] isn't fused, unless there's an @ before it)
+        var startsArea = (note) => !!(note.autoFusion && note.autoFusion.start);
+        // the neumes that the state machine makes of some notes; the first is
+        // fused to the piece before if fused is
+        var addNeumes = (someNotes, fused) => {
+            this.createNeumesFromNotes(ctxt, someNotes, DefaultTrailingSpace).forEach((neume, i) => {
+                var neumeFused = fused && i === 0;
+                pieces.push({ glyph: fusedGlyphOfNeume(neume, neumeFused), neume, fused: neumeFused });
+            });
+        };
+        // the notes outside @[…] between two @s, or an @ and the end: the glyphs
+        // next to the @s are Gregorio's (see nextGregorioGlyph()), and the notes
+        // between them make neumes as usual
+        var addSegment = (segment, fusedAfter) => {
+            var glyphs = [];
+            for (var i = 0, fused = !!segment[0].fused && !isNeverFused(segment[0]); i < segment.length;) {
+                var glyph = nextGregorioGlyph(segment, i);
+                glyphs.push({ start: i, length: glyph.length, kind: glyph.kind, fused });
+                fused = !!glyph.fusesNext;
+                i += glyph.length;
+            }
+            // the glyphs fused to the @ before the segment, and to the @ after it
+            var first = 0;
+            while (first < glyphs.length && glyphs[first].fused && glyphs[first].kind)
+                first++;
+            var last = glyphs.length;
+            if (fusedAfter)
+                while (last > first &&
+                    glyphs[last - 1].kind &&
+                    (last === glyphs.length || glyphs[last].fused))
+                    last--;
+            var addGlyph = (glyph) => pieces.push({
+                glyph: {
+                    kind: glyph.kind,
+                    notes: segment.slice(glyph.start, glyph.start + glyph.length),
+                    fused: glyph.fused
+                },
+                fused: glyph.fused
+            });
+            glyphs.slice(0, first).forEach(addGlyph);
+            if (last > first)
+                addNeumes(segment.slice(glyphs[first].start, glyphs[last - 1].start + glyphs[last - 1].length), glyphs[first].fused);
+            glyphs.slice(last).forEach(addGlyph);
+        };
+        // Gregorio's glyphs in @[…] (gabc_det_glyphs_from_notes() with
+        // autofuse): the notes it fuses make fused glyphs, which splitFusion()
+        // splits.  An oriscus, quilisma or virga starts one, as does a punctum
+        // after other notes, and a virga or a liquescent (of any shape) ends one.
+        // The other notes make neumes, fused to the glyph before if it ended
+        // with its last note.
+        var addAutoFused = (areaNotes) => {
+            var fusing = [];
+            var fusingIsFused = false;
+            var others = [];
+            var othersAreFused = false;
+            var endedWithNote = false;
+            // (Gregorio makes a stropha or virga reversa before a punctum the first
+            // note of its fused glyph, as a glyph of its own, which splitFusion()
+            // counts in the intervals)
+            var fusingInterval = 0;
+            var endFusing = () => {
+                if (fusing.length)
+                    pieces.push(...splitFusion(fusing, fusingIsFused, fusingInterval));
+                fusing = [];
+            };
+            var endOthers = () => {
+                if (others.length)
+                    addNeumes(others, othersAreFused);
+                others = [];
+            };
+            areaNotes.forEach((note) => {
+                if (fusing.length &&
+                    isTailLiquescent(note) &&
+                    !note.fused &&
+                    !(note.liquescent & LiquescentType.InitioDebilis)) {
+                    fusing.push(note);
+                    endFusing();
+                    endedWithNote = true;
+                }
+                else if (isAutoFusible(note)) {
+                    var previous = others[others.length - 1];
+                    endOthers();
+                    if (startsAutoFusedGlyph(note))
+                        endFusing();
+                    if (!fusing.length) {
+                        fusingIsFused =
+                            !!note.fused || (!startsArea(note) && !(note.liquescent & LiquescentType.InitioDebilis));
+                        fusingInterval =
+                            previous &&
+                                !startsAutoFusedGlyph(note) &&
+                                (previous.shape === NoteShape.Stropha || previous.shape === NoteShape.Virga)
+                                ? gabcStaffPosition(note) - gabcStaffPosition(previous)
+                                : 0;
+                    }
+                    fusing.push(note);
+                    endedWithNote = isTailLiquescent(note) || note.shape === NoteShape.Virga;
+                    if (endedWithNote)
+                        endFusing();
+                }
+                else {
+                    endFusing();
+                    if (note.fused)
+                        endOthers();
+                    if (!others.length)
+                        othersAreFused =
+                            (!!note.fused || (!startsArea(note) && endedWithNote)) && !isNeverFused(note);
+                    others.push(note);
+                    endedWithNote = false;
+                }
+            });
+            endFusing();
+            endOthers();
+        };
+        // the notes in each @[…], and the notes outside them split at each @
+        for (var start = 0; start < notes.length;) {
+            var inArea = autoFused.has(notes[start]);
+            var end = start + 1;
+            while (end < notes.length &&
+                autoFused.has(notes[end]) === inArea &&
+                !(inArea && startsArea(notes[end])))
+                end++;
+            if (inArea)
+                addAutoFused(notes.slice(start, end));
+            else {
+                for (var segmentStart = start; segmentStart < end;) {
+                    var segmentEnd = segmentStart + 1;
+                    while (segmentEnd < end && !notes[segmentEnd].fused)
+                        segmentEnd++;
+                    addSegment(notes.slice(segmentStart, segmentEnd), segmentEnd < notes.length && !!notes[segmentEnd].fused && !isNeverFused(notes[segmentEnd]));
+                    segmentStart = segmentEnd;
+                }
+            }
+            start = end;
+        }
+        // the neumes: each run of glyphs fused one to the next makes a
+        // FusedNeume, as does a fused glyph on its own (a flexus or porrectus
+        // without its stem)
+        var neumes = [];
+        var fusedToPrevious = [];
+        for (var first = 0; first < pieces.length;) {
+            var last = first + 1;
+            if (pieces[first].glyph)
+                while (last < pieces.length && pieces[last].fused && pieces[last].glyph)
+                    last++;
+            var run = pieces.slice(first, last);
+            var runNeumes;
+            if (run.length > 1 || (run[0].glyph && run[0].fused)) {
+                var neume = new Neumes.FusedNeume(run.map((piece) => piece.glyph));
+                // (it ends as the neume of its last glyph did)
+                var lastNeume = run[run.length - 1].neume;
+                if (lastNeume) {
+                    neume.trailingSpace = lastNeume.trailingSpace;
+                    neume.keepWithNext = lastNeume.keepWithNext;
+                    neume.allowLineBreakBeforeNext = lastNeume.allowLineBreakBeforeNext;
+                }
+                neume.notes.forEach((note, i) => {
+                    if (note.alText) {
+                        if (!neume.alText)
+                            neume.alText = [];
+                        neume.alText.push(note.alText);
+                        note.alText.noteIndex = i;
+                    }
+                });
+                runNeumes = [neume];
+            }
+            else if (run[0].neume)
+                runNeumes = [run[0].neume];
+            else
+                runNeumes = this.createNeumesFromNotes(ctxt, run[0].glyph.notes, DefaultTrailingSpace);
+            runNeumes.forEach((neume, i) => {
+                neumes.push(neume);
+                fusedToPrevious.push(i === 0 && run[0].fused && neumes.length > 1);
+            });
+            first = last;
+        }
+        // a fused neume follows the one before with no space, and other neumes
+        // follow with the space that createNeumesFromNotes() leaves between them
+        for (var n = 0; n + 1 < neumes.length; n++) {
+            var current = neumes[n];
+            if (fusedToPrevious[n + 1]) {
+                if (current instanceof Neumes.FusedNeume)
+                    current.fusedToNext = true;
+                var nextNeume = neumes[n + 1];
+                if (nextNeume instanceof Neumes.FusedNeume)
+                    nextNeume.fusedToPrevious = true;
+                current.trailingSpace = 0;
+                current.keepWithNext = true;
+                current.allowLineBreakBeforeNext = false;
+            }
+            else if (current.trailingSpace.isDefault) {
+                current.keepWithNext = true;
+                if (neumes[n + 1].notes[0].shape === NoteShape.Quilisma)
+                    current.trailingSpace = 0;
+                else {
+                    current.trailingSpace = TrailingSpaceMultiple(1);
+                    current.allowLineBreakBeforeNext = true;
+                }
             }
         }
+        setFinalTrailingSpace(ctxt, neumes, finalTrailingSpace);
         return neumes;
     }
     // appends any notes created to the notes array argument
@@ -2077,6 +2735,10 @@ export class Gabc {
         var note = new Note();
         note.sourceIndex = sourceIndex;
         note.sourceGabc = restoreEscapes(data);
+        // (the tuning of the blocks of Gregorio's episema tuning that the note is in)
+        var episemaBlocks = this.marksForNext.episemaBlocks;
+        if (episemaBlocks && (episemaBlocks.above || episemaBlocks.below))
+            note.episemaTuning = { above: episemaBlocks.above, below: episemaBlocks.below };
         if (data.length < 1)
             throw "Invalid note data: " + data;
         if (data[0] === "-") {
@@ -2103,6 +2765,18 @@ export class Gabc {
         var mark;
         var episemaNoteIndex = notes.length;
         var episemaNote = note;
+        // starts a new note at the same pitch after the note so far, for gabc's
+        // repeated notes (gsss, gvvv and gVV)
+        var startRepeatedNote = (sourceGabc) => {
+            let newNote = new Note();
+            newNote.sourceIndex = sourceIndex + i;
+            newNote.sourceGabc = sourceGabc;
+            newNote.staffPosition = note.staffPosition;
+            newNote.pitch = note.pitch;
+            notes.push(note);
+            note = newNote;
+            episemaNoteIndex++; // since a new note was added, increase the index here
+        };
         // process the modifiers
         for (var i = 1; i < data.length; i++) {
             var c = data[i];
@@ -2237,14 +2911,7 @@ export class Gabc {
                     if (note.shape === NoteShape.Stropha) {
                         // if we're already a stropha, that means this is gabc's
                         // quick stropha feature (e.g., gsss). create a new note
-                        let newNote = new Note();
-                        newNote.sourceIndex = sourceIndex + i;
-                        newNote.sourceGabc = "s";
-                        newNote.staffPosition = note.staffPosition;
-                        newNote.pitch = note.pitch;
-                        notes.push(note);
-                        note = newNote;
-                        episemaNoteIndex++; // since a new note was added, increase the index here
+                        startRepeatedNote("s");
                     }
                     note.shape = NoteShape.Stropha;
                     break;
@@ -2252,53 +2919,60 @@ export class Gabc {
                     if (note.shape === NoteShape.Virga) {
                         // if we're already a stropha, that means this is gabc's
                         // quick virga feature (e.g., gvvv). create a new note
-                        let newNote = new Note();
-                        newNote.sourceIndex = sourceIndex + i;
-                        newNote.sourceGabc = "v";
-                        newNote.staffPosition = note.staffPosition;
-                        newNote.pitch = note.pitch;
-                        notes.push(note);
-                        note = newNote;
-                        episemaNoteIndex++; // since a new note was added, increase the index here
+                        startRepeatedNote("v");
                     }
                     note.shape = NoteShape.Virga;
                     break;
                 case "V":
+                    if (data[i - 1] === "V") {
+                        // gabc VV and VVV, which Gregorio reads as vv and vvv: a bivirga
+                        // or trivirga of virgas that aren't reversed
+                        // (gabc-glyphs-determination.c), so create a new note
+                        note.shapeModifiers &= ~NoteShapeModifiers.Reverse;
+                        startRepeatedNote("V");
+                        note.shape = NoteShape.Virga;
+                        break;
+                    }
                     note.shape = NoteShape.Virga;
                     note.shapeModifiers |= NoteShapeModifiers.Reverse;
                     break;
                 case "w":
                     note.shape = NoteShape.Quilisma;
                     break;
-                // Gregorio's shapes that are read but not drawn yet
+                // Gregorio's quilisma quadratum: a quilisma, which a higher note
+                // follows as in a pes quadratum
                 case "W":
+                    note.shape = NoteShape.Quilisma;
                     note.quilismaQuadratum = true;
                     break;
+                // Gregorio's pes quadratum and linea
                 case "q":
                     note.quadratum = true;
                     break;
                 case "=":
                     note.linea = true;
                     break;
+                // an oriscus's direction: Gregorio's 1 (up) and 0 (down), or
+                // exsurge's own < and >
                 case "o":
                     note.shape = NoteShape.Oriscus;
-                    if (haveLookahead && lookahead === "<") {
+                    if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
                         note.shapeModifiers |= NoteShapeModifiers.Ascending;
                         i++;
                     }
-                    else if (haveLookahead && lookahead === ">") {
+                    else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
                         note.shapeModifiers |= NoteShapeModifiers.Descending;
                         i++;
                     }
                     break;
                 case "O":
                     note.shape = NoteShape.Oriscus;
-                    if (haveLookahead && lookahead === "<") {
+                    if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
                         note.shapeModifiers |=
                             NoteShapeModifiers.Ascending | NoteShapeModifiers.Stemmed;
                         i++;
                     }
-                    else if (haveLookahead && lookahead === ">") {
+                    else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
                         note.shapeModifiers |=
                             NoteShapeModifiers.Descending | NoteShapeModifiers.Stemmed;
                         i++;
@@ -2378,6 +3052,8 @@ export class Gabc {
             note.noCustos = true;
             return;
         }
+        if (this.processDecorationForNote(note, instruction))
+            return;
         var results = instruction.match(__bracketedCommandRegex);
         if (results === null)
             return;
@@ -2389,6 +3065,19 @@ export class Gabc {
                 return;
             case "alt":
                 note.alText = new AboveLinesText(ctxt, data, note, note.sourceIndex + sourceIndexOffset);
+                return;
+            // Gregorio's shape hints, which replace any before them on the note
+            case "shape":
+                note.shapeHint = data;
+                return;
+            // Gregorio's ledger-line hints, of which the first on the note counts
+            case "ll":
+                if (note.lowLedgerLine === undefined && /^[01]$/.test(data))
+                    note.lowLedgerLine = data === "1";
+                return;
+            case "hl":
+                if (note.highLedgerLine === undefined && /^[01]$/.test(data))
+                    note.highLedgerLine = data === "1";
                 return;
         }
         results = instruction.match(__braceSpecRegex);
@@ -2419,8 +3108,94 @@ export class Gabc {
         // just have the next note end a brace that uses length;
         if (results[5]) {
             note.braceStart.automatic = true;
+            note.braceStart.length = texLengthToStaffIntervals(results[5]);
             this.needToEndBrace = note.braceStart;
         }
+    }
+    // Gregorio's slurs, custom ledger lines and episema tuning on the note.
+    // Returns whether the instruction is one of these.
+    static processDecorationForNote(note, instruction) {
+        if (this.processEpisemaTuning(instruction, note))
+            return true;
+        var results = instruction.match(__ledgerLineRegex);
+        if (results) {
+            if (results[2] && results[1] === "o")
+                note.ledgerLineAbove = results[2] === "1";
+            else if (results[2])
+                note.ledgerLineBelow = results[2] === "1";
+            else {
+                let line = this.customLedgerLine(results);
+                if (line)
+                    note.customLedgerLines = (note.customLedgerLines || []).concat(line);
+            }
+            return true;
+        }
+        results = instruction.match(__slurRegex);
+        if (results) {
+            let mark = {
+                isAbove: results[1] === "o",
+                shift: Number(results[2]),
+                kind: results[5] === "{" ? "start" : results[5] === "}" ? "end" : "fixed"
+            };
+            if (mark.kind === "fixed") {
+                let width = texLengthToStaffIntervals(results[3]);
+                let height = texLengthToStaffIntervals(results[4]);
+                if (width === undefined || height === undefined)
+                    return true;
+                mark.width = width;
+                mark.height = height;
+            }
+            note.slurs = (note.slurs || []).concat(mark);
+            return true;
+        }
+        return false;
+    }
+    // Gregorio's episema tuning ([oh:…] and [uh:…]): one for the note it's
+    // after, if there is one, or the start or end of a block, whose tuning goes
+    // on the notes that come between its start and end.  Returns whether the
+    // instruction is one of these.
+    static processEpisemaTuning(instruction, note) {
+        var results = instruction.match(__episemaTuningRegex);
+        if (!results)
+            return false;
+        var side = results[1] === "o" ? "above" : "below";
+        var hasPositionOrNudge = !!(results[2] || results[3]);
+        var tuning = {};
+        if (results[2])
+            tuning.position = results[2];
+        if (results[3]) {
+            let nudge = texLengthToStaffIntervals(results[3]);
+            if (nudge === undefined)
+                return true;
+            tuning.nudge = nudge;
+        }
+        var blocks = this.marksForNext.episemaBlocks || {};
+        if (results[4] === "{") {
+            // (as in Gregorio, a block can't start before the last one ends)
+            if (!blocks[side])
+                this.marksForNext = Object.assign(Object.assign({}, this.marksForNext), { episemaBlocks: Object.assign(Object.assign({}, blocks), { [side]: Object.assign(Object.assign({}, tuning), { block: true }) }) });
+        }
+        else if (results[4] === "}") {
+            if (!hasPositionOrNudge)
+                this.marksForNext = Object.assign(Object.assign({}, this.marksForNext), { episemaBlocks: Object.assign(Object.assign({}, blocks), { [side]: undefined }) });
+        }
+        else if (note && hasPositionOrNudge && !blocks[side]) {
+            // (as in Gregorio, a note in a block has the block's tuning, not its own)
+            note.episemaTuning = Object.assign(Object.assign({}, note.episemaTuning), { [side]: tuning });
+        }
+        return true;
+    }
+    // the custom ledger line that a match of __ledgerLineRegex gives, if its lengths are valid
+    static customLedgerLine(results) {
+        var isAbove = results[1] === "o";
+        if (results[3])
+            return { isAbove, kind: "end" };
+        var extent = (text) => text === "0" ? 0 : text === "1" ? "overhang" : texLengthToStaffIntervals(text);
+        var left = extent(results[4]);
+        var right = results[5] === ";" ? texLengthToStaffIntervals(results[6]) : extent(results[6]);
+        if (left === undefined || right === undefined)
+            return null;
+        return { isAbove, kind: results[5] === ";" ? "fixed" : "start", left, right };
     }
     // takes raw gabc text source and parses it into words. For example, passing
     // in a string of "me(f.) (,) ma(fff)num(d!ewf) tu(fgF'E)am,(f.)" would return

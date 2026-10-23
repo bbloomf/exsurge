@@ -492,7 +492,7 @@ const svg = score.createSvg(ctxt);
 
 | Status | Implemented in | Golden cases |
 |---|---|---|
-| **Not in Gregorio** | `ChantScore`, `Chant.ts`: `paginate()` `:1073-1094`, `draw()` `:1096`, `getSvgProps()` `:1112-1133`, `createSvgNode()` `:1135`, `createSvgTree()` `:1155`, `createSvg()` `:1179`, `createSvgNodeForEachLine()` `:1201`, `createSvgForEachLine()` `:1231`, `performLayoutAsync()` `:870`, `waitForLyricFont()` `:898`; `TextMeasuringStrategy`, `Drawing.ts:726-731` | every case renders the SVG string, the SVG tree, SVG DOM nodes and a canvas; also `kyrie` (per line), `paginated` (`cases.ts:613`), `tree-zoom` (`:614`), `tree-fill-container` (`:615`), `async-layout` (`:612`), `relayout` (`:325`), `unlimited-width` (`:324`), `canvas` (`:315`), `canvas-basic` (`:316`), `opentype` (`:314`), `svg-measured` (`:627`), `scale-uses` (`:428`), `font-family-attributes` (`:548`) |
+| **Not in Gregorio** | `ChantScore`, `Chant.ts`: `paginate()` `:1073-1094`, `draw()` `:1096`, `getSvgProps()` `:1112-1133`, `createSvgNode()` `:1135`, `createSvgTree()` `:1155`, `createSvg()` `:1179`, `createSvgNodeForEachLine()` `:1201`, `createSvgForEachLine()` `:1231`, `performLayoutAsync()` `:870`, `waitForLyricFont()` `:898`; `TextMeasuringStrategy`, `Drawing.ts:726-731` | every case renders the SVG string, the SVG tree, SVG DOM nodes and a canvas; also `kyrie` (per line), `paginated` (`cases.ts:613`), `tree-zoom` (`:614`), `tree-fill-container` (`:615`), `async-layout` (`:612`), `relayout` (`:325`), `unlimited-width` (`:324`), `canvas` (`:315`), `canvas-basic` (`:316`), `opentype` (`:314`), `svg-measured` (`:627`), `scale-uses` (`:428`), `def-id-prefix` (`:1118`), `font-family-attributes` (`:548`) |
 
 **What it does.** exsurge is a library that runs in the browser or in Node, and lays out and draws a score in several forms:
 
@@ -520,6 +520,7 @@ The SVG is made to be scripted and styled:
 
 - Each glyph is defined once and placed with `<use>`. `ctxt.setScaleDefs(false)` scales the `<use>` elements rather than the definitions.
 - Each note's element has an id (`note-1`, …, with the prefix set by `ctxt.noteIdPrefix`), and elements carry `source-index` and `element-index` attributes.
+- Each glyph's definition has its glyph code as its id (`PunctumQuadratum`, …), after the prefix set by `ctxt.defIdPrefix`, which is empty by default. A page looks up an id among all of its elements. So when SVGs with different staff heights, glyph multipliers or `negativeFillColor`s are in one HTML page, give each context its own prefix (for example `ctxt.defIdPrefix = "score2-"`, before the layout). If not, every SVG draws the first SVG's glyphs.
 - Elements have CSS classes, such as `note`, `neumeLine`, `neumeBeam`, `staffLine`, `lyric` and `rubric`.
 - The text styles are written as a `<style>` element. `ctxt.setFontFamilyAttributes = true` also gives each text element in `createSvg()` a `font-size` attribute.
 

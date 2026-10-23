@@ -43,6 +43,26 @@ export const Glyphs = {
         },
         align: "left"
     },
+    // a linea's note (gabc =), which draws nothing: its LineaVisualizer draws the linea
+    Linea: {
+        paths: [
+            {
+                type: "positive",
+                data: ""
+            }
+        ],
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+        },
+        origin: {
+            x: 0,
+            y: 0
+        },
+        align: "left"
+    },
     AcuteAccent: {
         paths: [
             {
@@ -147,6 +167,27 @@ export const Glyphs = {
             y: 0,
             width: 97.657,
             height: 151.562
+        },
+        origin: {
+            x: 48,
+            y: 73.438
+        },
+        align: "left"
+    },
+    // the stropha aucta: Stropha, with its tail (the half below its side
+    // corners) a quarter longer
+    StrophaLiquescent: {
+        paths: [
+            {
+                type: "positive",
+                data: "M1.22-73.438c4.165 13.02 12.238 27.084 24.217 42.188L49.657 0 34.812 34.18C18.666 69.338-.084 90.495-21.438 97.655c4.687-4.556 7.03-10.741 7.03-18.554 0-11.066-4.947-25.715-14.843-43.944L-48 0 1.22-73.438z"
+            }
+        ],
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 97.657,
+            height: 171.093
         },
         origin: {
             x: 48,
@@ -592,82 +633,6 @@ export const Glyphs = {
         },
         align: "right"
     },
-    Porrectus1: {
-        paths: [
-            {
-                type: "positive",
-                data: "M233.594 162.875c-58.855 0-107.032-6.25-144.53-18.75C34.895 125.895-11.46 99.855-50 66V-52.75C-21.354-24.625 26.302 6.885 92.97 41.78 123.697 57.928 163.54 66 212.5 66c21.354 0 34.635-9.896 39.844-29.688V151.94c0 7.29-6.25 10.937-18.75 10.937z"
-            }
-        ],
-        bounds: {
-            x: 0,
-            y: 0,
-            width: 302.344,
-            height: 215.627
-        },
-        origin: {
-            x: 50,
-            y: 52.75
-        },
-        align: "left"
-    },
-    Porrectus2: {
-        paths: [
-            {
-                type: "positive",
-                data: "M309.375 259.375c-50.52 0-110.938-22.396-181.25-67.188C48.437 141.667-10.938 94.272-50 50V-68.75C0-3.125 60.417 52.083 131.25 96.875c58.333 36.98 110.677 58.854 157.03 65.625h7.033c16.145 0 26.822-9.896 32.03-29.688v114.844c0 7.812-5.99 11.72-17.968 11.72z"
-            }
-        ],
-        bounds: {
-            x: 0,
-            y: 0,
-            width: 377.343,
-            height: 328.126
-        },
-        origin: {
-            x: 50,
-            y: 68.75
-        },
-        align: "left"
-    },
-    Porrectus3: {
-        paths: [
-            {
-                type: "positive",
-                data: "M309.375 355.78c-48.96-16.666-109.115-55.468-180.47-116.405C79.428 198.23 19.793 134.687-50 48.75V-70C20 40 94.104 103.79 135.25 148.063 190 200 230 230 288.28 258.906c4.168 2.083 8.334 3.125 12.5 3.125 12.5 0 21.355-10.937 26.564-32.81v114.06c0 9.376-3.386 14.063-10.156 14.064-2.084 0-4.688-.522-7.813-1.563z"
-            }
-        ],
-        bounds: {
-            x: 0,
-            y: 0,
-            width: 377.344,
-            height: 427.345
-        },
-        origin: {
-            x: 50,
-            y: 70
-        },
-        align: "left"
-    },
-    Porrectus4: {
-        paths: [
-            {
-                type: "positive",
-                data: "M350 453.438c-52.754-22.397-120-77.345-201.74-164.844C90.87 227.656 24.784 147.708-50 48.75V-70C-8.84-1.25 58.406 86.51 151.74 193.28c60.868 69.793 119.13 124.22 174.782 163.282 5.797 3.646 11.014 5.47 15.652 5.47 12.173 0 21.45-11.72 27.826-35.157V441.72c0 9.373-3.19 14.06-9.565 14.06-2.9 0-6.377-.78-10.435-2.342z"
-            }
-        ],
-        bounds: {
-            x: 0,
-            y: 0,
-            width: 420,
-            height: 525.78
-        },
-        origin: {
-            x: 50,
-            y: 70
-        },
-        align: "left"
-    },
     PunctumCavum: {
         paths: [
             {
@@ -779,6 +744,67 @@ export const Glyphs = {
             y: 0,
             width: 100,
             height: 150.78
+        },
+        origin: {
+            x: 50,
+            y: 75.78
+        },
+        align: "left"
+    },
+    // PunctumInclinatum leaning to the right, as in an ascending line (turned 6° clockwise)
+    PunctumInclinatumAscendens: {
+        paths: [
+            {
+                type: "positive",
+                data: "M7.921-75.365L49.726 5.226-7.84 74.589-49.726-5.226z"
+            }
+        ],
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 150.78
+        },
+        origin: {
+            x: 50,
+            y: 75.78
+        },
+        align: "left"
+    },
+    // PunctumInclinatum leaning to the left, as in a descending line (turned 6° anticlockwise)
+    PunctumInclinatumDescendens: {
+        paths: [
+            {
+                type: "positive",
+                data: "M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z"
+            }
+        ],
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 150.78
+        },
+        origin: {
+            x: 50,
+            y: 75.78
+        },
+        align: "left"
+    },
+    // the top half of PunctumInclinatum, and the tail of Stropha below it, a
+    // quarter longer
+    PunctumInclinatumAuctus: {
+        paths: [
+            {
+                type: "positive",
+                data: "M0-75.78L50 0 34.812 34.18C18.666 69.338-.084 90.495-21.438 97.655c4.687-4.556 7.03-10.741 7.03-18.554 0-11.066-4.947-25.715-14.843-43.944L-50 0z"
+            }
+        ],
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 173.435
         },
         origin: {
             x: 50,
@@ -956,6 +982,255 @@ export const Glyphs = {
             y: 88.86
         },
         align: "left"
+    },
+    // parentheses around a sign (Gregorio's parenthesized accidentals and
+    // bars), as thick in the middle as the stems of Flat and Natural
+    OpenParenthesis: {
+        paths: [
+            {
+                type: "positive",
+                data: "M40-150C16-118 0-62 0 0s16 118 40 150c3 .5 6.5-1.5 7-4C29 112 17 60 17 0s12-112 30-146c-.5-2.5-4-4.5-7-4z"
+            }
+        ],
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 47,
+            height: 300
+        },
+        origin: {
+            x: 0,
+            y: 150
+        },
+        align: "left"
+    },
+    CloseParenthesis: {
+        paths: [
+            {
+                type: "positive",
+                data: "M7-150c24 32 40 88 40 150S31 118 7 150c-3 .5-6.5-1.5-7-4C18 112 30 60 30 0S18-112 0-146c.5-2.5 4-4.5 7-4z"
+            }
+        ],
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 47,
+            height: 300
+        },
+        origin: {
+            x: 0,
+            y: 150
+        },
+        align: "left"
     }
 };
+// The hollow (cavum) form of each note glyph, for a note with a cavum (gabc
+// r): the glyph, with a hole drawn in ChantContext.negativeFillColor, as
+// PunctumCavum is PunctumQuadratum with one.  Each hole is its glyph's
+// outline inset by the thickness of PunctumCavum's walls (18), or by as much
+// less as the glyph is smaller than a punctum (11 to 12.6 for the small
+// liquescents) and by 13 for the quilisma, whose strokes are thinner.  (A
+// porrectus's swash makes its own hole, as it does its outline: see
+// porrectusSwash().)
+const cavumHoles = {
+    OriscusAsc: "M-29.685-46.805c-1.903 3.006-2.3 7.028-2.293 10.568l.123 58.886c0 .165.33-.013.495-.026 .831-.06 1.66-.134 2.493-.171 2.164-.094 4.335-.058 6.492.147 6.038.572 11.671 2.644 17.098 5.274l11.246 5.451c6.039 2.926 17.344 10.645 23.747 8.96 1.631-3.078 2.245-6.662 2.251-10.142l.033-19.996-.178-39.918c-.003-.663-1.323.101-1.984.142-2.329.146-4.668.145-6.991-.092-6.062-.618-12.187-2.57-17.639-5.277l-11.641-5.781c-3.274-1.625-15.867-7.527-18.776-8.167-1.453-.32-3.029-.053-4.476.142z",
+    OriscusDes: "M-32-27.166l.02 59.487c.001 3.645.562 7.412 2.311 10.626 7.896 1.678 28.816-11.865 37.795-15.492 4.918-1.987 10.053-3.747 15.357-4.292 2.156-.222 4.329-.195 6.49-.053 .154.01 1.984.174 1.984.099l.018-58.956c.001-3.474-.507-7.07-2.007-10.209-5.418-1.659-12.486 2.494-17.334 4.89l-11.203 5.537c-6.923 3.422-14.388 6.624-22.018 8.016-2.471.45-4.953.624-7.463.555-1.001-.028-1.995-.112-2.994-.171-.318-.019-.956-.356-.956-.037z",
+    OriscusLiquescent: "M-32-27.683l.029 59.519c.002 3.155.515 6.387 1.913 9.214 5.083 2.162 11.744-2.077 16.253-4.501l10.572-5.684c7.231-3.889 15.201-7.35 23.333-8.734 2.607-.443 5.329-.719 7.968-.443 1.007.105 1.957.375 2.945.559 .301.056.91.415.91.109l.072-57.995c.005-3.475-.469-7.086-2.059-10.188-7.444-3.127-29.269 11.115-37.544 14.29-5.122 1.966-10.484 3.508-15.977 3.899-2.161.154-4.337.113-6.496-.055-.176-.014-1.919-.286-1.919.01z",
+    PodatusLower: "M31.8-37.362c0-.167-.316.105-.475.156-2.066.655-4.164 1.191-6.292 1.6-4.796.921-9.562 1.033-14.42 1.206l-15.483.551c-5.981.212-12.012-.078-17.975-.554-2.158-.172-4.314-.379-6.467-.619-.827-.092-2.48-1.123-2.482-.29l-.157 67.247c0 .226 1.753.373 1.941.395 4.944.593 9.993.735 14.968.785l16.491.163c7.883.078 15.576.935 23.445-.152 1.276-.177 6.863-1.19 6.863-1.342z",
+    PodatusLowerShort: "M-31.862-12.448l-.024 55.314c0 .087 1.827.081 1.985.083 3.831.064 7.663.101 11.495.127 12.827.086 25.656.075 38.484-.031 3.498-.029 6.996-.067 10.495-.127 .122-.002 1.427.066 1.427-.168v-55.477c0-.289-1.28-.091-1.4-.083-2.992.198-5.993.268-8.99.331-7.161.152-14.326.181-21.49.195-7.163.013-14.327.002-21.491-.054-2.332-.018-4.664-.042-6.996-.075-.29-.004-3.495-.062-3.495-.035z",
+    PodatusUpper: "M-73.296 22.241c0 .331.649-.122.973-.191 .652-.139 1.3-.298 1.952-.438 2.119-.453 4.254-.837 6.397-1.156 6.431-.958 12.947-1.344 19.446-1.261 5.994.076 12.015.583 17.873 1.9 1.951.439 3.883.969 5.78 1.608 .631.213 1.25.467 1.883.675 .309.102.938.598.938.272l.036-50.478c.004-5.577-6.83-7.714-11.254-8.955-10.512-2.95-23.131-2.914-33.723-.349-4.764 1.154-10.39 3.15-10.38 8.944z",
+    PodatusUpperShort: "M-73.296 14.244c.001.331.65-.122.973-.191 .652-.139 1.3-.299 1.953-.438 2.119-.453 4.253-.837 6.397-1.156 6.43-.958 12.947-1.344 19.445-1.261 5.995.076 12.016.583 17.874 1.901 1.952.439 3.884.968 5.78 1.607 .631.213 1.25.467 1.883.676 .309.102.938.597.938.271l.035-50.48c.004-5.576-6.83-7.715-11.253-8.956-10.513-2.95-23.132-2.911-33.724-.346-4.765 1.154-10.39 3.15-10.38 8.944z",
+    PunctumQuadratumLiquescent: "M-18.627-21.23l-.07 40.216c-.001.5.966-.261 1.451-.381 1.618-.402 3.253-.732 4.898-.998 4.114-.666 8.287-.936 12.452-.931 4.166.005 8.338.285 12.45.964 1.48.245 2.951.541 4.409.895 .144.035 1.917.465 1.917.417l-.36-40.36c-.013-1.395-6.506-3.069-7.672-3.287-7.303-1.37-15.619-1.395-22.88.243-1.223.276-6.592 1.447-6.595 3.222z",
+    PunctumQuadratumAscLiquescent: "M-31.837-32.405l.225 78.223c0 .234 4.51.163 4.991.15 5.666-.155 11.311-.842 16.89-1.822 11.125-1.954 24.166-4.158 33.621-10.69 1.507-1.042 7.966-6.423 7.97-8.187l.14-68.973c0-.224-2.884.992-3.156 1.104-2.158.889-4.348 1.698-6.562 2.436-6.311 2.105-12.836 3.691-19.347 5.047-7.666 1.596-15.454 2.699-23.285 2.984-2.499.09-5.002.103-7.5-.007-.999-.044-1.996-.116-2.994-.192-.331-.025-.994-.405-.993-.073z",
+    PunctumQuadratumDesLiquescent: "M-31.8-57.367l-.129 77.425c-.001.331.661-.025.991-.046 .998-.065 1.994-.158 2.994-.206 2.498-.119 5.002-.108 7.501-.019 7.834.278 15.626 1.377 23.295 2.969 6.688 1.389 13.336 3.089 19.782 5.361 2.045.72 4.069 1.499 6.066 2.342 .766.323 1.517.7 2.292 1.002 .29.113.887.605.888.293l.12-68.482c.003-1.962-6.113-7.271-7.719-8.4-9.253-6.502-22.76-8.58-33.698-10.524-5.578-.992-11.223-1.694-16.89-1.869-1.667-.051-3.337-.087-4.997.086-.166.017-.496-.099-.496.068z",
+    PunctumInclinatum: "M0-43.096l-28.33 42.991 28.191 42.447 28.469-42.447z",
+    PunctumInclinatumAscendens: "M4.474-42.823l-32.681 39.866 23.782 45.126 32.606-39.237z",
+    PunctumInclinatumDescendens: "M-4.526-42.819l-23.674 45.682 32.479 39.248 23.88-45.192z",
+    PunctumInclinatumAuctus: "M0-43.096l-28.667 43.448 15.294 26.326c3.914 6.737 7.207 14.007 10.061 21.249 1.272 3.227 2.149 7.192 3.773 10.028 6.696-9.086 12.497-19.05 17.1-29.362l8.363-18.739c.909-2.036 3.614-8.183 3.57-8.249z",
+    PunctumInclinatumLiquescent: "M0-30.285l-19.807 30.021 19.807 29.932 19.807-29.932z",
+    Quilisma: "M24.6-32.622c-4.905 10.122-13.897 14.85-24.925 11.367-2.476-.782-4.833-2.35-7.072-3.16-2.865 7.467-7.527 14.66-15.66 16.963-3.061.867-6.299.879-9.415.306-.984-.181-1.956-.424-2.91-.726-.477-.15-1.414-.996-1.416-.496l-.185 44.383c-.014 3.456.854 6.964 2.413 10.023 4.956-9.487 4.655-27.984 18.194-28.768 3.348-.194 6.701.944 9.241 3.134 6.161 5.311 8.138 15.17 16.235 18.504 5.555-8.74 2.645-23.683 10.055-29.693 3.408-2.764 8.097-3.625 12.264-2.25 1.267.418 2.468 1.033 3.549 1.815 .407.295.782.619 1.162.948 .244.211.725.963.726.641l.144-38.913c.001-.289-.57-.1-.859-.113-1.352-.059-2.637.002-3.981-.265-2.867-.569-5.25-1.972-7.56-3.7z",
+    Stropha: "M-1.2-37.496l-25.046 37.369 14.762 22.503c4.616 7.036 7.991 14.516 11.495 22.108 7.228-7.453 13.756-16.086 18.693-25.241l9.468-17.558-20.798-26.883c-2.036-2.632-3.941-5.382-5.806-8.137-.654-.966-1.299-1.938-1.935-2.916-.272-.419-.555-1.661-.833-1.245z",
+    StrophaLiquescent: "M-1.2-37.496l-25.781 38.656 16.212 30.45c4.451 8.361 8.154 17.222 10.924 26.277 5.54-4.597 14.722-22.96 17.829-30.2l10.818-25.212-21.426-27.671c-2.038-2.632-3.942-5.383-5.807-8.138-.654-.966-1.3-1.938-1.935-2.917-.273-.418-.557-1.661-.834-1.245z",
+    TerminatingAscLiquescent: "M-38.999 13.115c0 .205 4.553-.915 5.281-1.046 3.278-.592 6.63-.863 9.961-.816 2.835.041 5.672.426 8.379 1.284 .954.302 1.89.662 2.8 1.08 .454.209 1.343 1.171 1.343.671l-.035-49.846c-.001-2.464-9.411-2.194-10.921-1.969-7.006 1.048-16.758 9.02-16.776 16.613l-.032 14.011z",
+    TerminatingDesLiquescent: "M-38.76-20.427l-.217 33.352c-.052 7.876 8.727 15.732 16.016 17.321 1.542.336 11.511.762 11.531-1.623l.43-49.981c0-.005-3.66 1.39-4.068 1.529-2.852.968-5.857 1.391-8.862 1.421-3.333.035-6.685-.244-9.964-.849-1.149-.212-2.29-.465-3.42-.763-.484-.128-1.442-.908-1.446-.407z"
+};
+for (const [glyph, hole] of Object.entries(cavumHoles)) {
+    Glyphs[glyph + "Cavum"] = Object.assign(Object.assign({}, Glyphs[glyph]), { paths: [...Glyphs[glyph].paths, { type: "negative", data: hole }] });
+}
+// A porrectus's swash, the stroke from its first note down to its second, is
+// made for the fall between them and the width it's given, rather than
+// stored, so that a porrectus can fall by any amount (with the Chi-Rho
+// clef's offsets, a third of a staff position as well) and keep the size of
+// its notes under a glyph multiplier.  Its left edge is the first note's; its
+// top falls to a trough over the second note and turns up into the top right
+// corner; its right edge comes down to a rounded corner under the second
+// note, its lowest point; and its bottom rises from there to the left edge.
+//
+// Each row is the swash's shape for a fall of 1 to 5 staff positions, fitted
+// to the outlines that exsurge drew those with (Porrectus1 to Porrectus5, to
+// within about a glyph unit of each).  A fall between two rows takes the
+// shape between them, and one below 1 or above 5 the shape of the nearest.
+// A row has: the top of the left edge (aT); the trough, in from the right
+// edge (tX) and from the second note (tY); the top (cY) and bottom (rY) of
+// the right edge, from the second note; the lowest point, in from the right
+// edge (eX) and from the second note (eY); and for the top and the bottom,
+// the angle (d0, d1), in degrees, that each leaves the left edge at, further
+// down than the straight line to the trough or the lowest point, and how far
+// each one's handles go toward where its ends' tangents meet (l0 and l1 for
+// the top, from the left edge and the trough; l2 and l3 for the bottom, from
+// the lowest point and the left edge).
+const swashShapes = [
+    // aT, tX, tY, cY, rY, eX, eY, d0, l0, l1, d1, l2, l3
+    [-52.75, 39.8, -34, -63.7, 51.9, 18.7, 62.9, 16, 1.08, 0.22, 21.5, 0.4, 0.96],
+    [-68.75, 32, -37.5, -67.2, 47.7, 18, 59.4, 19.1, 0.67, 0.35, 21.4, 0.69, 0.17],
+    [-70, 26.5, -38, -70.8, 43.3, 10.2, 57.3, 12.8, 0.62, 0.28, 11.6, 0.11, 0.83],
+    [-70, 27.8, -38, -73.1, 41.7, 9.6, 55.8, 9.9, 0.52, 0.3, 8.3, 0.05, 0.95],
+    [-70, 30.7, -46.1, -74.7, 40.2, 10.6, 52, 8.2, 0.52, 0.26, 6.8, 0.02, 0.92]
+];
+// the widths of the swashes for falls of 1 to 5
+const swashWidths = [302.344, 377.343, 377.344, 420, 462.656];
+/**
+ * The width of a porrectus's swash for a fall of interval staff positions,
+ * in glyph units: between the widths for the whole numbers either side of it,
+ * and below 1 and above 5, narrower or wider by as much again for each staff
+ * position as from 1 to 2 and from 4 to 5.
+ */
+export function porrectusSwashWidth(interval) {
+    const i = Math.min(3, Math.max(0, Math.floor(interval) - 1));
+    return swashWidths[i] + (interval - 1 - i) * (swashWidths[i + 1] - swashWidths[i]);
+}
+const lerp = (p, q, k) => [p[0] + k * (q[0] - p[0]), p[1] + k * (q[1] - p[1])];
+// a curve from p to q, where it's level, leaving p at angle degrees further
+// down than the straight line to q, with its handles going kp and kq of the
+// way toward where those two tangents meet
+function swashEdge(p, q, angle, kp, kq) {
+    const a = Math.atan2(q[1] - p[1], q[0] - p[0]) + (angle * Math.PI) / 180;
+    const meet = [p[0] + (q[1] - p[1]) / Math.tan(a), q[1]];
+    return [p, lerp(p, meet, kp), lerp(q, meet, kq), q];
+}
+// the point t of the way along curve c
+function pointOn(c, t) {
+    const u = 1 - t;
+    return [0, 1].map((i) => u * u * u * c[0][i] + 3 * u * u * t * c[1][i] + 3 * u * t * t * c[2][i] + t * t * t * c[3][i]);
+}
+// curve c split at t
+function splitCurve(c, t) {
+    const p01 = lerp(c[0], c[1], t), p12 = lerp(c[1], c[2], t), p23 = lerp(c[2], c[3], t), p012 = lerp(p01, p12, t), p123 = lerp(p12, p23, t), mid = lerp(p012, p123, t);
+    return [[c[0], p01, p012, mid], [mid, p123, p23, c[3]]];
+}
+// the unit normal to the right of the direction from p to q: toward the
+// inside of an outline drawn clockwise, as the swash's is
+function inward(p, q) {
+    const dx = q[0] - p[0], dy = q[1] - p[1], length = Math.hypot(dx, dy);
+    return [-dy / length, dx / length];
+}
+// curve c moved d toward the inside of the outline, in as many pieces as
+// given: each piece's ends move along their normals, its handles keep their
+// directions, and they're as long as makes its middle move d too
+function insetCurve(c, d, pieces) {
+    const insetPieces = [];
+    for (let i = pieces; i > 0; i--) {
+        const [piece, rest] = splitCurve(c, 1 / i);
+        c = rest;
+        const n0 = inward(piece[0], piece[1]), n1 = inward(piece[2], piece[3]), half = splitCurve(piece, 0.5)[0], nMid = inward(half[2], half[3]);
+        const p0 = [piece[0][0] + d * n0[0], piece[0][1] + d * n0[1]], p3 = [piece[3][0] + d * n1[0], piece[3][1] + d * n1[1]];
+        // with the handles' directions u0 and u1, the middle (p0 + p3) / 2 +
+        // 3/8 (a u0 - b u1) is where it should be for handles a and b long
+        const u0 = [n0[1], -n0[0]], u1 = [n1[1], -n1[0]], rx = ((half[3][0] + d * nMid[0] - (p0[0] + p3[0]) / 2) * 8) / 3, ry = ((half[3][1] + d * nMid[1] - (p0[1] + p3[1]) / 2) * 8) / 3, det = u1[0] * u0[1] - u0[0] * u1[1];
+        let a = (u1[0] * ry - rx * u1[1]) / det, b = (u0[0] * ry - u0[1] * rx) / det;
+        // (where the piece is all but straight, that says little, and its handles stay as long as they were)
+        if (!(Math.abs(det) > 1e-3 && a > 0 && b > 0)) {
+            a = Math.hypot(piece[1][0] - piece[0][0], piece[1][1] - piece[0][1]);
+            b = Math.hypot(piece[3][0] - piece[2][0], piece[3][1] - piece[2][1]);
+        }
+        insetPieces.push([p0, [p0[0] + a * u0[0], p0[1] + a * u0[1]], [p3[0] - b * u1[0], p3[1] - b * u1[1]], p3]);
+    }
+    return insetPieces;
+}
+// where curves (in turn, or from the last back if fromEnd is set) first cross
+// x: the index of the curve that does and the curve up to there, or from
+// there on if after is set
+function crossing(curves, x, after, fromEnd = false) {
+    for (let k = 0; k < curves.length; k++) {
+        const i = fromEnd ? curves.length - 1 - k : k, c = curves[i], f = (t) => pointOn(c, t)[0] - x;
+        for (let s = 0; s < 16; s++) {
+            let lo = fromEnd ? 1 - s / 16 : s / 16, hi = fromEnd ? lo - 1 / 16 : lo + 1 / 16;
+            if (f(lo) * f(hi) > 0)
+                continue;
+            for (let j = 0; j < 30; j++) {
+                const mid = (lo + hi) / 2;
+                if (f(lo) * f(mid) <= 0)
+                    hi = mid;
+                else
+                    lo = mid;
+            }
+            return [i, splitCurve(c, (lo + hi) / 2)[after ? 1 : 0]];
+        }
+    }
+    throw new Error("porrectusSwash: the hole's edges don't meet");
+}
+const pathPoint = (p) => Math.round(p[0] * 1000) / 1000 + " " + Math.round(p[1] * 1000) / 1000;
+// svg path data for curves (a line being [p, p, q, q]), joined by lines
+// where one doesn't start where the last ended
+function pathData(curves) {
+    let last = pathPoint(curves[0][0]), data = "M" + last;
+    for (const c of curves) {
+        const [start, end] = [pathPoint(c[0]), pathPoint(c[3])];
+        if (start !== last)
+            data += "L" + start;
+        if (c[1] !== c[0] || c[2] !== c[3])
+            data += "C" + c.slice(1).map(pathPoint).join(" ");
+        else if (end !== start)
+            data += "L" + end;
+        last = end;
+    }
+    return data + "z";
+}
+/**
+ * A porrectus's swash (see above), falling drop glyph units (100 to a staff
+ * position) over width; hollow, if it is, with the hole that a punctum cavum
+ * has, its outline inset by 18.  Its origin is in the middle of its first note.
+ */
+export function porrectusSwash(drop, width, hollow = false) {
+    const at = Math.min(4, Math.max(0, drop / 100 - 1)), row = Math.min(3, Math.floor(at));
+    const [aT, tX, tY, cY, rY, eX, eY, d0, l0, l1, d1, l2, l3] = swashShapes[row].map((value, i) => value + (at - row) * (swashShapes[row + 1][i] - value));
+    const x1 = width - 50, A = [-50, aT], B = [-50, aT + 118.75], T = [x1 - tX, drop + tY], C = [x1, drop + cY], R = [x1, drop + rY], E = [x1 - eX, drop + eY];
+    const top = swashEdge(A, T, d0, l0, l1), upturn = [T, [T[0] + 8.5, T[1]], [x1 - 8.1, C[1] + 29.2], C], bottom = swashEdge(B, E, d1, l3, l2).reverse();
+    const paths = [
+        { type: "positive", data: pathData([top, upturn, [C, C, R, R], [R, [x1, R[1] + 10.8], [E[0] + 5.9, E[1]], E], bottom]) }
+    ];
+    if (hollow) {
+        // where the edges moved in cross, their corners are; and at the bottom
+        // right, the rounded corner being tighter than the walls are thick, the
+        // right edge meets the bottom (carried on level, if it would start
+        // further left)
+        const d = 18, tops = insetCurve(top, d, 4), upturns = insetCurve(upturn, d, 2), bottoms = insetCurve(bottom, d, 4), [ta, topFrom] = crossing(tops, -50 + d, true), [tc, upturnTo] = crossing(upturns, x1 - d, false), level = bottoms[0][0][0] < x1 - d, [te, bottomFrom] = level ? [0, bottoms[0]] : crossing(bottoms, x1 - d, true, true), [tb, bottomTo] = crossing(bottoms, -50 + d, false);
+        const bottomPart = te === tb ? [crossing([bottomFrom], -50 + d, false)[1]] : [bottomFrom, ...bottoms.slice(te + 1, tb), bottomTo];
+        const corner = [x1 - d, bottoms[0][0][1]];
+        paths.push({
+            type: "negative",
+            data: pathData([
+                topFrom,
+                ...tops.slice(ta + 1),
+                ...upturns.slice(0, tc),
+                upturnTo,
+                ...(level ? [[corner, corner, corner, corner]] : []),
+                ...bottomPart
+            ])
+        });
+    }
+    const above = Math.max(-aT, -C[1]);
+    return {
+        paths,
+        bounds: { x: 0, y: 0, width, height: above + E[1] },
+        origin: { x: 50, y: above },
+        align: "left"
+    };
+}
+// the swashes for falls of 1 to 5, which exsurge stored the outlines of
+for (let interval = 1; interval <= 5; interval++) {
+    const drop = 100 * interval, width = porrectusSwashWidth(interval);
+    Glyphs["Porrectus" + interval] = porrectusSwash(drop, width);
+    Glyphs["Porrectus" + interval + "Cavum"] = porrectusSwash(drop, width, true);
+}
 //# sourceMappingURL=Exsurge.Glyphs.js.map

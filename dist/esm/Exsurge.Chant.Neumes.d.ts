@@ -17,11 +17,14 @@ declare class NeumeBuilder {
     minX: number;
     constructor(ctxt: ChantContext, neume: Neume, startingX?: number);
     lineFrom(note: Note): this;
-    noteAt(note: Note, glyph: GlyphCode, withLineTo?: boolean): this;
+    noteAt(note: Note, glyph: GlyphCode, withLineTo?: boolean, withStem?: boolean): this;
     virgaAt(note: Note, withLineTo?: boolean): this;
+    oriscusAt(note: Note, glyph: GlyphCode, withLineTo?: boolean): this;
+    lineaAt(note: Note): this;
     advanceBy(x: number): this;
     withLineEndingAt(note: Note): this | undefined;
     withPodatus(lowerNote: Note, upperNote: Note): this;
+    withPesQuassus(lower: Note, upper: Note): this;
     withClivisUpper(upper: Note, lower?: Note | null, glyph?: GlyphCode): this;
     withClivisLower(lower: Note): this;
     withClivis(upper: Note, lower: Note): this;
@@ -36,7 +39,10 @@ export declare class Neume extends ChantNotationElement {
     addNote(note: Note): void;
     performLayout(ctxt: ChantContext): void;
     finishLayout(ctxt: ChantContext): void;
+    layoutLeftBracket(ctxt: ChantContext): number;
+    layoutRightBracket(ctxt: ChantContext, x: number): void;
     requiresLedgerLine(ctxt: ChantContext): NeumeLedgerLine[];
+    ledgerLineStaffPosition(ctxt: ChantContext, note: Note, isAbove: boolean): number;
     resetDependencies(): void;
     build(ctxt: ChantContext): NeumeBuilder;
     positionEpisemata(note: Note, position: MarkingPositionHint): number;
@@ -57,7 +63,7 @@ export declare class Neume extends ChantNotationElement {
 export declare class Apostropha extends Neume {
     positionMarkings(): void;
     performLayout(ctxt: ChantContext): void;
-    static getNoteGlyphCode(note: Note): "Stropha" | "PunctumCavum" | "PunctumQuadratum" | "PunctumQuadratumAscLiquescent" | "PunctumQuadratumDesLiquescent";
+    static getNoteGlyphCode(note: Note): GlyphCode;
 }
 export declare class Bivirga extends Neume {
     positionMarkings(): void;
@@ -83,10 +89,62 @@ export declare class Distropha extends Neume {
     positionMarkings(): void;
     performLayout(ctxt: ChantContext): void;
 }
+/** the glyphs that Gregorio fuses (gabc @ and @[…]) into a FusedNeume */
+export declare const FusedGlyphKind: {
+    /** one note: a punctum, oriscus, oriscus scapus or quilisma, or a liquescent */
+    readonly Punctum: "punctum";
+    readonly Flexus: "flexus";
+    readonly Pes: "pes";
+    readonly Porrectus: "porrectus";
+    readonly Virga: "virga";
+    readonly VirgaReversa: "virgaReversa";
+};
+export type FusedGlyphKind = (typeof FusedGlyphKind)[keyof typeof FusedGlyphKind];
+/** one of the glyphs of a FusedNeume */
+export interface FusedGlyph {
+    kind: FusedGlyphKind;
+    notes: Note[];
+    /**
+     * Gregorio's fused glyph: it's drawn right after the glyph before, and
+     * joined to it where Gregorio joins them, and a flexus or porrectus has no
+     * stem on its left
+     */
+    fused: boolean;
+}
+export declare function gabcStaffPosition(note: Note): number;
+export declare class FusedNeume extends Neume {
+    glyphs: FusedGlyph[];
+    /** whether the neume after it is fused to it (a fused glyph that Gregorio doesn't join, say) */
+    fusedToNext: boolean;
+    /** whether it's fused to the neume before it (a torculus, say) */
+    fusedToPrevious: boolean;
+    constructor(glyphs?: FusedGlyph[]);
+    static fusedShift(glyphs: FusedGlyph[], index: number, fusedToNext?: boolean): number;
+    static joinsPrevious(glyphs: FusedGlyph[], index: number, fusedToNext?: boolean): boolean;
+    positionMarkings(): void;
+    performLayout(ctxt: ChantContext): void;
+    withFlexus(builder: NeumeBuilder, glyph: FusedGlyph, shiftToNext: number): void;
+    withPes(builder: NeumeBuilder, lower: Note, upper: Note): void;
+    getNoteGlyphCode(ctxt: ChantContext, note: Note): GlyphCode;
+    nextPositionInNeume(note: Note): number | null;
+    resetDependencies(): void;
+}
 export declare class Oriscus extends Neume {
     positionMarkings(): void;
     performLayout(ctxt: ChantContext): void;
     resetDependencies(): void;
+    static getGlyphCode(note: Note, pointsToHigherNote: boolean): "OriscusAsc" | "OriscusDes";
+    static getLastNoteGlyphCode(ctxt: ChantContext, note: Note): "OriscusAsc" | "OriscusDes";
+    static pointsToNextNeume(note: Note): boolean;
+}
+export declare class PesOriscus extends Neume {
+    positionMarkings(): void;
+    performLayout(ctxt: ChantContext): void;
+    resetDependencies(): void;
+}
+export declare class PesQuadratum extends Neume {
+    positionMarkings(): void;
+    performLayout(ctxt: ChantContext): void;
 }
 export declare class PesQuassus extends Neume {
     performLayout(ctxt: ChantContext): void;
