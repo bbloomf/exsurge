@@ -81,6 +81,13 @@ interface CondensableSpace {
 /** the spaces between notations so far on a line, and the sum of their condensable space */
 type CondensableSpaces = CondensableSpace[] & { sum: number };
 
+// the sum of the condensable space in spaces, added up in order
+const sumCondensable = (spaces: CondensableSpace[]) => {
+  var sum = 0;
+  for (var i = 0; i < spaces.length; i++) sum += spaces[i].condensable;
+  return sum;
+};
+
 // QuickSvg.createNode() or QuickSvg.createSvgTree(), as getInnerNodes() calls them
 type CreateSvgElement = (
   name: string,
@@ -2561,16 +2568,15 @@ export class ChantLine extends ChantLayoutElement {
         let condensableSpaceSincePrevLyric = null;
         if (i < prevLyrics.length && prevLyrics[i]) {
           prevLyricRight = prevLyrics[i].getRight();
-          let notationI = condensableSpaces
-            .map(s => s.notation)
-            .lastIndexOf(prevLyrics[i].notation);
+          // (the space before the previous lyric's notation is usually one
+          // of the last few, so look for it from the end)
+          let notationI = condensableSpaces.length - 1;
+          while (notationI >= 0 && condensableSpaces[notationI].notation !== prevLyrics[i].notation) notationI--;
           if (notationI >= 0) {
             condensableSpacesSincePrevLyric = condensableSpaces.slice(
               notationI + 1
             ) as CondensableSpaces;
-            condensableSpacesSincePrevLyric.sum = condensableSpacesSincePrevLyric
-              .map(s => s.condensable)
-              .reduce((a, b) => a + b, 0);
+            condensableSpacesSincePrevLyric.sum = sumCondensable(condensableSpacesSincePrevLyric);
           } else {
             condensableSpacesSincePrevLyric.sum = 0;
           }
@@ -2663,9 +2669,7 @@ export class ChantLine extends ChantLayoutElement {
               condensableSpacesSincePrevLyric.forEach(space => {
                 space.condensable *= multiplier;
               });
-              condensableSpaces.sum = condensableSpaces
-                .map(s => s.condensable)
-                .reduce((a, b) => a + b, 0);
+              condensableSpaces.sum = sumCondensable(condensableSpaces);
             }
           }
         }
