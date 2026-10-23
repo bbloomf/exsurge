@@ -61,10 +61,6 @@ const adjDemerits = 10000;
 // (\looseness=-1), which is nearly always within this many of the fewest
 const extraLines = 2;
 
-// how much further than it can stretch a line has to stretch to be as bad as
-// a line can be: 100 * 4.65^3 > infiniteBadness
-const hopelessStretch = 4.65;
-
 // TeX's badness of a line too loose or too tight to be set
 const infiniteBadness = 10000;
 
@@ -117,6 +113,25 @@ interface LineEnd {
   penalty: number;
   /** whether the line doesn't stretch to the end of the staff (the last line, or gabc Z) */
   ragged: boolean;
+}
+
+/**
+ * how far a line laid out so far stretches, for a badness of 100: the sum of
+ * the stretch before each notation that findNeumesToJustify() would find, in
+ * the same order (see LineBreaker.addToStretch())
+ */
+interface Stretch {
+  /** the last notation laid out (or the one after the accidental before it) */
+  prev: ChantNotationElement | null;
+  /** the last lyrics before prev, as findNeumesToJustify() merges them */
+  prevLyrics: Lyric[];
+  /** the last notation laid out, if it's an accidental, which is taken with the notation after it */
+  accidental: ChantNotationElement | null;
+  sum: number;
+  /** the last custos without lyrics that sum includes the space before, which isn't stretched while it's the line's custos */
+  custos: Custos | null;
+  /** sum without the space before custos */
+  sumWithoutCustos: number;
 }
 
 /** a way to break the score into lines up to some notation, as TeX's active nodes are */
@@ -403,8 +418,7 @@ export class LineBreaker {
     if (curr.hasLyrics()) LyricArray.mergeIn(line.lastLyrics, curr.lyrics);
 
     var condensableSpaces = Object.assign([], { sum: 0 });
-    // (the number of dividers on the line, for getLineEnd())
-    var dividers = 0;
+    var stretch: Stretch = { prev: null, prevLyrics: [], accidental: null, sum: 0, custos: null, sumWithoutCustos: 0 };
     var prevNeume: ChantNotationElement = curr;
     // a translation that the line can't break within, until its end neume
     var translationStart: ChantNotationElement | null = null;
@@ -418,13 +432,13 @@ export class LineBreaker {
         if (this.isClefLineBreak(i)) {
           line.clefLineBreak = notations[i + 1] as ChantLineBreak;
           lineEnds.push(
-            this.getLineEnd(line, i, condensableSpaces.sum, dividers, -infinitePenalty, !line.clefLineBreak.justify)
+            this.getLineEnd(line, i, condensableSpaces.sum, stretch, -infinitePenalty, !line.clefLineBreak.justify)
           );
           return lineEnds;
         }
         var penalty = this.getPenalty(line, i, translationStart);
         if (penalty < infinitePenalty)
-          lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, dividers, penalty, false));
+          lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, stretch, penalty, false));
       }
 
       if (curr.isAccidental && (curr as Accidental).soft)
@@ -453,12 +467,12 @@ export class LineBreaker {
         translationStart = curr;
 
       line.numNotationsOnLine++;
-      if (curr.isDivider) dividers++;
+      this.addToStretch(line, stretch, i);
       if (curr.isClef) ctxt.activeClef = curr as Clef;
 
       if (curr.constructor === ChantLineBreak) {
         lineEnds.push(
-          this.getLineEnd(line, i + 1, condensableSpaces.sum, dividers, -infinitePenalty, !(curr as ChantLineBreak).justify)
+          this.getLineEnd(line, i + 1, condensableSpaces.sum, stretch, -infinitePenalty, !(curr as ChantLineBreak).justify)
         );
         return lineEnds;
       }
@@ -472,8 +486,46 @@ export class LineBreaker {
       if (right - condensableSpaces.sum > line.staffRight) return lineEnds;
     }
 
-    lineEnds.push(this.getLineEnd(line, notations.length, condensableSpaces.sum, dividers, -infinitePenalty, true));
+    lineEnds.push(this.getLineEnd(line, notations.length, condensableSpaces.sum, stretch, -infinitePenalty, true));
     return lineEnds;
+  }
+
+  /**
+   * adds the space that justifying the line could stretch before the
+   * notation at index, which has just been laid out on it, to stretch, as
+   * findNeumesToJustify() would find it
+   */
+  addToStretch(line: ChantLine, stretch: Stretch, index: number) {
+    var notation = this.score.notations[index],
+      curr = notation;
+    // (an accidental is taken with the notation after it)
+    if (stretch.accidental) {
+      curr = stretch.accidental;
+      stretch.accidental = null;
+    } else if (notation.isAccidental) {
+      stretch.accidental = notation;
+      return;
+    }
+    var prev = stretch.prev;
+    stretch.prev = notation;
+    if (!prev) return;
+    LyricArray.mergeIn(stretch.prevLyrics, prev.lyrics);
+    if (!line.canJustifyBefore(prev, curr, notation, index, stretch.prevLyrics)) return;
+
+    var amount = this.getStretchBefore(curr);
+    if (!notation.hasLyrics() && notation.constructor === Custos) {
+      stretch.custos = notation as Custos;
+      stretch.sumWithoutCustos = stretch.sum;
+    } else stretch.sumWithoutCustos += amount;
+    stretch.sum += amount;
+  }
+
+  /** how far the space before a notation stretches, for a badness of 100 */
+  getStretchBefore(notation: ChantNotationElement) {
+    var notations = this.score.notations;
+    var index = notation.notationIndex ?? notations.indexOf(notation);
+    var nextToBar = notation.isDivider || (index > 0 && notations[index - 1].isDivider);
+    return (nextToBar ? barStretch : wordStretch) * this.ctxt.staffInterval;
   }
 
   /**
@@ -621,7 +673,7 @@ export class LineBreaker {
     line: ChantLine,
     end: number,
     shrink: number,
-    dividers: number,
+    stretchable: Stretch,
     penalty: number,
     ragged: boolean
   ): LineEnd {
@@ -644,16 +696,9 @@ export class LineBreaker {
     var space = line.staffRight - Math.max(lyricRight, neumeRight);
 
     // and how far it stretches, which only matters for a line that isn't
-    // full and isn't ragged; and a line too loose to be set even if the space
-    // before every notation on it stretched as a bar's does is as bad as a
-    // line can be anyway
+    // full and isn't ragged
     var stretch = 0;
-    if (space >= 0.5 && !ragged) {
-      var mostStretch =
-        (line.numNotationsOnLine * wordStretch + 2 * dividers * (barStretch - wordStretch) + wordStretch) *
-        ctxt.staffInterval;
-      stretch = space > mostStretch * hopelessStretch ? mostStretch : this.getStretch(line, end, custos);
-    }
+    if (space >= 0.5 && !ragged) stretch = this.getStretch(line, end, custos, stretchable);
 
     return { end, space, shrink, stretch, penalty, ragged };
   }
@@ -662,17 +707,19 @@ export class LineBreaker {
    * how far a line that ends just before the notation at end stretches, for a
    * badness of 100, when justifyElements() justifies it: the space before
    * each notation in findNeumesToJustify() is stretched by the same amount
+   * (as added up in stretchable by addToStretch())
    */
-  getStretch(line: ChantLine, end: number, custos: boolean) {
+  getStretch(line: ChantLine, end: number, custos: boolean, stretchable: Stretch) {
     var ctxt = this.ctxt,
       notations = this.score.notations,
       stretch = 0;
-    line.findNeumesToJustify([]);
-    for (var notation of line.toJustify!) {
-      var index = notation!.notationIndex ?? notations.indexOf(notation!);
-      var nextToBar = notation!.isDivider || (index > 0 && notations[index - 1].isDivider);
-      stretch += (nextToBar ? barStretch : wordStretch) * ctxt.staffInterval;
-    }
+    if (stretchable.accidental) {
+      // (which findNeumesToJustify() takes with the notation after the line)
+      line.findNeumesToJustify([]);
+      for (var notation of line.toJustify!) stretch += this.getStretchBefore(notation!);
+    } else
+      stretch =
+        stretchable.custos && stretchable.custos === line.custos ? stretchable.sumWithoutCustos : stretchable.sum;
     // (and before the custos, if the next line starts a word)
     var next = notations[end];
     if (

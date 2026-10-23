@@ -1656,7 +1656,6 @@ export class ChantLine extends ChantLayoutElement {
       curr = this.score.notations[i];
       next = curr.isAccidental && this.score.notations[++i];
       nextOrCurr = next || curr;
-      var hasLyrics = nextOrCurr.hasLyrics();
 
       if (!curr || !prev) continue;
 
@@ -1667,30 +1666,48 @@ export class ChantLine extends ChantLayoutElement {
       )
         continue;
 
-      if (prev !== null) {
-        LyricArray.mergeIn(prevLyrics, prev.lyrics);
-        if (prev.keepWithNext === true) continue;
-      }
+      LyricArray.mergeIn(prevLyrics, prev.lyrics);
+      if (!this.canJustifyBefore(prev, curr, nextOrCurr, i, prevLyrics)) continue;
 
-      if (
-        !curr.isDivider &&
-        prevLyrics.length &&
-        prevLyrics[0].allowsConnector() &&
-        hasLyrics
-      )
-        continue;
-
-      if (nextOrCurr.constructor === ChantLineBreak) continue;
-
-      if (nextOrCurr === this.custos && !hasLyrics) continue;
-
-      if (i === 0 && this.score.useDropCap && hasLyrics) continue;
+      if (nextOrCurr === this.custos && !nextOrCurr.hasLyrics()) continue;
 
       // otherwise, we can add space before this element
       this.toJustify.push(curr);
     }
     if (nextOrCurr !== null) LyricArray.mergeIn(prevLyrics, nextOrCurr.lyrics);
     return nextOrCurr;
+  }
+
+  /**
+   * whether justifying the line can add space before curr, which follows
+   * prev, as findNeumesToJustify() works it out: nextOrCurr is the notation
+   * at index, which is curr, or the one after it if curr is an accidental,
+   * and prevLyrics are the last lyrics before it.  (Space isn't added before
+   * the line's custos either, unless it has lyrics.)
+   */
+  canJustifyBefore(
+    prev: ChantNotationElement,
+    curr: ChantNotationElement,
+    nextOrCurr: ChantNotationElement,
+    index: number,
+    prevLyrics: Lyric[]
+  ) {
+    if (prev.keepWithNext === true) return false;
+
+    var hasLyrics = nextOrCurr.hasLyrics();
+    if (
+      !curr.isDivider &&
+      prevLyrics.length &&
+      prevLyrics[0].allowsConnector() &&
+      hasLyrics
+    )
+      return false;
+
+    if (nextOrCurr.constructor === ChantLineBreak) return false;
+
+    if (index === 0 && this.score.useDropCap && hasLyrics) return false;
+
+    return true;
   }
 
   getWhitespaceOnRight(ctxt?: ChantContext) {
