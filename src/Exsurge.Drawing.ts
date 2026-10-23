@@ -747,7 +747,10 @@ export interface TextStyle {
   font: string;
   color?: string;
   /**
-   * Currently only used on lyrics, translations, and above lines text
+   * The distance from one line to the next, in ems: between the lines of a
+   * text with line breaks in it; for lyrics, translations and above lines
+   * text, between the lines that ChantLine lays them out on; and, for
+   * annotations, between the annotations of an Annotations.
    * Defaults to 1.1
    */
   lineHeight?: number;
@@ -2791,6 +2794,18 @@ interface BreakMatch {
   forced?: boolean;
 }
 
+// a line of a text element, as it's drawn
+interface TextLine {
+  /** the index in the spans' text where the line starts */
+  start: number;
+  /** the index in the spans' text where the line ends */
+  end: number;
+  /** the index in the element's text where the line starts */
+  textStart: number;
+  /** how far right the line is moved, where the lines are right aligned */
+  xOffset: number;
+}
+
 // the markup in a TextElement's text (see generateSpansFromText()), and the
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
@@ -3143,16 +3158,38 @@ export class TextElement extends ChantLayoutElement {
       closeSpan(text.slice(spanStartIndex), spanStartIndex);
   }
 
+  /** the size in px of this element's text in the given properties */
+  fontSizeForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
+    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
+    if (/%$/.test(properties["font-size"] as string)) {
+      fontSize *= this.fontSize(ctxt) / 100;
+    }
+    return fontSize * (this.resize || 1);
+  }
+
+  /** the distance from one line of this element's text to the next, in ems */
+  lineSpacing(ctxt: ChantContext) {
+    return (this.textType && ctxt.textStyles[this.textType.key].lineHeight) || 1.1;
+  }
+
+  /**
+   * how far below the line before it the line that span starts is, in px: the
+   * same as the span's dy in the svg, in its own font size
+   */
+  lineBreakHeight(ctxt: ChantContext, span: TextSpan, properties = span.mergedProperties) {
+    return (
+      this.lineSpacing(ctxt) *
+      this.fontSizeForProperties(ctxt, properties) *
+      (__parseNewLine(span.newLine) || 1)
+    );
+  }
+
   getCanvasFontForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
     var font = "";
     if (properties["font-style"] === "italic") font += "italic ";
     if (properties["font-variant"] === "small-caps") font += "small-caps ";
     if (properties["font-weight"] === "bold") font += "bold ";
-    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
-    if (/%$/.test(properties["font-size"] as string)) {
-      fontSize *= this.fontSize(ctxt) / 100;
-    }
-    font += `${fontSize * (this.resize || 1)}px `;
+    font += `${this.fontSizeForProperties(ctxt, properties)}px `;
     font += properties["font-family"] || this.fontFamily(ctxt);
     return font;
   }
@@ -3201,14 +3238,15 @@ export class TextElement extends ChantLayoutElement {
     var widths: number[] = [];
     var newLineSpans = [this.spans[0]];
     var subStringLength = 0;
-    var numLines = 1;
     var fontSize = this.fontSize(ctxt) * (this.resize || 1);
+    // the y of the current line's baseline
+    var baseline = 0;
     var bbox = new Rect(0, 0, 0, 0);
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i],
         myText = span.text.slice(0, length - subStringLength);
       if (span.newLine) {
-        numLines += __parseNewLine(span.newLine) || 1;
+        baseline += this.lineBreakHeight(ctxt, span);
         if (!lines && this.rightAligned === true && length === Infinity) {
           newLineSpans[newLineSpans.length - 1].xOffset =
             this.firstLineMaxWidth! - width;
@@ -3227,7 +3265,7 @@ export class TextElement extends ChantLayoutElement {
           bbox.union(
             new Rect(
               width - left,
-              fontSize * (numLines - 1) - metrics.actualBoundingBoxAscent,
+              baseline - metrics.actualBoundingBoxAscent,
               metrics.width + left,
               metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent
             )
@@ -3237,7 +3275,7 @@ export class TextElement extends ChantLayoutElement {
           }
         } else {
           bbox.union(
-            new Rect(width, fontSize * (numLines - 2), (metrics as TextMetrics).width, fontSize)
+            new Rect(width, baseline - fontSize, (metrics as TextMetrics).width, fontSize)
           );
         }
         width += metrics.width;
@@ -3245,25 +3283,21 @@ export class TextElement extends ChantLayoutElement {
         strategy === TextMeasuringStrategy.OpenTypeJS &&
         ctxt.fontDictionary
       ) {
-        // get the bounding box for the substring, placing it at x = width, y = fontSize * (numLines - 1)
+        // get the bounding box for the substring, placing it at x = width, y = baseline
         const properties = span.mergedProperties;
         let font = ctxt.getFontForProperties(
           properties,
           properties["font-family"] || this.fontFamily(ctxt)
         )!;
         const smallCaps = properties["font-variant"] === "small-caps";
-        let spanFontSize = parseFloat(properties["font-size"]) || fontSize;
-        if (/%$/.test(properties["font-size"])) {
-          spanFontSize *= fontSize / 100;
-        }
-        const y = fontSize * (numLines - 1);
+        const spanFontSize = this.fontSizeForProperties(ctxt, properties);
         if ('getPath' in font) {
           // opentype.js
           const measured = ctxt.measureOpenTypeText(
             font,
             myText,
             width,
-            y,
+            baseline,
             spanFontSize,
             smallCaps
           );
@@ -3291,7 +3325,7 @@ export class TextElement extends ChantLayoutElement {
           bbox.union(
             new Rect(
               width + subBbox.minX * multiplier,
-              y - subBbox.maxY * multiplier,
+              baseline - subBbox.maxY * multiplier,
               subWidth - subBbox.minX * multiplier,
               (subBbox.height) * multiplier
             )
@@ -3307,7 +3341,7 @@ export class TextElement extends ChantLayoutElement {
         bbox.union(
           new Rect(
             width + subBbox.x,
-            fontSize * (numLines - 1) + subBbox.y,
+            baseline + subBbox.y,
             subBbox.width,
             subBbox.height
           )
@@ -3339,6 +3373,27 @@ export class TextElement extends ChantLayoutElement {
     } else {
       return width;
     }
+  }
+
+  /**
+   * The lines of the text, as they are drawn.  Where setMaxWidth() wrapped
+   * the text, the spans no longer have the whitespace that it broke the line
+   * at, though this.text still does.
+   */
+  getLines() {
+    var lines: TextLine[] = [],
+      index = 0,
+      textIndex = 0;
+    this.spans.forEach((span, i) => {
+      if (!i || span.newLine) {
+        if (span.newLine === true) textIndex += (span.wrappedSpace || " ").length;
+        lines.push({ start: index, end: index, textStart: textIndex, xOffset: span.xOffset || 0 });
+      }
+      index += span.text.length;
+      textIndex += span.text.length;
+      lines[lines.length - 1].end = index;
+    });
+    return lines;
   }
 
   recalculateMetrics(ctxt: ChantContext, resetNewLines = true) {
@@ -3615,23 +3670,20 @@ export class TextElement extends ChantLayoutElement {
     for (var i = 0; i < this.spans.length; i++) {
       var span = this.spans[i];
       var xOffset = span.xOffset || 0;
-      if (span.newLine) {
-        let count = __parseNewLine(span.newLine) || 1;
-        canvasCtxt.translate(
-          translateWidth + xOffset,
-          this.fontSize(ctxt) * count
-        );
-        translateWidth = -xOffset;
-        translateHeight -= this.fontSize(ctxt);
-      } else if (xOffset) {
-        canvasCtxt.translate(translateWidth + xOffset, 0);
-        translateWidth = -xOffset;
-      }
       var properties = Object.assign(
         {},
         extraStyleProperties,
         span.mergedProperties
       );
+      if (span.newLine) {
+        let lineHeight = this.lineBreakHeight(ctxt, span, properties);
+        canvasCtxt.translate(translateWidth + xOffset, lineHeight);
+        translateWidth = -xOffset;
+        translateHeight -= lineHeight;
+      } else if (xOffset) {
+        canvasCtxt.translate(translateWidth + xOffset, 0);
+        translateWidth = -xOffset;
+      }
       var spanFont = this.getCanvasFontForProperties(ctxt, properties);
       if (spanFont !== font) canvasCtxt.font = font = spanFont;
       canvasCtxt.fillStyle = properties.fill || "#000";
@@ -3669,7 +3721,7 @@ export class TextElement extends ChantLayoutElement {
 
     if (span.newLine) {
       var xOffset = span.xOffset || 0;
-      options.dy = 1.1 * (__parseNewLine(span.newLine) || 1) + "em";
+      options.dy = this.lineSpacing(ctxt) * (__parseNewLine(span.newLine) || 1) + "em";
       options.x = this.bounds.x + xOffset;
     } else if (span.xOffset) {
       options.x = this.bounds.x + span.xOffset;
@@ -3680,8 +3732,13 @@ export class TextElement extends ChantLayoutElement {
       options.y = this.bounds.y;
     }
     if (this.resize) {
-      options["font-size"] =
-        properties["font-size"] || this.fontSize(ctxt) * this.resize;
+      options["font-size"] = this.fontSizeForProperties(ctxt, properties);
+      if (properties["font-size"]) {
+        // the span's own font-size, in its style, would win over the attribute
+        const style = span.properties;
+        delete style["font-size"];
+        options.style = useStyleObject ? style : getCssForProperties(style);
+      }
     }
     // if (ctxt.setFontFamilyAttributes) {
     //   options["font-family"] =
@@ -3707,13 +3764,19 @@ export class TextElement extends ChantLayoutElement {
     const extraStyleProperties = this.getExtraStyleProperties(ctxt);
     let textClass = this.getCssClasses().trim();
     if (extraStyleProperties.class) textClass = extraStyleProperties.class + " " + textClass;
+    let style = properties;
+    if (this.resize && properties["font-size"]) {
+      // the span's own font-size, in its style, would win over the attribute
+      style = Object.assign({}, properties);
+      delete style["font-size"];
+    }
     const spanNode = QuickSvg.createNode(
       "tspan",
       {
         class: properties.class,
-        style: getCssForProperties(properties),
+        style: getCssForProperties(style),
         "font-size": this.resize
-          ? properties["font-size"] || this.fontSize(ctxt) * this.resize
+          ? this.fontSizeForProperties(ctxt, properties)
           : undefined
       },
       text
@@ -4055,6 +4118,32 @@ export class Lyric extends TextElement {
       x2,
       vowelSegmentWidth = this.widthWithoutConnector;
 
+    // svgTextMeasurer still has the current lyric in it...
+    var svgText =
+      ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
+        ? (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement)
+        : null;
+    var lines = this.getLines();
+    // the line that an index of this.text is on
+    var lineAt = (index: number) =>
+      lines.reduce((result, line) => (line.textStart <= index ? line : result));
+    // the x of an index of the spans' text, on its line as it's drawn
+    var measure = (line: TextLine, index: number) =>
+      line.xOffset +
+      (index <= line.start
+        ? 0
+        : svgText
+        ? svgText.getSubStringLength(line.start, index - line.start)
+        : this.measureSubstring(ctxt, index, false, true));
+    // the x of the start and the end of length characters of this.text from
+    // index, on the line that they start on (and so that they end on, at the
+    // latest)
+    var measureOnLine = (index: number, length: number) => {
+      let line = lineAt(index),
+        start = Math.min(line.end, line.start + index - line.textStart);
+      return [measure(line, start), measure(line, Math.min(line.end, start + length))];
+    };
+
     // some simple checks for sanity, and disable manual centering if the numbers are bad
     if (
       this.centerStartIndex >= 0 &&
@@ -4074,23 +4163,7 @@ export class Lyric extends TextElement {
     } else if (this.centerStartIndex >= 0) {
       // if we have manually overriden the centering logic for this lyric,
       // then always use that.
-      if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-        // svgTextMeasurer still has the current lyric in it...
-        x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-          0,
-          this.centerStartIndex
-        );
-        x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-          0,
-          this.centerStartIndex + this.centerLength
-        );
-      } else {
-        x1 = this.measureSubstring(ctxt, this.centerStartIndex);
-        x2 = this.measureSubstring(
-          ctxt,
-          this.centerStartIndex + this.centerLength
-        );
-      }
+      [x1, x2] = measureOnLine(this.centerStartIndex, this.centerLength);
       offset = (x1 + x2) / 2;
       vowelSegmentWidth = x2 - x1;
     } else {
@@ -4153,20 +4226,7 @@ export class Lyric extends TextElement {
             result.length = this.text.length - startIndex;
           }
         }
-        if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-          // svgTextMeasurer still has the current lyric in it...
-          x1 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-            0,
-            result.startIndex
-          );
-          x2 = (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-            0,
-            result.startIndex + result.length
-          );
-        } else {
-          x1 = this.measureSubstring(ctxt, result.startIndex);
-          x2 = this.measureSubstring(ctxt, result.startIndex + result.length);
-        }
+        [x1, x2] = measureOnLine(result.startIndex, result.length);
         offset = (x1 + x2) / 2;
         vowelSegmentWidth = x2 - x1;
       }
@@ -4188,14 +4248,15 @@ export class Lyric extends TextElement {
     ) {
       let factor = this.protrusion.factor;
       if (factor === undefined) factor = ctxt.defaultProtrusionFactor;
+      // the right of the text before it: where it starts on its line, unless
+      // a line before that ends further right.  (The width is measured from
+      // the left of the line that's moved right the least.)
+      let line = lineAt(protrusionIndex);
       let start =
-        ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg
-          ? // svgTextMeasurer still has the current lyric in it...
-            (ctxt.svgTextMeasurer!.firstChild as SVGTextContentElement).getSubStringLength(
-              0,
-              protrusionIndex
-            )
-          : this.measureSubstring(ctxt, protrusionIndex);
+        Math.max(
+          measureOnLine(protrusionIndex, 0)[0],
+          ...lines.slice(0, lines.indexOf(line)).map((before) => measure(before, before.end))
+        ) - Math.min(...lines.map((each) => each.xOffset));
       this.protrusionWidth =
         Math.max(0, Math.min(1, factor)) * (this.widthWithoutConnector - start);
     }
@@ -4618,7 +4679,11 @@ export class Annotation extends TextElement {
 }
 
 export class Annotations extends ChantLayoutElement {
-  lineHeight: number;
+  /**
+   * the distance from one annotation to the next, in ems, if it's not the
+   * annotation text style's lineHeight
+   */
+  lineHeight?: number;
   annotations: Annotation[];
   padding: number;
 
@@ -4628,7 +4693,6 @@ export class Annotations extends ChantLayoutElement {
   constructor(ctxt: ChantContext, ...texts: string[]) {
     super();
 
-    this.lineHeight = 1.1;
     this.annotations = texts.map(function (text, i) {
       return new Annotation(ctxt, text, i);
     });
@@ -4667,7 +4731,11 @@ export class Annotations extends ChantLayoutElement {
       annotation.bounds.y += y;
       this.bounds.height = annotation.bounds.bottom();
       this.origin.y = this.origin.y || annotation.origin.y;
-      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * this.lineHeight;
+      // past the annotation's line breaks, to the line after its last line
+      annotation.spans.forEach((span) => {
+        if (span.newLine) y += annotation.lineBreakHeight(ctxt, span);
+      });
+      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * (this.lineHeight || annotation.lineSpacing(ctxt));
     }
   }
 

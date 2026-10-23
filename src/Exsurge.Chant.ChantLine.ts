@@ -328,9 +328,17 @@ export class ChantLine extends ChantLayoutElement {
       } else {
         let lastLyrics = null;
         let xOffset = 0;
-        offset = (this.numLyricLines - 1) * this.lyricLineHeight;
+        // they go below the last line of the lyrics before them, which may
+        // have line breaks or be wrapped
+        let lyricLines = this.numLyricLines;
+        for (i = this.notationsStartIndex; i < this.extraTextOnlyIndex; i++) {
+          notations[i].lyrics.forEach((lyric, j) => {
+            lyricLines = Math.max(lyricLines, j + lyric.numLines!);
+          });
+        }
+        offset = (lyricLines - 1) * this.lyricLineHeight;
         offset += this.numTranslationLines * this.translationLineHeight;
-        let extraLines = 0;
+        let extraLines = lyricLines - this.numLyricLines;
         for (i = this.extraTextOnlyIndex; i < lastIndex; i++) {
           notation = notations[i];
           if (!notation.lyrics[extraTextOnlyLyricIndex]) continue;
@@ -343,6 +351,8 @@ export class ChantLine extends ChantLayoutElement {
           extraLines += lastLyrics.numLines! - 1;
           lastLyrics.bounds.y = offset + this.lyricLineBaseline;
           notation.bounds.x += xOffset;
+          // what comes after it goes below its last line
+          offset += (lastLyrics.numLines! - 1) * this.lyricLineHeight;
         }
         this.extraTextOnlyHeight = this.lyricLineHeight * extraLines;
       }

@@ -1,0 +1,31 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 270, 108.77000000000001) [matrix=1,0,0,1,0,0]
+beginPath()
+moveTo(0, -43.75)
+lineTo(270, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -31.25)
+lineTo(270, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -18.75)
+lineTo(270, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+beginPath()
+moveTo(0, -6.25)
+lineTo(270, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,40]
+fillText("Ky", -10.339, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,30.5939,33.75]
+fillText("ri", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,27.4689,58.75]
+fillText("-", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,39.6369,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,44.656400000000005,27.500000000000004]
+fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,41.531400000000005,58.75]
+fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,55.593900000000005,58.75]
+fillText("A long run of text only words, too wide for the line", -78.98752399232245, 28.85200000000001, undefined) [font="12.955854126679462px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,78.98752399232245,58.75]
+fillText("and a smaller line", -78.98752399232245, 28.85200000000001, undefined) [font="italic 10.796545105566217px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,78.98752399232245,70.62619961612285]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,64.20639999999999,58.75000000000001]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,64.20639999999999,58.75000000000001]

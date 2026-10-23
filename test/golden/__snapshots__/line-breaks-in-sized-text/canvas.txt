@@ -1,0 +1,31 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 600, 126.69400000000002) [matrix=1,0,0,1,0,0]
+fillText("Ad te levávi", 300, 17.52, undefined) [font="24px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,0]
+fillText("ánimam meam", 300, 17.52, undefined) [font="italic 21.599999999999998px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,23.759999999999998]
+beginPath()
+moveTo(0, -43.75)
+lineTo(600, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,108.354]
+beginPath()
+moveTo(0, -31.25)
+lineTo(600, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,108.354]
+beginPath()
+moveTo(0, -18.75)
+lineTo(600, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,108.354]
+beginPath()
+moveTo(0, -6.25)
+lineTo(600, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,108.354]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,64.604]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,89.604]
+fillText("Ky", -10.339, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,108.354]
+fillText("rie", -10.339, 13.012000000000008, undefined) [font="italic 12.96px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,122.61]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,34.375,83.354]
+fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,31.25,108.354]
+fillText("lé", 0.8353999999999999, 13.012000000000008, undefined) [font="italic 12.96px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,31.25,136.866]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,54.35788,77.10400000000001]
+fillText("son.", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,51.23288,108.35400000000001]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,65.29538,108.35400000000001]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,65.29538,108.35400000000001]

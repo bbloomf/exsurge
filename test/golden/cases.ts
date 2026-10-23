@@ -52,6 +52,10 @@ const salveRegina =
   "Ad(j) te(ji) cla(h)má(gh)mus,(g.) (,) éx(e)su(f)les,(g) fí(h)li(i)i(j) He(j)vae.(i.) (:) " +
   "Ad(i) te(h) su(ixh)spi(g)rá(f)mus,(e.) (,) ge(f)mén(g)tes(h) et(i) flen(j)tes(k) in(j) hac(i) la(h)cri(g)má(f)rum(e) val(f)le.(e.) (::)";
 
+// a text only lyric a little too wide for a line 270 wide, with a smaller line after a break
+const resizedLyricWithSizedText =
+  "(c4) Ky(f)ri(g)e(h) (,) A long run of text only words, too wide for the line<br><e>and a smaller line</e>() (::)";
+
 // headers for Gabc.applyHeader()
 const headerSettings =
   "name: Ave Maria;\noffice-part: Antiphona;\nannotation: Ant.;\nannotation: VIII\nG;;\n" +
@@ -285,6 +289,32 @@ export const featureCases: GoldenCase[] = [
   {
     name: "line-breaks-in-text",
     gabc: "(c4) Ky<br>rie(f) e<br/>lé(g) son.<br><br>A(h) (::)"
+  },
+  {
+    // the lines after the breaks are in a smaller font, which spaces them less
+    name: "line-breaks-in-sized-text",
+    gabc: "(c4) Ky<br><e>rie</e>(f) e<br><br><e>lé</e>(g) son.(h) (::)",
+    setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br><e>ánimam meam</e>")
+  },
+  {
+    // a text only lyric squeezed to fit on the line, with smaller text in it
+    name: "resized-lyric-with-sized-text",
+    width: 270,
+    gabc: resizedLyricWithSizedText
+  },
+  {
+    name: "resized-lyric-with-px-sized-text",
+    width: 270,
+    gabc: resizedLyricWithSizedText,
+    setupContext: (ctxt) => {
+      ctxt.fontStyleDictionary.e = { "font-style": "italic", "font-size": "12px" };
+    }
+  },
+  {
+    // the notes are centered on a vowel (after the last space) and on a {}
+    // that are on a second line, which is narrower than the first
+    name: "centering-after-line-breaks",
+    gabc: "(c4) Kýrie eléison<br>Lord have(f) mer(g)cy(h) Christe<br>e{lé}(g)i(h)son.(g) (::)"
   },
   {
     name: "elisions",
@@ -555,6 +585,12 @@ export const featureCases: GoldenCase[] = [
     width: 114,
     gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
   },
+  {
+    // the same, with the period at the end of a second line
+    name: "lyric-protrusion-after-line-break",
+    width: 114,
+    gabc: "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son<br>son<pr>.(f) Chri(f)ste(g) e(h)lé(g)i(f)son.(e) (::)"
+  },
 
   // Gregorio: Phase 5
   {
@@ -710,6 +746,16 @@ export const settingCases: GoldenCase[] = [
     setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.", "VIII", "g", "<b>x</b>"))
   },
   {
+    // an annotation after one with a line break goes below the other's last
+    // line, which is spaced by its own (90%) size
+    name: "annotations-with-line-breaks",
+    outputs: allOutputs,
+    gabc: "(c4) A(f)ve(g) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => ctxt.setStaffHeight(30),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.<br><e>VIII</e>", "g"))
+  },
+  {
     name: "annotation-merged-into-text-left",
     outputs: allOutputs,
     gabc: kyrie,
@@ -826,6 +872,30 @@ export const settingCases: GoldenCase[] = [
       ctxt.textStyles.translation.prefix = "<sc>";
       ctxt.textStyles.translation.color = "#060";
     }
+  },
+  {
+    // the lines of a lyric, of a wrapped text only lyric and of the title are
+    // as far apart as their text styles' line heights
+    name: "line-height-with-line-breaks",
+    outputs: allOutputs,
+    width: 300,
+    gabc:
+      "(c4) Ky<br>rie(f) e<br/>lé(g) son.<br><br>A(h) (,) " +
+      "Here is a very long run of text only syllables that will not fit() on the line() (::)",
+    setupContext: (ctxt) => {
+      ctxt.textStyles.lyric.lineHeight = 1.5;
+      ctxt.textStyles.title.lineHeight = 1.3;
+    },
+    setupScore: (score, ctxt) => score.titles.setTitle(ctxt, "Ad te levávi<br>ánimam meam")
+  },
+  {
+    // annotations are as far apart as the annotation text style's line height
+    name: "annotation-line-height",
+    outputs: allOutputs,
+    gabc: kyrie,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.textStyles.annotation.lineHeight = 1.6),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.", "VIII", "g"))
   },
   {
     name: "special-character-settings",
@@ -973,6 +1043,42 @@ export const svgMeasuredCases: GoldenCase[] = [
   {
     ...featureCases.find((c) => c.name === "lyric-centering")!,
     name: "svg-measured-centering",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "line-breaks-in-sized-text")!,
+    name: "svg-measured-sized-line-breaks",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "resized-lyric-with-sized-text")!,
+    name: "svg-measured-resized-lyric",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "centering-after-line-breaks")!,
+    name: "svg-measured-centering-after-line-breaks",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "lyric-protrusion-after-line-break")!,
+    name: "svg-measured-protrusion-after-line-break",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...featureCases.find((c) => c.name === "extra-text-only-lines")!,
+    name: "svg-measured-extra-text-only-lines",
+    outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+  {
+    ...settingCases.find((c) => c.name === "line-height-with-line-breaks")!,
+    name: "svg-measured-line-height",
     outputs: ["svg", "node"],
     strategy: "svg"
   },
