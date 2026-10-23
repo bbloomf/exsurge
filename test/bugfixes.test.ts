@@ -340,3 +340,86 @@ describe('Canvas drawing', function() {
     });
   });
 });
+
+describe('Svg defs', function() {
+  interface DefsAndUses {
+    defs: { id: string; transform: string }[];
+    hrefs: string[];
+  }
+
+  function attributesOfTag(tag: string) {
+    var attributes: { [name: string]: string } = {};
+    tag.replace(/([\w:-]+)="([^"]*)"/g, function(_, name: string, value: string) {
+      attributes[name] = value;
+      return '';
+    });
+    return attributes;
+  }
+
+  function defsAndUsesOfSvg(svg: string): DefsAndUses {
+    return {
+      defs: (svg.match(/<g [^>]*class="glyph"[^>]*>/g) || []).map(function(tag) {
+        var attributes = attributesOfTag(tag);
+        return { id: attributes.id, transform: attributes.transform };
+      }),
+      hrefs: (svg.match(/<use [^>]*>/g) || []).map(function(tag) {
+        return attributesOfTag(tag)['xlink:href'];
+      })
+    };
+  }
+
+  function defsAndUsesOfSvgTree(tree: Drawing.SvgTreeNode, result: DefsAndUses = { defs: [], hrefs: [] }) {
+    var props = tree.props || {};
+    if (props.className === 'glyph') result.defs.push({ id: props.id, transform: props.transform });
+    if (tree.name === 'use') result.hrefs.push(props.xlinkHref);
+    tree.children.forEach(function(child) {
+      if (typeof child !== 'string') defsAndUsesOfSvgTree(child, result);
+    });
+    return result;
+  }
+
+  // as a page does, each href goes to the first element in the page with its id
+  function assertEachSvgInAPageDrawsItsOwnDefs(svgs: DefsAndUses[], contexts: Drawing.ChantContext[]) {
+    var page: { [id: string]: { svgIndex: number; transform: string } } = {};
+    svgs.forEach(function(svg, svgIndex) {
+      svg.defs.forEach(function(def) {
+        if (!page.hasOwnProperty(def.id)) page[def.id] = { svgIndex: svgIndex, transform: def.transform };
+      });
+    });
+    svgs.forEach(function(svg, svgIndex) {
+      assert(svg.hrefs.length > 0);
+      svg.hrefs.forEach(function(href) {
+        assert.equal(href[0], '#', href);
+        assert.deepEqual(page[href.slice(1)], {
+          svgIndex: svgIndex,
+          transform: 'scale(' + contexts[svgIndex].glyphScaling + ')'
+        }, href);
+      });
+    });
+  }
+
+  it('gives each context its own def ids, so two svgs in one page draw at their own scales', function() {
+    // def ids used to be bare glyph codes, so the second svg in a page drew
+    // the first svg's defs, at the first svg's scale
+    var contexts = [{ prefix: 'a-', glyphMultiplier: 1 }, { prefix: 'b-', glyphMultiplier: 0.8 }].map(function(options) {
+      var ctxt = new Drawing.ChantContext();
+      ctxt.defIdPrefix = options.prefix;
+      ctxt.setStaffHeight(37.5, options.glyphMultiplier);
+      return ctxt;
+    });
+    assert.notEqual(contexts[0].glyphScaling, contexts[1].glyphScaling);
+    var scores = contexts.map(function(ctxt) {
+      var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) Ky(f)ri(gfg)e(h) (::)'), false);
+      score.performLayout(ctxt);
+      score.layoutChantLines(ctxt, 600);
+      return score;
+    });
+
+    assertEachSvgInAPageDrawsItsOwnDefs(scores.map(function(score, i) {
+      return defsAndUsesOfSvg(score.createSvg(contexts[i]));
+    }), contexts);
+    assertEachSvgInAPageDrawsItsOwnDefs(scores.map(function(score, i) {
+      return defsAndUsesOfSvgTree(score.createSvgTree(contexts[i]));
+    }), contexts);
+  });
+});

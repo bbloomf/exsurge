@@ -674,7 +674,7 @@ export const QuickSvg = {
     return node;
   },
 
-  // nodeRef should be the id of the object in defs (without the #)
+  // nodeRef should be the id of the object in defs (with its ChantContext.defIdPrefix, without the #)
   use: function (nodeRef: string) {
     var node = document.createElementNS(this.ns, "use");
     node.setAttributeNS(this.xlink, "xlink:href", "#" + nodeRef);
@@ -995,6 +995,15 @@ export class ChantContext {
   useExtraTextOnly: boolean;
   /** prefix for the id of each note's svg element; defaults to "note-" */
   noteIdPrefix: string;
+  /**
+   * Prefix for the id of each glyph's def, which the svg's <use> elements
+   * refer to; defaults to "".  A page looks an id up among all of its
+   * elements, so when svgs with different staff heights, glyph multipliers
+   * or negativeFillColors are inline in one page, give each context its own
+   * prefix, or the later svgs draw the first one's glyphs.  Set it before
+   * the first layout: the defs are made then (and remade by setStaffHeight()).
+   */
+  defIdPrefix: string;
   /**
    * The number of lines of Gregorio's NABC (St. Gall or Laon neumes) in the
    * gabc, from its nabc-lines header, which Gabc.createMappingsFromSource()
@@ -1411,6 +1420,7 @@ export class ChantContext {
     this.useExtraTextOnly = true;
 
     this.noteIdPrefix = 'note-';
+    this.defIdPrefix = '';
     this.nabcLines = 0;
 
     this.insertFontsInDoc();
@@ -2307,7 +2317,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
       if (!ctxt.defs.hasOwnProperty(glyphId)) {
         var getDefProps = () => {
           var options: SvgAttributes = {
-            id: glyphId,
+            id: ctxt.defIdPrefix + glyphId,
             class: "glyph"
           };
           if (ctxt.scaleDefs === true) {
@@ -2416,7 +2426,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
       className = isSelected ? "selected" : "";
     }
     var result: SvgAttributes = {
-      "xlink:href": "#" + this.glyphId,
+      "xlink:href": "#" + ctxt.defIdPrefix + this.glyphId,
       class: className
     };
     if (source) {

@@ -1114,6 +1114,12 @@ export const settingCases: GoldenCase[] = [
     gabc: "(c4) Ky(f)ri(gfg)e(h) (::)",
     setupContext: (ctxt) => (ctxt.noteIdPrefix = "n")
   },
+  {
+    name: "def-id-prefix",
+    outputs: ["svg", "node"],
+    gabc: "(c4) Ky(f)ri(gfg)e(h) (::)",
+    setupContext: (ctxt) => (ctxt.defIdPrefix = "s1-")
+  },
 
   // ---- editing
   {
