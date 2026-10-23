@@ -872,6 +872,15 @@ export const featureCases: GoldenCase[] = [
     width: 400,
     paginate: 150,
     setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  },
+  {
+    // drawn line by line, the first line's svg lets the drop cap reach down
+    // past it
+    name: "two-line-initial-each-line",
+    outputs: ["lines", "nodeLines"],
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
   }
 ];
 

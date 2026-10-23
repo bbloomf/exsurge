@@ -1610,7 +1610,9 @@ export class ChantScore {
           class: "Exsurge ChantScore",
           width: this.bounds.width,
           height: height,
-          viewBox: [0, 0, this.bounds.width, height].join(" ")
+          viewBox: [0, 0, this.bounds.width, height].join(" "),
+          // (a drop cap beside more lines reaches down into them)
+          overflow: i === 0 && this.lastLineBesideDropCap ? "visible" : undefined
         },
         lineFragment
       );
@@ -1644,7 +1646,9 @@ export class ChantScore {
           "xmlns:xlink": QuickSvg.xlink,
           class: "Exsurge ChantScore",
           width: this.bounds.width,
-          height: height
+          height: height,
+          // (a drop cap beside more lines reaches down into them)
+          overflow: i === 0 && this.lastLineBesideDropCap ? "visible" : undefined
         },
         lineFragment
       );
