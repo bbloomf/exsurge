@@ -72,8 +72,12 @@ score.performLayoutAsync(ctxt, () =>
 score.waitForLyricFont(ctxt, () => {});
 const extent: LineExtent = score.lineExtent(ctxt, 1, 500);
 const extentWidth: number = extent.right - extent.left;
+const extentTextLeft: number = extent.textLeft;
+const lastLineBesideDropCap: number = score.lastLineBesideDropCap;
 // @ts-expect-error an internal step of performLayout()/performLayoutAsync()
 score.initializeLayout(ctxt);
+// @ts-expect-error an internal step of layoutChantLines()
+score.placeDropCap(ctxt);
 const headerLength: number = Gabc.updateMappingsFromSource(
   ctxt,
   score.mappings,

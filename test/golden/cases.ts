@@ -787,8 +787,10 @@ export const featureCases: GoldenCase[] = [
   {
     // a drop cap beside two lines (Gregorio's \gresetinitiallines{2}), made
     // big enough to reach across them, with its baseline on the second
-    // line's lyric baseline; both lines start after it
+    // line's lyric baseline; both lines start after it.  (Drawn line by line,
+    // each line's svg has the part of the drop cap beside it.)
     name: "two-line-initial",
+    outputs: withLines,
     gabc: adTeLevavi,
     useDropCap: true,
     setupContext: (ctxt) => (ctxt.dropCapLines = 2)
@@ -833,8 +835,8 @@ export const featureCases: GoldenCase[] = [
     setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Intr.", "VIII"))
   },
   {
-    // the baseline of the drop cap on the first line's lyric baseline, which
-    // makes the first line taller
+    // the baseline of the drop cap on the first line's lyric baseline, at its
+    // text style's size, since it doesn't reach across the lines from there
     name: "two-line-initial-first-baseline",
     gabc: adTeLevavi,
     useDropCap: true,
@@ -845,7 +847,7 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // the baseline of the drop cap at the bottom of the second line, below its
-    // lyrics, which makes that line taller for the bottom of the letter
+    // lyrics, at its text style's size
     name: "two-line-initial-last-bottom",
     gabc: adTeLevavi,
     useDropCap: true,
@@ -856,7 +858,7 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // a drop cap beside three lines in a score of one line goes on that line,
-    // which is made taller above it and below it for the drop cap
+    // made just big enough to reach across it
     name: "three-line-initial-one-line",
     gabc: "(c4) AL(f)le(g)lú(h)ia.(g) (::)",
     useDropCap: true,
@@ -864,8 +866,8 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // the second line, beside the drop cap, stays on the first page although
-    // the page is too short for it (and drawn line by line, the first line's
-    // svg lets the drop cap reach down past it)
+    // the page is too short for it (and drawn line by line, the second line's
+    // svg has the part of the drop cap beside it)
     name: "two-line-initial-paginated",
     outputs: ["svg", "tree", "canvas", "lines"],
     gabc: adTeLevavi,
@@ -875,13 +877,21 @@ export const featureCases: GoldenCase[] = [
     setupContext: (ctxt) => (ctxt.dropCapLines = 2)
   },
   {
-    // drawn line by line, the first line's svg lets the drop cap reach down
-    // past it
-    name: "two-line-initial-each-line",
-    outputs: ["lines", "nodeLines"],
-    gabc: adTeLevavi,
+    // text other than the lyrics on the lines beside the drop cap starts
+    // after it too: the text-only syllables that go on below the first line,
+    // and the text above the second line and its translation
+    name: "two-line-initial-text",
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (,) Here is a very long run of text only syllables that will not fit() " +
+      "on the line() and so goes underneath() (;) e(g)lé(f)i(e)son.(f) (:) " +
+      "Chri(g)ste[Christ, have mercy upon us](h) e<alt>Some text above the staff that goes on</alt>(g)lé(f)i(e)son.(f) (:) " +
+      "Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (::)",
     useDropCap: true,
-    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+    width: 500,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.translationCentering = "center";
+    }
   }
 ];
 
@@ -1263,7 +1273,19 @@ export const settingCases: GoldenCase[] = [
   { name: "async-layout", gabc: christus, useDropCap: true, async: true },
   { name: "paginated", outputs: ["svg", "tree", "canvas"], gabc: puer, useDropCap: true, width: 320, paginate: 140, setupScore: titles },
   { name: "tree-zoom", outputs: ["tree"], gabc: kyrie, zoom: 1.5 },
-  { name: "tree-fill-container", outputs: ["tree"], gabc: kyrie, zoom: true }
+  { name: "tree-fill-container", outputs: ["tree"], gabc: kyrie, zoom: true },
+
+  // Gregorio: Phase 9
+  {
+    // a canvas without actualBoundingBox metrics measures only the font's box,
+    // so a drop cap beside two lines is sized as a typical capital
+    name: "canvas-basic-two-line-initial",
+    outputs: ["svg", "canvas"],
+    gabc: adTeLevavi,
+    useDropCap: true,
+    strategy: "canvas-basic",
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  }
 ];
 
 // -----------------------------------------------------------------------------
@@ -1328,6 +1350,16 @@ export const svgMeasuredCases: GoldenCase[] = [
     ...settingCases.find((c) => c.name === "titles-aligned-and-wrapped")!,
     name: "svg-measured-titles",
     outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+
+  // Gregorio: Phase 9
+  {
+    // getBBox() measures only the font's box (where there's no canvas to
+    // measure the letter on), so the drop cap is sized as a typical capital
+    ...featureCases.find((c) => c.name === "two-line-initial")!,
+    name: "svg-measured-two-line-initial",
+    outputs: ["svg", "node", "nodeLines"],
     strategy: "svg"
   }
 ];

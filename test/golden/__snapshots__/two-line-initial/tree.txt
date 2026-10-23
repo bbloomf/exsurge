@@ -13,22 +13,24 @@
         <path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z">
       <g id="CustosLong" transform="scale(0.0625)" className="glyph">
         <path d="M39.063-269.562c5.73-.52 7.29 6.25 4.687 20.312V69.5c-13.542-2.083-24.22-5.47-32.03-10.156C3.905 54.134 0 47.624 0 39.812V-68c5.73 5.208 10.677 8.594 14.844 10.156 5.73 1.563 12.24 2.344 19.53 2.344v-196.875c0-11.458 1.563-17.187 4.688-17.187z">
+      <g id="CustosShort" transform="scale(0.0625)" className="glyph">
+        <path d="M34.375-188.125c0-8.333 1.563-12.24 4.688-11.72 3.125.522 4.687 7.033 4.687 19.532v250c-13.542-2.083-24.22-5.468-32.03-10.156C3.905 54.324 0 47.813 0 40V-67.813c5.73 5.21 10.677 8.594 14.844 10.157 5.73 1.562 12.24 2.344 19.53 2.343v-132.812z">
       <style>
         "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
     <g source=<Titles> className="Titles">
     <g transform="translate(0,58.75)" element-index=0 className="chantLine">
       <g className="staffLines">
-        <line key=-7 x1=143.17011232876712 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
-        <line key=-5 x1=143.17011232876712 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
-        <line key=-3 x1=143.17011232876712 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
-        <line key=-1 x1=143.17011232876712 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
-      <text source-index=5 x=71.58505616438356 y=108.14201136363639 style={fontSize: "196.2013698630137px"} source=<DropCap sourceIndex=5> className="dropCap" textAnchor="middle" source-gabc="A">
+        <line key=-7 x1=151.44174109589042 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-5 x1=151.44174109589042 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-3 x1=151.44174109589042 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-1 x1=151.44174109589042 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+      <text source-index=5 x=75.72087054794521 y=108.14201136363639 style={fontSize: "208.0712484433375px"} source=<DropCap sourceIndex=5> className="dropCap" textAnchor="middle" source-gabc="A">
         <tspan source-index=0 style={} className=undefined>
           "A"
-      <g transform="translate(143.17011232876712,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
+      <g transform="translate(151.44174109589042,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">
-      <g transform="translate(155.79676248011268,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(163.2612338211399,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=6 x=0.5546000000000002 y=20.670250000000003 style={} source=<Lyric sourceIndex=6> className="lyric" textAnchor="start" source-gabc="D">
           <tspan source-index=0 style={} className=undefined>
             "D"
@@ -36,19 +38,19 @@
             "-"
         <g className="Notations">
           <use source-index=8 element-index=0 id="note-1" x=3.125 y=0 source=<Note sourceIndex=8 elementIndex=0 noteIndex=0> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="c">
-      <g transform="translate(172.16236248011268,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(179.62683382113994,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=10 x=-5.687799999999999 y=20.670250000000003 style={} source=<Lyric sourceIndex=10> className="lyric" textAnchor="start" source-gabc="te">
           <tspan source-index=0 style={} className=undefined>
             "te"
         <g className="Notations">
           <use source-index=13 element-index=1 id="note-2" x=3.125 y=-6.25 source=<Note sourceIndex=13 elementIndex=1 noteIndex=1> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="d">
-      <g transform="translate(190.03276248011267,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(197.4972338211399,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=16 x=-7.4734 y=20.670250000000003 style={} source=<Lyric sourceIndex=16> className="lyric" textAnchor="start" source-gabc="le">
           <tspan source-index=0 style={} className=undefined>
             "le"
         <g className="Notations">
           <use source-index=19 element-index=2 id="note-3" x=3.125 y=-18.75 source=<Note sourceIndex=19 elementIndex=2 noteIndex=2> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(201.97036248011267,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(209.43483382113993,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=21 x=-6.523 y=20.670250000000003 style={} source=<Lyric sourceIndex=21> className="lyric" textAnchor="start" source-gabc="vá">
           <tspan source-index=0 style={} className=undefined>
             "vá"
@@ -58,20 +60,20 @@
           <rect x=0 y=-18.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=24 element-index=3 id="note-4" x=3.125 y=-18.75 source=<Note sourceIndex=24 elementIndex=3 noteIndex=3> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
           <use source-index=25 element-index=4 id="note-5" x=9.375 y=-12.5 source=<Note sourceIndex=25 elementIndex=4 noteIndex=4> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(220.85733543463678,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(227.5204522733567,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=27 x=-7.818999999999999 y=20.670250000000003 style={} source=<Lyric sourceIndex=27> className="lyric" textAnchor="start" source-gabc="vi">
           <tspan source-index=0 style={} className=undefined>
             "vi"
         <g className="Notations">
           <use source-index=30 element-index=5 id="note-6" x=3.125 y=-18.75 source=<Note sourceIndex=30 elementIndex=5 noteIndex=5> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(236.03464564652054,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(241.567742088706,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <text source-index=33 x=1.0657999999999999 y=20.670250000000003 style={} source=<Lyric sourceIndex=33> className="lyric" textAnchor="start" source-gabc="á">
           <tspan source-index=0 style={} className=undefined>
             "á"
         <g className="Notations">
           <use source-index=35 element-index=6 id="note-7" x=3.125 y=-18.75 source=<Note sourceIndex=35 elementIndex=6 noteIndex=6> className=" note" xlinkHref="#PodatusLowerShort" source-gabc="f">
           <use source-index=36 element-index=7 id="note-8" x=6.25 y=-25 source=<Note sourceIndex=36 elementIndex=7 noteIndex=7> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="g">
-      <g transform="translate(250.82344564652055,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(256.35654208870596,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=38 x=-9.604600000000001 y=20.670250000000003 style={} source=<Lyric sourceIndex=38> className="lyric" textAnchor="start" source-gabc="ni">
           <tspan source-index=0 style={} className=undefined>
             "ni"
@@ -81,13 +83,13 @@
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
           <use source-index=41 element-index=8 id="note-9" x=3.125 y=-25 source=<Note sourceIndex=41 elementIndex=8 noteIndex=8> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
           <use source-index=42 element-index=9 id="note-10" x=9.375 y=-18.75 source=<Note sourceIndex=42 elementIndex=9 noteIndex=9> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(272.2506456465206,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(277.783742088706,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=44 x=-9.964599999999999 y=20.670250000000003 style={} source=<Lyric sourceIndex=44> className="lyric" textAnchor="start" source-gabc="mam">
           <tspan source-index=0 style={} className=undefined>
             "mam"
         <g className="Notations">
           <use source-index=48 element-index=10 id="note-11" x=3.125 y=-18.75 source=<Note sourceIndex=48 elementIndex=10 noteIndex=10> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(301.4538456465205,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(306.9869420887059,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=51 x=-8.0062 y=20.670250000000003 style={} source=<Lyric sourceIndex=51> className="lyric" textAnchor="start" source-gabc="me">
           <tspan source-index=0 style={} className=undefined>
             "me"
@@ -97,17 +99,17 @@
           <rect x=0 y=-18.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=54 element-index=11 id="note-12" x=3.125 y=-18.75 source=<Note sourceIndex=54 elementIndex=11 noteIndex=11> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
           <use source-index=55 element-index=12 id="note-13" x=9.375 y=-12.5 source=<Note sourceIndex=55 elementIndex=12 noteIndex=12> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(320.33049579786604,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(325.05643481395543,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=57 x=-1.1230000000000002 y=20.670250000000003 style={} source=<Lyric sourceIndex=57> className="lyric" textAnchor="start" source-gabc="am:">
           <tspan source-index=0 style={} className=undefined>
             "am:"
         <g className="Notations">
           <use source-index=61 element-index=13 id="note-14" x=3.125 y=-12.5 source=<Note sourceIndex=61 elementIndex=13 noteIndex=13> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e.">
           <use source-index=undefined element-index=undefined x=6.375 y=-12.5 source=<Punctum> className="" xlinkHref="#Mora">
-      <g transform="translate(341.04959579786606,0)" source=<QuarterBar sourceIndex=66 elementIndex=14> className="ChantNotationElement QuarterBar" source-gabc=",">
+      <g transform="translate(345.77553481395546,0)" source=<QuarterBar sourceIndex=66 elementIndex=14> className="ChantNotationElement QuarterBar" source-gabc=",">
         <g className="Notations">
           <rect x=0 y=-50 width=0.8 height=12.5 fill="#000" source-index=66 element-index=14 source=<QuarterBar sourceIndex=66 elementIndex=14> className="dividerLine" source-gabc=",">
-      <g transform="translate(351.69369579786604,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(356.41963481395544,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=69 x=-4.305399999999999 y=20.670250000000003 style={} source=<Lyric sourceIndex=69> className="lyric" textAnchor="start" source-gabc="De">
           <tspan source-index=0 style={} className=undefined>
             "De"
@@ -115,14 +117,14 @@
             "-"
         <g className="Notations">
           <use source-index=72 element-index=15 id="note-15" x=3.125 y=-18.75 source=<Note sourceIndex=72 elementIndex=15 noteIndex=14> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(364.3203459492116,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(368.23912753920496,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <text source-index=74 x=-0.403 y=20.670250000000003 style={} source=<Lyric sourceIndex=74> className="lyric" textAnchor="start" source-gabc="us">
           <tspan source-index=0 style={} className=undefined>
             "us"
         <g className="Notations">
           <use source-index=77 element-index=16 id="note-16" x=3.125 y=-18.75 source=<Note sourceIndex=77 elementIndex=16 noteIndex=15> className=" note" xlinkHref="#PodatusLowerShort" source-gabc="f">
           <use source-index=78 element-index=17 id="note-17" x=6.25 y=-25 source=<Note sourceIndex=78 elementIndex=17 noteIndex=16> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="g">
-      <g transform="translate(389.9523459492116,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(393.8711275392049,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=81 x=-8.0062 y=20.670250000000003 style={} source=<Lyric sourceIndex=81> className="lyric" textAnchor="start" source-gabc="me">
           <tspan source-index=0 style={} className=undefined>
             "me"
@@ -130,7 +132,7 @@
             "-"
         <g className="Notations">
           <use source-index=84 element-index=18 id="note-18" x=3.125 y=-18.75 source=<Note sourceIndex=84 elementIndex=18 noteIndex=17> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(402.5789961005571,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(405.6906202644544,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=86 x=-0.403 y=20.670250000000003 style={} source=<Lyric sourceIndex=86> className="lyric" textAnchor="start" source-gabc="us,">
           <tspan source-index=0 style={} className=undefined>
             "us,"
@@ -138,26 +140,26 @@
           <rect x=0 y=-18.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=90 element-index=19 id="note-19" x=3.125 y=-18.75 source=<Note sourceIndex=90 elementIndex=19 noteIndex=18> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
           <use source-index=91 element-index=20 id="note-20" x=9.375 y=-12.5 source=<Note sourceIndex=91 elementIndex=20 noteIndex=19> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(425.3230610312485,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(428.0448733591573,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=94 x=-0.23019999999999996 y=20.670250000000003 style={} source=<Lyric sourceIndex=94> className="lyric" textAnchor="start" source-gabc="in">
           <tspan source-index=0 style={} className=undefined>
             "in"
         <g className="Notations">
           <use source-index=97 element-index=21 id="note-21" x=3.125 y=-12.5 source=<Note sourceIndex=97 elementIndex=21 noteIndex=20> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(451.84786103124844,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(454.5696733591572,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=100 x=-5.687799999999999 y=20.670250000000003 style={} source=<Lyric sourceIndex=100> className="lyric" textAnchor="start" source-gabc="te">
           <tspan source-index=0 style={} className=undefined>
             "te"
         <g className="Notations">
           <use source-index=103 element-index=22 id="note-22" x=3.125 y=-18.75 source=<Note sourceIndex=103 elementIndex=22 noteIndex=21> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(470.6110610312484,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(473.3328733591572,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <text source-index=106 x=-8.3662 y=20.670250000000003 style={} source=<Lyric sourceIndex=106> className="lyric" textAnchor="start" source-gabc="con">
           <tspan source-index=0 style={} className=undefined>
             "con"
         <g className="Notations">
           <use source-index=110 element-index=23 id="note-23" x=3.125 y=-25 source=<Note sourceIndex=110 elementIndex=23 noteIndex=22> className=" note" xlinkHref="#PodatusLowerShort" source-gabc="g">
           <use source-index=111 element-index=24 id="note-24" x=6.25 y=-31.249999999999996 source=<Note sourceIndex=111 elementIndex=24 noteIndex=23> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="h">
-      <g transform="translate(489.25906103124845,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(491.9808733591572,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=113 x=-4.219 y=20.670250000000003 style={} source=<Lyric sourceIndex=113> className="lyric" textAnchor="start" source-gabc="fí">
           <tspan source-index=0 style={} className=undefined>
             "fí"
@@ -165,7 +167,7 @@
             "-"
         <g className="Notations">
           <use source-index=116 element-index=25 id="note-25" x=3.125 y=-25 source=<Note sourceIndex=116 elementIndex=25 noteIndex=24> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(502.7872870459635,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(505.2087593242517,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=118 x=-2.851 y=20.670250000000003 style={} source=<Lyric sourceIndex=118> className="lyric" textAnchor="start" source-gabc="do,">
           <tspan source-index=0 style={} className=undefined>
             "do,"
@@ -173,16 +175,16 @@
           <rect x=0 y=-18.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=122 element-index=26 id="note-26" x=3.125 y=-18.75 source=<Note sourceIndex=122 elementIndex=26 noteIndex=25> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
           <use source-index=123 element-index=27 id="note-27" x=9.375 y=-12.5 source=<Note sourceIndex=123 elementIndex=27 noteIndex=26> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(521.6639371973091,0)" source=<HalfBar sourceIndex=127 elementIndex=28> className="ChantNotationElement HalfBar" source-gabc=";">
+      <g transform="translate(523.2782520495012,0)" source=<HalfBar sourceIndex=127 elementIndex=28> className="ChantNotationElement HalfBar" source-gabc=";">
         <g className="Notations">
           <rect x=0 y=-37.5 width=0.8 height=25 fill="#000" source-index=127 element-index=28 source=<HalfBar sourceIndex=127 elementIndex=28> className="dividerLine" source-gabc=";">
-      <g transform="translate(528.8405873486546,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(529.6477447747507,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=130 x=-8.178999999999998 y=20.670250000000003 style={} source=<Lyric sourceIndex=130> className="lyric" textAnchor="start" source-gabc="non">
           <tspan source-index=0 style={} className=undefined>
             "non"
         <g className="Notations">
           <use source-index=134 element-index=29 id="note-28" x=3.125 y=-18.75 source=<Note sourceIndex=134 elementIndex=29 noteIndex=27> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(547.4165873486545,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(548.2237447747506,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=137 x=0.8353999999999999 y=20.670250000000003 style={} source=<Lyric sourceIndex=137> className="lyric" textAnchor="start" source-gabc="e">
           <tspan source-index=0 style={} className=undefined>
             "e"
@@ -211,14 +213,14 @@
           <use source-index=undefined element-index=undefined x=0 y=-18.75 source=<Custos> className="" xlinkHref="#CustosLong">
     <g transform="translate(0,152.87325)" element-index=1 className="chantLine">
       <g className="staffLines">
-        <line key=-7 x1=143.17011232876712 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
-        <line key=-5 x1=143.17011232876712 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
-        <line key=-3 x1=143.17011232876712 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
-        <line key=-1 x1=143.17011232876712 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
-      <g transform="translate(143.17011232876712,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
+        <line key=-7 x1=151.44174109589042 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-5 x1=151.44174109589042 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-3 x1=151.44174109589042 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-1 x1=151.44174109589042 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+      <g transform="translate(151.44174109589042,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">
-      <g transform="translate(159.84511232876713,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(168.1167410958904,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=152 x=-16.674999999999997 y=14.018761363636365 style={} source=<Lyric sourceIndex=152> className="lyric" textAnchor="start" source-gabc="scam:">
           <tspan source-index=0 style={} className=undefined>
             "scam:"
@@ -228,22 +230,22 @@
           <use source-index=159 element-index=35 id="note-34" x=9.375 y=-12.5 source=<Note sourceIndex=159 elementIndex=35 noteIndex=33> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e..">
           <use source-index=undefined element-index=undefined x=12.625 y=-23.4375 source=<Clivis> className="" xlinkHref="#Mora">
           <use source-index=undefined element-index=undefined x=12.625 y=-12.5 source=<Clivis> className="" xlinkHref="#Mora">
-      <g transform="translate(185.80601232876714,0)" source=<FullBar sourceIndex=165 elementIndex=36> className="ChantNotationElement FullBar" source-gabc=":">
+      <g transform="translate(194.0776410958904,0)" source=<FullBar sourceIndex=165 elementIndex=36> className="ChantNotationElement FullBar" source-gabc=":">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=165 element-index=36 source=<FullBar sourceIndex=165 elementIndex=36> className="dividerLine" source-gabc=":">
-      <g transform="translate(195.44191232876713,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(203.7135410958904,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=168 x=-8.539 y=14.018761363636365 style={} source=<Lyric sourceIndex=168> className="lyric" textAnchor="start" source-gabc="ne">
           <tspan source-index=0 style={} className=undefined>
             "ne"
         <g className="Notations">
           <use source-index=171 element-index=37 id="note-35" x=3.125 y=-18.75 source=<Note sourceIndex=171 elementIndex=37 noteIndex=34> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(212.00191232876713,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(220.2735410958904,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=173 x=-11.145399999999999 y=14.018761363636365 style={} source=<Lyric sourceIndex=173> className="lyric" textAnchor="start" source-gabc="que">
           <tspan source-index=0 style={} className=undefined>
             "que"
         <g className="Notations">
           <use source-index=177 element-index=38 id="note-36" x=3.125 y=-18.75 source=<Note sourceIndex=177 elementIndex=38 noteIndex=35> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(228.18808384574425,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(235.05203183675425,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=180 x=-0.23019999999999996 y=14.018761363636365 style={} source=<Lyric sourceIndex=180> className="lyric" textAnchor="start" source-gabc="ir">
           <tspan source-index=0 style={} className=undefined>
             "ir"
@@ -253,7 +255,7 @@
           <rect x=0 y=-18.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=183 element-index=39 id="note-37" x=3.125 y=-18.75 source=<Note sourceIndex=183 elementIndex=39 noteIndex=36> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
           <use source-index=184 element-index=40 id="note-38" x=9.375 y=-12.5 source=<Note sourceIndex=184 elementIndex=40 noteIndex=37> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(249.67288384574425,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(256.53683183675423,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <text source-index=186 x=-4.5646 y=14.018761363636365 style={} source=<Lyric sourceIndex=186> className="lyric" textAnchor="start" source-gabc="rí">
           <tspan source-index=0 style={} className=undefined>
             "rí"
@@ -262,7 +264,7 @@
         <g className="Notations">
           <use source-index=189 element-index=41 id="note-39" x=3.125 y=-18.75 source=<Note sourceIndex=189 elementIndex=41 noteIndex=38> className=" note" xlinkHref="#PodatusLowerShort" source-gabc="f">
           <use source-index=190 element-index=42 id="note-40" x=6.25 y=-25 source=<Note sourceIndex=190 elementIndex=42 noteIndex=39> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="g">
-      <g transform="translate(263.5791079398681,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(270.2233612031227,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=192 x=-3.2110000000000003 y=14.018761363636365 style={} source=<Lyric sourceIndex=192> className="lyric" textAnchor="start" source-gabc="de">
           <tspan source-index=0 style={} className=undefined>
             "de"
@@ -272,13 +274,13 @@
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
           <use source-index=195 element-index=43 id="note-41" x=3.125 y=-25 source=<Note sourceIndex=195 elementIndex=43 noteIndex=40> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
           <use source-index=196 element-index=44 id="note-42" x=9.375 y=-18.75 source=<Note sourceIndex=196 elementIndex=44 noteIndex=41> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(283.1763733091375,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(288.8151403037397,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=198 x=-1.1230000000000002 y=14.018761363636365 style={} source=<Lyric sourceIndex=198> className="lyric" textAnchor="start" source-gabc="ant">
           <tspan source-index=0 style={} className=undefined>
             "ant"
         <g className="Notations">
           <use source-index=202 element-index=45 id="note-43" x=3.125 y=-18.75 source=<Note sourceIndex=202 elementIndex=45 noteIndex=42> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(319.43557330913745,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(325.0743403037397,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=205 x=-8.0062 y=14.018761363636365 style={} source=<Lyric sourceIndex=205> className="lyric" textAnchor="start" source-gabc="me">
           <tspan source-index=0 style={} className=undefined>
             "me"
@@ -286,26 +288,26 @@
           <rect x=0 y=-18.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=208 element-index=46 id="note-44" x=3.125 y=-18.75 source=<Note sourceIndex=208 elementIndex=46 noteIndex=43> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
           <use source-index=209 element-index=47 id="note-45" x=9.375 y=-12.5 source=<Note sourceIndex=209 elementIndex=47 noteIndex=44> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(341.87174482611454,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(346.10283104460353,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=212 x=-0.23019999999999996 y=14.018761363636365 style={} source=<Lyric sourceIndex=212> className="lyric" textAnchor="start" source-gabc="in">
           <tspan source-index=0 style={} className=undefined>
             "in"
         <g className="Notations">
           <use source-index=215 element-index=48 id="note-46" x=3.125 y=-18.75 source=<Note sourceIndex=215 elementIndex=48 noteIndex=45> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(357.95654482611457,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(362.18763104460356,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <text source-index=217 x=-0.23019999999999996 y=14.018761363636365 style={} source=<Lyric sourceIndex=217> className="lyric" textAnchor="start" source-gabc="i">
           <tspan source-index=0 style={} className=undefined>
             "i"
         <g className="Notations">
           <use source-index=219 element-index=49 id="note-47" x=3.125 y=-25 source=<Note sourceIndex=219 elementIndex=49 noteIndex=46> className=" note" xlinkHref="#PodatusLowerShort" source-gabc="g">
           <use source-index=220 element-index=50 id="note-48" x=6.25 y=-31.249999999999996 source=<Note sourceIndex=220 elementIndex=50 noteIndex=47> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="h">
-      <g transform="translate(372.38534482611453,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(376.61643104460353,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=222 x=-7.948599999999999 y=14.018761363636365 style={} source=<Lyric sourceIndex=222> className="lyric" textAnchor="start" source-gabc="mí">
           <tspan source-index=0 style={} className=undefined>
             "mí"
         <g className="Notations">
           <use source-index=225 element-index=51 id="note-49" x=3.125 y=-25 source=<Note sourceIndex=225 elementIndex=51 noteIndex=48> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(387.5341448261146,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(391.7652310446036,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=227 x=-9.791799999999999 y=14.018761363636365 style={} source=<Lyric sourceIndex=227> className="lyric" textAnchor="start" source-gabc="ci">
           <tspan source-index=0 style={} className=undefined>
             "ci"
@@ -313,7 +315,7 @@
           <rect x=0 y=-18.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=230 element-index=52 id="note-50" x=3.125 y=-18.75 source=<Note sourceIndex=230 elementIndex=52 noteIndex=49> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
           <use source-index=231 element-index=53 id="note-51" x=9.375 y=-12.5 source=<Note sourceIndex=231 elementIndex=53 noteIndex=50> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="e">
-      <g transform="translate(409.9703163430917,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(412.7937217854674,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=234 x=-8.0062 y=14.018761363636365 style={} source=<Lyric sourceIndex=234> className="lyric" textAnchor="start" source-gabc="me">
           <tspan source-index=0 style={} className=undefined>
             "me"
@@ -321,14 +323,14 @@
             "-"
         <g className="Notations">
           <use source-index=237 element-index=54 id="note-52" x=3.125 y=-18.75 source=<Note sourceIndex=237 elementIndex=54 noteIndex=51> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(423.31758171236106,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(425.13550088608446,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=239 x=-0.23019999999999996 y=14.018761363636365 style={} source=<Lyric sourceIndex=239> className="lyric" textAnchor="start" source-gabc="i:">
           <tspan source-index=0 style={} className=undefined>
             "i:"
         <g className="Notations">
           <use source-index=242 element-index=55 id="note-53" x=3.125 y=-18.75 source=<Note sourceIndex=242 elementIndex=55 noteIndex=52> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f.">
           <use source-index=undefined element-index=undefined x=6.375 y=-23.4375 source=<Punctum> className="" xlinkHref="#Mora">
-      <g transform="translate(440.60850960618063,0)" source=<HalfBar sourceIndex=247 elementIndex=56> className="ChantNotationElement HalfBar" source-gabc=";">
+      <g transform="translate(441.5174691930423,0)" source=<HalfBar sourceIndex=247 elementIndex=56> className="ChantNotationElement HalfBar" source-gabc=";">
         <g className="Notations">
           <rect x=0 y=-37.5 width=0.8 height=25 fill="#000" source-index=247 element-index=56 source=<HalfBar sourceIndex=247 elementIndex=56> className="dividerLine" source-gabc=";">
       <g transform="translate(447.8244375000001,0)" source=<Punctum> className="ChantNotationElement Punctum">
