@@ -371,18 +371,20 @@ export class ChantLine extends ChantLayoutElement {
       }
     }
 
-    // dropCap and the annotations
+    // dropCap and the annotations (which ChantScore.placeDropCap() places once
+    // the lines are laid out, for a drop cap beside more lines than this)
     if (this.notationsStartIndex === 0) {
+      var dropCap = this.score.dropCapOnFirstLine(ctxt) ? this.score.dropCap : null;
       if (this.score.annotation !== null) {
         // annotations use dominant-baseline to align text to the top
         this.score.annotation.bounds.x = this.staffLeft / 2;
         this.score.annotation.bounds.y = -ctxt.staffInterval * (staffLineCount * 2 - 1);
-        if (this.score.dropCap !== null) {
+        if (dropCap !== null) {
           var lowestPossibleAnnotationY =
             this.lyricLineBaseline -
             this.score.annotation.bounds.height -
             ctxt.staffInterval * ctxt.textStyles.annotation.padding -
-            this.score.dropCap.origin.y;
+            dropCap.origin.y;
           // if the annotation would overlap with the drop cap, move the annotation higher.
           // otherwise, center the annotation in the vertical space between the top of the drop cap and the top of the staff.
           if (lowestPossibleAnnotationY < this.score.annotation.bounds.y) {
@@ -400,14 +402,13 @@ export class ChantLine extends ChantLayoutElement {
         this.score.annotation.bounds.y += this.score.annotation.origin.y;
       }
 
-      if (this.score.dropCap !== null) {
+      if (dropCap !== null) {
         // drop caps and annotations are drawn from their center, so aligning them
         // horizontally is as easy as this.staffLeft / 2
-        this.score.dropCap.bounds.x = this.staffLeft / 2;
-        this.score.dropCap.bounds.y =
-          this.lyricLineBaseline - this.score.dropCap.origin.y;
-        this.notationBounds.union(this.score.dropCap.bounds);
-        this.score.dropCap.bounds.y = this.lyricLineBaseline;
+        dropCap.bounds.x = this.staffLeft / 2;
+        dropCap.bounds.y = this.lyricLineBaseline - dropCap.origin.y;
+        this.notationBounds.union(dropCap.bounds);
+        dropCap.bounds.y = this.lyricLineBaseline;
       }
     }
 
@@ -778,7 +779,13 @@ export class ChantLine extends ChantLayoutElement {
     );
   }
 
-  buildFromChantNotationIndex(ctxt: ChantContext, newElementStart: number, width: number) {
+  buildFromChantNotationIndex(
+    ctxt: ChantContext,
+    newElementStart: number,
+    width: number,
+    // which of the score's lines this is (see ChantScore.lineExtent())
+    lineIndex = this.score.lines.length
+  ) {
     // todo: reset / clear the children we have in case they have data
     var notations = this.score.notations,
       beginningLyrics: Lyric[] | null = null,
@@ -790,36 +797,20 @@ export class ChantLine extends ChantLayoutElement {
     this.numNotationsOnLine = 0;
     this.clefLineBreak = null;
 
-    this.staffLeft = 0;
     this.paddingLeft = 0;
 
     this.extraTextOnlyIndex = null;
     this.extraTextOnlyLyricIndex = 0;
 
-    if (width > 0) this.staffRight = width;
-    else this.staffRight = Infinity; // no limit to staff size
+    // room for a drop cap and/or annotation, if present (and no limit to the
+    // staff size with no width)
+    var extent = this.score.lineExtent(ctxt, lineIndex, width);
+    this.staffLeft = extent.left;
+    this.staffRight = extent.right;
 
-    // If this is the first chant line, then we have to make room for a
-    // drop cap and/or annotation, if present
     if (this.notationsStartIndex === 0) {
-      var padding = 0;
-
       if (this.score.dropCap)
-        padding =
-          this.score.dropCap.bounds.width + this.score.dropCap.padding * 2;
-
-      if (
-        this.score.annotation &&
-        (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
-      )
-        padding = Math.max(
-          padding,
-          this.score.annotation.bounds.width + this.score.annotation.padding * 2
-        );
-
-      this.staffLeft += padding;
-      if (this.score.dropCap)
-        this.paddingLeft = (padding - this.score.dropCap.bounds.width) / 2;
+        this.paddingLeft = (this.staffLeft - this.score.dropCap.bounds.width) / 2;
     } else {
       prev = notations[newElementStart - 1];
       if (

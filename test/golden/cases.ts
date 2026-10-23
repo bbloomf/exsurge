@@ -781,6 +781,97 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(g_) b(g_[oh:m]) c(g_[oh:l]) d(g_[oh:h]) e(h_[oh:l]) f(h_[oh:+1mm]) g(h_[oh:m-0.5mm]) h(g_0[uh:l]) " +
       "i(h_0[uh:m]) j(g_0[uh:oh]) (::) k(e_[oh:{]f_) l(g_ h_[oh}]) m(g_) n([oh:h{]f_ g_ e_[oh}]) o([uh:{]h_0 j_0) p(f_0[uh}]) (::)"
+  },
+
+  // Gregorio: Phase 9
+  {
+    // a drop cap beside two lines (Gregorio's \gresetinitiallines{2}), made
+    // big enough to reach across them, with its baseline on the second
+    // line's lyric baseline; both lines start after it
+    name: "two-line-initial",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  },
+  {
+    // with the annotation centered above it
+    name: "two-line-initial-annotation",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Intr.", "VIII"))
+  },
+  {
+    // a drop cap beside three lines at the size set in its text style, which
+    // isn't made bigger to reach across them: the annotation, at the first
+    // line's top staff line, is wider, so all three lines start after it
+    name: "three-line-initial-narrow",
+    gabc:
+      "(c4) IN(d)tro(f)í(gh)bo(g) ad(f) al(gh)tá(h)re(h) De(hi)i:(h.) (;) ad(h) De(g)um(hj) qui(h) " +
+      "lae(gf)tí(g)fi(h)cat(gf) ju(e)ven(f)tú(gh)tem(g) me(f)am.(f.) (:) Con(f)fi(gh)té(h)bor(g) ti(f)bi(gh) " +
+      "in(h) cí(hi)tha(h)ra,(g.) (;) De(f)us,(gh) De(h)us(g) me(f)us.(f.) (:) Quid(f) tri(gh)stis(h) es(g) " +
+      "á(f)ni(gh)ma(h) me(hi)a,(h.) (;) et(h) qua(g)re(hj) con(h)túr(gf)bas(g) me?(f.) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 3;
+      ctxt.textStyles.dropCap.size = 96;
+    },
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ad Introitum", "Tonus VIII"))
+  },
+  {
+    // the top of the drop cap on the first line's top staff line (Gregorio's
+    // \gresetinitialanchor{top} and \gresetinitialposition{firsttop}), and
+    // the annotation above it, which makes the first line taller
+    name: "two-line-initial-first-top",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapAnchor = "top";
+      ctxt.dropCapPosition = "firsttop";
+    },
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Intr.", "VIII"))
+  },
+  {
+    // the baseline of the drop cap on the first line's lyric baseline, which
+    // makes the first line taller
+    name: "two-line-initial-first-baseline",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapPosition = "firstbaseline";
+    }
+  },
+  {
+    // the baseline of the drop cap at the bottom of the second line, below its
+    // lyrics, which makes that line taller for the bottom of the letter
+    name: "two-line-initial-last-bottom",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapPosition = "lastbottom";
+    }
+  },
+  {
+    // a drop cap beside three lines in a score of one line goes on that line,
+    // which is made taller above it and below it for the drop cap
+    name: "three-line-initial-one-line",
+    gabc: "(c4) AL(f)le(g)lú(h)ia.(g) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 3)
+  },
+  {
+    // the second line, beside the drop cap, stays on the first page although
+    // the page is too short for it
+    name: "two-line-initial-paginated",
+    outputs: ["svg", "tree", "canvas"],
+    gabc: adTeLevavi,
+    useDropCap: true,
+    width: 400,
+    paginate: 150,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
   }
 ];
 

@@ -752,6 +752,16 @@ interface ChantDocumentLayout {
   };
 }
 
+/**
+ * where the staff of a line of a score starts and ends, so that the line is
+ * right - left wide (see ChantScore.lineExtent())
+ */
+export interface LineExtent {
+  left: number;
+  /** Infinity when the score's width has no limit */
+  right: number;
+}
+
 /*
  * Score, document
  */
@@ -775,6 +785,11 @@ export class ChantScore {
   startingClef: Clef;
   useDropCap: boolean | undefined;
   dropCap: DropCap | null;
+  /**
+   * the index of the last line beside the drop cap, which paginate() keeps on
+   * the first line's page, when placeDropCap() placed the drop cap
+   */
+  lastLineBesideDropCap?: number;
   annotation: Annotation | Annotations | null;
   compiled: boolean;
   autoColoring: boolean;
@@ -974,6 +989,8 @@ export class ChantScore {
 
   recreateDropCap(ctxt: ChantContext) {
     this.dropCap = null;
+    // (ctxt.dropCapLines 0 leaves the drop cap out too)
+    var useDropCap = this.useDropCap && ctxt.dropCapLines !== 0;
 
     // find the first notation with lyrics to use
     for (var i = 0; i < this.notations.length; i++) {
@@ -986,9 +1003,9 @@ export class ChantScore {
         let notation = this.notations[i],
           lyrics = notation.lyrics[0];
         // a new drop cap is taken from the lyric without the first word's styles
-        if (!this.useDropCap || !lyrics.dropCap)
+        if (!useDropCap || !lyrics.dropCap)
           lyrics.setFirstWordStyles(ctxt, null);
-        if (this.useDropCap) {
+        if (useDropCap) {
           this.dropCap = lyrics.generateDropCap(ctxt);
         } else {
           // give the lyric back the letter that its drop cap took
@@ -1089,7 +1106,7 @@ export class ChantScore {
     ctxt.staffLineCount = this.staffLineCount;
     this.updateBrackets();
 
-    if (this.dropCap) this.dropCap.recalculateMetrics(ctxt);
+    if (this.dropCap) this.dropCap.sizeToLines(ctxt, this.linesBesideDropCap(ctxt));
 
     if (this.annotation) this.annotation.recalculateMetrics(ctxt);
   }
@@ -1261,6 +1278,124 @@ export class ChantScore {
     );
   }
 
+  /**
+   * How many lines the drop cap is beside: ctxt.dropCapLines (at least 1),
+   * or 0 when there's no drop cap.
+   */
+  linesBesideDropCap(ctxt: ChantContext) {
+    return this.dropCap ? Math.max(1, Math.floor(ctxt.dropCapLines) || 1) : 0;
+  }
+
+  /**
+   * Where the staff of the line at lineIndex (from 0) starts and ends, when
+   * the score is laid out at width (0 or less for no limit).  The lines
+   * beside the drop cap start after it and the space on each side of it, or
+   * after the annotation and the space on each side of that, if that's wider;
+   * as in Gregorio, they all leave as much room.  Without a drop cap, the
+   * first line still leaves room for the annotation, unless it's merged into
+   * the left text.  (For any line breaker: ChantLine.buildFromChantNotationIndex()
+   * lays the line out between these edges.)
+   */
+  lineExtent(ctxt: ChantContext, lineIndex: number, width: number): LineExtent {
+    var left = 0;
+    if (lineIndex === 0 || lineIndex < this.linesBesideDropCap(ctxt)) {
+      if (this.dropCap) left = this.dropCap.bounds.width + this.dropCap.padding * 2;
+
+      if (this.annotation && (!ctxt.mergeAnnotationWithTextLeft || this.dropCap))
+        left = Math.max(left, this.annotation.bounds.width + this.annotation.padding * 2);
+    }
+    return { left, right: width > 0 ? width : Infinity };
+  }
+
+  /**
+   * Whether the first line puts the drop cap and the annotation in place as
+   * it's laid out, as it does for a drop cap beside it alone, with its
+   * baseline on the lyric baseline (the default).  Otherwise placeDropCap()
+   * places them once all the lines are laid out.
+   */
+  dropCapOnFirstLine(ctxt: ChantContext) {
+    return (
+      this.linesBesideDropCap(ctxt) === 1 &&
+      ctxt.dropCapAnchor === "baseline" &&
+      (ctxt.dropCapPosition === "lastbaseline" || ctxt.dropCapPosition === "firstbaseline")
+    );
+  }
+
+  /**
+   * Places the drop cap at ctxt.dropCapPosition and the annotation above it,
+   * unless the first line has (see dropCapOnFirstLine()), once the lines are
+   * laid out and each line's bounds.y is the y of its origin in the score.  As
+   * in Gregorio (drop_initial() in gregoriotex.lua), the drop cap takes no
+   * room from the lines beside it, except that the first line is made taller
+   * if the drop cap or the annotation reaches above it, and the last line
+   * beside the drop cap if the drop cap reaches below it, moving the lines
+   * after them down.  Returns how much taller that makes the lines.
+   */
+  placeDropCap(ctxt: ChantContext) {
+    var dropCap = this.dropCap,
+      lines = this.lines;
+    this.lastLineBesideDropCap = 0;
+    if (!dropCap || !lines.length || this.dropCapOnFirstLine(ctxt)) return 0;
+
+    var lastIndex = Math.min(this.linesBesideDropCap(ctxt), lines.length) - 1,
+      first = lines[0],
+      last = lines[lastIndex],
+      // (each line has its notation bounds once it's laid out)
+      firstBounds = first.notationBounds!,
+      lastBounds = last.notationBounds!,
+      // the y of the last line's origin, from the first line's
+      lastY = last.bounds.y - first.bounds.y,
+      staffTop = -ctxt.staffInterval * (this.staffLineCount * 2 - 1),
+      position = ctxt.dropCapPosition,
+      // the y of the drop cap's baseline on the first line
+      y =
+        position === "firsttop"
+          ? staffTop
+          : position === "firstbaseline"
+          ? first.lyricLineBaseline
+          : position === "lastbottom"
+          ? lastY + lastBounds.bottom()
+          : lastY + last.lyricLineBaseline;
+    this.lastLineBesideDropCap = lastIndex;
+
+    if (ctxt.dropCapAnchor === "top") y += dropCap.origin.y;
+    else if (ctxt.dropCapAnchor === "bottom") y -= dropCap.bounds.height - dropCap.origin.y;
+    // drop caps and annotations are drawn from their center
+    dropCap.bounds.x = first.staffLeft / 2;
+    dropCap.bounds.y = y;
+
+    var top = y - dropCap.origin.y,
+      bottom = top + dropCap.bounds.height;
+
+    // from the top staff line, as in Gregorio, or higher, to be above the drop
+    // cap.  (The first line puts it halfway down to a drop cap on it.)
+    if (this.annotation) {
+      let annotation = this.annotation,
+        annotationY = Math.min(
+          staffTop,
+          top - annotation.bounds.height - ctxt.staffInterval * ctxt.textStyles.annotation.padding
+        );
+      annotation.bounds.y = annotationY + annotation.origin.y;
+      top = Math.min(top, annotationY);
+    }
+
+    var aboveFirst = Math.max(0, firstBounds.y - top),
+      belowLast = Math.max(0, bottom - lastY - lastBounds.bottom());
+    if (aboveFirst) {
+      firstBounds.y -= aboveFirst;
+      firstBounds.height += aboveFirst;
+      first.bounds.height += aboveFirst;
+      first.origin.y += aboveFirst;
+      for (let line of lines) line.bounds.y += aboveFirst;
+    }
+    if (belowLast) {
+      lastBounds.height += belowLast;
+      last.bounds.height += belowLast;
+      for (let i = lastIndex + 1; i < lines.length; i++) lines[i].bounds.y += belowLast;
+    }
+    return aboveFirst + belowLast;
+  }
+
   layoutChantLines(
     ctxt: ChantContext,
     width: number,
@@ -1307,6 +1442,8 @@ export class ChantScore {
       y += line.bounds.height + spaceBetweenSystems;
     } while (currIndex < this.notations.length);
 
+    y += this.placeDropCap(ctxt);
+
     var firstLine = this.lines[0];
 
     this.bounds.x = 0;
@@ -1333,7 +1470,8 @@ export class ChantScore {
       let line = this.lines[i];
       let pageHeight = line.bounds.bottom() - pageHeightOffset - line.origin.y;
 
-      if (pageHeight > height) {
+      // (the lines beside a drop cap stay on its page)
+      if (pageHeight > height && i > (this.lastLineBesideDropCap || 0)) {
         // this line will be the first on the new page
         this.pages.push(this.copyLines(startLineIndex, i));
         startLineIndex = i;

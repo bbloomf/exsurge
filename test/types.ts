@@ -8,6 +8,7 @@ import {
   ChantScore,
   Gabc,
   GabcHeader,
+  type LineExtent,
   type ScoreWithTitles,
   type SvgTreeNode,
   TextElement,
@@ -43,6 +44,11 @@ ctxt.dropCapPadding = 1;
 
 // ChantContext: everything else
 ctxt.fontLoadTimeout = 1000;
+ctxt.dropCapLines = 3;
+ctxt.dropCapPosition = "firsttop";
+ctxt.dropCapAnchor = "top";
+// @ts-expect-error not one of Gregorio's initial positions
+ctxt.dropCapPosition = "middle";
 same<typeof ctxt.staffInterval, number>(true);
 same<typeof ctxt.editable, boolean | undefined>(true);
 // @ts-expect-error derived from minLyricWordSpacing; set that instead
@@ -64,6 +70,8 @@ score.performLayoutAsync(ctxt, () =>
   )
 );
 score.waitForLyricFont(ctxt, () => {});
+const extent: LineExtent = score.lineExtent(ctxt, 1, 500);
+const extentWidth: number = extent.right - extent.left;
 // @ts-expect-error an internal step of performLayout()/performLayoutAsync()
 score.initializeLayout(ctxt);
 const headerLength: number = Gabc.updateMappingsFromSource(

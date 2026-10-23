@@ -918,6 +918,12 @@ export type ClefVisibility = "visible" | "invisible" | "phantom";
 /** how the number of a mode is written (see ChantContext.modeNumberSystem) */
 export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
 
+/** where a score's drop cap is put (see ChantContext.dropCapPosition) */
+export type DropCapPosition = "firsttop" | "firstbaseline" | "lastbaseline" | "lastbottom";
+
+/** which part of a drop cap is put at its position (see ChantContext.dropCapAnchor) */
+export type DropCapAnchor = "top" | "baseline" | "bottom";
+
 /** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
 export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
 
@@ -1076,6 +1082,35 @@ export class ChantContext {
    */
   modeNumberSystem: ModeNumberSystem;
 
+  /**
+   * How many lines a score's drop cap is beside, as with Gregorio's
+   * \gresetinitiallines.  1 is the default; with more, the drop cap is
+   * dropped beside that many lines, which all start after it.  0 leaves the
+   * drop cap out, as ChantScore.useDropCap false does: a score has a drop cap
+   * only with useDropCap as well, and a change to or from 0 takes effect, as
+   * one to useDropCap does, when the score makes its drop cap again
+   * (updateNotations() or recreateDropCap()).  A drop cap beside more than
+   * one line is made big enough to reach across them (see
+   * DropCap.sizeToLines()), unless textStyles.dropCap.size has been set
+   * since setFont().
+   */
+  dropCapLines: number;
+  /**
+   * Where the drop cap goes, as with Gregorio's \gresetinitialposition: the
+   * top staff line of the first line ("firsttop"), the lyric baseline of the
+   * first line ("firstbaseline") or of the last line beside the drop cap
+   * ("lastbaseline", the default), or the bottom of that last line, below its
+   * lyrics and translations ("lastbottom").  dropCapAnchor says which part of
+   * the drop cap goes there.
+   */
+  dropCapPosition: DropCapPosition;
+  /**
+   * Which part of the drop cap goes at dropCapPosition, as with Gregorio's
+   * \gresetinitialanchor: the top of its letter, its baseline (the default)
+   * or the bottom of its letter.
+   */
+  dropCapAnchor: DropCapAnchor;
+
   defaultLanguage: Language;
   /**
    * What each lyric is centered under its notation on, as Gregorio's
@@ -1194,6 +1229,8 @@ export class ChantContext {
     ...spans: Array<TextSpan[] | null | undefined>
   ) => TextSpan[];
 
+  // the size that setFont() gave the drop cap (see hasDefaultDropCapSize())
+  private setFontDropCapSize!: number;
   // the text measured so far (see clearTextCache())
   private textMetricsCache!: Map<object, Map<string, any>>;
   private textMetricsCacheSize!: number;
@@ -1314,6 +1351,9 @@ export class ChantContext {
 
     this.clefVisibility = "visible";
     this.modeNumberSystem = "roman-majuscule";
+    this.dropCapLines = 1;
+    this.dropCapPosition = "lastbaseline";
+    this.dropCapAnchor = "baseline";
 
     this.defaultLanguage = language.latin;
     this.lyricCentering = "vowel";
@@ -1473,6 +1513,7 @@ export class ChantContext {
       textStyle.font = font;
       textStyle.color = this.textColor || "#000";
     }
+    this.setFontDropCapSize = this.textStyles.dropCap.size;
 
     this.baseTextStyle = baseStyle;
 
@@ -1481,6 +1522,11 @@ export class ChantContext {
       this.fontDictionary = fontDictionary;
     }
     this.clearTextCache();
+  }
+
+  /** whether textStyles.dropCap.size is still the size that setFont() gave it */
+  hasDefaultDropCapSize() {
+    return this.textStyles.dropCap.size === this.setFontDropCapSize;
   }
 
   setRubricColor(color: string) {
@@ -4643,6 +4689,11 @@ export class DropCap extends TextElement {
    */
   declare textType: TextTypes["dropCap"];
   padding: number;
+  /**
+   * the font size that sizeToLines() gave the drop cap to reach across
+   * several lines, in place of its text style's size
+   */
+  sizeForLines?: number;
 
   constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
     super(
@@ -4655,8 +4706,46 @@ export class DropCap extends TextElement {
       text,
       TextTypes.dropCap
     );
+    this.fontSize = (ctxt) => this.sizeForLines || ctxt.textStyles.dropCap.size;
 
     this.padding = ctxt.staffInterval * ctxt.textStyles.dropCap.padding;
+  }
+
+  /**
+   * Measures the drop cap, making it big enough first to reach across the
+   * given number of lines (see ChantContext.dropCapLines) if that is more
+   * than one and its text style's size hasn't been set since setFont().  Its
+   * letter then reaches from the top staff line of the first line to the
+   * lyric baseline of the last, where the lines' notes are on the staff and
+   * the lyrics' letters are as tall as the drop cap's for their size.
+   */
+  sizeToLines(ctxt: ChantContext, lines: number) {
+    delete this.sizeForLines;
+    this.recalculateMetrics(ctxt);
+    // the height of the letter above its baseline, in ems
+    var ascent = this.origin.y / ctxt.textStyles.dropCap.size;
+    if (lines < 2 || !ctxt.hasDefaultDropCapSize() || !(ascent > 0)) return;
+
+    var interval = ctxt.staffInterval,
+      lyric = ctxt.textStyles.lyric,
+      staffHeight = interval * (ctxt.staffLineCount - 1) * 2,
+      // from the top staff line of a line to its lyric baseline
+      toLyricBaseline = staffHeight + interval * ctxt.minSpaceBelowStaff + lyric.size * ascent,
+      // from the lyric baseline of a line to that of the next
+      toNextLine =
+        lyric.size * (lyric.lineHeight || 1.1) +
+        interval * (ctxt.spaceBetweenSystems + ctxt.minSpaceAboveStaff + ctxt.minSpaceBelowStaff) +
+        staffHeight;
+    this.sizeForLines = (toLyricBaseline + toNextLine * (lines - 1)) / ascent;
+    this.recalculateMetrics(ctxt);
+  }
+
+  getExtraStyleProperties(ctxt: ChantContext): CssProperties {
+    var properties = super.getExtraStyleProperties(ctxt);
+    // (the drop cap's css class gives it its text style's size)
+    return this.sizeForLines
+      ? Object.assign({}, properties, { "font-size": this.sizeForLines + "px" })
+      : properties;
   }
 }
 

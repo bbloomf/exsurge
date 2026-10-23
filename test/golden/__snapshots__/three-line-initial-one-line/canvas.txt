@@ -1,0 +1,30 @@
+setTransform(1, 0, 0, 1, 0, 0)
+clearRect(0, 0, 600, 222.52) [matrix=1,0,0,1,0,0]
+beginPath()
+moveTo(210.6505095890411, -43.75)
+lineTo(600, -43.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,204.18]
+beginPath()
+moveTo(210.6505095890411, -31.25)
+lineTo(600, -31.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,204.18]
+beginPath()
+moveTo(210.6505095890411, -18.75)
+lineTo(600, -18.75)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,204.18]
+beginPath()
+moveTo(210.6505095890411, -6.25)
+lineTo(600, -6.25)
+stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,204.18]
+fillText("A", 105.32525479452055, 13.012000000000008, undefined) [font="297.5232876712329px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,204.18]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,210.6505095890411,160.43]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,227.8380095890411,185.43]
+fillText("L", -1.5766, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,224.7130095890411,204.18]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,243.13800958904108,179.18]
+fillText("le", -7.4734, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,240.01300958904108,204.18]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,256.40760958904104,172.93]
+fillText("lú", -7.855, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,253.28260958904104,204.18]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,270.0372095890411,179.18]
+fillText("ia.", -7.833400000000001, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,266.9122095890411,204.18]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,280.9747095890411,204.18]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,280.9747095890411,204.18]
