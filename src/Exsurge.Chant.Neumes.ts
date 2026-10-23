@@ -1586,7 +1586,7 @@ export class TorculusResupinus extends Neume {
 
     if (fourth.liquescent & LiquescentType.Small)
       fourthGlyph = GlyphCode.TerminatingAscLiquescent;
-    else if (third.liquescent & LiquescentType.Descending)
+    else if (fourth.liquescent & LiquescentType.Descending)
       fourthGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
     else fourthGlyph = GlyphCode.PodatusUpper;
 

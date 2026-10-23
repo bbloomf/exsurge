@@ -108,6 +108,13 @@ export const featureCases: GoldenCase[] = [
       "(c4) a(f~) b(fg~) c(gf~) d(fhg~) e(gfg~) f(gF~) g(gFE~) h(fo~) i(fg<) j(fg>) k(gf<) l(gf>) m(fh<g) n(-fg) o(-fhg) (::)"
   },
   {
+    // a torculus resupinus ends in a deminutus (b) or an auctus descendens
+    // (c, as a porrectus does, e) when its last note is liquescent, not its
+    // third (d)
+    name: "torculus-resupinus-liquescent",
+    gabc: "(c4) a(fhgh) b(fhgh~) c(fhgh>) d(fhg>h) e(hgh>) (::)"
+  },
+  {
     name: "staff-position-offsets",
     gabc: "(xp4) a(f0) b(f9) c(g0h9) d(e9f0g) e(f0+) (::)"
   },
