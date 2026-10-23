@@ -150,10 +150,48 @@
 <use xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="70" element-index="26" id="note-27" x="7.291666666666666" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement DoubleBar" transform="translate(262.8458333333333,0)" >
-<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="75" element-index="27" source="[object Object]" >
+<g class="ChantNotationElement Punctum" transform="translate(265.9708333333333,0)" >
+<text source-index="74" x="-0.23019999999999996" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >i</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="76" element-index="27" id="note-28" x="3.125" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement PunctaInclinata" transform="translate(272.2208333333333,0)" >
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="77" element-index="28" id="note-29" x="3.125" y="-25" >
+</use>
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="79" element-index="29" id="note-30" x="7.291666666666666" y="-31.25" >
+</use>
+<rect x="2.725" y="-50" width="0.8" height="25" fill="#000" class="neumeLine" >
 </rect>
-<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="75" element-index="27" source="[object Object]" >
+<rect x="6.891666666666666" y="-56.25" width="0.8" height="25" fill="#000" class="neumeLine" >
+</rect>
+<polygon points="2.725,-48.8 2.725,-51.2 7.691666666666666,-57.45 7.691666666666666,-55.05" fill="#000" class="neumeBeam" >
+</polygon>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(293.575,0)" >
+<text source-index="84" x="-0.49659999999999993" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >j</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="86" element-index="30" id="note-31" x="3.125" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement PunctaInclinata" transform="translate(302.95,0)" >
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="87" element-index="31" id="note-32" x="3.125" y="-25" >
+</use>
+<use xlink:href="#PunctumInclinatum" class=" note" source-index="89" element-index="32" id="note-33" x="7.291666666666666" y="-18.75" >
+</use>
+<rect x="2.725" y="-50" width="0.8" height="25" fill="#000" class="neumeLine" >
+</rect>
+<rect x="6.891666666666666" y="-43.75" width="0.8" height="25" fill="#000" class="neumeLine" >
+</rect>
+<polygon points="2.725,-48.8 2.725,-51.2 7.691666666666666,-44.95 7.691666666666666,-42.55" fill="#000" class="neumeBeam" >
+</polygon>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(321.1791666666667,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="94" element-index="33" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="94" element-index="33" source="[object Object]" >
 </rect>
 </g>
 </g>

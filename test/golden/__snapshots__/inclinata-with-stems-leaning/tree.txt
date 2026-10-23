@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=600 height=80.84 viewBox="0 0 600 80.84" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
+  <g>
+    <defs>
+      <g id="PunctumQuadratum" transform="scale(0.0625)" className="glyph">
+        <path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z">
+      <g id="PunctumInclinatumAscendens" transform="scale(0.0625)" className="glyph">
+        <path d="M7.921-75.365L49.726 5.226-7.84 74.589-49.726-5.226z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
+      <g id="PunctumInclinatumLiquescent" transform="scale(0.0625)" className="glyph">
+        <path d="M 0,-53.164 35,-0.117 0,52.383 -35,-0.117 0,-53.164 z">
+      <g id="DoClef" transform="scale(0.0625)" className="glyph">
+        <path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z">
+      <style>
+        "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
+    <g source=<Titles> className="Titles">
+    <g transform="translate(0,62.5)" element-index=0 className="chantLine">
+      <g className="staffLines">
+        <line key=-7 x1=0 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-5 x1=0 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-3 x1=0 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-1 x1=0 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+      <g transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
+        <g className="Notations">
+          <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">
+      <g transform="translate(14.0625,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=5 x=-1.1230000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=5> className="lyric" textAnchor="start" source-gabc="a">
+          <tspan source-index=0 style={} className=undefined>
+            "a"
+        <g className="Notations">
+          <use source-index=7 element-index=0 id="note-1" x=3.125 y=-18.75 source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
+      <g transform="translate(20.3125,0)" source=<PunctaInclinata> className="ChantNotationElement PunctaInclinata">
+        <g className="Notations">
+          <use source-index=8 element-index=1 id="note-2" x=3.125 y=-25 source=<Note sourceIndex=8 elementIndex=1 noteIndex=1> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="G|">
+          <use source-index=10 element-index=2 id="note-3" x=8.31201998281125 y=-31.25 source=<Note sourceIndex=10 elementIndex=2 noteIndex=2> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="H|">
+          <use source-index=12 element-index=3 id="note-4" x=13.4990399656225 y=-37.5 source=<Note sourceIndex=12 elementIndex=3 noteIndex=3> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="I|">
+          <rect x=3.220072934151424 y=-50 width=0.8 height=25 fill="#000" className="neumeLine">
+          <rect x=8.407092916962673 y=-56.25 width=0.8 height=25 fill="#000" className="neumeLine">
+          <rect x=13.594112899773924 y=-62.5 width=0.8 height=25 fill="#000" className="neumeLine">
+          <polygon points="3.220072934151424,-48.8 3.220072934151424,-51.2 14.394112899773924,-63.7 14.394112899773924,-61.3" fill="#000" className="neumeBeam">
+      <g transform="translate(47.8740399656225,0)" source=<PunctaInclinata> className="ChantNotationElement PunctaInclinata">
+        <text source-index=16 x=-1.3894000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=16> className="lyric" textAnchor="start" source-gabc="b">
+          <tspan source-index=0 style={} className=undefined>
+            "b"
+        <g className="Notations">
+          <use source-index=18 element-index=4 id="note-5" x=3.125 y=-25 source=<Note sourceIndex=18 elementIndex=4 noteIndex=4> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="G|">
+          <use source-index=20 element-index=5 id="note-6" x=8.31201998281125 y=-31.25 source=<Note sourceIndex=20 elementIndex=5 noteIndex=5> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="H||">
+          <rect x=3.220072934151424 y=-50 width=0.8 height=25 fill="#000" className="neumeLine">
+          <rect x=8.407092916962673 y=-56.25 width=0.8 height=25 fill="#000" className="neumeLine">
+          <polygon points="3.220072934151424,-48.8 3.220072934151424,-51.2 9.207092916962674,-57.45 9.207092916962674,-55.05" fill="#000" className="neumeBeam">
+      <g transform="translate(70.24855994843375,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=25 x=-1.6558000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=25> className="lyric" textAnchor="start" source-gabc="c">
+          <tspan source-index=0 style={} className=undefined>
+            "c"
+        <g className="Notations">
+          <use source-index=27 element-index=6 id="note-7" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=27 elementIndex=6 noteIndex=6> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
+      <g transform="translate(79.62355994843375,0)" source=<PunctaInclinata> className="ChantNotationElement PunctaInclinata">
+        <g className="Notations">
+          <use source-index=28 element-index=7 id="note-8" x=3.125 y=-25 source=<Note sourceIndex=28 elementIndex=7 noteIndex=7> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="G1|">
+          <use source-index=31 element-index=8 id="note-9" x=6.404941376214037 y=-18.75 source=<Note sourceIndex=31 elementIndex=8 noteIndex=8> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="F1|">
+          <rect x=3.220072934151424 y=-50 width=0.8 height=25 fill="#000" className="neumeLine">
+          <rect x=6.500014310365461 y=-43.75 width=0.8 height=25 fill="#000" className="neumeLine">
+          <polygon points="3.220072934151424,-48.8 3.220072934151424,-51.2 7.300014310365461,-44.95 7.300014310365461,-42.55" fill="#000" className="neumeBeam">
+      <g transform="translate(100.09100132464779,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=36 x=1.1018 y=13.012000000000008 style={} source=<Lyric sourceIndex=36> className="lyric" textAnchor="start" source-gabc="d">
+          <tspan source-index=0 style={} className=undefined>
+            "d"
+        <g className="Notations">
+          <use source-index=38 element-index=9 id="note-10" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=38 elementIndex=9 noteIndex=9> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
+      <g transform="translate(109.46600132464779,0)" source=<PunctaInclinata> className="ChantNotationElement PunctaInclinata">
+        <g className="Notations">
+          <use source-index=39 element-index=10 id="note-11" x=3.125 y=-25 source=<Note sourceIndex=39 elementIndex=10 noteIndex=10> className=" note" xlinkHref="#PunctumInclinatumDescendens" source-gabc="G">
+          <use source-index=40 element-index=11 id="note-12" x=8.31201998281125 y=-18.75 source=<Note sourceIndex=40 elementIndex=11 noteIndex=11> className=" note" xlinkHref="#PunctumInclinatumLiquescent" source-gabc="F~|">
+          <rect x=2.2299270658485764 y=-50 width=0.8 height=25 fill="#000" className="neumeLine">
+          <rect x=7.91201998281125 y=-43.75 width=0.8 height=25 fill="#000" className="neumeLine">
+          <polygon points="2.2299270658485764,-48.8 2.2299270658485764,-51.2 8.71201998281125,-44.95 8.71201998281125,-42.55" fill="#000" className="neumeBeam">
+      <g transform="translate(131.84052130745903,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=45 x=0.8353999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=45> className="lyric" textAnchor="start" source-gabc="e">
+          <tspan source-index=0 style={} className=undefined>
+            "e"
+        <g className="Notations">
+          <use source-index=47 element-index=12 id="note-13" x=3.125 y=-18.75 source=<Note sourceIndex=47 elementIndex=12 noteIndex=12> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
+      <g transform="translate(138.09052130745903,0)" source=<PunctaInclinata> className="ChantNotationElement PunctaInclinata">
+        <g className="Notations">
+          <use source-index=48 element-index=13 id="note-14" x=3.125 y=-25 source=<Note sourceIndex=48 elementIndex=13 noteIndex=13> className=" note" xlinkHref="#PunctumInclinatumAscendens" source-gabc="G|">
+          <rect x=3.220072934151424 y=-50 width=0.8 height=25 fill="#000" className="neumeLine">
+          <polygon points="-0.9465937325152433,-51.925 -0.9465937325152433,-54.325 4.020072934151424,-51.2 4.020072934151424,-48.8" fill="#000" className="neumeBeam">
+      <g transform="translate(155.82461503997428,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=52 x=0.569 y=13.012000000000008 style={} source=<Lyric sourceIndex=52> className="lyric" textAnchor="start" source-gabc="f">
+          <tspan source-index=0 style={} className=undefined>
+            "f"
+        <g className="Notations">
+          <use source-index=54 element-index=14 id="note-15" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=54 elementIndex=14 noteIndex=14> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
+      <g transform="translate(165.19961503997428,0)" source=<PunctaInclinata> className="ChantNotationElement PunctaInclinata">
+        <g className="Notations">
+          <use source-index=55 element-index=15 id="note-16" x=3.125 y=-25 source=<Note sourceIndex=55 elementIndex=15 noteIndex=15> className=" note" xlinkHref="#PunctumInclinatumDescendens" source-gabc="G|">
+          <rect x=2.2299270658485764 y=-50 width=0.8 height=25 fill="#000" className="neumeLine">
+          <polygon points="-1.9367396008180906,-51.925 -1.9367396008180906,-54.325 3.029927065848576,-51.2 3.029927065848576,-48.8" fill="#000" className="neumeBeam">
+      <g transform="translate(180.79885464079237,0)" source=<DoubleBar sourceIndex=60 elementIndex=16> className="ChantNotationElement DoubleBar" source-gabc="::">
+        <g className="Notations">
+          <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=60 element-index=16 source=<DoubleBar sourceIndex=60 elementIndex=16> className="dividerLine" source-gabc="::">
+          <rect x=5.45 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=60 element-index=16 source=<DoubleBar sourceIndex=60 elementIndex=16> className="dividerLine" source-gabc="::">

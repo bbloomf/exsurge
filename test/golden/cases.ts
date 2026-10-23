@@ -387,8 +387,15 @@ export const featureCases: GoldenCase[] = [
     // without ctxt.inclinatumLeaning, every inclinatum is upright, whatever
     // its gabc or its line
     name: "inclinatum-upright",
-    gabc: "(c4) a(hGFE) b(GHI) c(hG0F0) d(fG1H1) e(gG2G2) f(hvGFGF) g(hGrFr) h(hGF<) (::)",
+    gabc: "(c4) a(hGFE) b(GHI) c(hG0F0) d(fG1H1) e(gG2G2) f(hvGFGF) g(hGrFr) h(hGF<) i(fG|H||) j(hG|F|) (::)",
     setupContext: (ctxt) => (ctxt.inclinatumLeaning = false)
+  },
+  {
+    // the stem of a leaning inclinatum stands on its top point, to the left
+    // of its middle in a descending line (d, f) and to the right in an
+    // ascending one (a, b, c, e), and a liquescent's in its middle (d)
+    name: "inclinata-with-stems-leaning",
+    gabc: "(c4) a(fG|H|I|) b(G|H||) c(hG1|F1|) d(hGF~|) e(fG|) f(hG|) (::)"
   },
   {
     // a stropha with < or > is a stropha aucta, with a longer tail (e and j

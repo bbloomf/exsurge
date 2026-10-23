@@ -54,6 +54,32 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,238.366
 fillText("h", 0.03620000000000001, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,235.24166666666665,58.75]
 fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,247.74166666666665,33.75]
 fill(Path2D(PunctumInclinatumAuctus[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,251.9083333333333,40]
-fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,262.8458333333333,58.75]
-fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,262.8458333333333,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,269.0958333333333,40]
+fillText("i", -0.23019999999999996, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,265.9708333333333,58.75]
+fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,275.3458333333333,33.75]
+fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,279.5125,27.5]
+fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,272.2208333333333,58.75]
+fillRect(6.891666666666666, -56.25, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,272.2208333333333,58.75]
+beginPath()
+moveTo(2.725, -48.8)
+lineTo(2.725, -51.2)
+lineTo(7.691666666666666, -57.45)
+lineTo(7.691666666666666, -55.05)
+closePath()
+fill() [fillStyle="#000" matrix=1,0,0,1,272.2208333333333,58.75]
+fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,296.7,27.500000000000004]
+fillText("j", -0.49659999999999993, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,293.575,58.75]
+fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,306.075,33.75]
+fill(Path2D(PunctumInclinatum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,310.2416666666667,40]
+fillRect(2.725, -50, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,302.95,58.75]
+fillRect(6.891666666666666, -43.75, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,302.95,58.75]
+beginPath()
+moveTo(2.725, -48.8)
+lineTo(2.725, -51.2)
+lineTo(7.691666666666666, -44.95)
+lineTo(7.691666666666666, -42.55)
+closePath()
+fill() [fillStyle="#000" matrix=1,0,0,1,302.95,58.75]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,321.1791666666667,58.75]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,321.1791666666667,58.75]
 fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]

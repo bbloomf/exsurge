@@ -106,6 +106,14 @@ function inclinatumTurn(note: Note): number {
   }
 }
 
+// how far right of its middle an inclinatum's top point is, which turning
+// PunctumInclinatum 6° takes round with it
+function inclinatumTopOffset(ctxt: ChantContext, note: Note): number {
+  return (
+    inclinatumTurn(note) * Math.sin(inclinatumLean) * Glyphs.PunctumInclinatum.origin.y * ctxt.glyphScaling
+  );
+}
+
 // the glyph for the note after a porrectus's stroke from start down to end:
 // glyph itself, unless the stroke has no glyph and is drawn as puncta, which
 // the note follows, rather than standing on the last as a podatus's upper
@@ -424,8 +432,10 @@ class NeumeBuilder {
     if (stemNotes.length) {
       const firstNote = stemNotes[0];
       const lastNote = stemNotes[stemNotes.length - 1];
-      const startCoord = { x: firstNote.bounds.x, staffPosition: firstNote.staffPosition + 4 };
-      const endCoord = { x: lastNote.bounds.x, staffPosition: lastNote.staffPosition + 4 };
+      // each stem stands on its inclinatum's top point, and the beams meet them
+      const stemX = (note: Note) => note.bounds.x + inclinatumTopOffset(this.ctxt, note);
+      const startCoord = { x: stemX(firstNote), staffPosition: firstNote.staffPosition + 4 };
+      const endCoord = { x: stemX(lastNote), staffPosition: lastNote.staffPosition + 4 };
       // Linear interpolation: y = y1 + (x - x1) * (y2 - y1) / (x2 - x1)
       const getStaffPositionForX = (x: number) =>
         x === startCoord.x ? startCoord.staffPosition :
@@ -437,9 +447,9 @@ class NeumeBuilder {
         var stem = new NeumeLineVisualizer(
           this.ctxt,
           note,
-          getStaffPositionForX(note.bounds.x)
+          getStaffPositionForX(stemX(note))
         );
-        stem.bounds.x = note.bounds.x + (note.bounds.width / 2) - (stem.bounds.width / 2);
+        stem.bounds.x = stemX(note) + (note.bounds.width / 2) - (stem.bounds.width / 2);
         this.neume.addVisualizer(stem);
       }
       while (beamCount! > 0) {
