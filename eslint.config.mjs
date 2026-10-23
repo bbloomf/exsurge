@@ -4,7 +4,8 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/", "coverage/", "test/.build/", "test/reference/.cache/"]
+    // (src/nabc is made by tools/convert-nabc-font.mjs)
+    ignores: ["dist/", "coverage/", "test/.build/", "test/reference/.cache/", "src/nabc/"]
   },
   js.configs.recommended,
   tseslint.configs.recommended,

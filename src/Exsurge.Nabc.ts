@@ -83,6 +83,25 @@ export interface NabcError {
 
 export type NabcItem = NabcNeume | NabcSpace | NabcError;
 
+/** a glyph of a NABC font: its advance width, height and depth, and its svg path data */
+export type NabcGlyph = [width: number, height: number, depth: number, path: string];
+
+/**
+ * The glyphs of one of Gregorio's NABC fonts, by their NABC names, which
+ * exsurge draws NABC with.  They're converted from Gregorio's fonts, which
+ * are under the SIL Open Font License, so they aren't in exsurge's bundle:
+ * import them from exsurge-ts/nabc-gregall (or with a script tag,
+ * dist/nabc-gregall.min.js, which makes exsurgeNabcGregall.gregall).
+ * Paths go from the left of the baseline, with y going down, as in svg, and
+ * all of it is in units of unitsPerEm to the em.
+ */
+export interface NabcFont {
+  /** the font that the glyphs are from: gregall, gresgmodern or grelaon */
+  name: string;
+  unitsPerEm: number;
+  glyphs: { readonly [name: string]: NabcGlyph };
+}
+
 // the base neumes that the parser accepts (gregallneumekinds), for both St.
 // Gall and Laon (un and oc are Laon's), and pv, which no font draws
 const neumes = new Set([

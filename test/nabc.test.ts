@@ -10,9 +10,11 @@ import {
   type ChantNotationElement,
   Gabc,
   nabcAliases,
+  type NabcFont,
   nabcNameOfGlyph,
   parseNabc
 } from "../src/index.js";
+import { gregall } from "../src/nabc/gregall.js";
 
 // each item in brief: a neume as its glyph names (base, prepunctis,
 // subpunctis and letters) and its pitch if it isn't f, a space as it's
@@ -218,6 +220,42 @@ describe("nabcNameOfGlyph", function() {
     assert.strictEqual(nabcNameOfGlyph("viNsu1"), "vi-su1");
     assert.strictEqual(nabcNameOfGlyph("lseqN"), "lseq-");
     assert.strictEqual(nabcNameOfGlyph("clMSG"), "clMSG");
+  });
+});
+
+describe("the NABC fonts", function() {
+  const font: NabcFont = gregall;
+
+  it("names each glyph of gregall as parseNabc() reads it", function() {
+    assert.strictEqual(Object.keys(font.glyphs).length, 603);
+    let unread: string[] = [];
+    for (let [name, [width, height, depth, path]] of Object.entries(font.glyphs)) {
+      assert.ok(width >= 0 && height >= 0 && depth >= 0, name);
+      // (ni, nihil, draws nothing)
+      assert.strictEqual(path === "", name === "ni", name);
+      // the glyphs of letters and puncta alone aren't neumes
+      if (/^(ls|lt|su|pp)/.test(name)) continue;
+      let items = parseNabc(name);
+      let neume = items[0];
+      if (
+        items.length !== 1 ||
+        neume.type !== "neume" ||
+        neume.base + neume.prepunctis + neume.subpunctis + neume.letters.map((letter) => letter.name + letter.position).join("") !==
+          name
+      )
+        unread.push(name);
+    }
+    // (GregorioTeX names a joined glyph with one letter for its pitch, so it
+    // never looks for this one)
+    assert.deepStrictEqual(unread, ["to!ciGhh"]);
+  });
+
+  it("has the glyphs of Gregorio's aliases, but for five", function() {
+    let missing = Object.entries(nabcAliases)
+      .filter(([, name]) => !(name in font.glyphs))
+      .map(([alias, name]) => `${alias} ${name}`);
+    // (gresgmodern has sf>, sfG and sfM1, and sc~ is an alias itself)
+    assert.deepStrictEqual(missing, ["ta>ppt1 sc~", "cl>pp2 sf>", "toppt1 sfG", "clMpp2 sfM1", "clpp2lsc2 sflsc2"]);
   });
 });
 

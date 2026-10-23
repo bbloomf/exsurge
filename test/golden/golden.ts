@@ -3,8 +3,11 @@
 // to TypeScript.  Run `npx vitest -u` to update the snapshots after a change
 // that is meant to change what exsurge draws.
 
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import type { NabcFont } from "../../src/index";
+import { nabcFonts } from "../../rollup.config.mjs";
 import { featureCases, settingCases, type GoldenCase } from "./cases";
 import { render, type Exsurge, type OutputName } from "./harness";
 
@@ -100,5 +103,27 @@ export function describeGoldenTables(title: string, loadExsurge: () => Promise<E
       };
       await expect(JSON.stringify(result, null, 1)).toMatchFileSnapshot(join(snapshotDir, "tables/textStyles.json"));
     });
+  });
+}
+
+/**
+ * Checks the glyph data of each NABC font (see src/Exsurge.Nabc.ts), which
+ * is bundled apart from exsurge, against tables/nabc-<font>.json: each
+ * glyph's metrics, and the length and a hash of its path, which would make
+ * the table too big.
+ */
+export function describeNabcFontTables(title: string, loadFont: (font: string) => Promise<NabcFont>) {
+  describe(title, () => {
+    for (const name of nabcFonts) {
+      it(`nabc-${name}`, async () => {
+        const font = await loadFont(name);
+        const glyphs = Object.entries(font.glyphs).map(([glyph, [width, height, depth, path]]) => {
+          const hash = createHash("sha1").update(path).digest("hex").slice(0, 12);
+          return `  ${JSON.stringify(glyph)}: ${JSON.stringify([width, height, depth, path.length, hash])}`;
+        });
+        const table = `{\n "name": ${JSON.stringify(font.name)},\n "unitsPerEm": ${font.unitsPerEm},\n "glyphs": {\n${glyphs.join(",\n")}\n }\n}`;
+        await expect(table).toMatchFileSnapshot(join(snapshotDir, `tables/nabc-${name}.json`));
+      });
+    }
   });
 }

@@ -60,6 +60,9 @@ This makes:
 
 - `dist/esm/`: ES modules with their typings, which the package's `module` and `types` point to
 - `dist/exsurge.min.js`: a minified UMD bundle, which the package's `main` points to (and `dist/exsurge.js`, the same unminified)
+- `dist/nabc-gregall.min.js` (and `dist/esm/nabc/`): the glyphs that exsurge draws Gregorio's NABC (St. Gall neumes) with, which aren't in exsurge's bundle, and which the package's `exsurge-ts/nabc-gregall` entry point points to (see the license, below)
+
+`src/nabc/` is converted from the fonts of [Gregorio](https://github.com/gregorio-project/gregorio) by `tools/convert-nabc-font.mjs`.
 
 Alternatively, you can run `npm run dev` which will watch and rebuild the UMD bundle after each saved change.  `test/index.html` is a page to try exsurge in a browser, once it's built; serve the repository and open it.
 
@@ -84,3 +87,5 @@ Under construction...
 ## License
 
 MIT License: http://adampritchard.mit-license.org/ or see [the `LICENSE` file](https://github.com/bbloomf/exsurge/blob/master/LICENSE).
+
+The glyphs for NABC in `src/nabc/` (and what's built from them: `dist/esm/nabc/`, `dist/nabc-gregall.min.js` and the `exsurge-ts/nabc-gregall` entry point) are converted from Gregorio's gregall font, copyright © 2014–2026 Jakub Jelinek, and are under the SIL Open Font License 1.1, not the MIT License: see [the `LICENSE-OFL.txt` file](https://github.com/bbloomf/exsurge/blob/master/LICENSE-OFL.txt).

@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "description": "The glyphs of Gregorio's gregall font for exsurge's NABC, under the SIL Open Font License (see ../LICENSE-OFL.txt)",
+  "main": "../dist/nabc-gregall.min.js",
+  "module": "../dist/esm/nabc/gregall.js",
+  "types": "../dist/esm/nabc/gregall.d.ts",
+  "sideEffects": false
+}

@@ -1,0 +1,12 @@
+{
+  // the ES modules of the NABC glyph data, dist/esm/nabc (npm run build:esm),
+  // without the source maps, which would only copy the data again
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "sourceMap": false,
+    "declarationMap": false,
+    "inlineSources": false
+  },
+  "include": ["src/nabc"],
+  "exclude": []
+}
