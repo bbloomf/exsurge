@@ -111,10 +111,7 @@ interface FusionPiece {
   fused: boolean;
 }
 
-// a note's gabc pitch as a staff position, without the nudge that a note can
-// have under a Chi-Rho clef
-var gabcStaffPosition = (note: Note) =>
-  note.staffPosition - (note.staffPositionOffset || 0);
+var gabcStaffPosition = Neumes.gabcStaffPosition;
 
 // a linea (gabc =), or a punctum linea (R or r0)
 var isLinea = (note: Note) =>
@@ -862,6 +859,10 @@ var markBracketStart = (note: Note) => (note.bracketStart = true);
 // what Gregorio's <nlba> in the notes marks on the note, or other notation, after it
 var markNoLineBreakStart = (element: { noLineBreak?: AreaBoundary }) =>
   (element.noLineBreak = { ...element.noLineBreak, start: true });
+
+// what Gregorio's @[ marks on the note after it
+var markAutoFusionStart = (note: Note) =>
+  (note.autoFusion = { ...note.autoFusion, start: true });
 
 // the NABC for one notation of two of Gregorio's elements, the second after a space ("/")
 var joinNabc = (first: string | undefined, second: string) =>
@@ -2425,12 +2426,14 @@ export class Gabc {
           break;
         }
         case "@[":
-          nextNoteMarks.push((note) => (note.autoFusion = { ...note.autoFusion, start: true }));
+          nextNoteMarks.push(markAutoFusionStart);
           break;
         case "]": {
           let note = lastNote();
           if (note) note.autoFusion = { ...note.autoFusion, end: true };
           autoFusing = false;
+          // (an @[ with no notes before the ] fuses none after it)
+          nextNoteMarks = nextNoteMarks.filter((mark) => mark !== markAutoFusionStart);
           break;
         }
 
@@ -3293,6 +3296,8 @@ export class Gabc {
       var current = neumes[n];
       if (fusedToPrevious[n + 1]) {
         if (current instanceof Neumes.FusedNeume) current.fusedToNext = true;
+        var nextNeume = neumes[n + 1];
+        if (nextNeume instanceof Neumes.FusedNeume) nextNeume.fusedToPrevious = true;
         current.trailingSpace = 0;
         current.keepWithNext = true;
         current.allowLineBreakBeforeNext = false;

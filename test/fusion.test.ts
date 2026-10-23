@@ -56,6 +56,7 @@ describe("Gregorio's neume fusion", function() {
       ["gw@hi", "punctum pes@+1"],
       // nothing is fused to a quilisma, a pes or a torculus
       ["g@hw", "punctum punctum@"],
+      ["f@gW", "punctum punctum@"],
       ["fg@hg", "pes flexus@"],
       ["g@hih", "Punctum + Torculus"],
       // Gregorio's glyphs, rather than exsurge's distropha and pes quassus,
@@ -96,7 +97,9 @@ describe("Gregorio's neume fusion", function() {
       ["@[hgh]", "Porrectus"],
       ["@[gh]@[ij]", "Podatus | Podatus"],
       ["@[gh]@[@ij]", "pes pes@"],
-      ["@[fg!hg]", "Podatus + flexus@"]
+      ["@[fg!hg]", "Podatus + flexus@"],
+      // an empty @[] fuses nothing
+      ["@[]ghg", "Torculus"]
     ];
     for (const [notes, expected] of cases) assert.strictEqual(fusion(notes), expected, notes);
   });

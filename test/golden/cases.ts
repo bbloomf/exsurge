@@ -824,6 +824,19 @@ export const featureCases: GoldenCase[] = [
     // (j) has no stem either; a, c and k are as usual
     name: "fusion-no-stem",
     gabc: "(c4) a(hg) b(@hg) c(hgh) d(@hgh) e(@ig) f(@kfk) g(@hg~) h(@kf) i(@gof) j(@gOf) k(gOf) l(fg@hg) m(fg@hgh) (::)"
+  },
+  {
+    // a note fused to a linea is joined to its bar (a, b); a fused porrectus
+    // flexus or ancus isn't joined to the glyph before, and keeps its stem
+    // (c-e); [shape:stroke] draws a flexus that isn't joined to the glyph after
+    // it as a stroke, without its stem if it's fused (f, g); a quilisma
+    // quadratum isn't joined to the glyph before (h, i); an empty @[] fuses
+    // nothing (j); and a fused note's episema goes above after a fused
+    // torculus (k), and below before an episema below (l)
+    name: "fusion-details",
+    gabc:
+      "(c4) a(j=@h) b(h=@j) c(g@hghg) d(e@hghg) e(e@igf~) f(hf[shape:stroke]@f) g(@hf[shape:stroke]) " +
+      "h(f@gW) i(@[fgWh]) j(@[]ghg) k(g@hih@g_@h) l(g_@h_0) (::)"
   }
 ];
 
