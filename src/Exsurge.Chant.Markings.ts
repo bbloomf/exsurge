@@ -28,11 +28,17 @@ import {
   ChantLayoutElement,
   GlyphCode,
   GlyphVisualizer,
+  InclinatumGlyphTurn,
   MarkingPositionHint,
   QuickSvg,
   type ChantContext,
   type ChantNotationElement
 } from "./Exsurge.Drawing.js";
+
+// whether a glyph is a punctum inclinatum's (other than a deminutus), solid or hollow
+function isInclinatumGlyph(glyphCode: GlyphCode) {
+  return glyphCode in InclinatumGlyphTurn;
+}
 
 export class Accent extends GlyphVisualizer {
   note: Note;
@@ -124,13 +130,13 @@ export class HorizontalEpisema extends ChantLayoutElement {
     };
     var punctumInclinatumShorten = false;
 
-    if (glyphCode === GlyphCode.PunctumInclinatum) {
+    if (isInclinatumGlyph(glyphCode)) {
       let notes = this.note.neume!.notes,
         index = notes.indexOf(this.note),
         prevNote = notes[index - 1];
       if (
         prevNote &&
-        prevNote.glyphVisualizer!.glyphCode === GlyphCode.PunctumInclinatum &&
+        isInclinatumGlyph(prevNote.glyphVisualizer!.glyphCode) &&
         prevNote.staffPosition - this.note.staffPosition === 1
       ) {
         punctumInclinatumShorten = true;
@@ -199,12 +205,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
 
     // The porrectus requires special handling of the note width,
     // otherwise the width is just that of the note itself
-    if (
-      glyphCode === GlyphCode.Porrectus1 ||
-      glyphCode === GlyphCode.Porrectus2 ||
-      glyphCode === GlyphCode.Porrectus3 ||
-      glyphCode === GlyphCode.Porrectus4
-    )
+    if (this.note.glyphVisualizer!.porrectusNoteDiff)
       width = ctxt.staffInterval;
     else if (glyphCode === GlyphCode.None) {
       width = ctxt.staffInterval;
@@ -212,7 +213,10 @@ export class HorizontalEpisema extends ChantLayoutElement {
     } else if (punctumInclinatumShorten) {
       width *= 2 / 3;
       x += 0.5 * width;
-    } else if (glyphCode === GlyphCode.PunctumInclinatumLiquescent) {
+    } else if (
+      glyphCode === GlyphCode.PunctumInclinatumLiquescent ||
+      glyphCode === GlyphCode.PunctumInclinatumLiquescentCavum
+    ) {
       width *= 2 / 3;
       x += 0.25 * width;
     }
@@ -309,23 +313,24 @@ export class Ictus extends GlyphVisualizer {
 
     // The porrectus requires special handling of the note width,
     // otherwise the width is just that of the note itself
-    if (
-      glyphCode === GlyphCode.Porrectus1 ||
-      glyphCode === GlyphCode.Porrectus2 ||
-      glyphCode === GlyphCode.Porrectus3 ||
-      glyphCode === GlyphCode.Porrectus4
-    )
+    if (this.note.glyphVisualizer!.porrectusNoteDiff)
       horizontalOffset = ctxt.staffInterval / 2;
     else if (glyphCode === GlyphCode.None) {
       horizontalOffset = -ctxt.staffInterval / 2;
     } else {
       horizontalOffset = this.note.bounds.width / 2;
       if (
-        glyphCode === GlyphCode.PunctumInclinatum &&
+        isInclinatumGlyph(glyphCode) &&
         !collisionWithStaffLine &&
         !collisionWithEpisema
       ) {
         extraOffset = 0.3;
+      } else if (
+        positionHint === MarkingPositionHint.Below &&
+        (glyphCode === GlyphCode.StrophaLiquescent || glyphCode === GlyphCode.StrophaLiquescentCavum)
+      ) {
+        // (below the tail of a stropha aucta, which is longer than a stropha's)
+        extraOffset = 0.2;
       }
     }
 

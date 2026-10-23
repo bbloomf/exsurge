@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" {http://www.w3.org/2000/xmlns/}xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="80.215" viewBox="0 0 600 80.215" source=<ChantScore>>
+  <g>
+    <defs>
+      <g id="VerticalEpisemaAbove" class="glyph" transform="scale(0.0625)">
+        <path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z">
+      <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)">
+        <path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z">
+      <g id="PunctumInclinatumDescendens" class="glyph" transform="scale(0.0625)">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
+      <g id="PunctumInclinatumAscendens" class="glyph" transform="scale(0.0625)">
+        <path d="M7.921-75.365L49.726 5.226-7.84 74.589-49.726-5.226z">
+      <g id="PunctumInclinatum" class="glyph" transform="scale(0.0625)">
+        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumAuctus" class="glyph" transform="scale(0.0625)">
+        <path d="M0-75.78L50 0 34.812 34.18C18.666 69.338-.084 90.495-21.438 97.655c4.687-4.556 7.03-10.741 7.03-18.554 0-11.066-4.947-25.715-14.843-43.944L-50 0z">
+      <g id="PodatusLower" class="glyph" transform="scale(0.0625)">
+        <path d="M-50 42.17V-50q0-5.42 3.61-5.42h2.41q19.28 3.61 35.55 3.61 4.21 0 10.84-.3t9.04-.3q13.25 0 20.48-4.82t7.23-12.65L50-75.3V41.57q0 3.61-11.14 6.92-11.15 3.32-24.4 3.32-3.01 0-7.83-.3-4.82-.31-12.05-.31-19.88 0-28.31-1.2Q-50 46.99-50 42.17">
+      <g id="PodatusUpper" class="glyph" transform="scale(0.0625)">
+        <path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
+      <g id="PunctumInclinatumLiquescent" class="glyph" transform="scale(0.0625)">
+        <path d="M 0,-53.164 35,-0.117 0,52.383 -35,-0.117 0,-53.164 z">
+      <g id="PunctumInclinatumDescendensCavum" class="glyph" transform="scale(0.0625)">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
+        <path d="M-4.526-42.819l-23.674 45.682 32.479 39.248 23.88-45.192z" fill="#fff">
+      <g id="PunctumInclinatumAuctusCavum" class="glyph" transform="scale(0.0625)">
+        <path d="M0-75.78L50 0 34.812 34.18C18.666 69.338-.084 90.495-21.438 97.655c4.687-4.556 7.03-10.741 7.03-18.554 0-11.066-4.947-25.715-14.843-43.944L-50 0z">
+        <path d="M0-43.096l-28.667 43.448 15.294 26.326c3.914 6.737 7.207 14.007 10.061 21.249 1.272 3.227 2.149 7.192 3.773 10.028 6.696-9.086 12.497-19.05 17.1-29.362l8.363-18.739c.909-2.036 3.614-8.183 3.57-8.249z" fill="#fff">
+      <g id="PunctumInclinatumAscendensCavum" class="glyph" transform="scale(0.0625)">
+        <path d="M7.921-75.365L49.726 5.226-7.84 74.589-49.726-5.226z">
+        <path d="M4.474-42.823l-32.681 39.866 23.782 45.126 32.606-39.237z" fill="#fff">
+      <g id="VerticalEpisemaBelow" class="glyph" transform="scale(0.0625)">
+        <path d="M-8 56c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z">
+      <g id="DoClef" class="glyph" transform="scale(0.0625)">
+        <path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z">
+      <style>
+        "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
+    <g class="Titles" source=<Titles>>
+    <g class="chantLine" transform="translate(0,58.75)" element-index="0" source=<ChantLine elementIndex=0>>
+      <g class="staffLines">
+        <line key="-7" x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-5" x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-3" x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">
+        <line key="-1" x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine">
+      <g class="ChantNotationElement DoClef" transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" source=<DoClef sourceIndex=1 elementIndex=-1>>
+      <g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" source=<Punctum>>
+        <text source-index="5" x="-1.1230000000000002" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=5>>
+          <tspan source-index="0" style="">
+            "a"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(23.4375,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="8" element-index="1" id="note-2" x="3.125" y="-25" source=<Note sourceIndex=8 elementIndex=1 noteIndex=1>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="9" element-index="2" id="note-3" x="8.31201998281125" y="-18.75" source=<Note sourceIndex=9 elementIndex=2 noteIndex=2>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="10" element-index="3" id="note-4" x="13.4990399656225" y="-12.499999999999998" source=<Note sourceIndex=10 elementIndex=3 noteIndex=3>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(51.083694198898975,0)" source=<PunctaInclinata>>
+        <text source-index="13" x="-1.3894000000000002" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=13>>
+          <tspan source-index="0" style="">
+            "b"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="15" element-index="4" id="note-5" x="3.125" y="-25" source=<Note sourceIndex=15 elementIndex=4 noteIndex=4>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="16" element-index="5" id="note-6" x="8.31201998281125" y="-31.25" source=<Note sourceIndex=16 elementIndex=5 noteIndex=5>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="17" element-index="6" id="note-7" x="13.4990399656225" y="-37.5" source=<Note sourceIndex=17 elementIndex=6 noteIndex=6>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(78.72988839779795,0)" source=<PunctaInclinata>>
+        <text source-index="20" x="-1.6558000000000002" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=20>>
+          <tspan source-index="0" style="">
+            "c"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatum" class=" note" source-index="22" element-index="7" id="note-8" x="3.125" y="-25" source=<Note sourceIndex=22 elementIndex=7 noteIndex=7>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatum" class=" note" source-index="23" element-index="8" id="note-9" x="10" y="-25" source=<Note sourceIndex=23 elementIndex=8 noteIndex=8>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(102.87704263107443,0)" source=<PunctaInclinata>>
+        <text source-index="26" x="1.1018" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=26>>
+          <tspan source-index="0" style="">
+            "d"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatum" class=" note" source-index="28" element-index="9" id="note-10" x="3.125" y="-25" source=<Note sourceIndex=28 elementIndex=9 noteIndex=9>>
+      <g class="ChantNotationElement Punctum" transform="translate(120.1491968643509,0)" source=<Punctum>>
+        <text source-index="31" x="0.8353999999999999" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=31>>
+          <tspan source-index="0" style="">
+            "e"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="33" element-index="10" id="note-11" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=33 elementIndex=10 noteIndex=10>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(129.5241968643509,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="34" element-index="11" id="note-12" x="3.125" y="-25" source=<Note sourceIndex=34 elementIndex=11 noteIndex=11>>
+      <g class="ChantNotationElement Punctum" transform="translate(146.79635109762737,0)" source=<Punctum>>
+        <text source-index="37" x="0.569" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=37>>
+          <tspan source-index="0" style="">
+            "f"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="39" element-index="12" id="note-13" x="3.125" y="-18.75" source=<Note sourceIndex=39 elementIndex=12 noteIndex=12>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(153.04635109762737,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="40" element-index="13" id="note-14" x="3.125" y="-25" source=<Note sourceIndex=40 elementIndex=13 noteIndex=13>>
+      <g class="ChantNotationElement Punctum" transform="translate(170.31850533090386,0)" source=<Punctum>>
+        <text source-index="43" x="0.3026" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=43>>
+          <tspan source-index="0" style="">
+            "g"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="45" element-index="14" id="note-15" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=45 elementIndex=14 noteIndex=14>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(179.69350533090386,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="46" element-index="15" id="note-16" x="3.125" y="-25" source=<Note sourceIndex=46 elementIndex=15 noteIndex=15>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="48" element-index="16" id="note-17" x="8.31201998281125" y="-18.75" source=<Note sourceIndex=48 elementIndex=16 noteIndex=16>>
+      <g class="ChantNotationElement Punctum" transform="translate(202.15267954699158,0)" source=<Punctum>>
+        <text source-index="52" x="0.03620000000000001" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=52>>
+          <tspan source-index="0" style="">
+            "h"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="54" element-index="17" id="note-18" x="3.125" y="-18.75" source=<Note sourceIndex=54 elementIndex=17 noteIndex=17>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(208.40267954699158,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="55" element-index="18" id="note-19" x="3.125" y="-25" source=<Note sourceIndex=55 elementIndex=18 noteIndex=18>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="57" element-index="19" id="note-20" x="8.31201998281125" y="-31.25" source=<Note sourceIndex=57 elementIndex=19 noteIndex=19>>
+      <g class="ChantNotationElement Punctum" transform="translate(230.8618537630793,0)" source=<Punctum>>
+        <text source-index="61" x="-0.23019999999999996" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=61>>
+          <tspan source-index="0" style="">
+            "i"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="63" element-index="20" id="note-21" x="3.125" y="-25" source=<Note sourceIndex=63 elementIndex=20 noteIndex=20>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(240.2368537630793,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatum" class=" note" source-index="64" element-index="21" id="note-22" x="3.125" y="-25" source=<Note sourceIndex=64 elementIndex=21 noteIndex=21>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatum" class=" note" source-index="66" element-index="22" id="note-23" x="10" y="-25" source=<Note sourceIndex=66 elementIndex=22 noteIndex=22>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(264.38400799635576,0)" source=<PunctaInclinata>>
+        <text source-index="70" x="-0.49659999999999993" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=70>>
+          <tspan source-index="0" style="">
+            "j"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="72" element-index="23" id="note-24" x="3.125" y="-25" source=<Note sourceIndex=72 elementIndex=23 noteIndex=23>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(281.65616222963223,0)" source=<PunctaInclinata>>
+        <text source-index="76" x="-0.7629999999999999" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=76>>
+          <tspan source-index="0" style="">
+            "k"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="78" element-index="24" id="note-25" x="3.125" y="-25" source=<Note sourceIndex=78 elementIndex=24 noteIndex=24>>
+      <g class="ChantNotationElement Punctum" transform="translate(298.92831646290875,0)" source=<Punctum>>
+        <text source-index="82" x="-1.0293999999999999" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=82>>
+          <tspan source-index="0" style="">
+            "l"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="84" element-index="25" id="note-26" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=84 elementIndex=25 noteIndex=25>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(308.30331646290875,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="85" element-index="26" id="note-27" x="3.125" y="-25" source=<Note sourceIndex=85 elementIndex=26 noteIndex=26>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="86" element-index="27" id="note-28" x="8.31201998281125" y="-18.75" source=<Note sourceIndex=86 elementIndex=27 noteIndex=27>>
+      <g class="ChantNotationElement Punctum" transform="translate(330.76249067899647,0)" source=<Punctum>>
+        <text source-index="90" x="-1.2957999999999998" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=90>>
+          <tspan source-index="0" style="">
+            "m"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="92" element-index="28" id="note-29" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=92 elementIndex=28 noteIndex=28>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(340.13749067899647,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="93" element-index="29" id="note-30" x="3.125" y="-25" source=<Note sourceIndex=93 elementIndex=29 noteIndex=29>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="94" element-index="30" id="note-31" x="8.31201998281125" y="-18.75" source=<Note sourceIndex=94 elementIndex=30 noteIndex=30>>
+      <g class="ChantNotationElement Climacus" transform="translate(362.5966648950842,0)" source=<Climacus>>
+        <text source-index="98" x="-1.5621999999999998" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=98>>
+          <tspan source-index="0" style="">
+            "n"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="100" element-index="31" id="note-32" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=100 elementIndex=31 noteIndex=31>>
+          <rect x="5.45" y="-31.25" width="0.8" height="16.875" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="102" element-index="32" id="note-33" x="11.7" y="-25" source=<Note sourceIndex=102 elementIndex=32 noteIndex=32>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="103" element-index="33" id="note-34" x="16.88701998281125" y="-18.75" source=<Note sourceIndex=103 elementIndex=33 noteIndex=33>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="104" element-index="34" id="note-35" x="20.166961359025287" y="-25" source=<Note sourceIndex=104 elementIndex=34 noteIndex=34>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="105" element-index="35" id="note-36" x="25.353981341836537" y="-18.75" source=<Note sourceIndex=105 elementIndex=35 noteIndex=35>>
+      <g class="ChantNotationElement PesSubpunctis" transform="translate(402.09780047019717,0)" source=<PesSubpunctis>>
+        <text source-index="108" x="1.1954" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=108>>
+          <tspan source-index="0" style="">
+            "o"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusLower" class=" note" source-index="110" element-index="36" id="note-37" x="3.125" y="-18.75" source=<Note sourceIndex=110 elementIndex=36 noteIndex=36>>
+          <rect x="5.45" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="111" element-index="37" id="note-38" x="6.25" y="-31.249999999999996" source=<Note sourceIndex=111 elementIndex=37 noteIndex=37>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="112" element-index="38" id="note-39" x="11.5" y="-25" source=<Note sourceIndex=112 elementIndex=38 noteIndex=38>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="113" element-index="39" id="note-40" x="16.68701998281125" y="-18.75" source=<Note sourceIndex=113 elementIndex=39 noteIndex=39>>
+      <g class="ChantNotationElement Punctum" transform="translate(432.9319746862849,0)" source=<Punctum>>
+        <text source-index="116" x="0.9290000000000003" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=116>>
+          <tspan source-index="0" style="">
+            "p"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="118" element-index="40" id="note-41" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=118 elementIndex=40 noteIndex=40>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(442.3069746862849,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="119" element-index="41" id="note-42" x="3.125" y="-25" source=<Note sourceIndex=119 elementIndex=41 noteIndex=41>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumLiquescent" class=" note" source-index="120" element-index="42" id="note-43" x="8.31201998281125" y="-18.75" source=<Note sourceIndex=120 elementIndex=42 noteIndex=42>>
+      <g class="ChantNotationElement Punctum" transform="translate(464.7661489023726,0)" source=<Punctum>>
+        <text source-index="124" x="0.6625999999999999" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=124>>
+          <tspan source-index="0" style="">
+            "q"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="126" element-index="43" id="note-44" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=126 elementIndex=43 noteIndex=43>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(474.1411489023726,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendensCavum" class=" note" source-index="127" element-index="44" id="note-45" x="3.125" y="-25" source=<Note sourceIndex=127 elementIndex=44 noteIndex=44>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendensCavum" class=" note" source-index="129" element-index="45" id="note-46" x="8.31201998281125" y="-18.75" source=<Note sourceIndex=129 elementIndex=45 noteIndex=45>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(496.6003231184603,0)" source=<PunctaInclinata>>
+        <text source-index="133" x="0.3961999999999999" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=133>>
+          <tspan source-index="0" style="">
+            "r"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAuctusCavum" class=" note" source-index="135" element-index="46" id="note-47" x="3.125" y="-25" source=<Note sourceIndex=135 elementIndex=46 noteIndex=46>>
+      <g class="ChantNotationElement Punctum" transform="translate(513.8724773517367,0)" source=<Punctum>>
+        <text source-index="140" x="0.12979999999999992" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=140>>
+          <tspan source-index="0" style="">
+            "s"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="142" element-index="47" id="note-48" x="3.125" y="-18.75" source=<Note sourceIndex=142 elementIndex=47 noteIndex=47>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(520.1224773517367,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendensCavum" class=" note" source-index="143" element-index="48" id="note-49" x="3.125" y="-25" source=<Note sourceIndex=143 elementIndex=48 noteIndex=48>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAscendensCavum" class=" note" source-index="146" element-index="49" id="note-50" x="8.31201998281125" y="-31.25" source=<Note sourceIndex=146 elementIndex=49 noteIndex=49>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(542.5816515678246,0)" source=<PunctaInclinata>>
+        <text source-index="151" x="-0.13660000000000005" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=151>>
+          <tspan source-index="0" style="">
+            "t"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumAuctus" class=" note" source-index="153" element-index="50" id="note-51" x="3.125" y="-25" source=<Note sourceIndex=153 elementIndex=50 noteIndex=50>>
+          <rect x="0" y="-36.461875" width="6.25" height="1" fill="#000" class="horizontalEpisema">
+      <g class="ChantNotationElement Punctum" transform="translate(559.853805801101,0)" source=<Punctum>>
+        <text source-index="158" x="-0.403" y="16.137" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=158>>
+          <tspan source-index="0" style="">
+            "u"
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="160" element-index="51" id="note-52" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=160 elementIndex=51 noteIndex=51>>
+      <g class="ChantNotationElement PunctaInclinata" transform="translate(569.228805801101,0)" source=<PunctaInclinata>>
+        <g class="Notations">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="161" element-index="52" id="note-53" x="3.125" y="-25" source=<Note sourceIndex=161 elementIndex=52 noteIndex=52>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="163" element-index="53" id="note-54" x="8.31201998281125" y="-18.75" source=<Note sourceIndex=163 elementIndex=53 noteIndex=53>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="165" element-index="54" id="note-55" x="13.4990399656225" y="-12.499999999999998" source=<Note sourceIndex=165 elementIndex=54 noteIndex=54>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#VerticalEpisemaBelow" class="" x="3.125" y="-16.875" source=<PunctaInclinata>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#VerticalEpisemaBelow" class="" x="8.31201998281125" y="-11.875" source=<PunctaInclinata>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#VerticalEpisemaBelow" class="" x="13.4990399656225" y="-4.375" source=<PunctaInclinata>>
+      <g class="ChantNotationElement DoubleBar" transform="translate(593.75,0)" source=<DoubleBar sourceIndex=170 elementIndex=55>>
+        <g class="Notations">
+          <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="170" element-index="55" source=<DoubleBar sourceIndex=170 elementIndex=55>>
+          <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="170" element-index="55" source=<DoubleBar sourceIndex=170 elementIndex=55>>

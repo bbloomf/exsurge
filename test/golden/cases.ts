@@ -355,8 +355,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the brackets, fusion and parentheses
-    // are read but not drawn yet (i is a linea, j a pes quadratum and o a bivirga)
+    // no notes are lost or made up; the brackets and fusion are read but
+    // not drawn yet (i is a linea, j a pes quadratum and o a bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -399,10 +399,11 @@ export const featureCases: GoldenCase[] = [
     gabc: "(c4) a(G) b(G0) c(G1) d(G2) e(hGF) f(hG0F0) g(fG1H1) h(gG2G2) i(-G0) (::) (xp3) j(H0) k(h0) l(H9) (::)"
   },
   {
-    // a porrectus stroke wider than a fourth (or between nudged notes, as a
-    // note on a space is under a Chi-Rho clef) has no glyph yet, so its notes
-    // are drawn as puncta joined by a line, and the note after it follows them
-    // rather than standing on the last (k is a torculus resupinus)
+    // a porrectus stroke of a fifth has its own glyph (a, c and e to h), but
+    // one wider (or between nudged notes, as a note on a space is under a
+    // Chi-Rho clef) has none, so its notes are drawn as puncta joined by a
+    // line, and the note after it follows them rather than standing on the
+    // last (k is a torculus resupinus)
     name: "porrectus-wide",
     gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
   },
@@ -660,6 +661,69 @@ export const featureCases: GoldenCase[] = [
     // virgas that aren't reversed, unlike a lone V (a)
     name: "virga-reversa-repeated",
     gabc: "(c4) a(gV) b(gVV) c(gvv) d(gVVV) e(gvvv) f(gVV_) g(dVV) h(gVV.) (::)"
+  },
+
+  // Gregorio: Phase 6
+  {
+    // a cavum stays in its neume, and each note with one is drawn hollow (a
+    // porrectus's stroke if either of its notes has one), but a punctum cavum
+    // between lines stands alone (D)
+    name: "cavum-neumes",
+    gabc:
+      "(c4) a(fgr) b(frg) c(fhr) d(frh) e(gfr) f(grf) g(fhrg) h(gvr) i(gor) j(gor~) k(gwr) l(fwrh) m(Gr) " +
+      "n(hGrFr) o(hGF~r) p(hgrh) q(hrgh) r(hfrh) s(ifri) t(jfrj) u(hgrhg) v(fr~) w(fgr~) x(gfr~) y(fgr<) " +
+      "z(gfr>) A(-frh) B(gorh) C(fsrsr) D(fr0g) E(fgr_) F(hgr'h) (::)"
+  },
+  {
+    // a quilisma quadratum is a quilisma, and a higher note in its pes goes
+    // beside it, joined by a line, rather than above it (n is a quilisma pes)
+    name: "quilisma-quadratum",
+    gabc: "(c4) a(gWh) b(gWi) c(gWj) d(gWk) e(gWh<) f(gWh>) g(gWh~) h(gW) i(gWhg) j(-gWh) k(gWrh) l(gW_h_) m(gW.h.) n(gwh) (::)"
+  },
+  {
+    // inclinata lean as their gabc says (g to i) or as their line goes (a to
+    // f, and n to p), and are spaced so that their edges line up, and an
+    // auctus (j to m) has a tail
+    name: "inclinatum-variants",
+    gabc:
+      "(c4) a(hGFE) b(GHI) c(GG) d(G) e(hG) f(fG) g(hG0F0) h(fG1H1) i(gG2G2) j(G<) k(G>) l(hGF<) m(hGF>) " +
+      "n(hvGFGF) o(fhGF) p(hGF~) q(hGrFr) r(G<r) s(fG1rH1r) t(G<_) u(hG'F'E') (::)"
+  },
+  {
+    // without ctxt.inclinatumLeaning, every inclinatum is upright, whatever
+    // its gabc or its line
+    name: "inclinatum-upright",
+    gabc: "(c4) a(hGFE) b(GHI) c(hG0F0) d(fG1H1) e(gG2G2) f(hvGFGF) g(hGrFr) h(hGF<) i(fG|H||) j(hG|F|) (::)",
+    setupContext: (ctxt) => (ctxt.inclinatumLeaning = false)
+  },
+  {
+    // the stem of a leaning inclinatum stands on its top point, to the left
+    // of its middle in a descending line (d, f) and to the right in an
+    // ascending one (a, b, c, e), and a liquescent's in its middle (d)
+    name: "inclinata-with-stems-leaning",
+    gabc: "(c4) a(fG|H|I|) b(G|H||) c(hG1|F1|) d(hGF~|) e(fG|) f(hG|) (::)"
+  },
+  {
+    // a stropha with < or > is a stropha aucta, with a longer tail (e and j
+    // are plain strophae), and an ictus below it clears the tail (k)
+    name: "stropha-aucta",
+    gabc: "(c4) a(fs<) b(fs>) c(fss<) d(fsss>) e(fs) f(fs<r) g(hs<) h(fs<_) i(fs<.) j(fss) k(fs<') l(fs<ss) (::)"
+  },
+  {
+    // accidentals and bars between parentheses (e, i and j are without them)
+    name: "parenthesized-signs",
+    gabc: "(c4) a(fx?fg) b(hy?hg) c(f#?fg) d(ix?ih) e(fxfg) f(g) (`?) g(h) (,?) h(g) (,0?) i(f) (`) j(g) (,) k(f) (::)"
+  },
+  {
+    // a virga reversa with < or > has an auctus's head (a and j are without)
+    name: "virga-reversa-liquescent",
+    gabc: "(c4) a(gV) b(gV<) c(gV>) d(hV<) e(hV>) f(gV<r) g(gV<_) h(gV>.) i(fgV<) j(gv) (::)"
+  },
+  {
+    // a porrectus stroke of a fifth, in a porrectus (a, e to j), a porrectus
+    // flexus (b) and a torculus resupinus (c, d)
+    name: "porrectus-fifth",
+    gabc: "(c4) a(kfk) b(kfkh) c(dkfk) d(dkfkh) e(kfrk) f(kfk~) g(kfk<) h(lglj) i(kf'k) j(k_f_k) (::)"
   }
 ];
 

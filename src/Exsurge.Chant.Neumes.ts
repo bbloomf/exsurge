@@ -30,8 +30,9 @@ import {
   type Note
 } from "./Exsurge.Chant.js";
 import {
+  CavumGlyphCode,
   ChantNotationElement,
-  GlyphCode, LineaVisualizer, MarkingPositionHint,
+  GlyphCode, InclinatumGlyphTurn, LineaVisualizer, MarkingPositionHint,
   NeumeBeamVisualizer,
   NeumeLineVisualizer, VirgaLineVisualizer,
   type ChantContext
@@ -46,7 +47,7 @@ export interface NeumeLedgerLine {
 }
 
 // the stroke of a porrectus from start down to end, or GlyphCode.None if
-// there's no glyph for it (an interval of more than a fourth)
+// there's no glyph for it (an interval of more than a fifth)
 function porrectusGlyph(start: Note, end: Note): GlyphCode {
   switch (start.staffPosition - end.staffPosition) {
     case 1:
@@ -57,9 +58,54 @@ function porrectusGlyph(start: Note, end: Note): GlyphCode {
       return GlyphCode.Porrectus3;
     case 4:
       return GlyphCode.Porrectus4;
+    case 5:
+      return GlyphCode.Porrectus5;
     default:
       return GlyphCode.None;
   }
+}
+
+// the head of a punctum auctus, ascending or descending, for a note with < or
+// >, and otherwise glyph
+function auctusHead(note: Note, glyph: GlyphCode): GlyphCode {
+  if (note.liquescent & LiquescentType.Ascending) return GlyphCode.PunctumQuadratumAscLiquescent;
+  if (note.liquescent & LiquescentType.Descending) return GlyphCode.PunctumQuadratumDesLiquescent;
+  return glyph;
+}
+
+// a punctum inclinatum's glyph: an auctus for gabc G< or G>, and otherwise
+// leaning as its leaning says, or upright if ctxt.inclinatumLeaning is off
+function inclinatumGlyph(ctxt: ChantContext, note: Note): GlyphCode {
+  if (note.liquescent & (LiquescentType.Ascending | LiquescentType.Descending))
+    return GlyphCode.PunctumInclinatumAuctus;
+  switch (ctxt.inclinatumLeaning && (note.leaning || note.automaticLeaning)) {
+    case "ascending":
+      return GlyphCode.PunctumInclinatumAscendens;
+    case "descending":
+      return GlyphCode.PunctumInclinatumDescendens;
+    default:
+      return GlyphCode.PunctumInclinatum;
+  }
+}
+
+// upright inclinata a step apart lie along a line 2/3 of a staff interval
+// across for each one down, as the lower edges of PunctumInclinatum do, and
+// PunctumInclinatumAscendens and Descendens are it turned 6°
+const inclinatumStepAngle = Math.atan(2 / 3),
+  inclinatumLean = (6 * Math.PI) / 180;
+
+// which way an inclinatum's glyph is turned: 1 as in an ascending line, -1 as
+// in a descending line, and 0 if it's upright
+function inclinatumTurn(note: Note): number {
+  return InclinatumGlyphTurn[note.glyphVisualizer!.glyphCode] || 0;
+}
+
+// how far right of its middle an inclinatum's top point is, which turning
+// PunctumInclinatum 6° takes round with it
+function inclinatumTopOffset(ctxt: ChantContext, note: Note): number {
+  return (
+    inclinatumTurn(note) * Math.sin(inclinatumLean) * Glyphs.PunctumInclinatum.origin.y * ctxt.glyphScaling
+  );
 }
 
 // the glyph for the note after a porrectus's stroke from start down to end:
@@ -181,8 +227,14 @@ class NeumeBuilder {
   // a special form of noteAdd that creates a virga
   // uses a punctum cuadratum and a line rather than the virga glyphs
   virgaAt(note: Note, withLineTo = true) {
-    // add the punctum for the virga
-    this.noteAt(note, GlyphCode.PunctumQuadratum);
+    // add the punctum for the virga (a virga reversa auctus, gabc V< or V>,
+    // has the head of a punctum auctus, as Gregorio's does)
+    this.noteAt(
+      note,
+      note.shapeModifiers & NoteShapeModifiers.Reverse
+        ? auctusHead(note, GlyphCode.PunctumQuadratum)
+        : GlyphCode.PunctumQuadratum
+    );
 
     // add a line for the virga
     var line = new VirgaLineVisualizer(this.ctxt, note);
@@ -297,6 +349,13 @@ class NeumeBuilder {
     // allow a quilisma pes
     if (lowerNote.shape === NoteShape.Quilisma) lowerGlyph = GlyphCode.Quilisma;
 
+    // a quilisma quadratum's pes (as Gregorio's QuilismaPesQuadratum): the
+    // upper note beside the quilisma rather than above it, joined to it by a
+    // line where they don't touch (a deminutus stays as it is, as Gregorio
+    // has no square pes deminutus)
+    if (lowerNote.quilismaQuadratum && !(upperNote.liquescent & LiquescentType.Small))
+      upperGlyph = auctusHead(upperNote, GlyphCode.PunctumQuadratum);
+
     this.noteAt(lowerNote, lowerGlyph).noteAt(upperNote, upperGlyph);
 
     // make sure we don't have lines connected to the podatus
@@ -370,7 +429,7 @@ class NeumeBuilder {
         note.setGlyph(this.ctxt, GlyphCode.Stropha);
       // fixme: some climaci in the new chant books end with a punctum quadratum
       // (see, for example, the antiphon "Sancta Maria" for October 7).
-      else note.setGlyph(this.ctxt, GlyphCode.PunctumInclinatum);
+      else note.setGlyph(this.ctxt, inclinatumGlyph(this.ctxt, note));
 
       staffPosition = note.staffPosition;
 
@@ -384,7 +443,18 @@ class NeumeBuilder {
           break;
       }
 
-      if (i > 0) this.x += advanceWidth * multiple;
+      if (i > 0) {
+        // leaning inclinata go further apart along their leaning and closer
+        // together against it, so that their edges line up as upright ones'
+        // do (turned as the one before, or as this one if that's upright)
+        let turn =
+          (inclinatumTurn(notes[i - 1]) || inclinatumTurn(note)) *
+          Math.sign(staffPosition - prevStaffPosition);
+        if (turn)
+          multiple *=
+            Math.tan(inclinatumStepAngle + turn * inclinatumLean) / Math.tan(inclinatumStepAngle);
+        this.x += advanceWidth * multiple;
+      }
 
       note.bounds.x = this.x;
 
@@ -396,8 +466,10 @@ class NeumeBuilder {
     if (stemNotes.length) {
       const firstNote = stemNotes[0];
       const lastNote = stemNotes[stemNotes.length - 1];
-      const startCoord = { x: firstNote.bounds.x, staffPosition: firstNote.staffPosition + 4 };
-      const endCoord = { x: lastNote.bounds.x, staffPosition: lastNote.staffPosition + 4 };
+      // each stem stands on its inclinatum's top point, and the beams meet them
+      const stemX = (note: Note) => note.bounds.x + inclinatumTopOffset(this.ctxt, note);
+      const startCoord = { x: stemX(firstNote), staffPosition: firstNote.staffPosition + 4 };
+      const endCoord = { x: stemX(lastNote), staffPosition: lastNote.staffPosition + 4 };
       // Linear interpolation: y = y1 + (x - x1) * (y2 - y1) / (x2 - x1)
       const getStaffPositionForX = (x: number) =>
         x === startCoord.x ? startCoord.staffPosition :
@@ -409,9 +481,9 @@ class NeumeBuilder {
         var stem = new NeumeLineVisualizer(
           this.ctxt,
           note,
-          getStaffPositionForX(note.bounds.x)
+          getStaffPositionForX(stemX(note))
         );
-        stem.bounds.x = note.bounds.x + (note.bounds.width / 2) - (stem.bounds.width / 2);
+        stem.bounds.x = stemX(note) + (note.bounds.width / 2) - (stem.bounds.width / 2);
         this.neume.addVisualizer(stem);
       }
       while (beamCount! > 0) {
@@ -426,8 +498,9 @@ class NeumeBuilder {
   withPorrectusSwash(start: Note, end: Note) {
     var glyph = porrectusGlyph(start, end);
     if (glyph === GlyphCode.None) {
-      // a stroke wider than a fourth, which has no glyph yet: the two notes
-      // as puncta joined by a line, as a clivis's are, so that neither is lost
+      // a stroke wider than a fifth, which has no glyph (nor has Gregorio
+      // one): the two notes as puncta joined by a line, as a clivis's are, so
+      // that neither is lost
       return this.noteAt(start, GlyphCode.PunctumQuadratum).noteAt(end, GlyphCode.PunctumQuadratum);
     }
 
@@ -451,6 +524,9 @@ class NeumeBuilder {
       this.neume.addVisualizer(line);
     }
 
+    // (the stroke is both notes, so it's hollow if either is: setGlyph() makes
+    // it hollow for start, and this for end)
+    if (end.shapeModifiers & NoteShapeModifiers.Cavum) glyph = CavumGlyphCode[glyph] || glyph;
     start.setGlyph(this.ctxt, glyph);
     start.bounds.x = this.x;
 
@@ -757,17 +833,14 @@ export class Apostropha extends Neume {
   }
 
   static getNoteGlyphCode(note: Note) {
-    if (note.shape === NoteShape.Stropha) return GlyphCode.Stropha;
+    if (note.shape === NoteShape.Stropha)
+      // (a stropha aucta for gabc s< or s>)
+      return note.liquescent & (LiquescentType.Ascending | LiquescentType.Descending)
+        ? GlyphCode.StrophaLiquescent
+        : GlyphCode.Stropha;
 
-    if (note.liquescent & LiquescentType.Ascending)
-      return GlyphCode.PunctumQuadratumAscLiquescent;
-    else if (note.liquescent & LiquescentType.Descending)
-      return GlyphCode.PunctumQuadratumDesLiquescent;
-
-    if (note.shapeModifiers & NoteShapeModifiers.Cavum)
-      return GlyphCode.PunctumCavum;
-
-    return GlyphCode.PunctumQuadratum;
+    // (noteAt() draws a cavum hollow)
+    return auctusHead(note, GlyphCode.PunctumQuadratum);
   }
 }
 
@@ -928,7 +1001,7 @@ export class Distropha extends Neume {
     );
     let glyphAdvance = ctxt.intraNeumeSpacing;
     glyphCodes.slice(0, 2).forEach((glyphCode) => {
-      if (glyphCode === GlyphCode.Stropha)
+      if (glyphCode === GlyphCode.Stropha || glyphCode === GlyphCode.StrophaLiquescent)
         glyphAdvance -= ctxt.intraNeumeSpacing / 4;
     });
 
@@ -1289,9 +1362,8 @@ export class Punctum extends Neume {
         glyph = GlyphCode.PunctumQuadratumDesLiquescent;
       else glyph = GlyphCode.PunctumQuadratumLiquescent;
     } else {
-      if (note.shapeModifiers & NoteShapeModifiers.Cavum)
-        glyph = GlyphCode.PunctumCavum;
-      else if (note.shape === NoteShape.Inclinatum)
+      // (noteAt() draws a cavum hollow)
+      if (note.shape === NoteShape.Inclinatum)
         glyph = GlyphCode.PunctumInclinatum;
       else if (note.shape === NoteShape.Quilisma) glyph = GlyphCode.Quilisma;
       else glyph = GlyphCode.PunctumQuadratum;
@@ -1638,7 +1710,7 @@ export class Tristropha extends Neume {
       Apostropha.getNoteGlyphCode(note)
     );
     let glyphAdvance =
-      glyphCodes[0] === GlyphCode.Stropha
+      glyphCodes[0] === GlyphCode.Stropha || glyphCodes[0] === GlyphCode.StrophaLiquescent
         ? ctxt.intraNeumeSpacing / 2
         : ctxt.intraNeumeSpacing;
 

@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="77.09" viewBox="0 0 600 77.09" >
+<g >
+<defs >
+<g id="Mora" class="glyph" transform="scale(0.0625)" >
+<path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z" >
+</path>
+</g>
+<g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="PunctumQuadratumAscLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-50 43.688V-61c4.167 7.292 12.76 10.938 25.78 10.938 9.376 0 20.053-1.563 32.032-4.688C31.773-60.48 45.833-71.677 50-88.344v117.97C43.75 42.645 32.812 51.5 17.187 56.186-.52 61.398-15.886 64-28.906 64-42.97 64-50 57.23-50 43.687z" >
+</path>
+</g>
+<g id="PunctumQuadratumDesLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-50-56.03c0-13.022 7.03-19.532 21.094-19.532 13.02 0 28.385 2.604 46.093 7.812C32.813-63.583 43.75-54.73 50-41.187V76C45.833 59.854 31.77 48.656 7.812 42.406c-11.98-3.125-22.656-4.687-32.03-4.687-13.022 0-21.615 3.905-25.782 11.718v-105.47z" >
+</path>
+</g>
+<g id="PunctumQuadratumAscLiquescentCavum" class="glyph" transform="scale(0.0625)" >
+<path d="M-50 43.688V-61c4.167 7.292 12.76 10.938 25.78 10.938 9.376 0 20.053-1.563 32.032-4.688C31.773-60.48 45.833-71.677 50-88.344v117.97C43.75 42.645 32.812 51.5 17.187 56.186-.52 61.398-15.886 64-28.906 64-42.97 64-50 57.23-50 43.687z" >
+</path>
+<path d="M-31.837-32.405l.225 78.223c0 .234 4.51.163 4.991.15 5.666-.155 11.311-.842 16.89-1.822 11.125-1.954 24.166-4.158 33.621-10.69 1.507-1.042 7.966-6.423 7.97-8.187l.14-68.973c0-.224-2.884.992-3.156 1.104-2.158.889-4.348 1.698-6.562 2.436-6.311 2.105-12.836 3.691-19.347 5.047-7.666 1.596-15.454 2.699-23.285 2.984-2.499.09-5.002.103-7.5-.007-.999-.044-1.996-.116-2.994-.192-.331-.025-.994-.405-.993-.073z" fill="#fff" >
+</path>
+</g>
+<g id="DoClef" class="glyph" transform="scale(0.0625)" >
+<path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,58.75)" element-index="0" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(14.0625,0)" >
+<text source-index="5" x="-1.1230000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-25" >
+</use>
+<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(31.25,0)" >
+<text source-index="11" x="-1.3894000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >b</tspan>
+</text>
+<use xlink:href="#PunctumQuadratumAscLiquescent" class=" note" source-index="13" element-index="1" id="note-2" x="3.125" y="-25" >
+</use>
+<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(48.4375,0)" >
+<text source-index="18" x="-1.6558000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >c</tspan>
+</text>
+<use xlink:href="#PunctumQuadratumDesLiquescent" class=" note" source-index="20" element-index="2" id="note-3" x="3.125" y="-25" >
+</use>
+<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(65.625,0)" >
+<text source-index="25" x="1.1018" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >d</tspan>
+</text>
+<use xlink:href="#PunctumQuadratumAscLiquescent" class=" note" source-index="27" element-index="3" id="note-4" x="3.125" y="-31.250000000000004" >
+</use>
+<rect x="0" y="-31.25" width="0.8" height="16.875" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(82.8125,0)" >
+<text source-index="32" x="0.8353999999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >e</tspan>
+</text>
+<use xlink:href="#PunctumQuadratumDesLiquescent" class=" note" source-index="34" element-index="4" id="note-5" x="3.125" y="-31.25" >
+</use>
+<rect x="0" y="-31.25" width="0.8" height="16.875" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(100,0)" >
+<text source-index="39" x="0.569" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >f</tspan>
+</text>
+<use xlink:href="#PunctumQuadratumAscLiquescentCavum" class=" note" source-index="41" element-index="5" id="note-6" x="3.125" y="-25" >
+</use>
+<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(117.1875,0)" >
+<text source-index="47" x="0.3026" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >g</tspan>
+</text>
+<use xlink:href="#PunctumQuadratumAscLiquescent" class=" note" source-index="49" element-index="6" id="note-7" x="3.125" y="-25" >
+</use>
+<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+<rect x="0" y="-36.8545" width="6.25" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(134.375,0)" >
+<text source-index="55" x="0.03620000000000001" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >h</tspan>
+</text>
+<use xlink:href="#PunctumQuadratumDesLiquescent" class=" note" source-index="57" element-index="7" id="note-8" x="3.125" y="-25" >
+</use>
+<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Mora" class="" x="6.375" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(154.6875,0)" >
+<text source-index="63" x="-0.23019999999999996" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >i</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="65" element-index="8" id="note-9" x="3.125" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(160.9375,0)" >
+<use xlink:href="#PunctumQuadratumAscLiquescent" class=" note" source-index="66" element-index="9" id="note-10" x="3.125" y="-25" >
+</use>
+<rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement Virga" transform="translate(178.125,0)" >
+<text source-index="71" x="-0.49659999999999993" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >j</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="73" element-index="10" id="note-11" x="3.125" y="-25" >
+</use>
+<rect x="5.45" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(192.1875,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="78" element-index="11" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="78" element-index="11" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>

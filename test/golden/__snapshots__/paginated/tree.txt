@@ -18,8 +18,8 @@
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
-      <g id="PunctumInclinatum" transform="scale(0.0625)" className="glyph">
-        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="Quilisma" transform="scale(0.0625)" className="glyph">
         <path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">
@@ -189,8 +189,8 @@
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
-      <g id="PunctumInclinatum" transform="scale(0.0625)" className="glyph">
-        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="Quilisma" transform="scale(0.0625)" className="glyph">
         <path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">
@@ -346,8 +346,8 @@
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
-      <g id="PunctumInclinatum" transform="scale(0.0625)" className="glyph">
-        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="Quilisma" transform="scale(0.0625)" className="glyph">
         <path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">
@@ -367,7 +367,7 @@
       <g transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c3">
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-31.25 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c3">
-      <g transform="translate(13.660152677385618,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(13.571061135205028,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=189 x=-5.723800000000001 y=13.012000000000008 style={} source=<Lyric sourceIndex=189> className="lyric" textAnchor="start" source-gabc="hú">
           <tspan source-index=0 style={} className=undefined>
             "hú"
@@ -377,12 +377,12 @@
           <rect x=0 y=-37.5 width=0.8 height=9.756761363636365 fill="#000" className="neumeLine">
           <use source-index=192 element-index=51 id="note-48" x=3.125 y=-37.5 source=<Note sourceIndex=192 elementIndex=51 noteIndex=47> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="i">
           <use source-index=193 element-index=52 id="note-49" x=9.375 y=-31.249999999999996 source=<Note sourceIndex=193 elementIndex=52 noteIndex=48> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h/">
-      <g transform="translate(29.124213748339866,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(28.999485589287037,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=195 element-index=53 id="note-50" x=3.125 y=-43.75 source=<Note sourceIndex=195 elementIndex=53 noteIndex=49> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="j">
           <use source-index=196 element-index=54 id="note-51" x=9.375 y=-37.5 source=<Note sourceIndex=196 elementIndex=54 noteIndex=50> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="i">
-      <g transform="translate(49.03436642572548,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(48.82054672449207,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=198 x=-8.0062 y=13.012000000000008 style={} source=<Lyric sourceIndex=198> className="lyric" textAnchor="start" source-gabc="me">
           <tspan source-index=0 style={} className=undefined>
             "me"
@@ -392,7 +392,7 @@
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=201 element-index=55 id="note-52" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=201 elementIndex=55 noteIndex=51> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=202 element-index=56 id="note-53" x=9.375 y=-25 source=<Note sourceIndex=202 elementIndex=56 noteIndex=52> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(68.9445191031111,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
+      <g transform="translate(68.64160785969709,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
         <text source-index=204 x=-5.8606 y=13.012000000000008 style={} source=<Lyric sourceIndex=204> className="lyric" textAnchor="start" source-gabc="rum">
           <tspan source-index=0 style={} className=undefined>
             "rum"
@@ -400,7 +400,7 @@
           <use source-index=208 element-index=57 id="note-54" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=208 elementIndex=57 noteIndex=53> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=209 element-index=58 id="note-55" x=12.5 y=-31.249999999999996 source=<Note sourceIndex=209 elementIndex=58 noteIndex=54> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=210 element-index=59 id="note-56" x=21.875 y=-31.249999999999996 source=<Note sourceIndex=210 elementIndex=59 noteIndex=55> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(104.31873285145096,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(103.89109344898414,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=213 x=0.8353999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=213> className="lyric" textAnchor="start" source-gabc="e">
           <tspan source-index=0 style={} className=undefined>
             "e"
@@ -411,18 +411,18 @@
           <use source-index=215 element-index=60 id="note-57" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=215 elementIndex=60 noteIndex=56> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <rect x=5.45 y=-31.25 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=216 element-index=61 id="note-58" x=8.575 y=-18.75 source=<Note sourceIndex=216 elementIndex=61 noteIndex=57> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f//">
-      <g transform="translate(121.94685499335947,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(121.44794235714815,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=219 element-index=62 id="note-59" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=219 elementIndex=62 noteIndex=58> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=220 element-index=63 id="note-60" x=9.375 y=-25 source=<Note sourceIndex=220 elementIndex=63 noteIndex=59> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(137.41091606431368,0)" source=<Climacus> className="ChantNotationElement Climacus">
+      <g transform="translate(136.87636681123016,0)" source=<Climacus> className="ChantNotationElement Climacus">
         <g className="Notations">
           <use source-index=221 element-index=64 id="note-61" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=221 elementIndex=64 noteIndex=60> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="hv">
           <rect x=5.45 y=-31.25 width=0.8 height=16.875 fill="#000" className="neumeLine">
-          <use source-index=223 element-index=65 id="note-62" x=11.7 y=-25 source=<Note sourceIndex=223 elementIndex=65 noteIndex=61> className=" note" xlinkHref="#PunctumInclinatum" source-gabc="G">
-          <use source-index=224 element-index=66 id="note-63" x=15.866666666666665 y=-18.75 source=<Note sourceIndex=224 elementIndex=66 noteIndex=62> className=" note" xlinkHref="#PunctumInclinatum" source-gabc="F">
-      <g transform="translate(163.812735408366,0)" source=<Clivis> className="ChantNotationElement Clivis">
+          <use source-index=223 element-index=65 id="note-62" x=11.7 y=-25 source=<Note sourceIndex=223 elementIndex=65 noteIndex=61> className=" note" xlinkHref="#PunctumInclinatumDescendens" source-gabc="G">
+          <use source-index=224 element-index=66 id="note-63" x=16.88701998281125 y=-18.75 source=<Note sourceIndex=224 elementIndex=66 noteIndex=62> className=" note" xlinkHref="#PunctumInclinatumDescendens" source-gabc="F">
+      <g transform="translate(164.2094479292464,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=226 x=-7.6462 y=13.012000000000008 style={} source=<Lyric sourceIndex=226> className="lyric" textAnchor="start" source-gabc="jus:">
           <tspan source-index=0 style={} className=undefined>
             "jus:"
@@ -430,10 +430,10 @@
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
           <use source-index=231 element-index=67 id="note-64" x=3.125 y=-25 source=<Note sourceIndex=231 elementIndex=67 noteIndex=63> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
           <use source-index=232 element-index=68 id="note-65" x=9.375 y=-18.75 source=<Note sourceIndex=232 elementIndex=68 noteIndex=64> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(183.7228880857516,0)" source=<FullBar sourceIndex=236 elementIndex=69> className="ChantNotationElement FullBar" source-gabc=":">
+      <g transform="translate(184.03050906445142,0)" source=<FullBar sourceIndex=236 elementIndex=69> className="ChantNotationElement FullBar" source-gabc=":">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=236 element-index=69 source=<FullBar sourceIndex=236 elementIndex=69> className="dividerLine" source-gabc=":">
-      <g transform="translate(191.93304076313723,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(192.15157019965648,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=239 x=0.8353999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=239> className="lyric" textAnchor="start" source-gabc="et">
           <tspan source-index=0 style={} className=undefined>
             "et"
@@ -441,13 +441,13 @@
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=242 element-index=70 id="note-66" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=242 elementIndex=70 noteIndex=65> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=243 element-index=71 id="note-67" x=9.375 y=-25 source=<Note sourceIndex=243 elementIndex=71 noteIndex=66> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(215.34927107427453,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(215.56309077550796,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=246 x=-6.3934 y=13.012000000000008 style={} source=<Lyric sourceIndex=246> className="lyric" textAnchor="start" source-gabc="vo">
           <tspan source-index=0 style={} className=undefined>
             "vo"
         <g className="Notations">
           <use source-index=249 element-index=72 id="note-68" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=249 elementIndex=72 noteIndex=67> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(228.89967107427455,0)" source=<Torculus> className="ChantNotationElement Torculus">
+      <g transform="translate(229.11349077550798,0)" source=<Torculus> className="ChantNotationElement Torculus">
         <text source-index=251 x=-8.4958 y=13.012000000000008 style={} source=<Lyric sourceIndex=251> className="lyric" textAnchor="start" source-gabc="cá">
           <tspan source-index=0 style={} className=undefined>
             "cá"
@@ -458,13 +458,13 @@
           <rect x=5.45 y=-43.75 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=255 element-index=74 id="note-70" x=8.575 y=-43.75 source=<Note sourceIndex=255 elementIndex=74 noteIndex=69> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="j">
           <use source-index=256 element-index=75 id="note-71" x=14.825 y=-37.5 source=<Note sourceIndex=256 elementIndex=75 noteIndex=70> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="i">
-      <g transform="translate(254.25982375166018,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(254.384551910713,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=258 x=-9.259 y=13.012000000000008 style={} source=<Lyric sourceIndex=258> className="lyric" textAnchor="start" source-gabc="bi">
           <tspan source-index=0 style={} className=undefined>
             "bi"
         <g className="Notations">
           <use source-index=261 element-index=76 id="note-72" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=261 elementIndex=76 noteIndex=71> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(267.66622375166014,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
+      <g transform="translate(267.790951910713,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
         <text source-index=263 x=-6.9262 y=13.012000000000008 style={} source=<Lyric sourceIndex=263> className="lyric" textAnchor="start" source-gabc="tur">
           <tspan source-index=0 style={} className=undefined>
             "tur"
@@ -503,8 +503,8 @@
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
-      <g id="PunctumInclinatum" transform="scale(0.0625)" className="glyph">
-        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="Quilisma" transform="scale(0.0625)" className="glyph">
         <path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">
@@ -524,7 +524,7 @@
       <g transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c3">
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-31.25 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c3">
-      <g transform="translate(13.858762596899233,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
+      <g transform="translate(13.740116862463818,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
         <text source-index=277 x=-8.0062 y=13.012000000000008 style={} source=<Lyric sourceIndex=277> className="lyric" textAnchor="start" source-gabc="men">
           <tspan source-index=0 style={} className=undefined>
             "men"
@@ -532,7 +532,7 @@
           <use source-index=281 element-index=81 id="note-77" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=281 elementIndex=81 noteIndex=76> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=282 element-index=82 id="note-78" x=12.5 y=-31.249999999999996 source=<Note sourceIndex=282 elementIndex=82 noteIndex=77> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=283 element-index=83 id="note-79" x=21.875 y=-31.249999999999996 source=<Note sourceIndex=283 elementIndex=83 noteIndex=78> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(49.511030232558156,0)" source=<Torculus> className="ChantNotationElement Torculus">
+      <g transform="translate(49.22628046991316,0)" source=<Torculus> className="ChantNotationElement Torculus">
         <text source-index=286 x=0.8353999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=286> className="lyric" textAnchor="start" source-gabc="e">
           <tspan source-index=0 style={} className=undefined>
             "e"
@@ -543,13 +543,13 @@
           <use source-index=289 element-index=85 id="note-81" x=9.375 y=-37.5 source=<Note sourceIndex=289 elementIndex=85 noteIndex=80> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="i">
           <rect x=11.7 y=-37.5 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=290 element-index=86 id="note-82" x=14.825 y=-25 source=<Note sourceIndex=290 elementIndex=86 noteIndex=81> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(70.50453527131785,0)" source=<Climacus> className="ChantNotationElement Climacus">
+      <g transform="translate(70.17232721489869,0)" source=<Climacus> className="ChantNotationElement Climacus">
         <g className="Notations">
           <use source-index=291 element-index=87 id="note-83" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=291 elementIndex=87 noteIndex=82> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="hv">
           <rect x=5.45 y=-31.25 width=0.8 height=16.875 fill="#000" className="neumeLine">
-          <use source-index=293 element-index=88 id="note-84" x=11.7 y=-25 source=<Note sourceIndex=293 elementIndex=88 noteIndex=83> className=" note" xlinkHref="#PunctumInclinatum" source-gabc="G">
-          <use source-index=294 element-index=89 id="note-85" x=15.866666666666665 y=-18.75 source=<Note sourceIndex=294 elementIndex=89 noteIndex=84> className=" note" xlinkHref="#PunctumInclinatum" source-gabc="F">
-      <g transform="translate(97.10496453488375,0)" source=<Clivis> className="ChantNotationElement Clivis">
+          <use source-index=293 element-index=88 id="note-84" x=11.7 y=-25 source=<Note sourceIndex=293 elementIndex=88 noteIndex=83> className=" note" xlinkHref="#PunctumInclinatumDescendens" source-gabc="G">
+          <use source-index=294 element-index=89 id="note-85" x=16.88701998281125 y=-18.75 source=<Note sourceIndex=294 elementIndex=89 noteIndex=84> className=" note" xlinkHref="#PunctumInclinatumDescendens" source-gabc="F">
+      <g transform="translate(97.67446406017376,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <text source-index=296 x=-7.6462 y=13.012000000000008 style={} source=<Lyric sourceIndex=296> className="lyric" textAnchor="start" source-gabc="jus,">
           <tspan source-index=0 style={} className=undefined>
             "jus,"
@@ -557,10 +557,10 @@
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
           <use source-index=301 element-index=90 id="note-86" x=3.125 y=-25 source=<Note sourceIndex=301 elementIndex=90 noteIndex=85> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
           <use source-index=302 element-index=91 id="note-87" x=9.375 y=-18.75 source=<Note sourceIndex=302 elementIndex=91 noteIndex=86> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(118.97496453488375,0)" source=<HalfBar sourceIndex=306 elementIndex=92> className="ChantNotationElement HalfBar" source-gabc=";">
+      <g transform="translate(119.54446406017375,0)" source=<HalfBar sourceIndex=306 elementIndex=92> className="ChantNotationElement HalfBar" source-gabc=";">
         <g className="Notations">
           <rect x=0 y=-37.5 width=0.8 height=25 fill="#000" source-index=306 element-index=92 source=<HalfBar sourceIndex=306 elementIndex=92> className="dividerLine" source-gabc=";">
-      <g transform="translate(129.14496453488377,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(129.71446406017375,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <text source-index=309 x=-9.964599999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=309> className="lyric" textAnchor="start" source-gabc="ma">
           <tspan source-index=0 style={} className=undefined>
             "ma"
@@ -568,13 +568,13 @@
           <use source-index=312 element-index=93 id="note-88" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=312 elementIndex=93 noteIndex=87> className=" note" xlinkHref="#PodatusLower" source-gabc="h">
           <rect x=5.45 y=-43.75 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=313 element-index=94 id="note-89" x=6.25 y=-43.75 source=<Note sourceIndex=313 elementIndex=94 noteIndex=88> className=" note" xlinkHref="#PodatusUpper" source-gabc="j">
-      <g transform="translate(151.76736453488377,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(152.33686406017375,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=315 x=-15.249399999999998 y=13.012000000000008 style={} source=<Lyric sourceIndex=315> className="lyric" textAnchor="start" source-gabc="gni">
           <tspan source-index=0 style={} className=undefined>
             "gni"
         <g className="Notations">
           <use source-index=319 element-index=95 id="note-90" x=3.125 y=-37.5 source=<Note sourceIndex=319 elementIndex=95 noteIndex=89> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="i">
-      <g transform="translate(171.59616453488377,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(172.16566406017375,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <text source-index=322 x=-8.3662 y=13.012000000000008 style={} source=<Lyric sourceIndex=322> className="lyric" textAnchor="start" source-gabc="con">
           <tspan source-index=0 style={} className=undefined>
             "con"
@@ -582,13 +582,13 @@
           <use source-index=326 element-index=96 id="note-91" x=3.125 y=-12.5 source=<Note sourceIndex=326 elementIndex=96 noteIndex=90> className=" note" xlinkHref="#BeginningAscLiquescent" source-gabc="e">
           <rect x=5.45 y=-31.25 width=0.8 height=18.75 fill="#000" className="neumeLine">
           <use source-index=327 element-index=97 id="note-92" x=6.25 y=-31.249999999999996 source=<Note sourceIndex=327 elementIndex=97 noteIndex=91> className=" note" xlinkHref="#TerminatingAscLiquescent" source-gabc="h~">
-      <g transform="translate(191.12256453488376,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(191.69206406017375,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=330 x=-5.0974 y=13.012000000000008 style={} source=<Lyric sourceIndex=330> className="lyric" textAnchor="start" source-gabc="sí">
           <tspan source-index=0 style={} className=undefined>
             "sí"
         <g className="Notations">
           <use source-index=333 element-index=98 id="note-93" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=333 elementIndex=98 noteIndex=92> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(205.01856453488375,0)" source=<Distropha> className="ChantNotationElement Distropha">
+      <g transform="translate(205.58806406017374,0)" source=<Distropha> className="ChantNotationElement Distropha">
         <text source-index=335 x=-8.539 y=13.012000000000008 style={} source=<Lyric sourceIndex=335> className="lyric" textAnchor="start" source-gabc="li">
           <tspan source-index=0 style={} className=undefined>
             "li"
@@ -597,19 +597,19 @@
         <g className="Notations">
           <use source-index=338 element-index=99 id="note-94" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=338 elementIndex=99 noteIndex=93> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=339 element-index=100 id="note-95" x=12.5 y=-31.249999999999996 source=<Note sourceIndex=339 elementIndex=100 noteIndex=94> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(223.68706957364344,0)" source=<Clivis> className="ChantNotationElement Clivis">
+      <g transform="translate(224.20911080515927,0)" source=<Clivis> className="ChantNotationElement Clivis">
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
           <use source-index=340 element-index=101 id="note-96" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=340 elementIndex=101 noteIndex=95> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <rect x=5.45 y=-31.25 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=341 element-index=102 id="note-97" x=8.575 y=-18.75 source=<Note sourceIndex=341 elementIndex=102 noteIndex=96> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(242.99583217054266,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(243.39922766762308,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=343 x=-0.23019999999999996 y=13.012000000000008 style={} source=<Lyric sourceIndex=343> className="lyric" textAnchor="start" source-gabc="i">
           <tspan source-index=0 style={} className=undefined>
             "i"
         <g className="Notations">
           <use source-index=345 element-index=103 id="note-98" x=3.125 y=-18.75 source=<Note sourceIndex=345 elementIndex=103 noteIndex=97> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(259.89809980620157,0)" source=<Torculus> className="ChantNotationElement Torculus">
+      <g transform="translate(260.1353912750724,0)" source=<Torculus> className="ChantNotationElement Torculus">
         <text source-index=348 x=-1.6701999999999995 y=13.012000000000008 style={} source=<Lyric sourceIndex=348> className="lyric" textAnchor="start" source-gabc="An">
           <tspan source-index=0 style={} className=undefined>
             "An"
@@ -621,11 +621,11 @@
           <use source-index=352 element-index=105 id="note-100" x=8.575 y=-31.249999999999996 source=<Note sourceIndex=352 elementIndex=105 noteIndex=99> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <rect x=10.899999999999999 y=-31.25 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=353 element-index=106 id="note-101" x=14.024999999999999 y=-18.75 source=<Note sourceIndex=353 elementIndex=106 noteIndex=100> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f!">
-      <g transform="translate(277.04809980620155,0)" source=<Podatus> className="ChantNotationElement Podatus">
+      <g transform="translate(277.28539127507236,0)" source=<Podatus> className="ChantNotationElement Podatus">
         <g className="Notations">
           <use source-index=355 element-index=107 id="note-102" x=3.125 y=-25 source=<Note sourceIndex=355 elementIndex=107 noteIndex=101> className=" note" xlinkHref="#Quilisma" source-gabc="gw">
           <use source-index=357 element-index=108 id="note-103" x=6.25 y=-31.249999999999996 source=<Note sourceIndex=357 elementIndex=108 noteIndex=102> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="h">
-      <g transform="translate(290.9068624031008,0)" source=<Torculus> className="ChantNotationElement Torculus">
+      <g transform="translate(291.0255081375362,0)" source=<Torculus> className="ChantNotationElement Torculus">
         <text source-index=359 x=-4.8094 y=13.012000000000008 style={} source=<Lyric sourceIndex=359> className="lyric" textAnchor="start" source-gabc="ge">
           <tspan source-index=0 style={} className=undefined>
             "ge"
@@ -658,8 +658,8 @@
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
-      <g id="PunctumInclinatum" transform="scale(0.0625)" className="glyph">
-        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="Quilisma" transform="scale(0.0625)" className="glyph">
         <path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">
@@ -802,8 +802,8 @@
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
-      <g id="PunctumInclinatum" transform="scale(0.0625)" className="glyph">
-        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="Quilisma" transform="scale(0.0625)" className="glyph">
         <path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">
@@ -972,8 +972,8 @@
         <path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z">
       <g id="PodatusUpperShort" transform="scale(0.0625)" className="glyph">
         <path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
-      <g id="PunctumInclinatum" transform="scale(0.0625)" className="glyph">
-        <path d="M0-75.78L50 0 0 75-50 0 0-75.78z">
+      <g id="PunctumInclinatumDescendens" transform="scale(0.0625)" className="glyph">
+        <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="Quilisma" transform="scale(0.0625)" className="glyph">
         <path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z">
       <g id="DoClef" transform="scale(0.0625)" className="glyph">

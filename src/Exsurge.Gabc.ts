@@ -137,7 +137,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or before them
@@ -1263,6 +1263,76 @@ export class Gabc {
     return mappings;
   }
 
+  /**
+   * Sets the automaticLeaning of each punctum inclinatum in a syllable's
+   * notes that has no leaning of its own, as Gregorio does
+   * (gabc_determine_punctum_inclinatum_orientation()).  A run of inclinata
+   * leans the way the line they make goes, counting the steps into and out
+   * of it, unless they're all at one pitch, which leaves them upright; an
+   * inclinatum in the run that has a leaning, or is a liquescent (which
+   * leans down), gives the run its leaning instead.  (Gregorio carries a
+   * run's leaning on into the next syllable; this doesn't look past the
+   * syllable.)
+   */
+  static setAutomaticLeanings(notes: Note[]) {
+    // the inclinata in the run that have no leaning of their own, and the
+    // leaning that an inclinatum in the run that has one gives them
+    let run: Note[] = [];
+    let leaning: InclinatumLeaning | undefined;
+    // the steps up less the steps down, the number of inclinata, and whether they're at one pitch
+    let rising = 0,
+      count = 0,
+      unison = true;
+    let previous: Note | undefined;
+    const endRun = () => {
+      let runLeaning =
+        leaning ||
+        (unison && (count > 1 || (count === 1 && rising === 0))
+          ? "unison"
+          : rising > 0
+            ? "ascending"
+            : "descending");
+      for (let note of run) note.automaticLeaning = runLeaning;
+      run = [];
+      unison = true;
+    };
+    for (let note of notes) {
+      let isInclinatum = note.shape === NoteShape.Inclinatum;
+      // (a deminutus or an auctus, not an initio debilis)
+      let isLiquescent =
+        isInclinatum &&
+        (note.liquescent & (LiquescentType.Small | LiquescentType.Ascending | LiquescentType.Descending)) !== 0;
+      let step = previous ? Math.sign(note.staffPosition - previous.staffPosition) : 0;
+      delete note.automaticLeaning;
+      if (isInclinatum && !note.leaning && !isLiquescent) {
+        if (leaning) note.automaticLeaning = leaning;
+        else {
+          rising += step;
+          if (step && count > 0) unison = false;
+          run.push(note);
+        }
+        count++;
+      } else {
+        if (isLiquescent) {
+          unison = false;
+          leaning = "descending";
+        } else if (isInclinatum) leaning = note.leaning;
+        if (run.length) {
+          if (!isInclinatum) rising += step;
+          endRun();
+        }
+        if (isInclinatum) count++;
+        else {
+          rising = count = 0;
+          unison = true;
+          leaning = undefined;
+        }
+      }
+      previous = note;
+    }
+    if (run.length) endRun();
+  }
+
   // takes a gabc word (like those returned by splitWords below) and returns
   // a ChantMapping object that contains the gabc word source text as well
   // as the generated notations.
@@ -1387,6 +1457,7 @@ export class Gabc {
       }
 
       if (items.length === 0) continue;
+      this.setAutomaticLeanings(([] as Note[]).concat(...items.map((item) => item.notes || [])));
       // (and the areas that the word before left for its next syllable)
       setAreaBoundaries(items, this.marksForNext.areas);
       this.marksForNext = { ...this.marksForNext, areas: {} };
@@ -1877,6 +1948,18 @@ export class Gabc {
         case "^0":
           addNotation(new Signs.DivisioMinimis(barWithCarryover, atom === "^0"));
           break;
+        // Gregorio's parenthesized bars (`0? and ,0? high, as `0 and ,0 are)
+        case ",?":
+        case ",0?":
+        case "`?":
+        case "`0?": {
+          let high = atom[1] === "0";
+          let parenthesizedBar =
+            atom[0] === "," ? new Signs.QuarterBar(barWithCarryover, high) : new Signs.Virgula(barWithCarryover, high);
+          parenthesizedBar.parenthesized = true;
+          addNotation(parenthesizedBar);
+          break;
+        }
         case ";":
           addNotation(new Signs.HalfBar(barWithCarryover));
           break;
@@ -2263,7 +2346,12 @@ export class Gabc {
         else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
         else if (currNote.shape === NoteShape.Inclinatum)
           return punctaInclinataState;
-        else if (currNote.shapeModifiers & NoteShapeModifiers.Cavum)
+        // (a cavum goes into a neume like any other note, and is drawn hollow
+        // there, but a punctum cavum between lines, r0, stands alone)
+        else if (
+          currNote.shapeModifiers & NoteShapeModifiers.Cavum &&
+          currNote.shapeModifiers & NoteShapeModifiers.Linea
+        )
           return createNeume(new Neumes.Punctum(), true);
         else return punctumState;
       }
@@ -2601,9 +2689,10 @@ export class Gabc {
           currNote.staffPosition > prevNote.staffPosition
         ) {
           let prevNoteButOne = notes[currNoteIndex - 2];
+          // (if there's a porrectus stroke for the fall, up to a fifth)
           if (
             prevNoteButOne &&
-            prevNoteButOne.staffPosition - prevNote.staffPosition <= 4
+            prevNoteButOne.staffPosition - prevNote.staffPosition <= 5
           ) {
             if (currNote.ictus)
               currNote.ictus.positionHint = MarkingPositionHint.Above;
@@ -2926,10 +3015,14 @@ export class Gabc {
           note.shape = NoteShape.Quilisma;
           break;
 
-        // Gregorio's shapes that are read but not drawn yet
+        // Gregorio's quilisma quadratum: a quilisma, which a higher note
+        // follows as in a pes quadratum
         case "W":
+          note.shape = NoteShape.Quilisma;
           note.quilismaQuadratum = true;
           break;
+
+        // Gregorio's pes quadratum and linea
         case "q":
           note.quadratum = true;
           break;

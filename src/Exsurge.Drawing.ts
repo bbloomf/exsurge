@@ -430,6 +430,7 @@ export const GlyphCode = {
   Porrectus2: "Porrectus2", // 2 lines difference, etc...
   Porrectus3: "Porrectus3",
   Porrectus4: "Porrectus4",
+  Porrectus5: "Porrectus5",
 
   PunctumCavum: "PunctumCavum",
   PunctumQuadratum: "PunctumQuadratum",
@@ -437,6 +438,9 @@ export const GlyphCode = {
   PunctumQuadratumAscLiquescent: "PunctumQuadratumAscLiquescent",
   PunctumQuadratumDesLiquescent: "PunctumQuadratumDesLiquescent",
   PunctumInclinatum: "PunctumInclinatum",
+  PunctumInclinatumAscendens: "PunctumInclinatumAscendens",
+  PunctumInclinatumDescendens: "PunctumInclinatumDescendens",
+  PunctumInclinatumAuctus: "PunctumInclinatumAuctus",
   PunctumInclinatumLiquescent: "PunctumInclinatumLiquescent",
   Quilisma: "Quilisma",
 
@@ -448,10 +452,87 @@ export const GlyphCode = {
   VirgaLong: "VirgaLong",
   VirgaShort: "VirgaShort",
   Virgula: "Virgula",
+  OpenParenthesis: "OpenParenthesis",
+  CloseParenthesis: "CloseParenthesis",
 
-  UpperBrace: "UpperBrace"
+  UpperBrace: "UpperBrace",
+
+  // the hollow (cavum) forms of the note glyphs (see CavumGlyphCode)
+  OriscusAscCavum: "OriscusAscCavum",
+  OriscusDesCavum: "OriscusDesCavum",
+  OriscusLiquescentCavum: "OriscusLiquescentCavum",
+  PodatusLowerCavum: "PodatusLowerCavum",
+  PodatusUpperCavum: "PodatusUpperCavum",
+  PodatusLowerShortCavum: "PodatusLowerShortCavum",
+  PodatusUpperShortCavum: "PodatusUpperShortCavum",
+  Porrectus1Cavum: "Porrectus1Cavum",
+  Porrectus2Cavum: "Porrectus2Cavum",
+  Porrectus3Cavum: "Porrectus3Cavum",
+  Porrectus4Cavum: "Porrectus4Cavum",
+  Porrectus5Cavum: "Porrectus5Cavum",
+  PunctumQuadratumLiquescentCavum: "PunctumQuadratumLiquescentCavum",
+  PunctumQuadratumAscLiquescentCavum: "PunctumQuadratumAscLiquescentCavum",
+  PunctumQuadratumDesLiquescentCavum: "PunctumQuadratumDesLiquescentCavum",
+  PunctumInclinatumCavum: "PunctumInclinatumCavum",
+  PunctumInclinatumAscendensCavum: "PunctumInclinatumAscendensCavum",
+  PunctumInclinatumDescendensCavum: "PunctumInclinatumDescendensCavum",
+  PunctumInclinatumAuctusCavum: "PunctumInclinatumAuctusCavum",
+  PunctumInclinatumLiquescentCavum: "PunctumInclinatumLiquescentCavum",
+  QuilismaCavum: "QuilismaCavum",
+  StrophaCavum: "StrophaCavum",
+  StrophaLiquescentCavum: "StrophaLiquescentCavum",
+  TerminatingAscLiquescentCavum: "TerminatingAscLiquescentCavum",
+  TerminatingDesLiquescentCavum: "TerminatingDesLiquescentCavum"
 } as const; // GlyphCode
 export type GlyphCode = (typeof GlyphCode)[keyof typeof GlyphCode];
+
+/** the hollow form of each note glyph, for a note with a cavum (gabc r) */
+export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } = {
+  [GlyphCode.BeginningAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum, // (the same outline)
+  [GlyphCode.BeginningDesLiquescent]: GlyphCode.PunctumQuadratumDesLiquescentCavum, // (the same outline)
+  [GlyphCode.OriscusAsc]: GlyphCode.OriscusAscCavum,
+  [GlyphCode.OriscusDes]: GlyphCode.OriscusDesCavum,
+  [GlyphCode.OriscusLiquescent]: GlyphCode.OriscusLiquescentCavum,
+  [GlyphCode.PodatusLower]: GlyphCode.PodatusLowerCavum,
+  [GlyphCode.PodatusUpper]: GlyphCode.PodatusUpperCavum,
+  [GlyphCode.PodatusLowerShort]: GlyphCode.PodatusLowerShortCavum,
+  [GlyphCode.PodatusUpperShort]: GlyphCode.PodatusUpperShortCavum,
+  [GlyphCode.Porrectus1]: GlyphCode.Porrectus1Cavum,
+  [GlyphCode.Porrectus2]: GlyphCode.Porrectus2Cavum,
+  [GlyphCode.Porrectus3]: GlyphCode.Porrectus3Cavum,
+  [GlyphCode.Porrectus4]: GlyphCode.Porrectus4Cavum,
+  [GlyphCode.Porrectus5]: GlyphCode.Porrectus5Cavum,
+  [GlyphCode.PunctumQuadratum]: GlyphCode.PunctumCavum,
+  [GlyphCode.PunctumQuadratumLiquescent]: GlyphCode.PunctumQuadratumLiquescentCavum,
+  [GlyphCode.PunctumQuadratumAscLiquescent]: GlyphCode.PunctumQuadratumAscLiquescentCavum,
+  [GlyphCode.PunctumQuadratumDesLiquescent]: GlyphCode.PunctumQuadratumDesLiquescentCavum,
+  [GlyphCode.PunctumInclinatum]: GlyphCode.PunctumInclinatumCavum,
+  [GlyphCode.PunctumInclinatumAscendens]: GlyphCode.PunctumInclinatumAscendensCavum,
+  [GlyphCode.PunctumInclinatumDescendens]: GlyphCode.PunctumInclinatumDescendensCavum,
+  [GlyphCode.PunctumInclinatumAuctus]: GlyphCode.PunctumInclinatumAuctusCavum,
+  [GlyphCode.PunctumInclinatumLiquescent]: GlyphCode.PunctumInclinatumLiquescentCavum,
+  [GlyphCode.Quilisma]: GlyphCode.QuilismaCavum,
+  [GlyphCode.Stropha]: GlyphCode.StrophaCavum,
+  [GlyphCode.StrophaLiquescent]: GlyphCode.StrophaLiquescentCavum,
+  [GlyphCode.TerminatingAscLiquescent]: GlyphCode.TerminatingAscLiquescentCavum,
+  [GlyphCode.TerminatingDesLiquescent]: GlyphCode.TerminatingDesLiquescentCavum
+};
+
+/**
+ * the glyphs of a punctum inclinatum (other than a deminutus), solid or
+ * hollow, and which way each is turned: 1 as in an ascending line, -1 as in
+ * a descending one, and 0 if it's upright
+ */
+export const InclinatumGlyphTurn: { readonly [glyphCode in GlyphCode]?: number } = {
+  [GlyphCode.PunctumInclinatum]: 0,
+  [GlyphCode.PunctumInclinatumAscendens]: 1,
+  [GlyphCode.PunctumInclinatumDescendens]: -1,
+  [GlyphCode.PunctumInclinatumAuctus]: 0,
+  [GlyphCode.PunctumInclinatumCavum]: 0,
+  [GlyphCode.PunctumInclinatumAscendensCavum]: 1,
+  [GlyphCode.PunctumInclinatumDescendensCavum]: -1,
+  [GlyphCode.PunctumInclinatumAuctusCavum]: 0
+};
 
 /** attributes of an svg element, by name; undefined ones are left out */
 export interface SvgAttributes {
@@ -898,6 +979,13 @@ export class ChantContext {
 
   glyphPunctumWidth: number;
   glyphPunctumHeight: number;
+  /**
+   * Whether puncta inclinata lean as Gregorio's do: as their gabc says (G0
+   * descending, G1 ascending, G2 upright), or else the way the notes around
+   * them go (see Note.automaticLeaning).  On by default; set it false to draw
+   * every inclinatum upright.
+   */
+  inclinatumLeaning: boolean;
 
   // set by setGlyphScaling() (and so by setStaffHeight()):
   glyphMultiplier!: number;
@@ -1166,6 +1254,7 @@ export class ChantContext {
     // everything depends on the scale of the punctum
     this.glyphPunctumWidth = Glyphs.PunctumQuadratum.bounds.width;
     this.glyphPunctumHeight = Glyphs.PunctumQuadratum.bounds.height;
+    this.inclinatumLeaning = true;
 
     // max space to add between notations when justifying, in multiples of this.staffInterval
     this.maxExtraSpaceInStaffIntervals = 0.5;
@@ -2163,7 +2252,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
       else this.glyphCode = glyphCode;
 
       let glyph = this.glyph = Glyphs[glyphCode];
-      const porrectusResult = /^Porrectus([1-9])$/.exec(glyphCode);
+      const porrectusResult = /^Porrectus([1-9])(?:Cavum)?$/.exec(glyphCode);
       this.porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
 
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing

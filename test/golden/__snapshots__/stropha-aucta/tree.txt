@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=600 height=77.09 viewBox="0 0 600 77.09" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
+  <g>
+    <defs>
+      <g id="Mora" transform="scale(0.0625)" className="glyph">
+        <path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z">
+      <g id="VerticalEpisemaAbove" transform="scale(0.0625)" className="glyph">
+        <path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z">
+      <g id="StrophaLiquescent" transform="scale(0.0625)" className="glyph">
+        <path d="M1.22-73.438c4.165 13.02 12.238 27.084 24.217 42.188L49.657 0 34.812 34.18C18.666 69.338-.084 90.495-21.438 97.655c4.687-4.556 7.03-10.741 7.03-18.554 0-11.066-4.947-25.715-14.843-43.944L-48 0 1.22-73.438z">
+      <g id="Stropha" transform="scale(0.0625)" className="glyph">
+        <path d="M1.22-73.438c4.165 13.02 12.238 27.084 24.217 42.188L49.657 0 34.812 27.344C18.666 55.47-.084 72.396-21.438 78.124c4.687-3.645 7.03-8.593 7.03-14.843 0-8.853-4.947-20.572-14.843-35.155L-48 0 1.22-73.438z">
+      <g id="StrophaLiquescentCavum" transform="scale(0.0625)" className="glyph">
+        <path d="M1.22-73.438c4.165 13.02 12.238 27.084 24.217 42.188L49.657 0 34.812 34.18C18.666 69.338-.084 90.495-21.438 97.655c4.687-4.556 7.03-10.741 7.03-18.554 0-11.066-4.947-25.715-14.843-43.944L-48 0 1.22-73.438z">
+        <path d="M-1.2-37.496l-25.781 38.656 16.212 30.45c4.451 8.361 8.154 17.222 10.924 26.277 5.54-4.597 14.722-22.96 17.829-30.2l10.818-25.212-21.426-27.671c-2.038-2.632-3.942-5.383-5.807-8.138-.654-.966-1.3-1.938-1.935-2.917-.273-.418-.557-1.661-.834-1.245z" fill="#fff">
+      <g id="VerticalEpisemaBelow" transform="scale(0.0625)" className="glyph">
+        <path d="M-8 56c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z">
+      <g id="DoClef" transform="scale(0.0625)" className="glyph">
+        <path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z">
+      <style>
+        "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
+    <g source=<Titles> className="Titles">
+    <g transform="translate(0,58.75)" element-index=0 className="chantLine">
+      <g className="staffLines">
+        <line key=-7 x1=0 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-5 x1=0 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-3 x1=0 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
+        <line key=-1 x1=0 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
+      <g transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
+        <g className="Notations">
+          <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">
+      <g transform="translate(14.0625,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=5 x=-1.2480000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=5> className="lyric" textAnchor="start" source-gabc="a">
+          <tspan source-index=0 style={} className=undefined>
+            "a"
+        <g className="Notations">
+          <use source-index=7 element-index=0 id="note-1" x=3 y=-18.75 source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="fs<">
+      <g transform="translate(31.1035625,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=12 x=-1.5144000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=12> className="lyric" textAnchor="start" source-gabc="b">
+          <tspan source-index=0 style={} className=undefined>
+            "b"
+        <g className="Notations">
+          <use source-index=14 element-index=1 id="note-2" x=3 y=-18.75 source=<Note sourceIndex=14 elementIndex=1 noteIndex=1> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="fs>">
+      <g transform="translate(48.144625,0)" source=<Distropha> className="ChantNotationElement Distropha">
+        <text source-index=19 x=-1.7808000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=19> className="lyric" textAnchor="start" source-gabc="c">
+          <tspan source-index=0 style={} className=undefined>
+            "c"
+        <g className="Notations">
+          <use source-index=21 element-index=2 id="note-3" x=3 y=-18.75 source=<Note sourceIndex=21 elementIndex=2 noteIndex=2> className=" note" xlinkHref="#Stropha" source-gabc="fss<">
+          <use source-index=23 element-index=3 id="note-4" x=10.666062499999999 y=-18.75 source=<Note sourceIndex=23 elementIndex=3 noteIndex=3> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="s">
+      <g transform="translate(72.85175,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
+        <text source-index=27 x=0.9767999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=27> className="lyric" textAnchor="start" source-gabc="d">
+          <tspan source-index=0 style={} className=undefined>
+            "d"
+        <g className="Notations">
+          <use source-index=29 element-index=4 id="note-5" x=3 y=-18.75 source=<Note sourceIndex=29 elementIndex=4 noteIndex=4> className=" note" xlinkHref="#Stropha" source-gabc="fsss>">
+          <use source-index=31 element-index=5 id="note-6" x=10.666062499999999 y=-18.75 source=<Note sourceIndex=31 elementIndex=5 noteIndex=5> className=" note" xlinkHref="#Stropha" source-gabc="s">
+          <use source-index=32 element-index=6 id="note-7" x=18.332124999999998 y=-18.75 source=<Note sourceIndex=32 elementIndex=6 noteIndex=6> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="s">
+      <g transform="translate(105.2249375,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=36 x=0.7103999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=36> className="lyric" textAnchor="start" source-gabc="e">
+          <tspan source-index=0 style={} className=undefined>
+            "e"
+        <g className="Notations">
+          <use source-index=38 element-index=7 id="note-8" x=3 y=-18.75 source=<Note sourceIndex=38 elementIndex=7 noteIndex=7> className=" note" xlinkHref="#Stropha" source-gabc="fs">
+      <g transform="translate(122.26599999999999,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=42 x=0.44399999999999995 y=13.012000000000008 style={} source=<Lyric sourceIndex=42> className="lyric" textAnchor="start" source-gabc="f">
+          <tspan source-index=0 style={} className=undefined>
+            "f"
+        <g className="Notations">
+          <use source-index=44 element-index=8 id="note-9" x=3 y=-18.75 source=<Note sourceIndex=44 elementIndex=8 noteIndex=8> className=" note" xlinkHref="#StrophaLiquescentCavum" source-gabc="fs<r">
+      <g transform="translate(139.3070625,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=50 x=0.17759999999999998 y=13.012000000000008 style={} source=<Lyric sourceIndex=50> className="lyric" textAnchor="start" source-gabc="g">
+          <tspan source-index=0 style={} className=undefined>
+            "g"
+        <g className="Notations">
+          <use source-index=52 element-index=9 id="note-10" x=3 y=-31.25 source=<Note sourceIndex=52 elementIndex=9 noteIndex=9> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="hs<">
+      <g transform="translate(156.348125,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=57 x=-0.08879999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=57> className="lyric" textAnchor="start" source-gabc="h">
+          <tspan source-index=0 style={} className=undefined>
+            "h"
+        <g className="Notations">
+          <use source-index=59 element-index=10 id="note-11" x=3 y=-18.75 source=<Note sourceIndex=59 elementIndex=10 noteIndex=10> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="fs<_">
+          <rect x=0 y=-27.0136875 width=6.1035625 height=1 fill="#000" className="horizontalEpisema">
+      <g transform="translate(173.38918750000002,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=65 x=-0.35519999999999996 y=13.012000000000008 style={} source=<Lyric sourceIndex=65> className="lyric" textAnchor="start" source-gabc="i">
+          <tspan source-index=0 style={} className=undefined>
+            "i"
+        <g className="Notations">
+          <use source-index=67 element-index=11 id="note-12" x=3 y=-18.75 source=<Note sourceIndex=67 elementIndex=11 noteIndex=11> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="fs<.">
+          <use source-index=undefined element-index=undefined x=6.2285625 y=-23.4375 source=<Apostropha> className="" xlinkHref="#Mora">
+      <g transform="translate(193.55525000000003,0)" source=<Distropha> className="ChantNotationElement Distropha">
+        <text source-index=73 x=-0.6215999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=73> className="lyric" textAnchor="start" source-gabc="j">
+          <tspan source-index=0 style={} className=undefined>
+            "j"
+        <g className="Notations">
+          <use source-index=75 element-index=12 id="note-13" x=3 y=-18.75 source=<Note sourceIndex=75 elementIndex=12 noteIndex=12> className=" note" xlinkHref="#Stropha" source-gabc="fss">
+          <use source-index=77 element-index=13 id="note-14" x=10.666062499999999 y=-18.75 source=<Note sourceIndex=77 elementIndex=13 noteIndex=13> className=" note" xlinkHref="#Stropha" source-gabc="s">
+      <g transform="translate(218.26237500000002,0)" source=<Apostropha> className="ChantNotationElement Apostropha">
+        <text source-index=80 x=-0.8879999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=80> className="lyric" textAnchor="start" source-gabc="k">
+          <tspan source-index=0 style={} className=undefined>
+            "k"
+        <g className="Notations">
+          <use source-index=82 element-index=14 id="note-15" x=3 y=-18.75 source=<Note sourceIndex=82 elementIndex=14 noteIndex=14> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="fs<'">
+          <use source-index=undefined element-index=undefined x=3.05178125 y=-12.5 source=<Apostropha> className="" xlinkHref="#VerticalEpisemaBelow">
+      <g transform="translate(235.30343750000003,0)" source=<Tristropha> className="ChantNotationElement Tristropha">
+        <text source-index=88 x=-1.1543999999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=88> className="lyric" textAnchor="start" source-gabc="l">
+          <tspan source-index=0 style={} className=undefined>
+            "l"
+        <g className="Notations">
+          <use source-index=90 element-index=15 id="note-16" x=3 y=-18.75 source=<Note sourceIndex=90 elementIndex=15 noteIndex=15> className=" note" xlinkHref="#StrophaLiquescent" source-gabc="fs<ss">
+          <use source-index=93 element-index=16 id="note-17" x=10.666062499999999 y=-18.75 source=<Note sourceIndex=93 elementIndex=16 noteIndex=16> className=" note" xlinkHref="#Stropha" source-gabc="s">
+          <use source-index=94 element-index=17 id="note-18" x=18.332124999999998 y=-18.75 source=<Note sourceIndex=94 elementIndex=17 noteIndex=17> className=" note" xlinkHref="#Stropha" source-gabc="s">
+      <g transform="translate(264.55162500000006,0)" source=<DoubleBar sourceIndex=98 elementIndex=18> className="ChantNotationElement DoubleBar" source-gabc="::">
+        <g className="Notations">
+          <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=98 element-index=18 source=<DoubleBar sourceIndex=98 elementIndex=18> className="dividerLine" source-gabc="::">
+          <rect x=5.45 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=98 element-index=18 source=<DoubleBar sourceIndex=98 elementIndex=18> className="dividerLine" source-gabc="::">

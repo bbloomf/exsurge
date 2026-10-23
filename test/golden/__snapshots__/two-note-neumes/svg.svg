@@ -57,8 +57,8 @@
 <path d="M50 30.25c0 12.5-3.125 21.354-9.375 26.562-3.125 2.605-7.813 3.907-14.063 3.907-3.125 0-5.99-.522-8.593-1.564-2.605-1.04-5.6-2.474-8.986-4.297C5.6 53.035 2.734 51.603.39 50.56c-2.343-1.04-5.338-2.474-8.984-4.296-3.646-1.823-6.77-3.256-9.375-4.297-2.603-1.043-5.468-1.564-8.593-1.564-6.25 0-10.937 1.563-14.062 4.688C-46.875 50.824-50 59.677-50 71.656v-106.25c0-13.02 3.125-21.875 9.375-26.562 3.125-2.604 7.813-3.906 14.063-3.907 3.125 0 5.99.52 8.593 1.563 2.605 1.042 5.73 2.474 9.376 4.297 3.646 1.823 6.51 2.995 8.594 3.516l10.938 5.468c6.25 3.126 11.458 4.69 15.624 4.69 6.25 0 10.938-1.564 14.063-4.69C46.875-55.426 50-64.02 50-76V30.25z" >
 </path>
 </g>
-<g id="PunctumInclinatum" class="glyph" transform="scale(0.0625)" >
-<path d="M0-75.78L50 0 0 75-50 0 0-75.78z" >
+<g id="PunctumInclinatumDescendens" class="glyph" transform="scale(0.0625)" >
+<path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z" >
 </path>
 </g>
 <g id="DoClef" class="glyph" transform="scale(0.0625)" >
@@ -321,25 +321,25 @@
 </use>
 <rect x="5.45" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#PunctumInclinatum" class=" note" source-index="151" element-index="45" id="note-46" x="11.7" y="-18.75" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="151" element-index="45" id="note-46" x="11.7" y="-18.75" >
 </use>
-<use xlink:href="#PunctumInclinatum" class=" note" source-index="152" element-index="46" id="note-47" x="15.866666666666665" y="-12.499999999999998" >
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="152" element-index="46" id="note-47" x="16.88701998281125" y="-12.499999999999998" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(486.10416666666663,0)" >
+<g class="ChantNotationElement Punctum" transform="translate(487.1245199828112,0)" >
 <text source-index="155" x="-0.9357999999999995" y="13.1175" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >w</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="157" element-index="47" id="note-48" x="3.125" y="-18.75" >
 </use>
 </g>
-<g class="ChantNotationElement Virga" transform="translate(492.35416666666663,0)" >
+<g class="ChantNotationElement Virga" transform="translate(493.3745199828112,0)" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="158" element-index="48" id="note-49" x="3.125" y="-25" >
 </use>
 <rect x="0" y="-25" width="0.8" height="11.25" fill="#000" class="neumeLine" >
 </rect>
 </g>
-<g class="ChantNotationElement DoubleBar" transform="translate(506.41666666666663,0)" >
+<g class="ChantNotationElement DoubleBar" transform="translate(507.4370199828112,0)" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="163" element-index="49" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="163" element-index="49" source="[object Object]" >

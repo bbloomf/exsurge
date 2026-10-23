@@ -27,7 +27,7 @@ import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import { InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import { Pitch, Rect, Step } from "./Exsurge.Core.js";
 import {
-  Annotation, ChantLayoutElement,
+  Annotation, CavumGlyphCode, ChantLayoutElement,
   ChantNotationElement,
   GlyphCode,
   GlyphVisualizer, Lyric, LyricType, QuickSvg, TextLeftRight,
@@ -179,10 +179,22 @@ export class Note extends ChantLayoutElement {
   linea?: boolean;
   /** the first note of a pes quadratum (gabc q) */
   quadratum?: boolean;
-  /** a quilisma quadratum (gabc W), drawn as a punctum for now */
+  /**
+   * a quilisma quadratum (gabc W): a quilisma, with a higher note in its pes
+   * beside it, joined by a stem, rather than above it
+   */
   quilismaQuadratum?: boolean;
-  /** the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn the same for now */
+  /**
+   * the leaning given to a punctum inclinatum (gabc G0, G1 or G2), drawn
+   * unless ChantContext.inclinatumLeaning is turned off
+   */
   leaning?: InclinatumLeaning;
+  /**
+   * the leaning that Gregorio gives a punctum inclinatum without one, from
+   * the notes around it in its syllable (see Gabc.setAutomaticLeanings()),
+   * drawn unless ChantContext.inclinatumLeaning is turned off
+   */
+  automaticLeaning?: InclinatumLeaning;
   /** where the note is in the gabc source */
   sourceIndex!: number;
   sourceGabc!: string;
@@ -228,6 +240,8 @@ export class Note extends ChantLayoutElement {
   }
 
   setGlyph(ctxt: ChantContext, glyphCode: GlyphCode) {
+    // (a cavum, gabc r, is drawn with the hollow form of its glyph)
+    if (this.shapeModifiers & NoteShapeModifiers.Cavum) glyphCode = CavumGlyphCode[glyphCode] || glyphCode;
     if (this.glyphVisualizer) this.glyphVisualizer.setGlyph(ctxt, glyphCode);
     else this.glyphVisualizer = new GlyphVisualizer(ctxt, glyphCode);
 
