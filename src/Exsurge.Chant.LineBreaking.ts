@@ -431,7 +431,17 @@ export class LineBreaker {
         (curr as Accidental).setHidden(ctxt, !line.isSoftAccidentalVisible(i));
       else if (curr.isNeume) line.spaceNeumeBeforeSoftAccidental(ctxt, i);
 
-      if (curr.hasLyrics() && curr.lyrics[0].needsLayout) curr.lyrics[0].recalculateMetrics(ctxt);
+      // (lyrics an earlier layout of the lines wrapped or moved go back, as in
+      // buildFromChantNotationIndex(), before any line is planned around them)
+      if (curr.hasLyrics() && curr.lyrics.some((lyric) => lyric.needsLayout)) {
+        for (let lyric of curr.lyrics) {
+          if (lyric.needsLayout) {
+            lyric.recalculateMetrics(ctxt);
+            lyric.needsLayout = false;
+          }
+        }
+        curr.alignLyrics(ctxt);
+      }
 
       if (isHiddenAccidental(curr)) curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
       else line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);

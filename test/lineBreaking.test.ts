@@ -144,16 +144,33 @@ describe("optimal line breaking", () => {
   });
 
   it("lays an edited score out as it lays out the same gabc parsed afresh", async () => {
-    // (a lyric under a bar, as in Puer natus est, can be placed differently
-    // once the score has been laid out, with either line breaking, so this
-    // score has none)
-    const edited = adTeLevavi.replace("le(f)vá(fe)vi(f)", "le(fgf)vá(fe)vi(f) no(g)vum(f)").replace("me(f)i:(f.)", "me(fg)i:(f.)");
-    const positions = (score: any) => score.notations.map((n: any) => Math.round(n.bounds.x * 100) / 100);
-    for (const width of [180, 250, 330, 420, 600]) {
-      const fresh = await layOut(edited, { useDropCap: true, width });
-      const { score } = await layOut(adTeLevavi, { useDropCap: true, width, edits: [edited] });
-      assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `at ${width}`);
-      assert.deepStrictEqual(positions(score), positions(fresh.score), `at ${width}`);
+    const positions = (score: any) =>
+      score.notations.map((n: any) => [n.bounds.x, ...n.lyrics.map((lyric: any) => lyric.bounds.x)]);
+    // (Puer natus est has lyrics under its bars, which centerDividers() moves)
+    const edits = [
+      [adTeLevavi, adTeLevavi.replace("le(f)vá(fe)vi(f)", "le(fgf)vá(fe)vi(f) no(g)vum(f)").replace("me(f)i:(f.)", "me(fg)i:(f.)")],
+      [puer, puer.replace("na(iji)tus(h)", "na(ijiji)tus(hg) no(h)vus(h)").replace("(;) ma(hj)gni", "(;) ma(hjk)gni")]
+    ];
+    for (const [gabc, edited] of edits) {
+      for (const width of [180, 250, 330, 420, 600]) {
+        const fresh = await layOut(edited, { useDropCap: true, width });
+        const { score } = await layOut(gabc, { useDropCap: true, width, edits: [edited] });
+        assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `at ${width}`);
+        assert.deepStrictEqual(positions(score), positions(fresh.score), `at ${width}`);
+      }
+    }
+  });
+
+  it("lays a score out again as it lays it out the first time", async () => {
+    const positions = (score: any) =>
+      score.notations.map((n: any) => [n.bounds.x, ...n.lyrics.map((lyric: any) => lyric.bounds.x)]);
+    for (const width of [180, 250, 330, 450, 600]) {
+      const fresh = await layOut(puer, { useDropCap: true, width });
+      for (const before of [width, 300, 800]) {
+        const { score } = await layOut(puer, { useDropCap: true, width: before, relayoutWidths: [width] });
+        assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `${before} then ${width}`);
+        assert.deepStrictEqual(positions(score), positions(fresh.score), `${before} then ${width}`);
+      }
     }
   });
 
