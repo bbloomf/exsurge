@@ -100,8 +100,16 @@
             "k"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#StrophaLiquescent" class=" note" source-index="82" element-index="14" id="note-15" x="3" y="-18.75" source=<Note sourceIndex=82 elementIndex=14 noteIndex=14>>
-          <use {http://www.w3.org/1999/xlink}xlink:href="#VerticalEpisemaBelow" class="" x="3.05178125" y="-13.75" source=<Apostropha>>
-      <g class="ChantNotationElement DoubleBar" transform="translate(232.17843750000003,0)" source=<DoubleBar sourceIndex=89 elementIndex=15>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#VerticalEpisemaBelow" class="" x="3.05178125" y="-12.5" source=<Apostropha>>
+      <g class="ChantNotationElement Tristropha" transform="translate(235.30343750000003,0)" source=<Tristropha>>
+        <text source-index="88" x="-1.1543999999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=88>>
+          <tspan source-index="0" style="">
+            "l"
         <g class="Notations">
-          <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="89" element-index="15" source=<DoubleBar sourceIndex=89 elementIndex=15>>
-          <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="89" element-index="15" source=<DoubleBar sourceIndex=89 elementIndex=15>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#StrophaLiquescent" class=" note" source-index="90" element-index="15" id="note-16" x="3" y="-18.75" source=<Note sourceIndex=90 elementIndex=15 noteIndex=15>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Stropha" class=" note" source-index="93" element-index="16" id="note-17" x="10.666062499999999" y="-18.75" source=<Note sourceIndex=93 elementIndex=16 noteIndex=16>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Stropha" class=" note" source-index="94" element-index="17" id="note-18" x="18.332124999999998" y="-18.75" source=<Note sourceIndex=94 elementIndex=17 noteIndex=17>>
+      <g class="ChantNotationElement DoubleBar" transform="translate(264.55162500000006,0)" source=<DoubleBar sourceIndex=98 elementIndex=18>>
+        <g class="Notations">
+          <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="98" element-index="18" source=<DoubleBar sourceIndex=98 elementIndex=18>>
+          <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="98" element-index="18" source=<DoubleBar sourceIndex=98 elementIndex=18>>

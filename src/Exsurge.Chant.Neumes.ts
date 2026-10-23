@@ -32,7 +32,7 @@ import {
 import {
   CavumGlyphCode,
   ChantNotationElement,
-  GlyphCode, LineaVisualizer, MarkingPositionHint,
+  GlyphCode, InclinatumGlyphTurn, LineaVisualizer, MarkingPositionHint,
   NeumeBeamVisualizer,
   NeumeLineVisualizer, VirgaLineVisualizer,
   type ChantContext
@@ -65,9 +65,12 @@ function porrectusGlyph(start: Note, end: Note): GlyphCode {
   }
 }
 
-// the hollow form of a note's glyph if the note is a cavum (gabc r)
-function withCavum(note: Note, glyph: GlyphCode): GlyphCode {
-  return (note.shapeModifiers & NoteShapeModifiers.Cavum && CavumGlyphCode[glyph]) || glyph;
+// the head of a punctum auctus, ascending or descending, for a note with < or
+// >, and otherwise glyph
+function auctusHead(note: Note, glyph: GlyphCode): GlyphCode {
+  if (note.liquescent & LiquescentType.Ascending) return GlyphCode.PunctumQuadratumAscLiquescent;
+  if (note.liquescent & LiquescentType.Descending) return GlyphCode.PunctumQuadratumDesLiquescent;
+  return glyph;
 }
 
 // a punctum inclinatum's glyph: an auctus for gabc G< or G>, and otherwise
@@ -94,16 +97,7 @@ const inclinatumStepAngle = Math.atan(2 / 3),
 // which way an inclinatum's glyph is turned: 1 as in an ascending line, -1 as
 // in a descending line, and 0 if it's upright
 function inclinatumTurn(note: Note): number {
-  switch (note.glyphVisualizer!.glyphCode) {
-    case GlyphCode.PunctumInclinatumAscendens:
-    case GlyphCode.PunctumInclinatumAscendensCavum:
-      return 1;
-    case GlyphCode.PunctumInclinatumDescendens:
-    case GlyphCode.PunctumInclinatumDescendensCavum:
-      return -1;
-    default:
-      return 0;
-  }
+  return InclinatumGlyphTurn[note.glyphVisualizer!.glyphCode] || 0;
 }
 
 // how far right of its middle an inclinatum's top point is, which turning
@@ -174,7 +168,7 @@ class NeumeBuilder {
 
     if (!glyph) throw "NeumeBuilder.noteAt: glyph must be a valid glyph code";
 
-    note.setGlyph(this.ctxt, withCavum(note, glyph));
+    note.setGlyph(this.ctxt, glyph);
     var noteAlignsRight = note.glyphVisualizer!.align === "right";
 
     var needsLine =
@@ -233,12 +227,12 @@ class NeumeBuilder {
   virgaAt(note: Note, withLineTo = true) {
     // add the punctum for the virga (a virga reversa auctus, gabc V< or V>,
     // has the head of a punctum auctus, as Gregorio's does)
-    var head: GlyphCode = GlyphCode.PunctumQuadratum;
-    if (note.shapeModifiers & NoteShapeModifiers.Reverse) {
-      if (note.liquescent & LiquescentType.Ascending) head = GlyphCode.PunctumQuadratumAscLiquescent;
-      else if (note.liquescent & LiquescentType.Descending) head = GlyphCode.PunctumQuadratumDesLiquescent;
-    }
-    this.noteAt(note, head);
+    this.noteAt(
+      note,
+      note.shapeModifiers & NoteShapeModifiers.Reverse
+        ? auctusHead(note, GlyphCode.PunctumQuadratum)
+        : GlyphCode.PunctumQuadratum
+    );
 
     // add a line for the virga
     var line = new VirgaLineVisualizer(this.ctxt, note);
@@ -314,13 +308,8 @@ class NeumeBuilder {
     // upper note beside the quilisma rather than above it, joined to it by a
     // line where they don't touch (a deminutus stays as it is, as Gregorio
     // has no square pes deminutus)
-    if (lowerNote.quilismaQuadratum && !(upperNote.liquescent & LiquescentType.Small)) {
-      if (upperNote.liquescent & LiquescentType.Ascending)
-        upperGlyph = GlyphCode.PunctumQuadratumAscLiquescent;
-      else if (upperNote.liquescent & LiquescentType.Descending)
-        upperGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
-      else upperGlyph = GlyphCode.PunctumQuadratum;
-    }
+    if (lowerNote.quilismaQuadratum && !(upperNote.liquescent & LiquescentType.Small))
+      upperGlyph = auctusHead(upperNote, GlyphCode.PunctumQuadratum);
 
     this.noteAt(lowerNote, lowerGlyph).noteAt(upperNote, upperGlyph);
 
@@ -389,13 +378,13 @@ class NeumeBuilder {
       beamCount = beamCount || (beams && beams.inclinataFlags);
 
       if (note.liquescent & LiquescentType.Small)
-        note.setGlyph(this.ctxt, withCavum(note, GlyphCode.PunctumInclinatumLiquescent));
+        note.setGlyph(this.ctxt, GlyphCode.PunctumInclinatumLiquescent);
       else if (note.liquescent & LiquescentType.Large)
         // fixme: is the large inclinatum liquescent the same as the apostropha?
-        note.setGlyph(this.ctxt, withCavum(note, GlyphCode.Stropha));
+        note.setGlyph(this.ctxt, GlyphCode.Stropha);
       // fixme: some climaci in the new chant books end with a punctum quadratum
       // (see, for example, the antiphon "Sancta Maria" for October 7).
-      else note.setGlyph(this.ctxt, withCavum(note, inclinatumGlyph(this.ctxt, note)));
+      else note.setGlyph(this.ctxt, inclinatumGlyph(this.ctxt, note));
 
       staffPosition = note.staffPosition;
 
@@ -490,8 +479,10 @@ class NeumeBuilder {
       this.neume.addVisualizer(line);
     }
 
-    // (the stroke is both notes, so it's hollow if either is)
-    start.setGlyph(this.ctxt, withCavum(end, withCavum(start, glyph)));
+    // (the stroke is both notes, so it's hollow if either is: setGlyph() makes
+    // it hollow for start, and this for end)
+    if (end.shapeModifiers & NoteShapeModifiers.Cavum) glyph = CavumGlyphCode[glyph] || glyph;
+    start.setGlyph(this.ctxt, glyph);
     start.bounds.x = this.x;
 
     // the second glyph does not draw anything, but it still has logical importance for the editing
@@ -803,15 +794,8 @@ export class Apostropha extends Neume {
         ? GlyphCode.StrophaLiquescent
         : GlyphCode.Stropha;
 
-    if (note.liquescent & LiquescentType.Ascending)
-      return GlyphCode.PunctumQuadratumAscLiquescent;
-    else if (note.liquescent & LiquescentType.Descending)
-      return GlyphCode.PunctumQuadratumDesLiquescent;
-
-    if (note.shapeModifiers & NoteShapeModifiers.Cavum)
-      return GlyphCode.PunctumCavum;
-
-    return GlyphCode.PunctumQuadratum;
+    // (noteAt() draws a cavum hollow)
+    return auctusHead(note, GlyphCode.PunctumQuadratum);
   }
 }
 
@@ -1584,7 +1568,7 @@ export class Tristropha extends Neume {
       Apostropha.getNoteGlyphCode(note)
     );
     let glyphAdvance =
-      glyphCodes[0] === GlyphCode.Stropha
+      glyphCodes[0] === GlyphCode.Stropha || glyphCodes[0] === GlyphCode.StrophaLiquescent
         ? ctxt.intraNeumeSpacing / 2
         : ctxt.intraNeumeSpacing;
 

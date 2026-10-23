@@ -27,7 +27,7 @@ import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import { InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import { Pitch, Rect, Step } from "./Exsurge.Core.js";
 import {
-  Annotation, ChantLayoutElement,
+  Annotation, CavumGlyphCode, ChantLayoutElement,
   ChantNotationElement,
   GlyphCode,
   GlyphVisualizer, Lyric, LyricType, QuickSvg, TextLeftRight,
@@ -219,6 +219,8 @@ export class Note extends ChantLayoutElement {
   }
 
   setGlyph(ctxt: ChantContext, glyphCode: GlyphCode) {
+    // (a cavum, gabc r, is drawn with the hollow form of its glyph)
+    if (this.shapeModifiers & NoteShapeModifiers.Cavum) glyphCode = CavumGlyphCode[glyphCode] || glyphCode;
     if (this.glyphVisualizer) this.glyphVisualizer.setGlyph(ctxt, glyphCode);
     else this.glyphVisualizer = new GlyphVisualizer(ctxt, glyphCode);
 

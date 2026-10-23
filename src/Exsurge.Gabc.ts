@@ -1065,6 +1065,7 @@ export class Gabc {
         if (isInclinatum) count++;
         else {
           rising = count = 0;
+          unison = true;
           leaning = undefined;
         }
       }
@@ -2009,7 +2010,13 @@ export class Gabc {
         else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
         else if (currNote.shape === NoteShape.Inclinatum)
           return punctaInclinataState;
-        // (a cavum goes into a neume like any other note, and is drawn hollow there)
+        // (a cavum goes into a neume like any other note, and is drawn hollow
+        // there, but a punctum cavum between lines, r0, stands alone)
+        else if (
+          currNote.shapeModifiers & NoteShapeModifiers.Cavum &&
+          currNote.shapeModifiers & NoteShapeModifiers.Linea
+        )
+          return createNeume(new Neumes.Punctum(), true);
         else return punctumState;
       }
     };

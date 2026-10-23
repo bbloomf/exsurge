@@ -28,25 +28,16 @@ import {
   ChantLayoutElement,
   GlyphCode,
   GlyphVisualizer,
+  InclinatumGlyphTurn,
   MarkingPositionHint,
   QuickSvg,
   type ChantContext,
   type ChantNotationElement
 } from "./Exsurge.Drawing.js";
 
-// the glyphs of a punctum inclinatum (other than a deminutus), solid or hollow
-const inclinatumGlyphs = new Set<GlyphCode>([
-  GlyphCode.PunctumInclinatum,
-  GlyphCode.PunctumInclinatumAscendens,
-  GlyphCode.PunctumInclinatumDescendens,
-  GlyphCode.PunctumInclinatumAuctus,
-  GlyphCode.PunctumInclinatumCavum,
-  GlyphCode.PunctumInclinatumAscendensCavum,
-  GlyphCode.PunctumInclinatumDescendensCavum,
-  GlyphCode.PunctumInclinatumAuctusCavum
-]);
+// whether a glyph is a punctum inclinatum's (other than a deminutus), solid or hollow
 function isInclinatumGlyph(glyphCode: GlyphCode) {
-  return inclinatumGlyphs.has(glyphCode);
+  return glyphCode in InclinatumGlyphTurn;
 }
 
 export class Accent extends GlyphVisualizer {
@@ -326,6 +317,12 @@ export class Ictus extends GlyphVisualizer {
         !collisionWithEpisema
       ) {
         extraOffset = 0.3;
+      } else if (
+        positionHint === MarkingPositionHint.Below &&
+        (glyphCode === GlyphCode.StrophaLiquescent || glyphCode === GlyphCode.StrophaLiquescentCavum)
+      ) {
+        // (below the tail of a stropha aucta, which is longer than a stropha's)
+        extraOffset = 0.2;
       }
     }
 

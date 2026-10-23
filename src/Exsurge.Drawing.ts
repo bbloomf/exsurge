@@ -510,6 +510,22 @@ export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } =
   [GlyphCode.TerminatingDesLiquescent]: GlyphCode.TerminatingDesLiquescentCavum
 };
 
+/**
+ * the glyphs of a punctum inclinatum (other than a deminutus), solid or
+ * hollow, and which way each is turned: 1 as in an ascending line, -1 as in
+ * a descending one, and 0 if it's upright
+ */
+export const InclinatumGlyphTurn: { readonly [glyphCode in GlyphCode]?: number } = {
+  [GlyphCode.PunctumInclinatum]: 0,
+  [GlyphCode.PunctumInclinatumAscendens]: 1,
+  [GlyphCode.PunctumInclinatumDescendens]: -1,
+  [GlyphCode.PunctumInclinatumAuctus]: 0,
+  [GlyphCode.PunctumInclinatumCavum]: 0,
+  [GlyphCode.PunctumInclinatumAscendensCavum]: 1,
+  [GlyphCode.PunctumInclinatumDescendensCavum]: -1,
+  [GlyphCode.PunctumInclinatumAuctusCavum]: 0
+};
+
 /** attributes of an svg element, by name; undefined ones are left out */
 export interface SvgAttributes {
   [name: string]: any;

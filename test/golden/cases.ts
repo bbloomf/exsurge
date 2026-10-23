@@ -361,7 +361,8 @@ export const featureCases: GoldenCase[] = [
   // Gregorio: Phase 6
   {
     // a cavum stays in its neume, and each note with one is drawn hollow (a
-    // porrectus's stroke if either of its notes has one)
+    // porrectus's stroke if either of its notes has one), but a punctum cavum
+    // between lines stands alone (D)
     name: "cavum-neumes",
     gabc:
       "(c4) a(fgr) b(frg) c(fhr) d(frh) e(gfr) f(grf) g(fhrg) h(gvr) i(gor) j(gor~) k(gwr) l(fwrh) m(Gr) " +
@@ -399,9 +400,9 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // a stropha with < or > is a stropha aucta, with a longer tail (e and j
-    // are plain strophae)
+    // are plain strophae), and an ictus below it clears the tail (k)
     name: "stropha-aucta",
-    gabc: "(c4) a(fs<) b(fs>) c(fss<) d(fsss>) e(fs) f(fs<r) g(hs<) h(fs<_) i(fs<.) j(fss) k(fs<') (::)"
+    gabc: "(c4) a(fs<) b(fs>) c(fss<) d(fsss>) e(fs) f(fs<r) g(hs<) h(fs<_) i(fs<.) j(fss) k(fs<') l(fs<ss) (::)"
   },
   {
     // accidentals and bars between parentheses (e, i and j are without them)

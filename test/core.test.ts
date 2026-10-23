@@ -565,11 +565,16 @@ describe("Gregorio inclinatum leaning", function() {
   });
 
   it("starts again at each syllable and after other notes", function() {
-    assert.deepStrictEqual(leanings("(c4) a(hG) b(G) c(GFgG)"), [
+    assert.deepStrictEqual(leanings("(c4) a(hG) b(G) c(GFgG) d(G~hGG) e(G~gG)"), [
       ["G", "descending"],
       ["G", "unison"],
       ["G", "descending"],
       ["F", "descending"],
+      ["G", "unison"],
+      ["G~", undefined],
+      ["G", "unison"],
+      ["G", "unison"],
+      ["G~", undefined],
       ["G", "unison"]
     ]);
   });
