@@ -782,6 +782,106 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(g_) b(g_[oh:m]) c(g_[oh:l]) d(g_[oh:h]) e(h_[oh:l]) f(h_[oh:+1mm]) g(h_[oh:m-0.5mm]) h(g_0[uh:l]) " +
       "i(h_0[uh:m]) j(g_0[uh:oh]) (::) k(e_[oh:{]f_) l(g_ h_[oh}]) m(g_) n([oh:h{]f_ g_ e_[oh}]) o([uh:{]h_0 j_0) p(f_0[uh}]) (::)"
+  },
+
+  // Gregorio: Phase 12
+  {
+    // Gregorio's ledger-line settings, of which a stronger one replaces a
+    // weaker: a note on the ledger line keeps its line whatever [hl:0] (a)
+    // or [ll:0] (f) says, [oll:0] leaves it out (b), [oll:1] and [ull:1]
+    // draw one in the staff (c, g), and of two [oll:…] the first counts (d,
+    // e).  [hl:1] draws none (h); a line runs on through a note with [hl:0]
+    // (i) but not through one with [oll:0] (j, k); [ull:…] counts over
+    // [ll:…] (l, m); and the notes in a custom ledger line from note to note
+    // are placed as if they had a ledger line, the episema under c and the
+    // stem of d (n, o, against p)
+    name: "ledger-line-settings",
+    gabc:
+      "(c4) a(l[hl:0]) b(l[oll:0]) c(k[oll:1]) d(k[oll:1][oll:0]) e(l[oll:0][oll:1]) f(b[ll:0]) g(c[ull:1]) " +
+      "h(k[hl:1]) i(j[hl:0]/!m) j(j[oll:0]/!m) k(m/!j[oll:0]) l(dv[ll:1][ull:0]) m(dv[ll:0][ull:1]) " +
+      "n([ull:1{1]c_0 dv) o(e[ull:}]) p(c_0 dv) (::)"
+  },
+  {
+    // ledger lines where Gregorio draws them, one at each note, reaching
+    // about a staff interval beyond it.  Above the staff, a line runs from a
+    // note on or above the ledger line to the next note or the one before
+    // only where the step between them crosses the line (a–d, m, n), and on
+    // through notes that rise after that (r); below the staff, it runs back
+    // through falling notes and on through rising ones (e–g, o, p), as
+    // Gregorio has it.  It doesn't leave Gregorio's element: the notes of a
+    // neume and of those joined to it by !, /! or /0 (h–j), but not by a
+    // space (k and l, and w, whose lines aren't joined), nor in the notes
+    // that Gregorio makes glyphs of their own: an inclinatum after other
+    // notes (x), a quilisma pes (y) and the last note of a scandicus flexus
+    // (z).  Under the stroke of a porrectus (q, s, t) or a torculus
+    // resupinus (u, v), a line at either of its notes goes under the whole
+    // stroke, and the note after it has its own only above the staff; but a
+    // clivis drawn as a stroke ([shape:stroke]) is a flexus to Gregorio,
+    // whose lines go under the ends of the stroke, at its notes (A, B).
+    name: "ledger-lines-gregorio",
+    gabc:
+      "(c4) a(klk) b(lk) c(lj) d(j/!m) e(f/!e/!d/!c/!b) f(b/!c/!d/!e/!f) g(c/!b/!c/!d/!c) h(b!c) i(b/!c) j(b/0c) " +
+      "kap(b) lap(b) m(km) n(mk) o(bcd) p(dba) q(cbc) r(m/!j/!k) s(lel) t(lgl) u(jlkl) v(bcbc) w(b/b) x(cdB) " +
+      "y(bcwd) z(bcdc) A(lh[shape:stroke]) B(cb[shape:stroke]) (::)"
+  },
+  {
+    // ledger lines through signs, as Gregorio draws them: through an
+    // accidental on or beyond a ledger line (a–d, h), whose line runs on to
+    // a note in its element as a note's does (e), or not, if the accidental
+    // is in the staff (f), and not past a space (g); under the high
+    // virgula, divisio minima and divisio minimis, and the parenthesized
+    // ones (i–m); and at a custos beyond the staff (n), which is a little
+    // shorter, and at the end of a line goes no further than the custos (o, p)
+    name: "ledger-lines-signs",
+    gabc:
+      "(c4) a(bxb) b(lxl) c(b#b) d(lyl) e(bxc) f(cxc/!b) g(bx/c) h(bx?b) i(g) (`0) j(g) (,0) k(g) (^0) " +
+      "l(g) (`0?) m(g) (,0?) n(g) (l+) (b+) (m+) (a+) o(g) (z) p(l) (z) q(b) (::)"
+  },
+  {
+    // stems whose length Gregorio chooses by the ledger line below a note at
+    // c or d: a virga (a–c), virga reversa (d) or oriscus scapus (e, f) on
+    // the bottom line has the short stem unless it has a ledger line below
+    // it, where its stem would end, which [ll:1] supposes (b, f) and a line
+    // run on to it from b draws (c); one on the ledger line below has the
+    // short one too (g), as Gregorio's stem is shorter still there, and one
+    // at c has it anyway (h).  A flexus or porrectus a second down from d
+    // has the long stem only where d has a ledger line below it (i–k, m, n),
+    // and one from e the short one (l); and the upper note of a pes
+    // quadratum on d has the short stem (o), against f (p)
+    name: "ledger-line-stems",
+    gabc:
+      "(c4) a(dv) b(dv[ll:1]) c(b/!dv) d(dV) e(dO) f(dO[ll:1]) g(bv) h(cv) i(dc) j(d[ll:1]c) k(b/!dc) l(ed) " +
+      "m(dcd) n(d[ll:1]cd) o(cqd) p(fv) (::)"
+  },
+  {
+    // an episema over a note at k, or under one at c, is placed closer to
+    // the note where Gregorio guesses there's no ledger line between them:
+    // as the note's ledger-line state says, whatever set it (b, c, k, o),
+    // and otherwise from the notes next to it, which have one if the note
+    // before (or after) it has a line (d, f, j), or the note before the
+    // lower note of a pes it's over (h), but not otherwise (a, e, g, i, l,
+    // m).  A note on the ledger line has its own (n).
+    name: "ledger-line-episemata",
+    gabc:
+      "(c4) a(k_) b(k_[hl:1]) c(k_/!m) d(l/k_) e(k_/i) f(l k_) g(jk_) h(l/jk_) i(c_0) j(b/c_0) k(c_0[ll:1]) " +
+      "l(c_0/e) m(dc_0) n(cb_0) o(k_[hl:0]/!m) (::)"
+  },
+  {
+    // without ctxt.ledgerLineHeuristic, as with Gregorio's
+    // \gresetledgerlineheuristic{disable}, each of these episemata is placed
+    // as if there were a ledger line between it and its note
+    name: "ledger-line-episemata-no-heuristic",
+    gabc: "(c4) a(k_) b(k_[hl:0]) c(k_/i) d(jk_) e(c_0) f(c_0[ll:0]) g(dc_0) (::)",
+    setupContext: (ctxt) => (ctxt.ledgerLineHeuristic = false)
+  },
+  {
+    // with ctxt.minLedgerSeparation 2, ledger lines on one side of the staff
+    // less than two staff intervals apart are joined, each lengthened to
+    // meet the other, as exsurge used to join them; lines on the two sides
+    // aren't joined to each other (c)
+    name: "ledger-lines-joined",
+    gabc: "(c4) a(b) b(b) c(l b) d(lm/!l) e(b/b) f(m) g(l) (::)",
+    setupContext: (ctxt) => (ctxt.minLedgerSeparation = 2)
   }
 ];
 
