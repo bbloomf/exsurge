@@ -1166,6 +1166,49 @@ export const settingCases: GoldenCase[] = [
 ];
 
 // -----------------------------------------------------------------------------
+// Gregorio: Phase 11
+
+// Multi-line cases laid out again with the line breaks of the whole score
+// chosen together, as Gregorio chooses them (ctxt.lineBreaking = "optimal"):
+// those whose breaks differ from the greedy ones, and those with each kind of
+// place where a line has to break or can't.  They're added to featureCases
+// here, below the settings cases that some of them repeat.
+featureCases.push(
+  ...[
+    "puer-natus-est",
+    "christus-factus-est",
+    "ad-te-levavi",
+    "salve-regina",
+    "morae",
+    "soft-accidentals",
+    "clef-changes",
+    "no-line-break-areas",
+    "euouae",
+    "clef-change-before-break",
+    "line-break-custos-control",
+    "extra-text-only-lines",
+    "narrow",
+    "relayout",
+    "line-break-edge-cases-290",
+    "last-line-minimums",
+    "glyph-multiplier",
+    "paginated"
+  ].map((name): GoldenCase => {
+    const repeated = [...featureCases, ...settingCases].find((c) => c.name === name)!;
+    return {
+      ...repeated,
+      name: `${name}-optimal`,
+      // (svg nodes aren't rendered page by page)
+      outputs: repeated.paginate ? repeated.outputs : allOutputs,
+      setupContext: (ctxt, E) => {
+        if (repeated.setupContext) repeated.setupContext(ctxt, E);
+        ctxt.lineBreaking = "optimal";
+      }
+    };
+  })
+);
+
+// -----------------------------------------------------------------------------
 // text measured from svg elements
 
 /**
