@@ -4,6 +4,8 @@
 
 import type { OutputName, RenderOptions } from "./harness";
 import { gregall } from "../../src/nabc/gregall";
+import { grelaon } from "../../src/nabc/grelaon";
+import { gresgmodern } from "../../src/nabc/gresgmodern";
 
 export interface GoldenCase extends RenderOptions {
   name: string;
@@ -904,6 +906,25 @@ export const featureCases: GoldenCase[] = [
       ctxt.nabcFonts = [gregall];
       ctxt.nabcVisibility = ["phantom", "invisible"];
     }
+  },
+  {
+    // the Laon neumes of the score that Gregorio's NABC reference prints
+    // (doc/omnes.gabc), drawn with grelaon: un and oc, letters inside the
+    // neume (lsa5), and a Tironian note (ltsr6)
+    name: "nabc-laon",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) OM(f_c/ef~|clGhhta>)nes(f.|un1hg) *(,) qui(e|puhd) in(f|pu) Chris(f/ghf|un1helst8`tohi)to(f_ef.|clGhglsa5vi) (,) " +
+      "bap(f|puhd)ti(hh|bvlsa2)zá(h|un)ti(fe|unhd) es(e!gwh!ivHG'/hwihi|un1hbppn1ppq1sun2ql!po)tis,(ie..|clGhg) (;) " +
+      "al(hhf~|unlsa2`vi>)le(hh|bvlsa2)lú(hih|to>ltsr6)ia.(f.|unhd) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [grelaon])
+  },
+  {
+    // nabc-st-gall-basic, drawn with gresgmodern
+    name: "nabc-gresgmodern",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) AL(ef~|ta>)le(fg/hggf|peclhgpi)lú(ef~|ta>)ia.(f.|ta-) (,) " +
+      "(ii//|bv-|gh!ivHG//|vi-hhppu2su1sut1|fhg/|to|eef.|pt) (;)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gresgmodern])
   }
 ];
 

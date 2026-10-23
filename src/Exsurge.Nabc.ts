@@ -90,8 +90,9 @@ export type NabcGlyph = [width: number, height: number, depth: number, path: str
  * The glyphs of one of Gregorio's NABC fonts, by their NABC names, which
  * exsurge draws NABC with.  They're converted from Gregorio's fonts, which
  * are under the SIL Open Font License, so they aren't in exsurge's bundle:
- * import them from exsurge-ts/nabc-gregall (or with a script tag,
- * dist/nabc-gregall.min.js, which makes exsurgeNabcGregall.gregall).
+ * import them from exsurge-ts/nabc-gregall, exsurge-ts/nabc-gresgmodern or
+ * exsurge-ts/nabc-grelaon (or with a script tag, dist/nabc-gregall.min.js
+ * and so on, which makes exsurgeNabcGregall.gregall and so on).
  * Paths go from the left of the baseline, with y going down, as in svg, and
  * all of it is in units of unitsPerEm to the em.
  */

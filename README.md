@@ -45,7 +45,7 @@ score.performLayout(ctxt, function() {
 
 ### St. Gall neumes (NABC)
 
-exsurge draws Gregorio's NABC, the St. Gall neumes that gabc with a `nabc-lines` header has after `|`s in its notes, above the staff (and a second line of it below the staff), given a font to draw it with.  Its glyphs are converted from Gregorio's gregall font, and since they're under the SIL Open Font License (see below), they aren't in exsurge's bundle: import them from `exsurge-ts/nabc-gregall`, or load `dist/nabc-gregall.min.js` after exsurge, which defines `exsurgeNabcGregall`.
+exsurge draws Gregorio's NABC, the St. Gall or Laon neumes that gabc with a `nabc-lines` header has after `|`s in its notes, above the staff (and a second line of it below the staff), given a font to draw it with.  The fonts are converted from Gregorio's: gregall and gresgmodern for St. Gall neumes, traced from the manuscripts and drawn anew, and grelaon for Laon neumes.  They're under the SIL Open Font License (see below), so they aren't in exsurge's bundle: import them from `exsurge-ts/nabc-gregall`, `exsurge-ts/nabc-gresgmodern` or `exsurge-ts/nabc-grelaon`, or load `dist/nabc-gregall.min.js` (and so on) after exsurge, which defines `exsurgeNabcGregall` (and so on).
 
 ```javascript
 import { gregall } from "exsurge-ts/nabc-gregall";
@@ -73,7 +73,7 @@ This makes:
 
 - `dist/esm/`: ES modules with their typings, which the package's `module` and `types` point to
 - `dist/exsurge.min.js`: a minified UMD bundle, which the package's `main` points to (and `dist/exsurge.js`, the same unminified)
-- `dist/nabc-gregall.min.js` (and `dist/esm/nabc/`): the glyphs that exsurge draws Gregorio's NABC (St. Gall neumes) with, which aren't in exsurge's bundle, and which the package's `exsurge-ts/nabc-gregall` entry point points to (see the license, below)
+- `dist/nabc-gregall.min.js`, `dist/nabc-gresgmodern.min.js` and `dist/nabc-grelaon.min.js` (and `dist/esm/nabc/`): the glyphs that exsurge draws Gregorio's NABC (St. Gall and Laon neumes) with, which aren't in exsurge's bundle, and which the package's `exsurge-ts/nabc-gregall`, `exsurge-ts/nabc-gresgmodern` and `exsurge-ts/nabc-grelaon` entry points point to (see the license, below)
 
 `src/nabc/` is converted from the fonts of [Gregorio](https://github.com/gregorio-project/gregorio) by `tools/convert-nabc-font.mjs`.
 
@@ -101,4 +101,4 @@ Under construction...
 
 MIT License: http://adampritchard.mit-license.org/ or see [the `LICENSE` file](https://github.com/bbloomf/exsurge/blob/master/LICENSE).
 
-The glyphs for NABC in `src/nabc/` (and what's built from them: `dist/esm/nabc/`, `dist/nabc-gregall.min.js` and the `exsurge-ts/nabc-gregall` entry point) are converted from Gregorio's gregall font, copyright © 2014–2026 Jakub Jelinek, and are under the SIL Open Font License 1.1, not the MIT License: see [the `LICENSE-OFL.txt` file](https://github.com/bbloomf/exsurge/blob/master/LICENSE-OFL.txt).
+The glyphs for NABC in `src/nabc/` (and what's built from them: `dist/esm/nabc/`, the `dist/nabc-*.min.js` bundles and the `exsurge-ts/nabc-*` entry points) are converted from Gregorio's gregall, gresgmodern and grelaon fonts, copyright © 2014–2026 Jakub Jelinek and © 2011 Association Saint-Benoît, Notre-Dame de Bellaigue, and are under the SIL Open Font License 1.1, not the MIT License: see [the `LICENSE-OFL.txt` file](https://github.com/bbloomf/exsurge/blob/master/LICENSE-OFL.txt).

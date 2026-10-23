@@ -9,6 +9,16 @@ Open Font License, Version 1.1, below, not under exsurge's MIT license
 gregall (src/nabc/gregall.ts):
 Copyright (C) 2014-2026 Jakub Jelinek <jakub@redhat.com>
 
+gresgmodern (src/nabc/gresgmodern.ts):
+(c) 2011 Association Saint-Benoit, Notre-Dame de Bellaigue, FR 63330 VIRLET
+(c) 2014-2026 Jakub Jelinek <jakub@redhat.com>
+
+grelaon (src/nabc/grelaon.ts):
+Copyright (C) 2016-2026 Jakub Jelinek <jakub@redhat.com>
+(The background images in grelaon's source, from the LAON_BM_ms239
+manuscript, by permission of the Bibliotheque municipale de Laon, aren't
+in exsurge.)
+
 SIL OPEN FONT LICENSE
 
 Version 1.1 - 26 February 2007

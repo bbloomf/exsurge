@@ -2,6 +2,11 @@
 
 import { vi } from "vitest";
 import { describeGoldenCases, describeGoldenTables, describeNabcFontTables } from "./golden";
+import { gregall } from "../../src/nabc/gregall";
+import { grelaon } from "../../src/nabc/grelaon";
+import { gresgmodern } from "../../src/nabc/gresgmodern";
+
+const nabcFonts: { [font: string]: typeof gregall } = { gregall, gresgmodern, grelaon };
 
 const load = async () => {
   vi.resetModules();
@@ -9,5 +14,5 @@ const load = async () => {
 };
 
 describeGoldenTables("golden tables", load);
-describeNabcFontTables("golden NABC font tables", async (font) => (await import(`../../src/nabc/${font}.ts`))[font]);
+describeNabcFontTables("golden NABC font tables", async (font) => nabcFonts[font]);
 describeGoldenCases("golden output", load, ["svg", "lines", "tree", "canvas"]);

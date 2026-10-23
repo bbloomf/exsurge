@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "description": "The glyphs of the Laon neumes of Gregorio's grelaon font for exsurge's NABC, under the SIL Open Font License (see ../LICENSE-OFL.txt)",
+  "main": "../dist/nabc-grelaon.min.js",
+  "module": "../dist/esm/nabc/grelaon.js",
+  "types": "../dist/esm/nabc/grelaon.d.ts",
+  "sideEffects": false
+}

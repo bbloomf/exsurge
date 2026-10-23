@@ -1048,8 +1048,9 @@ export class ChantContext {
    * above the staff, and nabcFonts[1] for its second, below the staff, or
    * nabcFonts[0] for both, as with Gregorio's \gresetnabcfont.  exsurge has
    * none of its own, since Gregorio's are under the SIL Open Font License:
-   * import gregall from exsurge-ts/nabc-gregall (see NabcFont).  With none,
-   * NABC isn't drawn.  Defaults to [].
+   * import gregall from exsurge-ts/nabc-gregall, or gresgmodern or grelaon
+   * (Laon) likewise (see NabcFont).  With none, NABC isn't drawn.  Defaults
+   * to [].
    */
   nabcFonts: NabcFont[];
   /**

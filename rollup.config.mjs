@@ -20,7 +20,7 @@ const umd = {
 };
 
 // the NABC fonts, in src/nabc
-export const nabcFonts = ["gregall"];
+export const nabcFonts = ["gregall", "gresgmodern", "grelaon"];
 // the comment at the top of a NABC font's module, with its license
 const licenseOf = (font) =>
   /^\/\*![\s\S]*?\*\//.exec(

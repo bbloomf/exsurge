@@ -19,6 +19,8 @@ import {
   parseNabc
 } from "../src/index.js";
 import { gregall } from "../src/nabc/gregall.js";
+import { grelaon } from "../src/nabc/grelaon.js";
+import { gresgmodern } from "../src/nabc/gresgmodern.js";
 import { featureCases } from "./golden/cases";
 import { render } from "./golden/harness";
 
@@ -230,38 +232,55 @@ describe("nabcNameOfGlyph", function() {
 });
 
 describe("the NABC fonts", function() {
-  const font: NabcFont = gregall;
+  const fonts: NabcFont[] = [gregall, gresgmodern, grelaon];
 
-  it("names each glyph of gregall as parseNabc() reads it", function() {
-    assert.strictEqual(Object.keys(font.glyphs).length, 603);
-    let unread: string[] = [];
-    for (let [name, [width, height, depth, path]] of Object.entries(font.glyphs)) {
-      assert.ok(width >= 0 && height >= 0 && depth >= 0, name);
-      // (ni, nihil, draws nothing)
-      assert.strictEqual(path === "", name === "ni", name);
-      // the glyphs of letters and puncta alone aren't neumes
-      if (/^(ls|lt|su|pp)/.test(name)) continue;
-      let items = parseNabc(name);
-      let neume = items[0];
-      if (
-        items.length !== 1 ||
-        neume.type !== "neume" ||
-        neume.base + neume.prepunctis + neume.subpunctis + neume.letters.map((letter) => letter.name + letter.position).join("") !==
-          name
-      )
-        unread.push(name);
+  it("name each glyph as parseNabc() reads it", function() {
+    // (but for a glyph in each that GregorioTeX never looks for: a joined
+    // glyph's name has one letter for its pitch, not h and a pitch, and a
+    // glyph's modifiers come before its variant)
+    let unreadable: { [font: string]: string[] } = { gregall: ["to!ciGhh"], gresgmodern: ["toM2-"], grelaon: ["to!pohd"] };
+    for (let font of fonts) {
+      let unread: string[] = [];
+      for (let [name, [width, height, depth, path]] of Object.entries(font.glyphs)) {
+        assert.ok(width >= 0 && height >= 0 && depth >= 0, name);
+        // (ni, nihil, draws nothing)
+        assert.strictEqual(path === "", name === "ni", name);
+        // the glyphs of letters and puncta alone aren't neumes
+        if (/^(ls|lt|su|pp)/.test(name)) continue;
+        let items = parseNabc(name);
+        let neume = items[0];
+        if (
+          items.length !== 1 ||
+          neume.type !== "neume" ||
+          neume.base + neume.prepunctis + neume.subpunctis + neume.letters.map((letter) => letter.name + letter.position).join("") !==
+            name
+        )
+          unread.push(name);
+      }
+      assert.deepStrictEqual(unread, unreadable[font.name], font.name);
     }
-    // (GregorioTeX names a joined glyph with one letter for its pitch, so it
-    // never looks for this one)
-    assert.deepStrictEqual(unread, ["to!ciGhh"]);
+    assert.deepStrictEqual(
+      fonts.map((font) => [font.name, font.unitsPerEm, Object.keys(font.glyphs).length]),
+      [["gregall", 1000, 603], ["gresgmodern", 1000, 524], ["grelaon", 1000, 572]]
+    );
   });
 
-  it("has the glyphs of Gregorio's aliases, but for five", function() {
-    let missing = Object.entries(nabcAliases)
-      .filter(([, name]) => !(name in font.glyphs))
-      .map(([alias, name]) => `${alias} ${name}`);
-    // (gresgmodern has sf>, sfG and sfM1, and sc~ is an alias itself)
-    assert.deepStrictEqual(missing, ["ta>ppt1 sc~", "cl>pp2 sf>", "toppt1 sfG", "clMpp2 sfM1", "clpp2lsc2 sflsc2"]);
+  it("have the glyphs of Gregorio's aliases, but for a few, and grelaon doesn't use them", function() {
+    const missing = (font: NabcFont) =>
+      Object.entries(nabcAliases)
+        .filter(([alias]) => !nabcGlyphName(font, alias))
+        .map(([alias, name]) => `${alias} ${name}`);
+    // (gresgmodern has sf>, sfG and sfM1, and in both, ta>ppt1's glyph is
+    // sc~'s, an alias itself, of pe>2)
+    assert.deepStrictEqual(missing(gregall), ["cl>pp2 sf>", "toppt1 sfG", "clMpp2 sfM1", "clpp2lsc2 sflsc2"]);
+    assert.deepStrictEqual(missing(gresgmodern), [
+      "visu2lsc3 cilsc3",
+      "clpp2lsc2 sflsc2",
+      "cippt1lsc3 vippt1su2lsc3",
+      "cippu1lsc3 vippu1su2lsc3"
+    ]);
+    assert.ok("cl>" in grelaon.glyphs);
+    assert.strictEqual(nabcGlyphName(grelaon, "ci~"), undefined);
   });
 });
 
