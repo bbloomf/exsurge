@@ -226,9 +226,9 @@
 </use>
 <use xlink:href="#PodatusUpperShort" class=" note" source-index="70" element-index="29" id="note-30" x="302.344" y="-399.99999999999994" transform="scale(0.078125,0.078125)" >
 </use>
-<rect x="0" y="-40.083333333333336" width="17.370625000000018" height="1" fill="#000" class="horizontalEpisema" >
+<rect x="0" y="-40.083333333333336" width="15.808125000000018" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
-<rect x="16.47953124999996" y="-40.083333333333336" width="0.8910937500000387" height="1" fill="#000" class="horizontalEpisema" >
+<rect x="15.808125" y="-40.083333333333336" width="0.6714062499999613" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
 <rect x="16.47953125" y="-40.083333333333336" width="7.1410937500000005" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
@@ -247,9 +247,9 @@
 </rect>
 <use xlink:href="#PodatusUpper" class=" note" source-index="80" element-index="32" id="note-33" x="377.344" y="-560" transform="scale(0.078125,0.078125)" >
 </use>
-<rect x="23.23" y="-15.083333333333334" width="6.25" height="1" fill="#000" class="horizontalEpisema" >
+<rect x="21.6675" y="-15.083333333333334" width="7.8125" height="1" fill="#000" class="horizontalEpisema" >
 </rect>
-<use xlink:href="#VerticalEpisemaBelow" class="" x="337.344" y="-184" transform="scale(0.078125,0.078125)" >
+<use xlink:href="#VerticalEpisemaBelow" class="" x="327.344" y="-184" transform="scale(0.078125,0.078125)" >
 </use>
 </g>
 <g class="ChantNotationElement Porrectus" transform="translate(449.82942605103966,0)" >
