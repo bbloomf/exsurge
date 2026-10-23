@@ -1092,7 +1092,9 @@ export class ChantContext {
    * (updateNotations() or recreateDropCap()).  A drop cap beside more than
    * one line is made big enough to reach across them (see
    * DropCap.sizeToLines()), unless textStyles.dropCap.size has been set
-   * since setFont().
+   * since setFont().  Like the text styles, it's read when the score is laid
+   * out with ChantScore.performLayout(), which needs force to lay out again a
+   * score that has been laid out.
    */
   dropCapLines: number;
   /**
@@ -4694,6 +4696,11 @@ export class DropCap extends TextElement {
    * several lines, in place of its text style's size
    */
   sizeForLines?: number;
+  /**
+   * how many lines sizeToLines() last sized the drop cap to be beside,
+   * which the score then lays it out beside
+   */
+  linesBeside?: number;
 
   constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
     super(
@@ -4712,29 +4719,39 @@ export class DropCap extends TextElement {
   }
 
   /**
-   * Measures the drop cap, making it big enough first to reach across the
-   * given number of lines (see ChantContext.dropCapLines) if that is more
-   * than one and its text style's size hasn't been set since setFont().  Its
-   * letter then reaches from the top staff line of the first line to the
-   * lyric baseline of the last, where the lines' notes are on the staff and
-   * the lyrics' letters are as tall as the drop cap's for their size.
+   * Measures the drop cap, to be beside the given number of lines (at least
+   * one; see ChantContext.dropCapLines), making it big enough first to reach
+   * across them if they're more than one and its text style's size hasn't
+   * been set since setFont().  Its letter then reaches from the top staff
+   * line of the first line to the lyric baseline of the last, where the
+   * lines' notes are on the staff and the lyrics' letters are as tall as the
+   * drop cap's for their size.
    */
   sizeToLines(ctxt: ChantContext, lines: number) {
+    lines = this.linesBeside = Math.max(1, Math.floor(lines) || 1);
     delete this.sizeForLines;
     this.recalculateMetrics(ctxt);
     // the height of the letter above its baseline, in ems
     var ascent = this.origin.y / ctxt.textStyles.dropCap.size;
     if (lines < 2 || !ctxt.hasDefaultDropCapSize() || !(ascent > 0)) return;
 
+    // as ChantLine.performLayout() lays out a line
     var interval = ctxt.staffInterval,
       lyric = ctxt.textStyles.lyric,
       staffHeight = interval * (ctxt.staffLineCount - 1) * 2,
       // from the top staff line of a line to its lyric baseline
-      toLyricBaseline = staffHeight + interval * ctxt.minSpaceBelowStaff + lyric.size * ascent,
+      toLyricBaseline =
+        staffHeight +
+        interval * (ctxt.staffLineWeight / 2 + ctxt.minSpaceBelowStaff) +
+        lyric.size * ascent,
       // from the lyric baseline of a line to that of the next
       toNextLine =
         lyric.size * (lyric.lineHeight || 1.1) +
-        interval * (ctxt.spaceBetweenSystems + ctxt.minSpaceAboveStaff + ctxt.minSpaceBelowStaff) +
+        interval *
+          (ctxt.staffLineWeight +
+            ctxt.spaceBetweenSystems +
+            ctxt.minSpaceAboveStaff +
+            ctxt.minSpaceBelowStaff) +
         staffHeight;
     this.sizeForLines = (toLyricBaseline + toNextLine * (lines - 1)) / ascent;
     this.recalculateMetrics(ctxt);

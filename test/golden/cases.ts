@@ -864,9 +864,10 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // the second line, beside the drop cap, stays on the first page although
-    // the page is too short for it
+    // the page is too short for it (and drawn line by line, the first line's
+    // svg lets the drop cap reach down past it)
     name: "two-line-initial-paginated",
-    outputs: ["svg", "tree", "canvas"],
+    outputs: ["svg", "tree", "canvas", "lines"],
     gabc: adTeLevavi,
     useDropCap: true,
     width: 400,

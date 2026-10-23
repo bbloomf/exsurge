@@ -859,6 +859,7 @@ export class ChantScore {
     if (startLine === 0) {
       result.titles = this.titles;
       result.dropCap = this.dropCap;
+      result.lastLineBesideDropCap = this.lastLineBesideDropCap;
       result.annotation = this.annotation;
     }
     return result;
@@ -1106,7 +1107,7 @@ export class ChantScore {
     ctxt.staffLineCount = this.staffLineCount;
     this.updateBrackets();
 
-    if (this.dropCap) this.dropCap.sizeToLines(ctxt, this.linesBesideDropCap(ctxt));
+    if (this.dropCap) this.dropCap.sizeToLines(ctxt, ctxt.dropCapLines);
 
     if (this.annotation) this.annotation.recalculateMetrics(ctxt);
   }
@@ -1279,11 +1280,12 @@ export class ChantScore {
   }
 
   /**
-   * How many lines the drop cap is beside: ctxt.dropCapLines (at least 1),
-   * or 0 when there's no drop cap.
+   * How many lines the drop cap is beside: ctxt.dropCapLines (at least 1) as
+   * of the last performLayout(), which sized the drop cap for them, or 0
+   * when there's no drop cap.
    */
-  linesBesideDropCap(ctxt: ChantContext) {
-    return this.dropCap ? Math.max(1, Math.floor(ctxt.dropCapLines) || 1) : 0;
+  linesBesideDropCap() {
+    return this.dropCap ? this.dropCap.linesBeside || 1 : 0;
   }
 
   /**
@@ -1298,7 +1300,7 @@ export class ChantScore {
    */
   lineExtent(ctxt: ChantContext, lineIndex: number, width: number): LineExtent {
     var left = 0;
-    if (lineIndex === 0 || lineIndex < this.linesBesideDropCap(ctxt)) {
+    if (lineIndex === 0 || lineIndex < this.linesBesideDropCap()) {
       if (this.dropCap) left = this.dropCap.bounds.width + this.dropCap.padding * 2;
 
       if (this.annotation && (!ctxt.mergeAnnotationWithTextLeft || this.dropCap))
@@ -1315,7 +1317,7 @@ export class ChantScore {
    */
   dropCapOnFirstLine(ctxt: ChantContext) {
     return (
-      this.linesBesideDropCap(ctxt) === 1 &&
+      this.linesBesideDropCap() === 1 &&
       ctxt.dropCapAnchor === "baseline" &&
       (ctxt.dropCapPosition === "lastbaseline" || ctxt.dropCapPosition === "firstbaseline")
     );
@@ -1337,7 +1339,7 @@ export class ChantScore {
     this.lastLineBesideDropCap = 0;
     if (!dropCap || !lines.length || this.dropCapOnFirstLine(ctxt)) return 0;
 
-    var lastIndex = Math.min(this.linesBesideDropCap(ctxt), lines.length) - 1,
+    var lastIndex = Math.min(this.linesBesideDropCap(), lines.length) - 1,
       first = lines[0],
       last = lines[lastIndex],
       // (each line has its notation bounds once it's laid out)

@@ -120,12 +120,30 @@ describe("Drop caps beside several lines", function () {
     assert.strictEqual(withoutDefs(relaidOut.outputs.svg!), withoutDefs(laidOut.outputs.svg!));
   });
 
+  it("are laid out beside as many lines as performLayout() sized the drop cap for", async function () {
+    const { score, ctxt } = await renderWithLines(1, { width: 400 });
+    const height = score.dropCap.bounds.height;
+    ctxt.dropCapLines = 3;
+    // (laid out already, so only with force)
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 400);
+    assert.strictEqual(score.dropCap.bounds.height, height);
+    assert.strictEqual(score.lines[1].staffLeft, 0);
+    score.performLayout(ctxt, true);
+    score.layoutChantLines(ctxt, 400);
+    assert(score.dropCap.bounds.height > height);
+    assert.strictEqual(score.lines[2].staffLeft, score.lines[0].staffLeft);
+    assert.strictEqual(score.lastLineBesideDropCap, 2);
+  });
+
   it("keep the lines beside the drop cap on the first page", async function () {
-    const { score } = await renderWithLines(3, { width: 400 });
+    const { score, ctxt } = await renderWithLines(3, { width: 400 });
     score.paginate(10);
     assert.strictEqual(score.pages[0].lines.length, 3);
     assert.strictEqual(score.pages[1].lines.length, 1);
     assert.strictEqual(score.pages[0].dropCap, score.dropCap);
+    // drawn line by line, the first line lets the drop cap reach past it
+    assert.match(score.pages[0].createSvgForEachLine(ctxt), /^<svg [^>]*overflow="visible"/);
   });
 
   it("put the drop cap on the last line when there are fewer lines than dropCapLines", async function () {
