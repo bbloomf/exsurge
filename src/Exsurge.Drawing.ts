@@ -5116,6 +5116,13 @@ export class ChantNotationElement extends ChantLayoutElement {
   finishLayout(ctxt: ChantContext) {
     this.bounds.x = 0;
 
+    this.alignLyrics(ctxt);
+
+    this.needsLayout = false;
+  }
+
+  // lines the lyrics up with the notation, once they and the notation have been measured
+  alignLyrics(ctxt: ChantContext) {
     let language =
       (this.lyrics[0] && this.lyrics[0].language) || ctxt.defaultLanguage;
     // center the neume itself over the syllable, or just the first punctum
@@ -5128,8 +5135,6 @@ export class ChantNotationElement extends ChantLayoutElement {
               : this.origin.x - lyric.origin.x)
       : (lyric: Lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
     this.lyrics.forEach(calculateLyricX);
-
-    this.needsLayout = false;
   }
 
   draw(ctxt: ChantContext) {

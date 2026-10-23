@@ -3,6 +3,9 @@ import assert from "node:assert";
 import * as Drawing from "../src/Exsurge.Drawing.js";
 import { Gabc, type WordDiff } from "../src/Exsurge.Gabc.js";
 import type { ChantMapping } from "../src/Exsurge.Chant.js";
+import * as Exsurge from "../src/index.js";
+import { featureCases } from "./golden/cases";
+import { render } from "./golden/harness";
 
 type Descriptor = { source: string };
 type Diff = WordDiff<Descriptor>[];
@@ -239,6 +242,35 @@ describe('Gabc diff', function() {
         parsedMappings(afterSource),
         beforeSource + ' => ' + afterSource
       );
+    }
+  });
+});
+
+describe('Laying out an edited score', function() {
+  var puer = featureCases.find(function(c) { return c.name === 'puer-natus-est'; })!.gabc;
+  var edited = puer
+    .replace('na(iji)tus(h)', 'na(ijiji)tus(hg) no(h)vus(h)')
+    .replace('(;) ma(hj)gni', '(;) ma(hjk)gni');
+
+  // where each line starts, and where each notation and its lyrics are on its line
+  function positions(score: any) {
+    return {
+      lines: score.lines.map(function(line: any) { return line.notationsStartIndex; }),
+      notations: score.notations.map(function(notation: any) {
+        return [notation.bounds.x].concat(notation.lyrics.map(function(lyric: any) { return lyric.bounds.x; }));
+      })
+    };
+  }
+
+  // the lyrics under Puer natus est's divisiones (such as *(:)) are moved with them when
+  // they are centered, and used to be put back elsewhere for the next layout
+  it('places the notations as a fresh layout does, after an edit or at another width', async function() {
+    for (var width = 150; width <= 700; width += 10) {
+      var fresh = positions((await render(Exsurge, edited, { useDropCap: true, width: width }, [])).score);
+      var afterEdit = await render(Exsurge, puer, { useDropCap: true, width: width, edits: [edited] }, []);
+      assert.deepStrictEqual(positions(afterEdit.score), fresh, 'edited, at ' + width);
+      var relaidOut = await render(Exsurge, edited, { useDropCap: true, width: 1000 - width, relayoutWidths: [width] }, []);
+      assert.deepStrictEqual(positions(relaidOut.score), fresh, 'laid out again, at ' + width);
     }
   });
 });
