@@ -1,0 +1,173 @@
+// ctxt.lineBreaking = "optimal": the line breaks of the whole score chosen
+// together, as Gregorio chooses them (see LineBreaker)
+
+import { describe, it } from "vitest";
+import assert from "node:assert";
+import * as E from "../src/index.js";
+import { featureCases } from "./golden/cases";
+import { render, type RenderOptions } from "./golden/harness";
+
+const puer = featureCases.find((c) => c.name === "puer-natus-est")!.gabc;
+const adTeLevavi = featureCases.find((c) => c.name === "ad-te-levavi")!.gabc;
+
+async function layOut(gabc: string, options: RenderOptions & { lineBreaking?: "greedy" | "optimal" } = {}) {
+  const { score, ctxt } = await render(
+    E,
+    gabc,
+    {
+      ...options,
+      setupContext: (ctxt) => {
+        ctxt.lineBreaking = options.lineBreaking || "optimal";
+        if (options.setupContext) options.setupContext(ctxt, E);
+      }
+    },
+    []
+  );
+  return { score, ctxt };
+}
+
+/** the index of the first notation on each line */
+const lineStarts = (score: any): number[] => score.lines.map((line: any) => line.notationsStartIndex);
+
+/** the notations on each line, as the gabc of their notes or the text of their lyrics */
+function lineContents(score: any) {
+  return score.lines.map((line: any) =>
+    score.notations
+      .slice(line.notationsStartIndex, line.notationsStartIndex + line.numNotationsOnLine)
+      .map((notation: any) => (notation.notes || []).map((note: any) => note.sourceGabc).join("") || notation.constructor.name)
+  );
+}
+
+describe("optimal line breaking", () => {
+  it("is off by default", () => {
+    assert.strictEqual(new E.ChantContext().lineBreaking, "greedy");
+  });
+
+  it("builds each line to end where it was planned to", async () => {
+    for (const width of [150, 220, 330, 470, 600, 700]) {
+      const { score } = await layOut(puer, { useDropCap: true, width });
+      for (const line of score.lines) {
+        assert.notStrictEqual(line.plannedEnd, undefined, `line ${line.elementIndex} at ${width}`);
+        assert.strictEqual(line.notationsStartIndex + line.numNotationsOnLine, line.plannedEnd);
+      }
+    }
+  });
+
+  it("puts each notation on one line, in order", async () => {
+    for (const width of [150, 330, 600]) {
+      const { score } = await layOut(puer, { useDropCap: true, width });
+      let next = 0;
+      for (const line of score.lines) {
+        // (a clef at the start of a line is its starting clef)
+        if (line.notationsStartIndex !== next) assert(score.notations[next].isClef);
+        next = line.notationsStartIndex + line.numNotationsOnLine;
+      }
+      assert.strictEqual(next, score.notations.length);
+    }
+  });
+
+  it("breaks at gabc z and Z, and nowhere else when everything fits", async () => {
+    const { score } = await layOut("(c4) Ky(f)ri(g)e(h) (z) e(g)lé(f)i(e)son.(f) (Z) Chri(g)ste(h) (::)", { width: 600 });
+    assert.deepStrictEqual(lineContents(score), [
+      ["f", "g", "h", "ChantLineBreak"],
+      ["g", "f", "e", "f", "ChantLineBreak"],
+      ["g", "h", "DoubleBar"]
+    ]);
+    // (z is justified and Z isn't)
+    assert.strictEqual(score.lines[0].justify, true);
+    assert.strictEqual(score.lines[1].justify, false);
+  });
+
+  it("doesn't break within <nlba>", async () => {
+    const gabc = "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (;) <nlba>Chri(f)ste(g) e(h)lé(i)i(h)son.(g)</nlba> (:) Ky(f)ri(g)e(h) (::)";
+    for (const width of [230, 260, 300, 400]) {
+      const { score } = await layOut(gabc, { width });
+      const notations = score.notations;
+      const start = notations.findIndex((n: any) => n.noLineBreak && n.noLineBreak.start);
+      const end = notations.findIndex((n: any) => n.noLineBreak && n.noLineBreak.end);
+      for (const lineStart of lineStarts(score)) assert(lineStart <= start || lineStart > end, `${lineStart} at ${width}`);
+    }
+  });
+
+  it("only breaks a syllable of 10 notes or more, at a space, with 4 notes on each side", async () => {
+    // the syllable "a" has 14 notes, each set apart, and "b" 9
+    const gabc =
+      "(c4) a(f/g/h/g/f/g/h/g/f/g/h/g/f/g) b(f/g/h/g/f/g/h/g/f) c(g) d(h) e(g) (::)";
+    for (const width of [100, 110, 120, 130, 160, 200]) {
+      const { score } = await layOut(gabc, { width });
+      assert(score.lines.every((line: any) => line.plannedEnd !== undefined));
+      const notations = score.notations;
+      for (const lineStart of lineStarts(score).slice(1)) {
+        const notation = notations[lineStart];
+        if (notation.firstOfParentheses) continue;
+        // a break within a syllable: count its notes before and after
+        let first = lineStart;
+        while (!notations[first].firstOfParentheses) first--;
+        let last = lineStart;
+        while (last + 1 < notations.length && !notations[last + 1].firstOfParentheses) last++;
+        const count = (from: number, to: number) =>
+          notations.slice(from, to).reduce((sum: number, n: any) => sum + (n.notes ? n.notes.length : 0), 0);
+        assert.strictEqual(count(first, last + 1), 14, `the syllable broken at ${width}`);
+        assert(count(first, lineStart) >= 4 && count(lineStart, last + 1) >= 4, `${lineStart} at ${width}`);
+      }
+    }
+  });
+
+  it("breaks after a bar rather than within a word, where both fit", async () => {
+    // greedy fills the third line up to "Gló-ri-a Pa-"
+    const greedy = await layOut(puer, { useDropCap: true, width: 600, lineBreaking: "greedy" });
+    const optimal = await layOut(puer, { useDropCap: true, width: 600 });
+    const notations = optimal.score.notations;
+    const gloria = notations.findIndex((n: any) => n.hasLyrics() && n.lyrics[0].text === "Gló");
+    assert(notations[gloria - 1].isDivider);
+    assert(!lineStarts(greedy.score).includes(gloria));
+    assert(lineStarts(optimal.score).includes(gloria));
+  });
+
+  it("sets a line as loose as it has to be, rather than break where Gregorio wouldn't", async () => {
+    // the 14 notes of "a" fill most of a line, and the 9 of "b" can't be split
+    const { score } = await layOut("(c4) a(f/g/h/g/f/g/h/g/f/g/h/g/f/g) b(f/g/h/g/f/g/h/g/f) c(g) d(h) e(g) (::)", {
+      width: 180
+    });
+    assert.deepStrictEqual(lineStarts(score), [0, 14]);
+    assert(score.lines.every((line: any) => line.plannedEnd !== undefined));
+  });
+
+  it("falls back to filling a line greedily when nothing fits", async () => {
+    // the no-line-break area is too long for the line
+    const gabc = "(c4) <nlba>Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) Chri(f)ste(g) e(h)lé(i)i(h)son.(g)</nlba> (::)";
+    const { score } = await layOut(gabc, { width: 120 });
+    assert(score.lines.length > 1);
+    assert(score.lines.some((line: any) => line.plannedEnd === undefined));
+    const last = score.lines[score.lines.length - 1];
+    assert.strictEqual(last.notationsStartIndex + last.numNotationsOnLine, score.notations.length);
+  });
+
+  it("lays an edited score out as it lays out the same gabc parsed afresh", async () => {
+    // (a lyric under a bar, as in Puer natus est, can be placed differently
+    // once the score has been laid out, with either line breaking, so this
+    // score has none)
+    const edited = adTeLevavi.replace("le(f)vá(fe)vi(f)", "le(fgf)vá(fe)vi(f) no(g)vum(f)").replace("me(f)i:(f.)", "me(fg)i:(f.)");
+    const positions = (score: any) => score.notations.map((n: any) => Math.round(n.bounds.x * 100) / 100);
+    for (const width of [180, 250, 330, 420, 600]) {
+      const fresh = await layOut(edited, { useDropCap: true, width });
+      const { score } = await layOut(adTeLevavi, { useDropCap: true, width, edits: [edited] });
+      assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `at ${width}`);
+      assert.deepStrictEqual(positions(score), positions(fresh.score), `at ${width}`);
+    }
+  });
+
+  it("leaves the context's clef as it found it", async () => {
+    const { score, ctxt } = await layOut("(c4) a(f) (c3) b(g) c(h) (f3) d(f) e(g) (::)", { width: 120 });
+    const clef = ctxt.activeClef;
+    const breaker = new E.LineBreaker(score, ctxt, 120);
+    breaker.plannedEnd(0, 0);
+    assert.strictEqual(ctxt.activeClef, clef);
+  });
+
+  it("lays out on one line without a width", async () => {
+    const { score } = await layOut(puer, { width: 0 });
+    assert.strictEqual(score.lines.length, 1);
+    assert.strictEqual(score.lines[0].plannedEnd, undefined);
+  });
+});

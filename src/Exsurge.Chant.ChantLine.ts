@@ -97,6 +97,12 @@ export class ChantLine extends ChantLayoutElement {
   numNotationsOnLine: number;
   /** how many notations would have fit, when fewer were kept on the line to keep some together */
   maxNumNotationsOnLine?: number;
+  /**
+   * the index of the notation after the last one that the optimal line
+   * breaker planned for the line (see LineBreaker), which the line then
+   * takes all of, or undefined to fill the line greedily
+   */
+  plannedEnd?: number;
   notationBounds: Rect | null;
   staffLeft: number;
   staffRight: number;
@@ -963,10 +969,15 @@ export class ChantLine extends ChantLayoutElement {
         // Otherwise, we use rightNotationBoundary, which leaves room for a custos...
         actualRightBoundary = rightNotationBoundary;
       }
+      // (a line planned by the optimal line breaker takes everything up to
+      // where it was planned to end, and ends there)
+      var planned = this.plannedEnd !== undefined && i < this.plannedEnd;
+      if (planned) actualRightBoundary = Infinity;
 
       // First check if we're already beyond the rightNotationBoundary (due to condensing that hasn't yet happened) and have a good element to end with
       // but if we have 2 or fewer elements, or if the current element is a line break or a custos, we'll go ahead and try for them anyway.
       var forceBreak =
+        !planned &&
         !curr.isDivider &&
         curr.constructor !== ChantLineBreak &&
         curr.constructor !== Custos &&
@@ -982,6 +993,7 @@ export class ChantLine extends ChantLayoutElement {
       // also force a break if we've run into extra TextOnly elements, but the current notation is not a TextOnly and has lyrics
       forceBreak =
         forceBreak ||
+        this.plannedEnd === i ||
         (this.extraTextOnlyIndex !== null &&
           curr.constructor !== TextOnly &&
           curr.constructor !== ChantLineBreak &&
@@ -1010,7 +1022,7 @@ export class ChantLine extends ChantLayoutElement {
       // try to fit the curr element on this line.
       // if it doesn't fit, we finish up here.
       var fitsOnLine;
-      if (isHiddenAccidental(curr)) {
+      if (isHiddenAccidental(curr) && this.plannedEnd !== i) {
         // it will be moved to the notation that follows it in alignHiddenAccidentals()
         curr.bounds.x = prevNeume!.bounds.right() + prevNeume!.calculatedTrailingSpace;
         fitsOnLine = true;
@@ -1028,6 +1040,7 @@ export class ChantLine extends ChantLayoutElement {
       }
       var candidateForExtraTextOnlyLine =
         ctxt.useExtraTextOnly &&
+        this.plannedEnd === undefined &&
         curr.constructor === TextOnly &&
         LyricArray.hasOnlyOneLyric((curr as TextOnly).lyrics) &&
         (fitsOnLine === false || this.extraTextOnlyIndex !== null);
@@ -1117,6 +1130,7 @@ export class ChantLine extends ChantLayoutElement {
         }
         // first check for elements that cannot begin a system: dividers and custodes
         while (
+          this.plannedEnd !== i &&
           this.numNotationsOnLine > 1 &&
           (curr.isDivider || curr.constructor === Custos || isTextOnlyBeforeDivider(i))
         ) {
@@ -1156,7 +1170,7 @@ export class ChantLine extends ChantLayoutElement {
 
         // check if the prev elements want to be kept with this one
         var breakInArea: number | undefined;
-        for (j = i - 1; j > this.notationsStartIndex; j--) {
+        for (j = i - 1; j > this.notationsStartIndex && this.plannedEnd !== i; j--) {
           var cne = notations[j];
           curr = notations[j + 1];
 
@@ -2652,8 +2666,9 @@ export class ChantLine extends ChantLayoutElement {
     if (
       curr.bounds.right() + curr.calculatedTrailingSpace <
         rightNotationBoundary + condensableSpaces.sum + space.condensable &&
-      LyricArray.getRight(curr.lyrics, true, true) <=
-        this.staffRight + condensableSpaces.sum + space.condensable
+      (rightNotationBoundary === Infinity ||
+        LyricArray.getRight(curr.lyrics, true, true) <=
+          this.staffRight + condensableSpaces.sum + space.condensable)
     ) {
       if (prev.isAccidental && !(prev as Accidental).hidden) {
         // move the previous accidental up next to the current note:
