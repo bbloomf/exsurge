@@ -399,13 +399,21 @@ export const featureCases: GoldenCase[] = [
     gabc: "(c4) a(G) b(G0) c(G1) d(G2) e(hGF) f(hG0F0) g(fG1H1) h(gG2G2) i(-G0) (::) (xp3) j(H0) k(h0) l(H9) (::)"
   },
   {
-    // a porrectus stroke of a fifth has its own glyph (a, c and e to h), but
-    // one wider (or between nudged notes, as a note on a space is under a
-    // Chi-Rho clef) has none, so its notes are drawn as puncta joined by a
-    // line, and the note after it follows them rather than standing on the
-    // last (k is a torculus resupinus)
+    // a porrectus stroke of a fifth (a, c and e to h), and wider ones (b, d),
+    // and one between nudged notes, as a note on a space is under a Chi-Rho
+    // clef (j, and k, a torculus resupinus), each drawn for the fall it has
     name: "porrectus-wide",
     gabc: "(c4) a(kfk) b(lel) c(kfkh) d(ldl) e(kfk~) f(kf_k) g(k.fk) h(-kfk) i(jfj) (::) (xp3) j(hgh) k(ghgh) (::)"
+  },
+  {
+    // a porrectus's stroke drawn for any fall: wider than a fifth, in a
+    // porrectus (a), a torculus resupinus (b) and a porrectus flexus (c); and
+    // under a Chi-Rho clef, of 1⅓ (d, i, j), ⅔ (e, f, k), 3⅓ (g) and 2⅔ (h)
+    // staff positions, hollow (j, k) and in a porrectus flexus (l)
+    name: "porrectus-any-fall",
+    gabc:
+      "(c4) a(mcm) b(dkdk) c(lclk) (::) " +
+      "(xp3) d(hgh) e(hg9h) f(h0gh) g(jgj) h(ifh) i(fhgh) j(hgr0h) k(hg9rh) l(jgjh) (::)"
   },
 
   // Gregorio: Phase 2

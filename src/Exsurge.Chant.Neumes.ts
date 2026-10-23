@@ -30,11 +30,10 @@ import {
   type Note
 } from "./Exsurge.Chant.js";
 import {
-  CavumGlyphCode,
   ChantNotationElement,
   GlyphCode, InclinatumGlyphTurn, LineaVisualizer, MarkingPositionHint,
   NeumeBeamVisualizer,
-  NeumeLineVisualizer, VirgaLineVisualizer,
+  NeumeLineVisualizer, porrectusGlyphCode, VirgaLineVisualizer,
   type ChantContext
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
@@ -46,23 +45,13 @@ export interface NeumeLedgerLine {
   staffPosition: number;
 }
 
-// the stroke of a porrectus from start down to end, or GlyphCode.None if
-// there's no glyph for it (an interval of more than a fifth)
+// the stroke of a porrectus from start down to end, however far that is: a
+// stroke for both notes, so hollow if either is
 function porrectusGlyph(start: Note, end: Note): GlyphCode {
-  switch (start.staffPosition - end.staffPosition) {
-    case 1:
-      return GlyphCode.Porrectus1;
-    case 2:
-      return GlyphCode.Porrectus2;
-    case 3:
-      return GlyphCode.Porrectus3;
-    case 4:
-      return GlyphCode.Porrectus4;
-    case 5:
-      return GlyphCode.Porrectus5;
-    default:
-      return GlyphCode.None;
-  }
+  return porrectusGlyphCode(
+    start.staffPosition - end.staffPosition,
+    ((start.shapeModifiers | end.shapeModifiers) & NoteShapeModifiers.Cavum) !== 0
+  );
 }
 
 // the head of a punctum auctus, ascending or descending, for a note with < or
@@ -106,23 +95,6 @@ function inclinatumTopOffset(ctxt: ChantContext, note: Note): number {
   return (
     inclinatumTurn(note) * Math.sin(inclinatumLean) * Glyphs.PunctumInclinatum.origin.y * ctxt.glyphScaling
   );
-}
-
-// the glyph for the note after a porrectus's stroke from start down to end:
-// glyph itself, unless the stroke has no glyph and is drawn as puncta, which
-// the note follows, rather than standing on the last as a podatus's upper
-// note does, where it would hit the line between them.  (A deminutus keeps
-// its small punctum at the end of the last, as in a pes deminutus, which
-// clears the line.)
-function glyphAfterPorrectus(start: Note, end: Note, glyph: GlyphCode): GlyphCode {
-  if (porrectusGlyph(start, end) !== GlyphCode.None) return glyph;
-  switch (glyph) {
-    case GlyphCode.PodatusUpper:
-    case GlyphCode.PodatusUpperShort:
-      return GlyphCode.PunctumQuadratum;
-    default:
-      return glyph;
-  }
 }
 
 class NeumeBuilder {
@@ -496,14 +468,6 @@ class NeumeBuilder {
   }
 
   withPorrectusSwash(start: Note, end: Note) {
-    var glyph = porrectusGlyph(start, end);
-    if (glyph === GlyphCode.None) {
-      // a stroke wider than a fifth, which has no glyph (nor has Gregorio
-      // one): the two notes as puncta joined by a line, as a clivis's are, so
-      // that neither is lost
-      return this.noteAt(start, GlyphCode.PunctumQuadratum).noteAt(end, GlyphCode.PunctumQuadratum);
-    }
-
     var needsLine =
       this.lastNote !== null &&
       (this.ctxt.glyphMultiplier < 1 ||
@@ -524,10 +488,7 @@ class NeumeBuilder {
       this.neume.addVisualizer(line);
     }
 
-    // (the stroke is both notes, so it's hollow if either is: setGlyph() makes
-    // it hollow for start, and this for end)
-    if (end.shapeModifiers & NoteShapeModifiers.Cavum) glyph = CavumGlyphCode[glyph] || glyph;
-    start.setGlyph(this.ctxt, glyph);
+    start.setGlyph(this.ctxt, porrectusGlyph(start, end));
     start.bounds.x = this.x;
 
     // the second glyph does not draw anything, but it still has logical importance for the editing
@@ -1265,7 +1226,7 @@ export class Porrectus extends Neume {
     this.build(ctxt)
       .lineFrom(second)
       .withPorrectusSwash(first, second)
-      .noteAt(third, glyphAfterPorrectus(first, second, thirdGlyph));
+      .noteAt(third, thirdGlyph);
 
     this.finishLayout(ctxt);
   }
@@ -1632,7 +1593,7 @@ export class TorculusResupinus extends Neume {
     this.build(ctxt)
       .noteAt(first, firstGlyph)
       .withPorrectusSwash(second, third)
-      .noteAt(fourth, glyphAfterPorrectus(second, third, fourthGlyph));
+      .noteAt(fourth, fourthGlyph);
 
     this.finishLayout(ctxt);
   }

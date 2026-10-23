@@ -27,7 +27,7 @@ import {
   getCssForProperties, Point,
   Rect
 } from "./Exsurge.Core.js";
-import { Glyphs, type Glyph } from "./Exsurge.Glyphs.js";
+import { Glyphs, porrectusSwash, porrectusSwashWidth, type Glyph } from "./Exsurge.Glyphs.js";
 import { language, type IgnoredRange, type Language, type VowelSegment } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
@@ -426,8 +426,10 @@ export const GlyphCode = {
   PodatusLowerShort: "PodatusLowerShort",
   PodatusUpperShort: "PodatusUpperShort",
 
-  Porrectus1: "Porrectus1", // 1 staff line difference,
-  Porrectus2: "Porrectus2", // 2 lines difference, etc...
+  // a porrectus's swash falling 1 staff position, 2, and so on.  (it can fall
+  // any distance: see porrectusGlyphCode())
+  Porrectus1: "Porrectus1",
+  Porrectus2: "Porrectus2",
   Porrectus3: "Porrectus3",
   Porrectus4: "Porrectus4",
   Porrectus5: "Porrectus5",
@@ -484,7 +486,33 @@ export const GlyphCode = {
   TerminatingAscLiquescentCavum: "TerminatingAscLiquescentCavum",
   TerminatingDesLiquescentCavum: "TerminatingDesLiquescentCavum"
 } as const; // GlyphCode
-export type GlyphCode = (typeof GlyphCode)[keyof typeof GlyphCode];
+export type GlyphCode =
+  | (typeof GlyphCode)[keyof typeof GlyphCode]
+  | `Porrectus${number}`
+  | `Porrectus${number}Cavum`;
+
+/**
+ * The glyph code of a porrectus's swash, falling interval staff positions (a
+ * whole number for the clefs that exsurge shares with Gregorio, or with the
+ * Chi-Rho clef's offsets, in thirds): Porrectus followed by the interval, to
+ * three decimal places, and Cavum if it's hollow.  The swash is drawn for it
+ * when it's first used.
+ */
+export function porrectusGlyphCode(interval: number, hollow = false): GlyphCode {
+  return `Porrectus${Math.round(interval * 1000) / 1000}${hollow ? "Cavum" : ""}` as GlyphCode;
+}
+
+// the glyphs of the porrectus swashes other than those in Glyphs, by their codes
+const porrectusGlyphs: { [glyphCode: string]: Glyph } = {};
+
+// the glyph of a porrectus's swash falling interval staff positions
+function porrectusGlyph(glyphCode: string, interval: number, hollow: boolean) {
+  return (
+    Glyphs[glyphCode] ||
+    porrectusGlyphs[glyphCode] ||
+    (porrectusGlyphs[glyphCode] = porrectusSwash(100 * interval, porrectusSwashWidth(interval), hollow))
+  );
+}
 
 /** the hollow form of each note glyph, for a note with a cavum (gabc r) */
 export const CavumGlyphCode: { readonly [glyphCode in GlyphCode]?: GlyphCode } = {
@@ -2251,9 +2279,11 @@ export class GlyphVisualizer extends ChantLayoutElement {
         glyphCode = this.glyphCode = GlyphCode.None;
       else this.glyphCode = glyphCode;
 
-      let glyph = this.glyph = Glyphs[glyphCode];
-      const porrectusResult = /^Porrectus([1-9])(?:Cavum)?$/.exec(glyphCode);
-      this.porrectusNoteDiff = porrectusResult ? Number(porrectusResult[1]) : 0;
+      const swash = /^Porrectus([\d.]+)(Cavum)?$/.exec(glyphCode);
+      let glyph = (this.glyph = swash
+        ? porrectusGlyph(glyphCode, Number(swash[1]), !!swash[2])
+        : Glyphs[glyphCode]);
+      this.porrectusNoteDiff = swash ? Number(swash[1]) : 0;
 
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing
       if (!ctxt.defs.hasOwnProperty(glyphCode)) {

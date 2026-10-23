@@ -2688,16 +2688,9 @@ export class Gabc {
           currNote.shape === NoteShape.Default &&
           currNote.staffPosition > prevNote.staffPosition
         ) {
-          let prevNoteButOne = notes[currNoteIndex - 2];
-          // (if there's a porrectus stroke for the fall, up to a fifth)
-          if (
-            prevNoteButOne &&
-            prevNoteButOne.staffPosition - prevNote.staffPosition <= 5
-          ) {
-            if (currNote.ictus)
-              currNote.ictus.positionHint = MarkingPositionHint.Above;
-            return torculusResupinusState;
-          }
+          if (currNote.ictus)
+            currNote.ictus.positionHint = MarkingPositionHint.Above;
+          return torculusResupinusState;
         }
         return createNeume(new Neumes.Torculus(), false);
       }

@@ -205,7 +205,7 @@ The upper and lower positions are each a sixth of the line spacing from the midd
 
 - **Clef.** `xp1` to `xp5`, or the sans-serif `xp-1` to `xp-5`. Prefer `xp3` or `xp5`: on lines 1, 2 and 4, some offset notes get a wrong pitch or none (see the pitch bullet below).
 - **Where the digit goes.** It must come straight after the pitch letter. In `fv0` the `0` is ignored. `f.0`, `f_0` and `f'0` keep their Gregorio meaning: a mora, episema or ictus below the note. An initio debilis is fine: `-f0g`.
-- **In neumes.** It works on any note of any neume: `(g0h9)` is a pes, and `(h9g0)` a clivis.
+- **In neumes.** It works on any note of any neume: `(g0h9)` is a pes, and `(h9g0)` a clivis. A porrectus's stroke is drawn for the fall it has, such as the 1⅓ staff positions of `(hgh)` under `(xp3)`, where `g` is at the bottom of its space (golden case `porrectus-any-fall`).
 - **Custodes.** `f9+` puts a custos at the offset position. An automatic custos at the end of a line copies the offset of the note it announces (`Signs.ts:55-65`).
 - **Outside the staff.** It works on ledger-line notes too: `a0`, `l9`, `m9`.
 - **Pitch.** The note keeps the pitch of its letter: under `(xp3)`, `f9` is still La, as under `(c3)`. Only the drawing moves. (But see [the bug](#limits-and-bugs-found-while-checking): under `xp1`, `xp2` and `xp4`, `g9` gets no pitch, and under `xp1`, `d9` is an octave low.)
