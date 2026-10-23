@@ -96,7 +96,7 @@ Most of the gaps are of five kinds:
    - Lines are filled greedily, while Gregorio breaks the whole score as one TeX paragraph.
    - NABC is not drawn at all. It is the largest single feature by far: about 600 outlines for the St. Gall font alone.
 
-The plan's phase order: (1) stop corrupting valid input; (2) bars, breaks, custos and spacing codes; (3) settings from the header, and two-clef forms; (4) lyric semantics; (5) note shapes that can be built from existing outlines; (6) new outlines for cavum, quilisma quadratum, the inclinatum and stropha variants, parentheses, and a porrectus stroke spanning a fifth; (7) brackets, slurs, ledger lines and episema tuning; (8) neume fusion; (9) initials spanning more than one line; (10) NABC; (11, optional) paragraph-wide line breaking.
+The plan's phase order: (1) stop corrupting valid input; (2) bars, breaks, custos and spacing codes; (3) settings from the header, and two-clef forms; (4) lyric semantics; (5) note shapes that can be built from existing outlines; (6) new outlines for cavum, quilisma quadratum, the inclinatum and stropha variants, parentheses, and a porrectus stroke spanning a fifth; (7) brackets, slurs, ledger lines and episema tuning; (8) neume fusion; (9) initials spanning more than one line; (10) NABC; (11, optional) paragraph-wide line breaking; (12) ledger lines drawn by Gregorio's rules, added after the rest of the plan.
 
 ---
 
@@ -171,7 +171,8 @@ Gregorio has only one header syntax. Each header is `name: value;`, and a value 
 | Ictus `'`, `'0`, `'1` | `notes.l:1426-1428`, `Gabc.tex:757-768` | **supported** (golden case `ictus`) | — | — |
 | Horizontal episema `_`, with modifiers `_0`–`_5` and bridging (`_2` stops it) | `notes.l:1429-1431`, `Gabc.tex:769-799` | **supported** (golden case `episemata`). Automatic placement above or below follows the same rules for each shape. For example, `(f_g_h_)` puts the episemata under f and g and over h, in exsurge and in Gregorio's scandicus case (`src/gregoriotex/gregoriotex-position.c:759-782`). | — | — |
 | Episema tuning `[oh:…]`, `[uh:…]`, and the block forms `[oh:{]…[oh:}]` | `notes.l:1132-1141`, `Gabc.tex:1032-1086` | **missing**. Ignored. | Low | M |
-| Ledger-line hints `[hl:0/1]`, `[ll:0/1]` (episema placement, short or long stems) | `notes.l:1495-1506`, `Gabc.tex:933-968`, `:1021-1030` | **missing**. Ignored. Automatic ledger lines are **supported** (golden case `ledger-lines`), and exsurge already has long and short virga outlines (`Glyphs.ts:960`, `:980`). | Low | S |
+| Automatic ledger lines: which notes and signs get one, and how far it reaches | `src/gabc/gabc-score-determination.c:521-659`, `notes.l:152-162`, `tex/gregoriotex-signs.tex:1566-1650`, `CHANGELOG.md:188`, `UPGRADE.md:83-96` | **partial**. exsurge draws them (golden case `ledger-lines`), but by its own rules. A line takes in one more note on each side, within one neume, and lines less than two staff intervals apart are joined. Gregorio runs a line through the notes of one element by other rules and never joins lines from different elements. It also draws a line through an accidental and under the high bars. exsurge's line reaches half a staff interval past the notes; Gregorio's reaches about one. Phase 12 has examples. | Low–medium | M–L |
+| Ledger-line hints `[hl:0/1]`, `[ll:0/1]` (episema placement, short or long stems) | `notes.l:1495-1506`, `Gabc.tex:933-968`, `:1021-1030` | **missing**. Ignored. exsurge already has long and short virga outlines (`Glyphs.ts:960`, `:980`). | Low | S |
 | Choral signs `[cs:text]` | `notes.l:793-795`, `Gabc.tex:908-911` | **supported** (`Gabc.ts:2153-2160`) | — | — |
 | NABC choral sign `[cn:code]` | `notes.l:796-798`, `Gabc.tex:913-914` | **missing**. Ignored (depends on §13). | Low | — |
 | Above-lines text in the notes `[alt:text]` | `notes.l:985-987`, `Gabc.tex:1088-1091` | **supported** (`Gabc.ts:2161-2168`) | — | — |
@@ -563,6 +564,44 @@ The phases are in priority order: corruption first, then commonly used notation,
 
 **Risks to existing output.** It would change every multi-line snapshot if it became the default, so ship it opt-in (`ctxt.lineBreaking: "greedy"/"optimal"`). It also interacts with incremental editing (`updateMappingsFromSource`), where a local change shouldn't move every line.
 
+## Phase 12. Ledger lines as Gregorio draws them
+
+**Goal.** Draw a ledger line wherever Gregorio draws one, and make it the same length. This phase was added after the rest of the plan. Phases 5.7 and 7.3 read Gregorio's ledger-line hints and custom ledger lines, but exsurge still decides on its own where the automatic lines go.
+**Size.** M–L. It can be split into 12.1–12.3 (which notes get a line, and how it is drawn), 12.4 (signs), and 12.5–12.6 (stems and episemata).
+
+**How the two differ now.** The Gregorio column is from `gregorio` built from `b63f074`: its GregorioTeX output has one `\GreAdditionalLine` for each note or sign with a line. The exsurge column is from rendering the same gabc on master.
+
+| gabc | Gregorio draws a line at | exsurge draws a line at |
+|---|---|---|
+| `(klk)`, `(lk)`, `(lj)` | `l` only | `l` and the notes beside it |
+| `(j/!m)` | both notes, because the step between them crosses the line | `m` only |
+| `(f/!e/!d/!c/!b)`, `(b/!c/!d/!e/!f)` | all five notes | `b` only |
+| `(c/!b/!c/!d/!c)` | every note but the last | `b` only |
+| `(b!c)`, `(b/!c)`, `(b/0c)` | both notes | `b` only |
+| `a(b) c(b)` | each `b`, as two lines | one line, joined across the gap |
+| `(bxb)`, `(lxl)`, `(b#b)` | the accidental and the note | the note only |
+| `` (g`0) ``, `(g,0)` | the bar | nothing |
+| any line | the note plus 0.14584 cm on each side, about one staff interval | the notes plus half a staff interval on each side |
+
+Where they already agree: a single note beyond the staff, a pes or clivis whose step crosses the line (`km`, `mk`), and lines below the staff within one neume (`bcd`, `dba`, `cbc`).
+
+| # | Item | Where | Parser work | Layout work | Glyphs | Golden cases |
+|---|---|---|---|---|---|---|
+| 12.1 | One ledger-line state for each side of each note | `Note.lowLedgerLine` and `highLedgerLine` (`Chant.ts:145-152`); the hints in `processInstructionForNote` (`Gabc.ts:3170-3178`); 7.3's `[oll:0/1]`, `[ull:0/1]` and `[oll:{]…[oll:}]` | For each side, keep a value and how it was set, in Gregorio's order (`struct.h:403-410`): supposed; explicit (`[hl:…]`, `[ll:…]`, or a note inside a variable custom ledger line); drawn (a note on or beyond the ledger line); explicitly drawn (`[oll:0/1]`, `[ull:0/1]`). A setting replaces only a weaker one (`notes.l:58-62`, `:152-162`). | — | — | `ledger-line-settings` |
+| 12.2 | Which notes get a line | a pass after the neumes are built, in place of `Neume.requiresLedgerLine` (`Neumes.ts:625-667`) | — | Port `gabc_determine_ledger_lines` (`src/gabc/gabc-score-determination.c:521-659`). It works on one Gregorio element at a time. An element is the notes and accidentals of a neume and of the neumes joined to it by `!`, `/!`, `/0` or `@`; `/`, `//`, `/[n]` and a space end it. From each note drawn with a line, a line above the staff extends to the next or previous note only if the step between them crosses the line. A line below the staff extends back through falling notes and on through rising ones. That asymmetry comes from `extend_low_ledger` (`:599-621`) comparing pitches the same way as `extend_high_ledger`, and it looks like an oversight in Gregorio. Copy it so the output matches, and consider reporting it upstream. | — | `ledger-lines-gregorio` |
+| 12.3 | How a line is drawn | `ChantLine.finishLayout` (`ChantLine.ts:1950-1997`, `:2069-2071`); `ctxt.minLedgerSeparation` (`Drawing.ts:1249`) | — | Draw one line for each note, at the ledger line's height. Make it as wide as the note plus `additionallineswidth` on each side: 0.14584 cm, about 1.02 staff intervals by 7.2's `texLength.ts` (`tex/gregoriotex-signs.tex:1566-1650`, `tex/gregoriotex-gsp-default.tex:94`). A cavum glyph gets no overhang on its left. Under the stroke of a porrectus or a torculus resupinus, the line spans the stroke's first two notes (`src/gregoriotex/gregoriotex-write.c:2460-2525`). The thickness stays the staff line's. Draw overlapping lines as one line. Don't join lines from different elements: default `ctxt.minLedgerSeparation` to 0, so that setting it to 2 restores today's joining. Keep exsurge's rule that a note offset with the Chi-Rho clef's `0` or `9` takes its line at the nearest line. | — | `ledger-lines-gregorio` |
+| 12.4 | Lines through signs | `Accidental` (`Signs.ts:348`); the high virgula and minima (`Signs.ts:147`, `:460`); the custos (`ChantLine.ts:2030`, `:2202`) | — | An accidental on or beyond the ledger line gets a line, as a note does, and is part of 12.2's runs (`CHANGELOG.md:345`). The high virgula and minima, `` `0 `` and `,0`, get a line under them, and so do their parenthesized forms from 6.5 (`tex/gregoriotex-signs.tex:2397-2537`). The custos already gets a line; check its width against GregorioTeX's (`tex/gregoriotex-signs.tex:491-497`). | — | `ledger-lines-signs` |
+| 12.5 | Stems that depend on a ledger line | `VirgaLineVisualizer` (`Drawing.ts:2054-2079`); the stems of the clivis, the porrectus flexus, the oriscus scapus (5.2) and Phase 8's fused shapes | — | Gregorio chooses the stem of a note at `c` or `d` from that note's ledger-line state (`adjusted_queuetype_of`, `src/gregoriotex/gregoriotex-write.c:205-231`, used for each stemmed glyph at `:579-912`; `CHANGELOG.md:352`). A note on the bottom line gets the short stem unless it has a line under it. 5.7 does this only for the virga, and only with a hint. Use the state from 12.1 and 12.2 for every stemmed shape. | none | `ledger-line-stems` |
+| 12.6 | Episemata next to a ledger line | `HorizontalEpisema` (`Markings.ts:122-198`, `:311`) | — | Gregorio decides whether an episema over a note at `k`, or under a note at `c`, has a ledger line to clear. It looks at the state of every note under the episema and of the notes joined to them, then fills in the supposed state of notes that have none (`src/gregoriotex/gregoriotex-position.c:1143-1331`). GregorioTeX then puts the episema closer to a note with no line (`tex/gregoriotex-spaces.tex:571-610`, `CHANGELOG.md:369`, `UPGRADE.md:224-232`). exsurge looks only at the neume's first ledger line and at the hints. Port the decision, and add `ctxt.ledgerLineHeuristic` (default `true`) for Gregorio's `\gresetledgerlineheuristic{enable/disable}`. | — | `ledger-line-episemata` |
+
+This also covers two things left over from phases 5 and 7. 5.7's hints should give way to 7.3's `[oll:0/1]`, and they should change a clivis's stem as well as a virga's.
+
+**Checking against Gregorio.** Gregorio's output gives the expected lines for each new case. Run `gregorio` on the case's gabc and read the `\GreAdditionalLine` calls; the `\GreOCase…` argument names the note's place in its glyph. The table above was made this way.
+
+**Risks to existing output.** 12.3 changes every snapshot that has a ledger line, because the overhang doubles. 12.2 and 12.4 change some of them further. The snapshots with ledger lines are `ledger-lines`, `two-line-staff`, `five-line-staff`, `porrectus-wide`, `musica-ficta`, `linea`, `braces`, `christus-factus-est`, `accents-and-choral-signs`, `scale-uses`, `colors`, `async-layout`, `line-breaks-and-custodes`, and the four `line-break-edge-cases-*`. 12.5 shortens the stem of a virga on the bottom line wherever no line is under it, as 5.7 noted Gregorio does. Review these changes as corrections, in a commit of their own, apart from the new cases.
+
+**Depends on.** 5.7 and 6.5 (both merged), and 7.3 for the explicit and custom lines. Start after Phase 7 merges.
+
 ## Phase summary
 
 | Phase | Theme | Size | Depends on | New outlines |
@@ -578,6 +617,7 @@ The phases are in priority order: corruption first, then commonly used notation,
 | 9 | Initials over several lines | L | — | none |
 | 10 | NABC | XL | 1.4 | about 600 for St. Gall; about 1,700 for all three fonts |
 | 11 | Line breaking across the whole score (optional) | XL | 2.8 | none |
+| 12 | Ledger lines as Gregorio draws them | M–L | 5.7, 7.3; 6.5 for the parenthesized signs | none |
 
 ---
 

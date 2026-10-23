@@ -25,7 +25,7 @@
 
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
 import {
-  BraceAttachment, BracePoint, BraceShape, HorizontalEpisemaAlignment
+  BraceAttachment, BracePoint, BraceShape, HorizontalEpisemaAlignment, Slur, ledgerLinePosition
 } from "./Exsurge.Chant.Markings.js";
 import {
   AccidentalType,
@@ -41,7 +41,7 @@ import {
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
-import type { BraceNote, HorizontalEpisema } from "./Exsurge.Chant.Markings.js";
+import type { BraceNote, EpisemaTuning, HorizontalEpisema, LedgerLineExtent } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type { Accidental, InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import type {
@@ -114,6 +114,8 @@ export class ChantLine extends ChantLayoutElement {
   justify: boolean | undefined;
   ledgerLines: LedgerLine[];
   braces: Array<RoundBraceVisualizer | CurlyBraceVisualizer>;
+  /** Gregorio's slurs on the line */
+  slurs: Slur[];
   nextLine: ChantLine | null;
   previousLine: ChantLine | null;
   lyricLineHeight: number;
@@ -168,6 +170,7 @@ export class ChantLine extends ChantLayoutElement {
     // these are markings that exist at the chant line level rather than at the neume level.
     this.ledgerLines = [];
     this.braces = [];
+    this.slurs = [];
 
     this.nextLine = null;
     this.previousLine = null; // for layout assistance
@@ -274,6 +277,8 @@ export class ChantLine extends ChantLayoutElement {
     // add any braces to the notationBounds as well
     for (i = 0; i < this.braces.length; i++)
       this.notationBounds.union(this.braces[i].bounds);
+    for (i = 0; i < this.slurs.length; i++)
+      this.notationBounds.union(this.slurs[i].bounds);
 
     // finalize the lyrics placement
     var notationBoundsOffset =
@@ -537,6 +542,8 @@ export class ChantLine extends ChantLayoutElement {
     for (i = this.notationsStartIndex; i < lastIndex; i++)
       if (notations[i] !== this.custos) notations[i].draw(ctxt);
 
+    for (i = 0; i < this.slurs.length; i++) this.slurs[i].draw(ctxt);
+
     if (this.custos) this.custos.draw(ctxt);
 
     canvasCtxt.translate(-this.bounds.x, -this.bounds.y);
@@ -615,6 +622,8 @@ export class ChantLine extends ChantLayoutElement {
     // add any braces
     for (i = 0; i < this.braces.length; i++)
       inner.push(this.braces[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+    for (i = 0; i < this.slurs.length; i++)
+      inner.push(this.slurs[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
     // dropCap and the annotations
     if (this.notationsStartIndex === 0) {
@@ -729,6 +738,8 @@ export class ChantLine extends ChantLayoutElement {
     // add any braces
     for (i = 0; i < this.braces.length; i++)
       inner += this.braces[i].createSvgFragment(ctxt);
+    for (i = 0; i < this.slurs.length; i++)
+      inner += this.slurs[i].createSvgFragment(ctxt);
 
     // dropCap and the annotations
     if (this.notationsStartIndex === 0) {
@@ -1939,6 +1950,13 @@ export class ChantLine extends ChantLayoutElement {
 
   finishLayout(ctxt: ChantContext) {
     this.ledgerLines = []; // clear any existing ledger lines
+    this.slurs = [];
+    // (Gregorio's custom ledger lines, which go after the automatic ones)
+    var customLedgerLines: LedgerLine[] = [];
+    if (this.notationsStartIndex === 0) {
+      delete ctxt.openSlurs;
+      delete ctxt.openLedgerLines;
+    }
 
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
@@ -2145,6 +2163,9 @@ export class ChantLine extends ChantLayoutElement {
           }
         }
 
+        if (note.slurs) this.handleSlurs(ctxt, note);
+        if (note.customLedgerLines) this.handleCustomLedgerLines(ctxt, note, customLedgerLines);
+
         if (note.braceEnd) this.handleEndBrace(ctxt, note, i);
 
         if (note.braceStart) {
@@ -2153,6 +2174,8 @@ export class ChantLine extends ChantLayoutElement {
         }
       }
     }
+
+    this.alignEpisemaBlocks(notations.slice(this.notationsStartIndex, lastIndex));
 
     // if we still have an active brace, that means it spands two chant lines!
     if (startBrace !== null) {
@@ -2200,6 +2223,121 @@ export class ChantLine extends ChantLayoutElement {
 
     // don't forget to also include the final custos, which may need a ledger line too
     if (this.custos) processElementForLedgerLine(this.custos);
+
+    // a slur that goes on to the next line goes to the end of this one (and
+    // one that isn't closed by the end of the score isn't drawn)
+    var openSlurs = ctxt.openSlurs || {};
+    for (let side of ["above", "below"] as const) {
+      let start = openSlurs[side];
+      if (!start || lastIndex >= notations.length) continue;
+      this.slurs.push(new Slur(ctxt, this.startX(start), start.y, this.staffRight, start.y, side === "above"));
+      start.x = null;
+    }
+
+    // and so does a custom ledger line
+    var openLedgerLines = ctxt.openLedgerLines || {};
+    for (let side of ["above", "below"] as const) {
+      let start = openLedgerLines[side];
+      if (!start || lastIndex >= notations.length) continue;
+      customLedgerLines.push({
+        x1: this.startX(start),
+        x2: this.staffRight,
+        staffPosition: ledgerLinePosition(ctxt, side === "above")
+      });
+      start.x = null;
+    }
+    for (let line of customLedgerLines) {
+      line.x1 = Math.max(line.x1, this.staffLeft);
+      line.x2 = Math.min(line.x2, this.staffRight);
+      this.ledgerLines.push(line);
+    }
+  }
+
+  // where a slur or custom ledger line from note to note that started at
+  // start begins on this line: where it started, or after the clef if that
+  // was on an earlier line
+  startX(start: { x: number | null }) {
+    return start.x === null ? this.startingClef.bounds.right() : start.x;
+  }
+
+  // Gregorio's ledger lines of a given length next to the note (gabc [oll:…]
+  // and [ull:…]), or from note to note, which go in customLedgerLines.  As in
+  // Gregorio, a line that starts before the last one ends, or ends without
+  // one, is ignored.
+  handleCustomLedgerLines(ctxt: ChantContext, note: Note, customLedgerLines: LedgerLine[]) {
+    var openLedgerLines = (ctxt.openLedgerLines = ctxt.openLedgerLines || {});
+    var extent = (e: LedgerLineExtent) => (e === "overhang" ? ctxt.intraNeumeSpacing : e * ctxt.staffInterval);
+    for (let line of note.customLedgerLines!) {
+      let side = line.isAbove ? ("above" as const) : ("below" as const);
+      let staffPosition = ledgerLinePosition(ctxt, line.isAbove);
+      // (where the line is introduced)
+      let x = note.neume!.bounds.x + (line.before ? note.bounds.x : note.bounds.right());
+      let start = openLedgerLines[side];
+      if (line.kind === "fixed") {
+        customLedgerLines.push({ x1: x - extent(line.left!), x2: x + extent(line.right!), staffPosition });
+      } else if (line.kind === "start") {
+        if (!start) openLedgerLines[side] = { x: x - extent(line.left!), right: line.right! };
+      } else if (start) {
+        customLedgerLines.push({
+          x1: this.startX(start),
+          x2: x + extent(start.right),
+          staffPosition
+        });
+        delete openLedgerLines[side];
+      }
+    }
+  }
+
+  // puts the episemata of each of Gregorio's blocks of episema tuning
+  // ([oh:…{] … [oh}]) on the notations on the same level, the highest of
+  // them over the notes, or the lowest under them
+  alignEpisemaBlocks(notations: ChantNotationElement[]) {
+    var blocks = new Map<EpisemaTuning, HorizontalEpisema[]>();
+    for (let notation of notations) {
+      for (let note of notation.notes || []) {
+        for (let episema of note.episemata) {
+          let isAbove = episema.positionHint !== MarkingPositionHint.Below;
+          let tuning = note.episemaTuning && note.episemaTuning[isAbove ? "above" : "below"];
+          if (tuning && tuning.block) blocks.set(tuning, (blocks.get(tuning) || []).concat(episema));
+        }
+      }
+    }
+    blocks.forEach((episemata) => {
+      let ys = episemata.map((episema) => episema.bounds.y);
+      let y = episemata[0].positionHint === MarkingPositionHint.Below ? Math.max(...ys) : Math.min(...ys);
+      for (let episema of episemata) episema.bounds.y = y;
+    });
+  }
+
+  // Gregorio's slurs on the note (gabc [oslur:…] and [uslur:…]): one of its
+  // own, or the start or end of one from note to note.  As in Gregorio, a
+  // slur that starts before the last one ends, or ends without one, is ignored.
+  handleSlurs(ctxt: ChantContext, note: Note) {
+    var openSlurs = (ctxt.openSlurs = ctxt.openSlurs || {});
+    for (let mark of note.slurs!) {
+      let side = mark.isAbove ? ("above" as const) : ("below" as const);
+      let point = Slur.pointOnNote(ctxt, note, mark);
+      let start = openSlurs[side];
+      if (mark.kind === "fixed") {
+        this.slurs.push(
+          new Slur(
+            ctxt,
+            point.x,
+            point.y,
+            point.x + mark.width! * ctxt.staffInterval,
+            point.y - mark.height! * ctxt.staffInterval,
+            mark.isAbove
+          )
+        );
+      } else if (mark.kind === "start") {
+        if (!start) openSlurs[side] = point;
+      } else if (start) {
+        // (one that started on an earlier line goes on from the start of this one, level with its end)
+        let y = start.x === null ? point.y : start.y;
+        this.slurs.push(new Slur(ctxt, this.startX(start), y, point.x, point.y, mark.isAbove));
+        delete openSlurs[side];
+      }
+    }
   }
 
   // this is where the real core of positioning neumes takes place

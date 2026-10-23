@@ -360,8 +360,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the brackets and fusion are read but
-    // not drawn yet (i is a linea, j a pes quadratum and o a bivirga)
+    // no notes are lost or made up; the fusion is read but not drawn yet (i
+    // is a linea, j a pes quadratum and o a bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -737,6 +737,50 @@ export const featureCases: GoldenCase[] = [
     // flexus (b) and a torculus resupinus (c, d)
     name: "porrectus-fifth",
     gabc: "(c4) a(kfk) b(kfkh) c(dkfk) d(dkfkh) e(kfrk) f(kfk~) g(kfk<) h(lglj) i(kf'k) j(k_f_k) (::)"
+  },
+
+  // Gregorio: Phase 7
+  {
+    // a bracket at each side of the notes in it, from below the lowest to
+    // above the highest, with a short, normal or long top as Gregorio picks
+    // it, and after a mora; brackets can span syllables, a ]] with no notes
+    // since the [[ doesn't close them, and a [[ inside brackets is ignored
+    name: "note-brackets",
+    gabc:
+      "(c4) a([[gh]]) b(f[[gh]]i) c([[g]]) d([[fh]]) e([[fg]]) f([[eg]]) g([[eh]]) h([[ce]]) i([[jk]]) " +
+      "j(e[[ghg]]f) ad([[ef) te(g]]) k(f[[]]g]]) l(g[[h[[i]]) m([[g.]]) (::)"
+  },
+  {
+    // slurs of a given width and height, over or under the notes, and from
+    // note to note, shifted left by none, a punctum or half a punctum; one
+    // from note to note across a line break is drawn in two parts, one in em
+    // takes the em of TeX's default font (as a brace's length does), and one
+    // that ends without a start isn't drawn
+    name: "slurs",
+    gabc:
+      "(c4) a(g[oslur:0;5mm,0mm]h) b(g[uslur:0;5mm,0mm]h) c(e[oslur:0;8mm,2mm]) d(j[oslur:1;4mm,-1mm]) " +
+      "e(f[oslur:1{]gh[oslur:0}]) f(h[uslur:2{]gf[uslur:2}]) g(fg[oslur:2{]) h(hi) i(h[oslur:2}]) " +
+      "j(f[oslur:0;1em,1mm]) k(g[oslur:0{]) l(h) (z) m(g[oslur:0}]) n(h[uslur:0}]) (::)"
+  },
+  {
+    // ledger lines drawn at notes in the staff, or left out at notes beyond
+    // it; ledger lines of a given length from just after a note, or from just
+    // before one, and from note to note, even across a line break (and one
+    // that ends without a start isn't drawn)
+    name: "custom-ledger-lines",
+    gabc:
+      "(c4) a(g[oll:1]) b(m[oll:0]) c(d[ull:1]) d(b[ull:0]) e(g[oll:0;5mm]h) f([oll:1;5mm]gh) g([ull:1{1]fgh) " +
+      "h(g[ull:}]f) i(h[oll:2mm;2mm]) j(fg[oll:1]h) k(lm[oll:0]) l(e[ull:}]) m(g[oll:0{1]) (z) n(hg) o(h[oll:}]) (::)"
+  },
+  {
+    // episemata moved to the middle, or low or high, in their spaces, and
+    // nudged, over and under notes in spaces and on lines; and the episemata
+    // in blocks put on one level, even across syllables and spaces, where
+    // the note the block starts after isn't in it
+    name: "episema-tuning",
+    gabc:
+      "(c4) a(g_) b(g_[oh:m]) c(g_[oh:l]) d(g_[oh:h]) e(h_[oh:l]) f(h_[oh:+1mm]) g(h_[oh:m-0.5mm]) h(g_0[uh:l]) " +
+      "i(h_0[uh:m]) j(g_0[uh:oh]) (::) k(e_[oh:{]f_) l(g_ h_[oh}]) m(g_) n([oh:h{]f_ g_ e_[oh}]) o([uh:{]h_0 j_0) p(f_0[uh}]) (::)"
   }
 ];
 

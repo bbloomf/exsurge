@@ -35,7 +35,7 @@ import { greextraGlyphs } from "./greextraGlyphs.js";
 import { makeLigature } from "./makeLigature.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
-import type { BracePoint } from "./Exsurge.Chant.Markings.js";
+import type { BracePoint, LedgerLineStart, SlurStart } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type { Titles } from "./Exsurge.Titles.js";
 
@@ -1051,6 +1051,10 @@ export class ChantContext {
   activeNotations: ChantNotationElement[] | null;
   /** a brace that has started, but not yet ended, in the score being laid out */
   lastStartBrace?: BracePoint;
+  /** Gregorio's slurs from note to note that have started, but not yet ended, in the score being laid out */
+  openSlurs?: { above?: SlurStart; below?: SlurStart };
+  /** Gregorio's custom ledger lines from note to note that have started, but not yet ended, in the score being laid out */
+  openLedgerLines?: { above?: LedgerLineStart; below?: LedgerLineStart };
 
   neumeLineColor: string;
   staffLineColor: string;
