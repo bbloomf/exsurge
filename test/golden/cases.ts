@@ -666,6 +666,16 @@ export const settingCases: GoldenCase[] = [
     setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.", "VIII", "g", "<b>x</b>"))
   },
   {
+    // an annotation after one with a line break goes below the other's last
+    // line, which is spaced by its own (90%) size
+    name: "annotations-with-line-breaks",
+    outputs: allOutputs,
+    gabc: "(c4) A(f)ve(g) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => ctxt.setStaffHeight(30),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.<br><e>VIII</e>", "g"))
+  },
+  {
     name: "annotation-merged-into-text-left",
     outputs: allOutputs,
     gabc: kyrie,

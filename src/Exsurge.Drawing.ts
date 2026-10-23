@@ -3207,6 +3207,18 @@ export class TextElement extends ChantLayoutElement {
     return (this.textType && ctxt.textStyles[this.textType.key].lineHeight) || 1.1;
   }
 
+  /**
+   * how far below the line before it the line that span starts is, in px: the
+   * same as the span's dy in the svg, in its own font size
+   */
+  lineBreakHeight(ctxt: ChantContext, span: TextSpan, properties = span.mergedProperties) {
+    return (
+      this.lineSpacing(ctxt) *
+      this.fontSizeForProperties(ctxt, properties) *
+      (__parseNewLine(span.newLine) || 1)
+    );
+  }
+
   getCanvasFontForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
     var font = "";
     if (properties["font-style"] === "italic") font += "italic ";
@@ -3269,11 +3281,7 @@ export class TextElement extends ChantLayoutElement {
       var span = this.spans[i],
         myText = span.text.slice(0, length - subStringLength);
       if (span.newLine) {
-        // the same as the span's dy in the svg, in its own font size
-        baseline +=
-          this.lineSpacing(ctxt) *
-          this.fontSizeForProperties(ctxt, span.mergedProperties) *
-          (__parseNewLine(span.newLine) || 1);
+        baseline += this.lineBreakHeight(ctxt, span);
         if (!lines && this.rightAligned === true && length === Infinity) {
           newLineSpans[newLineSpans.length - 1].xOffset =
             this.firstLineMaxWidth! - width;
@@ -3703,11 +3711,7 @@ export class TextElement extends ChantLayoutElement {
         span.mergedProperties
       );
       if (span.newLine) {
-        // the same as the span's dy in the svg, in its own font size
-        let lineHeight =
-          this.lineSpacing(ctxt) *
-          this.fontSizeForProperties(ctxt, properties) *
-          (__parseNewLine(span.newLine) || 1);
+        let lineHeight = this.lineBreakHeight(ctxt, span, properties);
         canvasCtxt.translate(translateWidth + xOffset, lineHeight);
         translateWidth = -xOffset;
         translateHeight -= lineHeight;
@@ -4762,6 +4766,10 @@ export class Annotations extends ChantLayoutElement {
       annotation.bounds.y += y;
       this.bounds.height = annotation.bounds.bottom();
       this.origin.y = this.origin.y || annotation.origin.y;
+      // past the annotation's line breaks, to the line after its last line
+      annotation.spans.forEach((span) => {
+        if (span.newLine) y += annotation.lineBreakHeight(ctxt, span);
+      });
       y += annotation.fontSize(ctxt) * (annotation.resize || 1) * (this.lineHeight || annotation.lineSpacing(ctxt));
     }
   }
