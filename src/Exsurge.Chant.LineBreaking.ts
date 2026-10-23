@@ -113,6 +113,12 @@ interface LineEnd {
   penalty: number;
   /** whether the line doesn't stretch to the end of the staff (the last line, or gabc Z) */
   ragged: boolean;
+  /** the threshold that fitness and demerits were last worked out for (see fitLineEnd()) */
+  threshold?: number;
+  /** the line's fitness class, or null if it's too loose or too tight for threshold */
+  fitness?: number | null;
+  /** the line's demerits, but for adjDemerits */
+  demerits?: number;
 }
 
 /**
@@ -159,8 +165,8 @@ export class LineBreaker {
   width: number;
   /** where each line was planned to end, by its index and the notation it starts with */
   plannedEnds = new Map<string, number>();
-  /** the ends of the lines that could start at a notation, by its index and where the line's staff is */
-  lineEnds = new Map<string, LineEnd[]>();
+  /** the ends of the lines that could start at each notation, by its index, for each place a line's staff can be */
+  lineEnds: Array<{ extent: LineExtent; ends: Array<LineEnd[] | undefined> }> = [];
   /** (see getNoteCounts()) */
   noteCounts?: {
     notesInSyllable: number[];
@@ -239,52 +245,47 @@ export class LineBreaker {
    */
   findBreaks(lineIndex: number, start: number, threshold: number) {
     var notations = this.score.notations;
-    // the nodes at each notation, by their line and fitness
-    var nodes = new Map<number, Map<string, BreakNode>>();
+    // the nodes at each notation, one for each line and fitness, in the order
+    // that they were first found in (which decides between two as good)
+    var nodes = new Array<BreakNode[] | undefined>(notations.length + 1);
     var startNode: BreakNode = { position: start, line: lineIndex, fitness: decent, demerits: 0, previous: null };
-    nodes.set(start, new Map([["", startNode]]));
+    nodes[start] = [startNode];
     var farthest = startNode;
 
     for (var position = start; position < notations.length; position++) {
-      var here = nodes.get(position);
+      var here = nodes[position];
       if (!here) continue;
-      nodes.delete(position);
+      nodes[position] = undefined;
       // (a way to get here in more lines than the fewest it can be done in,
       // plus extraLines, can't lead to a way of breaking the whole score in
       // fewer than the fewest lines it can be broken into plus extraLines, so
       // that \looseness can choose from; so it is left out, to keep the
       // number of nodes down)
-      var fewestLines = Math.min(...Array.from(here.values(), (node) => node.line));
-      for (var node of here.values()) {
+      var fewestLines = Infinity;
+      for (var node of here) fewestLines = Math.min(fewestLines, node.line);
+      for (node of here) {
         if (node.line > fewestLines + extraLines) continue;
         if (node.position > farthest.position || (node.position === farthest.position && node.demerits < farthest.demerits))
           farthest = node;
         for (var lineEnd of this.getLineEnds(node.line, position)) {
-          var fit = this.fit(lineEnd, threshold);
-          if (!fit) continue;
-          var demerits = linePenalty + fit.badness;
-          demerits = demerits >= 10000 ? 100000000 : demerits * demerits;
-          if (lineEnd.penalty > 0) demerits += lineEnd.penalty * lineEnd.penalty;
-          else if (lineEnd.penalty > -infinitePenalty) demerits -= lineEnd.penalty * lineEnd.penalty;
-          if (Math.abs(fit.fitness - node.fitness) > 1) demerits += adjDemerits;
+          this.fitLineEnd(lineEnd, threshold);
+          var fitness = lineEnd.fitness;
+          if (fitness === null || fitness === undefined) continue;
+          var demerits = lineEnd.demerits!;
+          if (Math.abs(fitness - node.fitness) > 1) demerits += adjDemerits;
+          demerits = node.demerits + demerits;
 
-          var next: BreakNode = {
-            position: lineEnd.end,
-            line: node.line + 1,
-            fitness: fit.fitness,
-            demerits: node.demerits + demerits,
-            previous: node
-          };
-          var key = next.line + ":" + next.fitness;
-          var there = nodes.get(next.position);
-          if (!there) nodes.set(next.position, (there = new Map()));
-          var other = there.get(key);
-          if (!other || next.demerits < other.demerits) there.set(key, next);
+          var line = node.line + 1;
+          var there = nodes[lineEnd.end] || (nodes[lineEnd.end] = []);
+          var k = 0;
+          while (k < there.length && (there[k].line !== line || there[k].fitness !== fitness)) k++;
+          if (k < there.length && !(demerits < there[k].demerits)) continue;
+          there[k] = { position: lineEnd.end, line, fitness, demerits, previous: node };
         }
       }
     }
 
-    var ends = Array.from((nodes.get(notations.length) || new Map<string, BreakNode>()).values());
+    var ends = nodes[notations.length] || [];
     var best: BreakNode | null = null,
       bestLooser: BreakNode | null = null;
     for (node of ends) if (!best || node.demerits < best.demerits) best = node;
@@ -323,6 +324,27 @@ export class LineBreaker {
     return { badness, fitness };
   }
 
+  /**
+   * works out the fitness class of the line that ends at lineEnd and its
+   * demerits, as TeX does, but for adjDemerits (see fit()), for threshold,
+   * unless they have been already
+   */
+  fitLineEnd(lineEnd: LineEnd, threshold: number) {
+    if (lineEnd.threshold === threshold) return;
+    lineEnd.threshold = threshold;
+    var fit = this.fit(lineEnd, threshold);
+    if (!fit) {
+      lineEnd.fitness = null;
+      return;
+    }
+    var demerits = linePenalty + fit.badness;
+    demerits = demerits >= 10000 ? 100000000 : demerits * demerits;
+    if (lineEnd.penalty > 0) demerits += lineEnd.penalty * lineEnd.penalty;
+    else if (lineEnd.penalty > -infinitePenalty) demerits -= lineEnd.penalty * lineEnd.penalty;
+    lineEnd.fitness = fit.fitness;
+    lineEnd.demerits = demerits;
+  }
+
   /** where the line with the index lineIndex has its staff, if it starts at start */
   getLineExtent(lineIndex: number, start: number): LineExtent {
     // (as in buildFromChantNotationIndex(), the first line makes room for a
@@ -344,10 +366,19 @@ export class LineBreaker {
   /** the ends of the lines that could start at start, as the line with the index lineIndex */
   getLineEnds(lineIndex: number, start: number) {
     var extent = this.getLineExtent(lineIndex, start);
-    var key = [start, extent.staffLeft, extent.paddingLeft, extent.staffRight].join(":");
-    var lineEnds = this.lineEnds.get(key);
-    if (!lineEnds) this.lineEnds.set(key, (lineEnds = this.layOutLineFrom(start, extent)));
-    return lineEnds;
+    var k = 0;
+    for (; k < this.lineEnds.length; k++) {
+      var other = this.lineEnds[k].extent;
+      if (
+        other.staffLeft === extent.staffLeft &&
+        other.paddingLeft === extent.paddingLeft &&
+        other.staffRight === extent.staffRight
+      )
+        break;
+    }
+    if (k === this.lineEnds.length) this.lineEnds.push({ extent, ends: [] });
+    var ends = this.lineEnds[k].ends;
+    return ends[start] || (ends[start] = this.layOutLineFrom(start, extent));
   }
 
   /**
