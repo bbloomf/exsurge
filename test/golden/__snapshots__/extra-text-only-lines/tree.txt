@@ -53,13 +53,13 @@
         <g className="Notations">
           <use source-index=89 element-index=4 x=0 y=0 source=<TextOnly sourceIndex=89 elementIndex=4> className="" xlinkHref="#None">
       <g transform="translate(147.89279999999997,0)" source=<TextOnly sourceIndex=103 elementIndex=5> className="ChantNotationElement TextOnly">
-        <text source-index=91 x=-50.3856 y=44.69200000000001 style={} source=<Lyric sourceIndex=91> className="lyric" textAnchor="start" source-gabc="on the line">
+        <text source-index=91 x=-50.3856 y=44.692000000000014 style={} source=<Lyric sourceIndex=91> className="lyric" textAnchor="start" source-gabc="on the line">
           <tspan source-index=0 style={} className=undefined>
             "on the line"
         <g className="Notations">
           <use source-index=103 element-index=5 x=0 y=0 source=<TextOnly sourceIndex=103 elementIndex=5> className="" xlinkHref="#None">
       <g transform="translate(237.864,0)" source=<TextOnly sourceIndex=128 elementIndex=6> className="ChantNotationElement TextOnly">
-        <text source-index=105 x=-67.68 y=44.69200000000001 style={} source=<Lyric sourceIndex=105> className="lyric" textAnchor="start" source-gabc="and so goes underneath">
+        <text source-index=105 x=-67.68 y=44.692000000000014 style={} source=<Lyric sourceIndex=105> className="lyric" textAnchor="start" source-gabc="and so goes underneath">
           <tspan source-index=0 style={} className=undefined>
             "and so goes underneath"
         <g className="Notations">

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="300" height="204.73000000000002" viewBox="0 0 300 204.73000000000002" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="300" height="183.13" viewBox="0 0 300 183.13" >
 <g >
 <defs >
 <g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
@@ -73,7 +73,7 @@
 </use>
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(282.6912,0)" >
-<text source-index="118" x="-50.3856" y="77.81200000000001" class="lyric" text-anchor="start" style="" >
+<text source-index="118" x="-50.3856" y="56.21200000000001" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >on the line</tspan>
 </text>
 <use xlink:href="#None" class="" source-index="130" element-index="5" x="0" y="0" >

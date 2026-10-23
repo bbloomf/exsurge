@@ -1,5 +1,5 @@
 setTransform(1, 0, 0, 1, 0, 0)
-clearRect(0, 0, 300, 204.73000000000002) [matrix=1,0,0,1,0,0]
+clearRect(0, 0, 300, 183.13) [matrix=1,0,0,1,0,0]
 fillText("Ad te levávi", 150, 17.52, undefined) [font="24px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,0]
 fillText("ánimam meam", 150, 17.52, undefined) [font="24px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,31.200000000000003]
 beginPath()
@@ -31,6 +31,6 @@ fillText("A", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fill
 fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,73.74069999999998,115.83000000000003]
 fillText("Here is a very long run of text", -206.6426, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,323.6905999999999,115.83000000000003]
 fillText("only syllables that will not fit", -206.6426, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,289.9225999999999,137.43000000000004]
-fillText("on the line", -50.3856, 77.81200000000001, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,282.6912,115.83000000000004]
+fillText("on the line", -50.3856, 56.21200000000001, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,282.6912,115.83000000000004]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,81.2274,115.83000000000004]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,81.2274,115.83000000000004]

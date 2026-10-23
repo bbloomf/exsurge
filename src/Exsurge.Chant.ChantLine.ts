@@ -328,17 +328,10 @@ export class ChantLine extends ChantLayoutElement {
       } else {
         let lastLyrics = null;
         let xOffset = 0;
-        // they go below the last line of the lyrics before them, which may
-        // have line breaks or be wrapped
-        let lyricLines = this.numLyricLines;
-        for (i = this.notationsStartIndex; i < this.extraTextOnlyIndex; i++) {
-          notations[i].lyrics.forEach((lyric, j) => {
-            lyricLines = Math.max(lyricLines, j + lyric.numLines!);
-          });
-        }
-        offset = (lyricLines - 1) * this.lyricLineHeight;
+        offset = (this.numLyricLines - 1) * this.lyricLineHeight;
         offset += this.numTranslationLines * this.translationLineHeight;
-        let extraLines = lyricLines - this.numLyricLines;
+        let extraLines = 0;
+        const extraLyrics: Lyric[] = [];
         for (i = this.extraTextOnlyIndex; i < lastIndex; i++) {
           notation = notations[i];
           if (!notation.lyrics[extraTextOnlyLyricIndex]) continue;
@@ -353,8 +346,60 @@ export class ChantLine extends ChantLayoutElement {
           notation.bounds.x += xOffset;
           // what comes after it goes below its last line
           offset += (lastLyrics.numLines! - 1) * this.lyricLineHeight;
+          extraLyrics.push(lastLyrics);
         }
-        this.extraTextOnlyHeight = this.lyricLineHeight * extraLines;
+
+        // the lines of lyrics as they're drawn: their baselines, and how far
+        // left and right they go
+        const linesOf = (lyrics: Lyric[]) => {
+          const lines: { y: number; left: number; right: number }[] = [];
+          lyrics.forEach((lyric) => {
+            const left = lyric.getLeft();
+            let y = lyric.bounds.y;
+            lyric.spans.forEach((span, k) => {
+              if (span.newLine) y += lyric.lineBreakHeight(ctxt, span);
+              if (k && !span.newLine) return;
+              if (lyric.rightAligned)
+                lines.push({ y, left: left + (span.xOffset || 0), right: left + lyric.firstLineMaxWidth! });
+              else lines.push({ y, left, right: lyric.getRight() });
+            });
+          });
+          return lines;
+        };
+        // the lyrics before them on the line, which may have line breaks or be
+        // wrapped, so that they take up more lines than the line has lyrics
+        let lyricLines = this.numLyricLines;
+        const lyricsBefore: Lyric[] = [];
+        for (i = this.notationsStartIndex; i < this.extraTextOnlyIndex; i++) {
+          notations[i].lyrics.forEach((lyric, j) => {
+            lyricLines = Math.max(lyricLines, j + lyric.numLines!);
+            lyricsBefore.push(lyric);
+          });
+        }
+        // move them down a line at a time while any of their lines is on the
+        // same line as one of those (less than a line from it, give or take
+        // rounding), and too close to it
+        const extraLyricLines = linesOf(extraLyrics),
+          linesBefore = linesOf(lyricsBefore),
+          spacing = ctxt.minLyricWordSpacing || 0;
+        let shift = 0;
+        while (
+          this.lyricLineHeight > 0 &&
+          extraLyricLines.some((a) =>
+            linesBefore.some(
+              (b) =>
+                Math.abs(a.y + shift - b.y) < this.lyricLineHeight - 0.01 &&
+                a.left < b.right + spacing &&
+                b.left < a.right + spacing
+            )
+          )
+        )
+          shift += this.lyricLineHeight;
+        extraLyrics.forEach((lyric) => (lyric.bounds.y += shift));
+        this.extraTextOnlyHeight = Math.max(
+          this.lyricLineHeight * extraLines + shift,
+          this.lyricLineHeight * (lyricLines - this.numLyricLines)
+        );
       }
     }
 

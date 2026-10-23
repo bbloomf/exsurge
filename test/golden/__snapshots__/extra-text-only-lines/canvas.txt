@@ -27,8 +27,8 @@ fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px F
 fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,49.45490000000001,58.75]
 fillText("Here is a very long run of text only", -238.1932, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,320.4076,58.75]
 fillText("syllables that will not fit", -238.1932, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,356.3068,74.59]
-fillText("on the line", -50.3856, 44.69200000000001, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,147.8927999999999,58.75]
-fillText("and so goes underneath", -67.68, 44.69200000000001, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,237.86399999999995,58.75]
+fillText("on the line", -50.3856, 44.692000000000014, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,147.8927999999999,58.75]
+fillText("and so goes underneath", -67.68, 44.692000000000014, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,237.86399999999995,58.75]
 fillRect(0, -37.5, 0.8, 25) [fillStyle="#000" matrix=1,0,0,1,64.20639999999995,58.75]
 fill(Path2D(CustosShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,72.81889999999994,33.75]
 beginPath()

@@ -53,13 +53,13 @@
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class="" source-index="89" element-index="4" x="0" y="0" source=<TextOnly sourceIndex=89 elementIndex=4>>
       <g class="ChantNotationElement TextOnly" transform="translate(147.89279999999997,0)" source=<TextOnly sourceIndex=103 elementIndex=5>>
-        <text source-index="91" x="-50.3856" y="44.69200000000001" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=91>>
+        <text source-index="91" x="-50.3856" y="44.692000000000014" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=91>>
           <tspan source-index="0" style="">
             "on the line"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class="" source-index="103" element-index="5" x="0" y="0" source=<TextOnly sourceIndex=103 elementIndex=5>>
       <g class="ChantNotationElement TextOnly" transform="translate(237.864,0)" source=<TextOnly sourceIndex=128 elementIndex=6>>
-        <text source-index="105" x="-67.68" y="44.69200000000001" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=105>>
+        <text source-index="105" x="-67.68" y="44.692000000000014" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=105>>
           <tspan source-index="0" style="">
             "and so goes underneath"
         <g class="Notations">

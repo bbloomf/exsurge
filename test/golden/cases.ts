@@ -699,6 +699,19 @@ export const settingCases: GoldenCase[] = [
   { name: "unlimited-width", gabc: kyrie, useDropCap: true, width: 0 },
   { name: "relayout", gabc: puer, useDropCap: true, width: 300, relayoutWidths: [800, 450] },
   { name: "extra-text-only-narrow", gabc: featureCases.find((c) => c.name === "extra-text-only-lines")!.gabc, width: 160 },
+  {
+    // "it" doesn't fit on the line, so it and the text after it go on extra
+    // lines, which can't start on the line under the staff's lyrics: the long
+    // text would go over the "e" of the lyric with line breaks.  They start
+    // two lines further down, where "it" goes on the line of that lyric's
+    // "son", but far to its right
+    name: "extra-text-only-beside-line-breaks",
+    outputs: allOutputs,
+    width: 250,
+    gabc:
+      "(c4) Ky<br>ri<br>e<br>son(f) e(g)lé(f)i(e)son(f) Chri(g)ste(h) e(g)lé(f)i(e)(,) " +
+      "Amen() so() be() it() and then a much longer run of text only words() (::)"
+  },
   ...[170, 230, 290, 350].map((width) => ({
     name: `line-break-edge-cases-${width}`,
     gabc: lineBreakEdgeCases,
