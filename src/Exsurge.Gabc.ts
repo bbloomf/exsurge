@@ -159,8 +159,42 @@ var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])
 //  2. b, cb, or cba, to indicate the brace type
 //  3. 0 or 1 to indicate the attachment point
 //  4. { or } to indicate opening/closing (this group will be null if the metric version is used)
-//  5. a float indicating the millimeter length of the brace (not supported yet)
-var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;(\d*(?:\.\d+)?)mm)/;
+//  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
+var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
+// a TeX length: a number (with TeX's . or , for the decimal point) and a unit
+// in either case, maybe with true before it (the same at TeX's usual
+// magnification), and any stretch and shrink after it (plus …, minus …)
+var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:true\s*)?([a-z]{2})(?:\s*(?:plus|minus).*)?\s*$/i;
+// TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
+var __texUnits: { [unit: string]: number } = {
+  sp: 1,
+  pt: 65536,
+  bp: (65536 * 72.27) / 72,
+  pc: 65536 * 12,
+  in: 65536 * 72.27,
+  cm: (65536 * 72.27) / 2.54,
+  mm: (65536 * 72.27) / 25.4,
+  dd: (65536 * 1238) / 1157,
+  cc: (65536 * 12 * 1238) / 1157,
+  em: 65536 * 10,
+  ex: 65536 * 4.30554
+};
+// a staff interval (from a line to the next space) in scaled points at
+// Gregorio's default staff size, \gre@factor 17: half the distance between
+// lines, (\gre@dimen@interstafflinedistancebase + \gre@dimen@stafflinethicknessbase) * 17
+var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
+
+// a TeX length in staff intervals at Gregorio's default staff size, or
+// undefined if it isn't a length exsurge can read (TeX can take a macro)
+function texLengthToStaffIntervals(length: string) {
+  var results = length.match(__texLengthRegex);
+  var unit = results && results[2].toLowerCase();
+  if (!unit || !__texUnits.hasOwnProperty(unit)) return undefined;
+  return (
+    (Number(results![1].replace(",", ".")) * __texUnits[unit]) /
+    __gregorioStaffIntervalInSp
+  );
+}
 
 const TrailingSpaceForAccidental = (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
@@ -2222,7 +2256,9 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote) {
-        if (currNote.shape === NoteShape.Virga) return virgaState;
+        // a linea (gabc =) is a neume of its own, whatever its shape
+        if (currNote.linea) return createNeume(new Neumes.Punctum(), true);
+        else if (currNote.shape === NoteShape.Virga) return virgaState;
         else if (currNote.shape === NoteShape.Stropha) return apostrophaState;
         else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
         else if (currNote.shape === NoteShape.Inclinatum)
@@ -2238,6 +2274,17 @@ export class Gabc {
         return new Neumes.Punctum();
       },
       handle: function(currNote, prevNote, notesRemaining) {
+        // an oriscus scapus is joined to the lower punctum before it, as in
+        // Gregorio (unless either is liquescent)
+        if (
+          currNote.shape === NoteShape.Oriscus &&
+          currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
+          currNote.staffPosition > prevNote.staffPosition &&
+          prevNote.liquescent === LiquescentType.None &&
+          currNote.liquescent === LiquescentType.None
+        )
+          return pesOriscusState;
+
         if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
           var neume = new Neumes.Punctum();
           var state = createNeume(neume, false);
@@ -2258,6 +2305,9 @@ export class Gabc {
         if (currNote.staffPosition > prevNote.staffPosition) {
           if (currNote.ictus)
             currNote.ictus.positionHint = MarkingPositionHint.Above;
+          // a pes quadratum (gabc q) has no more notes, as in Gregorio
+          if (prevNote.quadratum)
+            return createNeume(new Neumes.PesQuadratum(), true);
           return podatusState;
         } else if (currNote.staffPosition < prevNote.staffPosition) {
           if (prevNote.ictus)
@@ -2290,14 +2340,12 @@ export class Gabc {
         return new Neumes.Oriscus();
       },
       handle: function(currNote, prevNote) {
+        // (the oriscus points to the note after it, unless gabc designates its direction)
         if (currNote.shape === NoteShape.Default) {
-          if (currNote.staffPosition > prevNote.staffPosition) {
-            prevNote.shapeModifiers |= NoteShapeModifiers.Ascending;
+          if (currNote.staffPosition > prevNote.staffPosition)
             return createNeume(new Neumes.PesQuassus(), true);
-          } else if (currNote.staffPosition < prevNote.staffPosition) {
-            prevNote.shapeModifiers |= NoteShapeModifiers.Descending;
+          else if (currNote.staffPosition < prevNote.staffPosition)
             return createNeume(new Neumes.Clivis(), true);
-          }
         }
         // stand alone oriscus
         var neume = new Neumes.Oriscus(),
@@ -2314,6 +2362,20 @@ export class Gabc {
         )
           neume.trailingSpace = 0;
         return state;
+      }
+    };
+
+    var pesOriscusState: NeumeState = {
+      neume: function() {
+        return new Neumes.PesOriscus();
+      },
+      handle: function(currNote, prevNote) {
+        if (
+          currNote.shape === NoteShape.Default &&
+          currNote.staffPosition > prevNote.staffPosition
+        )
+          return salicusState;
+        else return createNeume(new Neumes.PesOriscus(), false);
       }
     };
 
@@ -2402,7 +2464,10 @@ export class Gabc {
         return new Neumes.Salicus();
       },
       handle: function(currNote, prevNote) {
-        if (currNote.staffPosition < prevNote.staffPosition)
+        if (
+          currNote.shape === NoteShape.Default &&
+          currNote.staffPosition < prevNote.staffPosition
+        )
           return salicusFlexusState;
         else return createNeume(new Neumes.Salicus(), false);
       }
@@ -2569,12 +2634,17 @@ export class Gabc {
       var prevNote = currNoteIndex > 0 ? notes[currNoteIndex - 1] : null;
       var currNote = notes[currNoteIndex];
 
-      // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
-      state = state.handle(
-        currNote,
-        prevNote!,
-        notes.length - 1 - currNoteIndex
-      );
+      // a linea (gabc =) and the lower note of a pes quadratum (gabc q) start
+      // a new neume, as in Gregorio
+      if ((currNote.linea || currNote.quadratum) && state !== unknownState)
+        state = createNeume(state.neume(), false);
+      else
+        // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
+        state = state.handle(
+          currNote,
+          prevNote!,
+          notes.length - 1 - currNoteIndex
+        );
 
       // if we are on the last note, then try to create a neume if we need to.
       if (currNoteIndex === notes.length - 1 && state !== unknownState)
@@ -2643,6 +2713,19 @@ export class Gabc {
 
     var episemaNoteIndex = notes.length;
     var episemaNote = note;
+
+    // starts a new note at the same pitch after the note so far, for gabc's
+    // repeated notes (gsss, gvvv and gVV)
+    var startRepeatedNote = (sourceGabc: string) => {
+      let newNote = new Note();
+      newNote.sourceIndex = sourceIndex + i;
+      newNote.sourceGabc = sourceGabc;
+      newNote.staffPosition = note.staffPosition;
+      newNote.pitch = note.pitch;
+      notes.push(note);
+      note = newNote;
+      episemaNoteIndex++; // since a new note was added, increase the index here
+    };
 
     // process the modifiers
     for (var i = 1; i < data.length; i++) {
@@ -2808,14 +2891,7 @@ export class Gabc {
           if (note.shape === NoteShape.Stropha) {
             // if we're already a stropha, that means this is gabc's
             // quick stropha feature (e.g., gsss). create a new note
-            let newNote = new Note();
-            newNote.sourceIndex = sourceIndex + i;
-            newNote.sourceGabc = "s";
-            newNote.staffPosition = note.staffPosition;
-            newNote.pitch = note.pitch;
-            notes.push(note);
-            note = newNote;
-            episemaNoteIndex++; // since a new note was added, increase the index here
+            startRepeatedNote("s");
           }
 
           note.shape = NoteShape.Stropha;
@@ -2825,20 +2901,23 @@ export class Gabc {
           if (note.shape === NoteShape.Virga) {
             // if we're already a stropha, that means this is gabc's
             // quick virga feature (e.g., gvvv). create a new note
-            let newNote = new Note();
-            newNote.sourceIndex = sourceIndex + i;
-            newNote.sourceGabc = "v";
-            newNote.staffPosition = note.staffPosition;
-            newNote.pitch = note.pitch;
-            notes.push(note);
-            note = newNote;
-            episemaNoteIndex++; // since a new note was added, increase the index here
+            startRepeatedNote("v");
           }
 
           note.shape = NoteShape.Virga;
           break;
         
         case "V":
+          if (data[i - 1] === "V") {
+            // gabc VV and VVV, which Gregorio reads as vv and vvv: a bivirga
+            // or trivirga of virgas that aren't reversed
+            // (gabc-glyphs-determination.c), so create a new note
+            note.shapeModifiers &= ~NoteShapeModifiers.Reverse;
+            startRepeatedNote("V");
+            note.shape = NoteShape.Virga;
+            break;
+          }
+
           note.shape = NoteShape.Virga;
           note.shapeModifiers |= NoteShapeModifiers.Reverse;
           break;
@@ -2858,12 +2937,14 @@ export class Gabc {
           note.linea = true;
           break;
 
+        // an oriscus's direction: Gregorio's 1 (up) and 0 (down), or
+        // exsurge's own < and >
         case "o":
           note.shape = NoteShape.Oriscus;
-          if (haveLookahead && lookahead === "<") {
+          if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
             note.shapeModifiers |= NoteShapeModifiers.Ascending;
             i++;
-          } else if (haveLookahead && lookahead === ">") {
+          } else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
             note.shapeModifiers |= NoteShapeModifiers.Descending;
             i++;
           }
@@ -2871,11 +2952,11 @@ export class Gabc {
 
         case "O":
           note.shape = NoteShape.Oriscus;
-          if (haveLookahead && lookahead === "<") {
+          if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
             note.shapeModifiers |=
               NoteShapeModifiers.Ascending | NoteShapeModifiers.Stemmed;
             i++;
-          } else if (haveLookahead && lookahead === ">") {
+          } else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
             note.shapeModifiers |=
               NoteShapeModifiers.Descending | NoteShapeModifiers.Stemmed;
             i++;
@@ -2989,6 +3070,19 @@ export class Gabc {
           note.sourceIndex + sourceIndexOffset
         );
         return;
+      // Gregorio's shape hints, which replace any before them on the note
+      case "shape":
+        note.shapeHint = data;
+        return;
+      // Gregorio's ledger-line hints, of which the first on the note counts
+      case "ll":
+        if (note.lowLedgerLine === undefined && /^[01]$/.test(data))
+          note.lowLedgerLine = data === "1";
+        return;
+      case "hl":
+        if (note.highLedgerLine === undefined && /^[01]$/.test(data))
+          note.highLedgerLine = data === "1";
+        return;
     }
 
     results = instruction.match(__braceSpecRegex);
@@ -3035,6 +3129,7 @@ export class Gabc {
     // just have the next note end a brace that uses length;
     if (results[5]) {
       note.braceStart!.automatic = true;
+      note.braceStart!.length = texLengthToStaffIntervals(results[5]);
       this.needToEndBrace = note.braceStart;
     }
   }

@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(270, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,40]
 fillText("Ky", -10.339, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.0625,58.75]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,30.5939,33.75]
@@ -28,4 +29,3 @@ fillText("A long run of text only words, too wide for the line", -78.98752399232
 fillText("and a smaller line", -78.98752399232245, 28.85200000000001, undefined) [font="italic 10.796545105566217px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,78.98752399232245,70.62619961612285]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,64.20639999999999,58.75000000000001]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,64.20639999999999,58.75000000000001]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,-1.4210854715202004e-14,15.000000000000007]

@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,98.65]
+fill(Path2D(TrebleClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,79.9]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,44.487500000000004,79.9]
 fillText("a", -1.1230000000000002, 30.912000000000006, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,41.362500000000004,98.65]
 fill(Path2D(TrebleClefSmall[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,55.425000000000004,79.9]
@@ -35,4 +36,3 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,279.508
 fillText("f", 0.569, 30.912000000000006, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,276.38362499999994,98.65]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,290.44612499999994,98.65]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,290.44612499999994,98.65]
-fill(Path2D(TrebleClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,-5.684341886080802e-14,79.9]

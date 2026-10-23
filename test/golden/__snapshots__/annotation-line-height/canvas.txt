@@ -20,6 +20,7 @@ fillText("K", 25.738, 13.012000000000008, undefined) [font="64px Fake-{}" fillSt
 fillText("Ant.", 25.738, -74.41133333333332, undefined) [font="10.666666666666666px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,82.19799999999998]
 fillText("VIII", 25.738, -57.344666666666654, undefined) [font="10.666666666666666px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,82.19799999999998]
 fillText("g", 25.738, -40.277999999999984, undefined) [font="10.666666666666666px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,82.19799999999998]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,51.476,38.44799999999998]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,68.6635,63.44799999999998]
 fillText("Y", 1.0082, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,65.5385,82.19799999999998]
 fillText("-", 1.0082, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,69.7721,82.19799999999998]
@@ -101,4 +102,3 @@ fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,450.428125,58.7
 fillText("son.", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,444.053125,82.19799999999998]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,461.240625,82.19799999999998]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,461.240625,82.19799999999998]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,51.476,38.44799999999998]

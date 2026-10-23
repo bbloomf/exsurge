@@ -27,6 +27,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(260, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,244.28688888888888]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,200.53688888888888]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,16.39909825769059,225.53688888888888]
 fillText("KY", -7.8622, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,13.27409825769059,244.28688888888888]
 fillText("-", -7.8622, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,26.37809825769059,244.28688888888888]
@@ -75,7 +76,6 @@ fillText("-", -16.473399999999998, 13.012000000000008, undefined) [font="14.4px 
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,233.82812500000003,225.53688888888888]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,240.07812500000003,219.28688888888888]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,246.32812500000003,225.53688888888888]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,5.684341886080802e-14,200.53688888888888]
 fill(Path2D(CustosShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,257.26562500000006,231.78688888888888]
 beginPath()
 moveTo(0, -43.75)
@@ -93,6 +93,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(260, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,5.684341886080802e-14,330.75188888888886]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,5.684341886080802e-14,287.00188888888886]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.187500000000057,318.25188888888886]
 fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,20.437500000000057,318.25188888888886]
 fillText("ste", -11.6782, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,14.062500000000057,330.75188888888886]
@@ -126,4 +127,3 @@ fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,149.95731250000
 fillText("son.", -4.795, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,143.58231250000006,330.75188888888886]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,160.76981250000006,330.75188888888886]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,160.76981250000006,330.75188888888886]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,5.684341886080802e-14,287.00188888888886]

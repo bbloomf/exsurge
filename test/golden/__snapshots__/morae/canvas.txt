@@ -16,6 +16,7 @@ beginPath()
 moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,58.75]
+fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,15]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,15.339408066022738,40]
 fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,18.589408066022738,35.3125]
 fillText("a", -1.1230000000000002, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,12.214408066022738,58.75]
@@ -77,7 +78,7 @@ fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,305.037
 fillRect(5.45, -18.75, 0.8, 16.875) [fillStyle="#000" matrix=1,0,0,1,301.9128053501868,58.75]
 fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,308.2878053501868,35.3125]
 fillText("n", -1.5621999999999998, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,301.9128053501868,58.75]
-fill(Path2D(OriscusDes[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,323.1178102939422,40]
+fill(Path2D(OriscusAsc[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,323.1178102939422,40]
 fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,326.3678102939422,35.3125]
 fillText("o", 1.1954, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,319.9928102939422,58.75]
 fill(Path2D(Stropha[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,341.0728152376977,40]
@@ -132,4 +133,3 @@ fill(Path2D(Mora[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,583.28559193397
 fillText("z", -1.7349999999999994, 14.887, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,572.7439252673105,58.75]
 fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,593.7499999999999,58.75]
 fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,593.7499999999999,58.75]
-fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,-1.1368683772161603e-13,15]
