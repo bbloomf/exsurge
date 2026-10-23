@@ -246,7 +246,7 @@
 <g class="ChantNotationElement Porrectus" transform="translate(360.9457021019472,0)" >
 <rect x="0" y="-50" width="0.8" height="9.756761363636365" fill="#111" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="102" element-index="28" id="note-27" x="3.125" y="-50" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="102" element-index="28" id="note-27" x="3.125" y="-50" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="103" element-index="29" id="note-28" x="18.8965" y="-43.75" >
 </use>
@@ -260,7 +260,7 @@
 </text>
 <rect x="0" y="-43.75" width="0.8" height="16.006761363636365" fill="#111" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="109" element-index="31" id="note-30" x="3.125" y="-43.75" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="109" element-index="31" id="note-30" x="3.125" y="-43.75" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="110" element-index="32" id="note-31" x="18.8965" y="-37.5" >
 </use>

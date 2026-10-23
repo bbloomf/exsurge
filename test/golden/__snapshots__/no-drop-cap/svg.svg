@@ -75,7 +75,7 @@
 </text>
 <rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="13" element-index="1" id="note-2" x="3.125" y="-25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="13" element-index="1" id="note-2" x="3.125" y="-25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="14" element-index="2" id="note-3" x="18.8965" y="-18.75" >
 </use>

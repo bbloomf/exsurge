@@ -118,7 +118,7 @@
             "k"
         <g class="Notations">
           <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="79" element-index="16" id="note-17" x="3.125" y="-31.25" transform="scale(1,1)" source=<Note sourceIndex=79 elementIndex=16 noteIndex=16>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="79" element-index="16" id="note-17" x="3.125" y="-31.25" source=<Note sourceIndex=79 elementIndex=16 noteIndex=16>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="80" element-index="17" id="note-18" x="18.8965" y="-25" source=<Note sourceIndex=80 elementIndex=17 noteIndex=17>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpperShort" class=" note" source-index="81" element-index="18" id="note-19" x="18.8965" y="-31.249999999999996" source=<Note sourceIndex=81 elementIndex=18 noteIndex=18>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#VerticalEpisemaAbove" class="" x="16.040062499999998" y="-36.25" source=<Porrectus>>
@@ -128,7 +128,7 @@
             "l"
         <g class="Notations">
           <rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="87" element-index="19" id="note-20" x="3.125" y="-25" transform="scale(1,1)" source=<Note sourceIndex=87 elementIndex=19 noteIndex=19>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="87" element-index="19" id="note-20" x="3.125" y="-25" source=<Note sourceIndex=87 elementIndex=19 noteIndex=19>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="88" element-index="20" id="note-21" x="18.8965" y="-18.75" source=<Note sourceIndex=88 elementIndex=20 noteIndex=20>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpperShort" class=" note" source-index="89" element-index="21" id="note-22" x="18.8965" y="-25" source=<Note sourceIndex=89 elementIndex=21 noteIndex=21>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#VerticalEpisemaAbove" class="" x="16.040062499999998" y="-33.125" source=<Porrectus>>

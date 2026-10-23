@@ -46,7 +46,7 @@
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="8" element-index="0" id="note-1" x="3.125" y="-18.75" >
 </use>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="9" element-index="1" id="note-2" x="9.375" y="-25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="9" element-index="1" id="note-2" x="9.375" y="-25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="10" element-index="2" id="note-3" x="25.1465" y="-18.75" >
 </use>
@@ -86,7 +86,7 @@
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="38" element-index="9" id="note-10" x="3.125" y="-18.75" >
 </use>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="39" element-index="10" id="note-11" x="9.375" y="-25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="39" element-index="10" id="note-11" x="9.375" y="-25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="40" element-index="11" id="note-12" x="25.1465" y="-18.75" >
 </use>

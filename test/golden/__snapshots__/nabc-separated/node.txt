@@ -80,7 +80,7 @@
             "-"
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="9.756761363636365" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="79" element-index="7" id="note-8" x="3.125" y="-50" transform="scale(1,1)" source=<Note sourceIndex=79 elementIndex=7 noteIndex=7>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="79" element-index="7" id="note-8" x="3.125" y="-50" source=<Note sourceIndex=79 elementIndex=7 noteIndex=7>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="80" element-index="8" id="note-9" x="18.8965" y="-43.75" source=<Note sourceIndex=80 elementIndex=8 noteIndex=8>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="81" element-index="9" id="note-10" x="22.0215" y="-50" source=<Note sourceIndex=81 elementIndex=9 noteIndex=9>>
           <rect x="24.3465" y="-50" width="0.8" height="12.5" fill="#000" class="neumeLine">

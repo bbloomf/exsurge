@@ -33,7 +33,7 @@
             "a"
         <g className="Notations">
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
-          <use source-index=7 element-index=0 id="note-1" x=3.125 y=-25 transform="scale(1,1)" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className="selectedA note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
+          <use source-index=7 element-index=0 id="note-1" x=3.125 y=-25 source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className="selectedA note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
           <use source-index=8 element-index=1 id="note-2" x=18.8965 y=-18.75 source=<Note sourceIndex=8 elementIndex=1 noteIndex=1> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f">
           <use source-index=9 element-index=2 id="note-3" x=18.8965 y=-25 source=<Note sourceIndex=9 elementIndex=2 noteIndex=2> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="g">
       <g transform="translate(43.8965,0)" source=<Porrectus> className="ChantNotationElement Porrectus">
@@ -42,7 +42,7 @@
             "b"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=14 element-index=3 id="note-4" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=14 elementIndex=3 noteIndex=3> className="selectedB note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h">
+          <use source-index=14 element-index=3 id="note-4" x=3.125 y=-31.25 source=<Note sourceIndex=14 elementIndex=3 noteIndex=3> className="selectedB note porrectus porrectus-start" xlinkHref="#Porrectus2" source-gabc="h">
           <use source-index=15 element-index=4 id="note-5" x=23.5839375 y=-18.75 source=<Note sourceIndex=15 elementIndex=4 noteIndex=4> className="selected note porrectus porrectus-end" xlinkHref="#None" source-gabc="f">
           <rect x=22.7839375 y=-31.25 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=16 element-index=5 id="note-6" x=23.5839375 y=-31.249999999999996 source=<Note sourceIndex=16 elementIndex=5 noteIndex=5> className=" note" xlinkHref="#PodatusUpper" source-gabc="h">

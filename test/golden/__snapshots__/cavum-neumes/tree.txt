@@ -225,7 +225,7 @@
             "p"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=118 element-index=28 id="note-29" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=118 elementIndex=28 noteIndex=28> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="h">
+          <use source-index=118 element-index=28 id="note-29" x=3.125 y=-31.25 source=<Note sourceIndex=118 elementIndex=28 noteIndex=28> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="h">
           <use source-index=119 element-index=29 id="note-30" x=18.8965 y=-25 source=<Note sourceIndex=119 elementIndex=29 noteIndex=29> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="gr">
           <use source-index=121 element-index=30 id="note-31" x=18.8965 y=-31.249999999999996 source=<Note sourceIndex=121 elementIndex=30 noteIndex=30> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="h">
       <g transform="translate(349.5533336412162,0)" source=<Porrectus> className="ChantNotationElement Porrectus">
@@ -234,7 +234,7 @@
             "q"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=126 element-index=31 id="note-32" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=126 elementIndex=31 noteIndex=31> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="hr">
+          <use source-index=126 element-index=31 id="note-32" x=3.125 y=-31.25 source=<Note sourceIndex=126 elementIndex=31 noteIndex=31> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="hr">
           <use source-index=128 element-index=32 id="note-33" x=18.8965 y=-25 source=<Note sourceIndex=128 elementIndex=32 noteIndex=32> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="g">
           <use source-index=129 element-index=33 id="note-34" x=18.8965 y=-31.249999999999996 source=<Note sourceIndex=129 elementIndex=33 noteIndex=33> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="h">
       <g transform="translate(379.06719037356424,0)" source=<Porrectus> className="ChantNotationElement Porrectus">
@@ -243,7 +243,7 @@
             "r"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=134 element-index=34 id="note-35" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=134 elementIndex=34 noteIndex=34> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2Cavum" source-gabc="h">
+          <use source-index=134 element-index=34 id="note-35" x=3.125 y=-31.25 source=<Note sourceIndex=134 elementIndex=34 noteIndex=34> className=" note porrectus porrectus-start" xlinkHref="#Porrectus2Cavum" source-gabc="h">
           <use source-index=135 element-index=35 id="note-36" x=23.5839375 y=-18.75 source=<Note sourceIndex=135 elementIndex=35 noteIndex=35> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="fr">
           <rect x=22.7839375 y=-31.25 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=137 element-index=36 id="note-37" x=23.5839375 y=-31.249999999999996 source=<Note sourceIndex=137 elementIndex=36 noteIndex=36> className=" note" xlinkHref="#PodatusUpper" source-gabc="h">
@@ -253,7 +253,7 @@
             "s"
         <g className="Notations">
           <rect x=0 y=-37.5 width=0.8 height=22.256761363636365 fill="#000" className="neumeLine">
-          <use source-index=142 element-index=37 id="note-38" x=3.125 y=-37.5 transform="scale(1,1)" source=<Note sourceIndex=142 elementIndex=37 noteIndex=37> className=" note porrectus porrectus-start" xlinkHref="#Porrectus3Cavum" source-gabc="i">
+          <use source-index=142 element-index=37 id="note-38" x=3.125 y=-37.5 source=<Note sourceIndex=142 elementIndex=37 noteIndex=37> className=" note porrectus porrectus-start" xlinkHref="#Porrectus3Cavum" source-gabc="i">
           <use source-index=143 element-index=38 id="note-39" x=23.584 y=-18.75 source=<Note sourceIndex=143 elementIndex=38 noteIndex=38> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="fr">
           <rect x=22.784 y=-37.5 width=0.8 height=18.75 fill="#000" className="neumeLine">
           <use source-index=145 element-index=39 id="note-40" x=23.584 y=-37.5 source=<Note sourceIndex=145 elementIndex=39 noteIndex=39> className=" note" xlinkHref="#PodatusUpper" source-gabc="i">
@@ -263,7 +263,7 @@
             "t"
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=28.506761363636365 fill="#000" className="neumeLine">
-          <use source-index=150 element-index=40 id="note-41" x=3.125 y=-43.75 transform="scale(1,1)" source=<Note sourceIndex=150 elementIndex=40 noteIndex=40> className=" note porrectus porrectus-start" xlinkHref="#Porrectus4Cavum" source-gabc="j">
+          <use source-index=150 element-index=40 id="note-41" x=3.125 y=-43.75 source=<Note sourceIndex=150 elementIndex=40 noteIndex=40> className=" note porrectus porrectus-start" xlinkHref="#Porrectus4Cavum" source-gabc="j">
           <use source-index=151 element-index=41 id="note-42" x=26.25 y=-18.75 source=<Note sourceIndex=151 elementIndex=41 noteIndex=41> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="fr">
           <rect x=25.45 y=-43.75 width=0.8 height=25 fill="#000" className="neumeLine">
           <use source-index=153 element-index=42 id="note-43" x=26.25 y=-43.75 source=<Note sourceIndex=153 elementIndex=42 noteIndex=42> className=" note" xlinkHref="#PodatusUpper" source-gabc="j">
@@ -273,7 +273,7 @@
             "u"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=158 element-index=43 id="note-44" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=158 elementIndex=43 noteIndex=43> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="h">
+          <use source-index=158 element-index=43 id="note-44" x=3.125 y=-31.25 source=<Note sourceIndex=158 elementIndex=43 noteIndex=43> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="h">
           <use source-index=159 element-index=44 id="note-45" x=18.8965 y=-25 source=<Note sourceIndex=159 elementIndex=44 noteIndex=44> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="gr">
           <use source-index=161 element-index=45 id="note-46" x=22.0215 y=-31.249999999999996 source=<Note sourceIndex=161 elementIndex=45 noteIndex=45> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
           <use source-index=162 element-index=46 id="note-47" x=28.2715 y=-25 source=<Note sourceIndex=162 elementIndex=46 noteIndex=46> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
@@ -374,7 +374,7 @@
             "F"
         <g className="Notations">
           <rect x=0 y=-31.25 width=0.8 height=16.006761363636365 fill="#000" className="neumeLine">
-          <use source-index=247 element-index=66 id="note-67" x=3.125 y=-31.25 transform="scale(1,1)" source=<Note sourceIndex=247 elementIndex=66 noteIndex=66> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="h">
+          <use source-index=247 element-index=66 id="note-67" x=3.125 y=-31.25 source=<Note sourceIndex=247 elementIndex=66 noteIndex=66> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1Cavum" source-gabc="h">
           <use source-index=248 element-index=67 id="note-68" x=18.8965 y=-25 source=<Note sourceIndex=248 elementIndex=67 noteIndex=67> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="gr'">
           <use source-index=251 element-index=68 id="note-69" x=18.8965 y=-31.249999999999996 source=<Note sourceIndex=251 elementIndex=68 noteIndex=68> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="h">
           <use source-index=undefined element-index=undefined x=15.7715 y=-16.875 source=<Porrectus> className="" xlinkHref="#VerticalEpisemaBelow">

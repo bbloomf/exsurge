@@ -102,7 +102,7 @@
       <g class="ChantNotationElement TorculusResupinusFlexus" transform="translate(156.25,0)" source=<TorculusResupinusFlexus>>
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#Quilisma" class=" note" source-index="78" element-index="17" id="note-18" x="3.125" y="-37.5" source=<Note sourceIndex=78 elementIndex=17 noteIndex=17>>
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="81" element-index="18" id="note-19" x="9.375" y="-43.75" transform="scale(1,1)" source=<Note sourceIndex=81 elementIndex=18 noteIndex=18>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="81" element-index="18" id="note-19" x="9.375" y="-43.75" source=<Note sourceIndex=81 elementIndex=18 noteIndex=18>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="83" element-index="19" id="note-20" x="25.1465" y="-37.5" source=<Note sourceIndex=83 elementIndex=19 noteIndex=19>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="84" element-index="20" id="note-21" x="28.2715" y="-43.75" source=<Note sourceIndex=84 elementIndex=20 noteIndex=20>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="86" element-index="21" id="note-22" x="34.5215" y="-37.5" source=<Note sourceIndex=86 elementIndex=21 noteIndex=21>>

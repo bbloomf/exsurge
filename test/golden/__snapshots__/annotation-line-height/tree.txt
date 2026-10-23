@@ -62,7 +62,7 @@
             "-"
         <g className="Notations">
           <rect x=0 y=-25 width=0.8 height=9.756761363636363 fill="#000" className="neumeLine">
-          <use source-index=13 element-index=1 id="note-2" x=3.125 y=-25 transform="scale(1,1)" source=<Note sourceIndex=13 elementIndex=1 noteIndex=1> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
+          <use source-index=13 element-index=1 id="note-2" x=3.125 y=-25 source=<Note sourceIndex=13 elementIndex=1 noteIndex=1> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="g">
           <use source-index=14 element-index=2 id="note-3" x=18.8965 y=-18.75 source=<Note sourceIndex=14 elementIndex=2 noteIndex=2> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="f">
           <use source-index=15 element-index=3 id="note-4" x=18.8965 y=-25 source=<Note sourceIndex=15 elementIndex=3 noteIndex=3> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="g">
       <g transform="translate(108.1595,0)" source=<Punctum> className="ChantNotationElement Punctum">

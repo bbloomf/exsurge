@@ -140,7 +140,7 @@
             "n"
         <g class="Notations">
           <rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="104" element-index="21" id="note-22" x="3.125" y="-25" transform="scale(1,1)" source=<Note sourceIndex=104 elementIndex=21 noteIndex=21>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="104" element-index="21" id="note-22" x="3.125" y="-25" source=<Note sourceIndex=104 elementIndex=21 noteIndex=21>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="105" element-index="22" id="note-23" x="18.8965" y="-18.75" source=<Note sourceIndex=105 elementIndex=22 noteIndex=22>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpperShort" class=" note" source-index="106" element-index="23" id="note-24" x="18.8965" y="-25" source=<Note sourceIndex=106 elementIndex=23 noteIndex=23>>
           <rect x="13.183625" y="-35.916666666666664" width="5.712875" height="1" fill="#000" class="horizontalEpisema">

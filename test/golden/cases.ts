@@ -56,6 +56,11 @@ const salveRegina =
 const resizedLyricWithSizedText =
   "(c4) Ky(f)ri(g)e(h) (,) A long run of text only words, too wide for the line<br><e>and a smaller line</e>() (::)";
 
+// porrectus strokes of several falls, for drawing at glyph multipliers
+const porrectusAtMultipliers =
+  "(c4) a(hgh) b(jhj) c(jgj) d(kfk) e(lel) f(jhji) g(gjhj) h(fkfk) i(h_g_h_) j(jg_'j) k(hg.h.) l(hrgh) (::) " +
+  "(xp3) m(hgh) (::)";
+
 // headers for Gabc.applyHeader()
 const headerSettings =
   "name: Ave Maria;\noffice-part: Antiphona;\nannotation: Ant.;\nannotation: VIII\nG;;\n" +
@@ -881,6 +886,26 @@ export const settingCases: GoldenCase[] = [
   // ---- staff
   { name: "staff-height", gabc: puer, useDropCap: true, setupContext: (ctxt) => ctxt.setStaffHeight(90) },
   { name: "glyph-multiplier", outputs: ["svg", "canvas"], gabc: puer, useDropCap: true, setupContext: (ctxt) => ctxt.setStaffHeight(37.5, 0.8) },
+  // a porrectus (a to e), porrectus flexus (f) and torculus resupinus (g, h)
+  // falling 1 to 7 staff positions, and one under a Chi-Rho clef (m), drawn
+  // with the notes' size at the glyph multiplier but falling as far, with
+  // episemata (i, j), morae (k), an ictus (j) and a cavum (l) on their notes
+  {
+    name: "porrectus-glyph-multiplier",
+    outputs: ["svg", "canvas"],
+    gabc: porrectusAtMultipliers,
+    setupContext: (ctxt) => ctxt.setStaffHeight(37.5, 0.8)
+  },
+  {
+    // (with the svg's glyphs scaled where they're used, rather than in their defs)
+    name: "porrectus-glyph-multiplier-large",
+    outputs: ["svg", "canvas"],
+    gabc: porrectusAtMultipliers,
+    setupContext: (ctxt) => {
+      ctxt.setScaleDefs(false);
+      ctxt.setStaffHeight(37.5, 1.25);
+    }
+  },
   {
     name: "scale-uses",
     outputs: allOutputs,

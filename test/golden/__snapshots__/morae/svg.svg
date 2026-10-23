@@ -182,7 +182,7 @@
 </text>
 <rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="77" element-index="16" id="note-17" x="3.125" y="-25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="77" element-index="16" id="note-17" x="3.125" y="-25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="78" element-index="17" id="note-18" x="18.8965" y="-18.75" >
 </use>
@@ -278,7 +278,7 @@
 </text>
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="137" element-index="32" id="note-33" x="3.125" y="-31.25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="137" element-index="32" id="note-33" x="3.125" y="-31.25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="138" element-index="33" id="note-34" x="18.8965" y="-25" >
 </use>

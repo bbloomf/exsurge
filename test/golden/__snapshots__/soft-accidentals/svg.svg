@@ -139,7 +139,7 @@
 <g class="ChantNotationElement TorculusResupinus" transform="translate(171.71816524321645,0)" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="52" element-index="17" id="note-15" x="3.125" y="-12.5" >
 </use>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="53" element-index="18" id="note-16" x="9.375" y="-18.75" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="53" element-index="18" id="note-16" x="9.375" y="-18.75" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="54" element-index="19" id="note-17" x="25.1465" y="-12.5" >
 </use>
@@ -249,7 +249,7 @@
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="115" element-index="47" id="note-42" x="3.125" y="-25" >
 </use>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="116" element-index="48" id="note-43" x="9.375" y="-31.25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="116" element-index="48" id="note-43" x="9.375" y="-31.25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="117" element-index="49" id="note-44" x="25.1465" y="-25" >
 </use>

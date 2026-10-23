@@ -34,7 +34,7 @@
             "a"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="0" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0>>
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="8" element-index="1" id="note-2" x="9.375" y="-6.25" transform="scale(1,1)" source=<Note sourceIndex=8 elementIndex=1 noteIndex=1>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="8" element-index="1" id="note-2" x="9.375" y="-6.25" source=<Note sourceIndex=8 elementIndex=1 noteIndex=1>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="9" element-index="2" id="note-3" x="25.1465" y="0" source=<Note sourceIndex=9 elementIndex=2 noteIndex=2>>
           <rect x="24.3465" y="-12.5" width="0.8" height="12.5" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="10" element-index="3" id="note-4" x="25.1465" y="-12.5" source=<Note sourceIndex=10 elementIndex=3 noteIndex=3>>

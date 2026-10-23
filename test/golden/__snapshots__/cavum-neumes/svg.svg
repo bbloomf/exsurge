@@ -359,7 +359,7 @@
 </text>
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="118" element-index="28" id="note-29" x="3.125" y="-31.25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="118" element-index="28" id="note-29" x="3.125" y="-31.25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="119" element-index="29" id="note-30" x="18.8965" y="-25" >
 </use>
@@ -372,7 +372,7 @@
 </text>
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="126" element-index="31" id="note-32" x="3.125" y="-31.25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="126" element-index="31" id="note-32" x="3.125" y="-31.25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="128" element-index="32" id="note-33" x="18.8965" y="-25" >
 </use>
@@ -385,7 +385,7 @@
 </text>
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus2Cavum" class=" note porrectus porrectus-start" source-index="134" element-index="34" id="note-35" x="3.125" y="-31.25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus2Cavum" class=" note porrectus porrectus-start" source-index="134" element-index="34" id="note-35" x="3.125" y="-31.25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="135" element-index="35" id="note-36" x="23.5839375" y="-18.75" >
 </use>
@@ -400,7 +400,7 @@
 </text>
 <rect x="0" y="-37.5" width="0.8" height="22.256761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus3Cavum" class=" note porrectus porrectus-start" source-index="142" element-index="37" id="note-38" x="3.125" y="-37.5" transform="scale(1,1)" >
+<use xlink:href="#Porrectus3Cavum" class=" note porrectus porrectus-start" source-index="142" element-index="37" id="note-38" x="3.125" y="-37.5" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="143" element-index="38" id="note-39" x="23.584" y="-18.75" >
 </use>
@@ -415,7 +415,7 @@
 </text>
 <rect x="0" y="-43.75" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus4Cavum" class=" note porrectus porrectus-start" source-index="150" element-index="40" id="note-41" x="3.125" y="-43.75" transform="scale(1,1)" >
+<use xlink:href="#Porrectus4Cavum" class=" note porrectus porrectus-start" source-index="150" element-index="40" id="note-41" x="3.125" y="-43.75" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="151" element-index="41" id="note-42" x="26.25" y="-18.75" >
 </use>
@@ -430,7 +430,7 @@
 </text>
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="158" element-index="43" id="note-44" x="3.125" y="-31.25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="158" element-index="43" id="note-44" x="3.125" y="-31.25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="159" element-index="44" id="note-45" x="18.8965" y="-25" >
 </use>
@@ -571,7 +571,7 @@
 </text>
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
-<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="247" element-index="66" id="note-67" x="3.125" y="-31.25" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1Cavum" class=" note porrectus porrectus-start" source-index="247" element-index="66" id="note-67" x="3.125" y="-31.25" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="248" element-index="67" id="note-68" x="18.8965" y="-25" >
 </use>

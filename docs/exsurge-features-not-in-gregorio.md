@@ -651,6 +651,8 @@ The `staff-lines` header isn't read (`gregorio-feature-gap.md` §1).
 
 **What it does.** The second argument of `setStaffHeight()` scales the neumes, clefs and other glyphs against a staff whose size the first argument sets. `ctxt.setStaffHeight(48, 0.8)` draws the notes at 80% of their usual size on the same staff. This came in with exsurge 1.25.0 and 1.25.1.
 
+A porrectus's stroke is drawn for the multiplier: as thick and as wide as its notes are at that size, but falling as far as the staff says. Its svg def has the multiplier in its id, as in `Porrectus2x0.8` (golden cases `porrectus-glyph-multiplier` and `porrectus-glyph-multiplier-large`). It used to be the stroke drawn at 1, scaled to the multiplier and then stretched upright by its inverse, which kept the fall but made it too thick and too steep under a multiplier below 1, and too thin above 1.
+
 **How to use it.**
 
 ```js

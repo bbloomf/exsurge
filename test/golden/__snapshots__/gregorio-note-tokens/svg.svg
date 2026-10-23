@@ -157,7 +157,7 @@
 <g class="ChantNotationElement TorculusResupinusFlexus" transform="translate(156.25,0)" >
 <use xlink:href="#Quilisma" class=" note" source-index="78" element-index="17" id="note-18" x="3.125" y="-37.5" >
 </use>
-<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="81" element-index="18" id="note-19" x="9.375" y="-43.75" transform="scale(1,1)" >
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="81" element-index="18" id="note-19" x="9.375" y="-43.75" >
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="83" element-index="19" id="note-20" x="25.1465" y="-37.5" >
 </use>
