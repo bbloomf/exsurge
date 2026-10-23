@@ -32,6 +32,7 @@ import { language, type IgnoredRange, type Language, type VowelSegment } from ".
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
+import { stemQueue, StemQueue } from "./ledgerLines.js";
 import { makeLigature } from "./makeLigature.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
@@ -1004,7 +1005,21 @@ export class ChantContext {
    */
   nabcLines: number;
 
+  /**
+   * Ledger lines on one side of the staff that are no more than this many
+   * staff intervals apart are joined, by lengthening each of them to meet
+   * halfway.  0 by default, as Gregorio never joins them (lines that overlap
+   * are always drawn as one); 2 joins them as exsurge did before.
+   */
   minLedgerSeparation: number;
+  /**
+   * Whether an episema over a note at the space below the ledger line above
+   * the staff (or under one at the space above the line below it) is put
+   * closer to the note where there's no ledger line there, as Gregorio does
+   * with \gresetledgerlineheuristic{enable}, its default.  When it's false,
+   * the episema is always placed as if there were a ledger line.
+   */
+  ledgerLineHeuristic: boolean;
   minSpaceAboveStaff: number;
   minSpaceBelowStaff: number;
   spaceBetweenSystems: number;
@@ -1285,7 +1300,8 @@ export class ChantContext {
 
     this.textStyles.annotation.padding = 1; // minimum padding on either side of annotation in staffIntervals
 
-    this.minLedgerSeparation = 2; // multiple of staffInterval
+    this.minLedgerSeparation = 0; // multiple of staffInterval
+    this.ledgerLineHeuristic = true;
     this.minSpaceAboveStaff = 2; // multiple of staffInterval
     this.minSpaceBelowStaff = 1; // multiple of staffInterval
     this.spaceBetweenSystems = 1.5; // multiple of staffInterval
@@ -1938,11 +1954,16 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
           ? note1.staffPosition
           : note0.staffPosition + 4;
 
+    // (the upper and lower notes, if both are notes)
+    var upperNote: Note | null = note0,
+      lowerNote: Note | null = typeof note1 === "object" ? note1 : null;
+
     // note0 should be the upper one for our calculations here
     if (staffPosition0 < staffPosition1) {
       var temp = staffPosition0;
       staffPosition0 = staffPosition1;
       staffPosition1 = temp;
+      [upperNote, lowerNote] = [lowerNote, upperNote];
     }
 
     if (hanging && staffPosition0 - staffPosition1 > 4) {
@@ -1956,11 +1977,16 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
       // if the difference between the notes is only one, and the upper
       // note is on a line, and the lower note is within the four staff lines,
       // then our hanging line goes past the lower note by a whole
-      // staff interval
+      // staff interval.  As in Gregorio (the long stem of a flexus or
+      // porrectus whose notes are a second apart), the bottom line only
+      // counts as a line if the upper note has a ledger line below it, and
+      // the ledger line below the staff doesn't (see stemQueue())
+      var queue = upperNote && lowerNote ? stemQueue(lowerNote, upperNote) : undefined;
       if (
         staffPosition0 - staffPosition1 === 1 &&
-        Math.abs(staffPosition0) % 2 === 1 &&
-        staffPosition1 > -3
+        (queue === undefined
+          ? Math.abs(staffPosition0) % 2 === 1 && staffPosition1 > -3
+          : queue === StemQueue.OnSpaceAboveBottomLine)
       )
         staffPosition1--;
 
@@ -2099,12 +2125,17 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition);
     var y1;
 
-    // a note on a space has a shorter stem than one on a line, as does one on
-    // the bottom line with Gregorio's [ll:0] (as if there's no ledger line
-    // below it, where its stem would end)
+    // a note on a space has a shorter stem than one on a line.  As in
+    // Gregorio, a note on the bottom line has the shorter one unless it has a
+    // ledger line below it (gabc [ll:1] counts), where its stem would end;
+    // and so does a note on the ledger line below the staff (see
+    // stemQueue(), whose queue types each have a stem: Gregorio's open one
+    // is drawn as the shorter one)
+    var queue = stemQueue(note);
     if (
-      Math.abs(staffPosition % 2) === 0 ||
-      (staffPosition === 1 && note.lowLedgerLine === false)
+      queue === undefined
+        ? Math.abs(staffPosition % 2) === 0
+        : queue !== StemQueue.OnLineAboveBottomLine
     )
       y1 = y0 + ctxt.staffInterval * 1.8;
     else y1 = y0 + ctxt.staffInterval * 2.7;

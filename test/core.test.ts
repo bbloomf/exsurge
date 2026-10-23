@@ -916,4 +916,21 @@ describe("Gregorio ledger lines", function() {
       "b_", "c_", "b_", "c_", "b_", "c", "x_", "c_", "x_", "c", "c", "d", "B_", "b_", "c", "d", "b_", "c_", "d_", "c"
     ]);
   });
+
+  it("finds the notes' ledger lines again when the notes around them change", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const score = laidOut(ctxt, "(c4) a(j/!k) (::)");
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, score.mappings, "(c4) a(j/!m) (::)");
+    score.updateNotations(ctxt);
+    score.performLayout(ctxt);
+    const neume = score.notations.find((notation) => notation.isNeume) as Exsurge.Neume;
+    assert.ok(Exsurge.hasDrawnLedgerLine(neume.notes[0], true));
+    assert.strictEqual(neume.ledgerLines.length, 1);
+  });
+
+  it("doesn't join ledger lines, and places episemata by Gregorio's guess, by default", function() {
+    const ctxt = new Exsurge.ChantContext();
+    assert.strictEqual(ctxt.minLedgerSeparation, 0);
+    assert.strictEqual(ctxt.ledgerLineHeuristic, true);
+  });
 });

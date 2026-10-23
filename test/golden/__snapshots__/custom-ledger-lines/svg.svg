@@ -36,19 +36,19 @@
 <line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
 </g>
-<line x1="10.9375" y1="-56.25" x2="23.4375" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="7.7143749999999995" y1="-56.25" x2="26.660625" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="102.64215625" y1="6.25" x2="115.14215625" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="99.41903125" y1="6.25" x2="118.36528125" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="436.1084531249999" y1="-56.25" x2="454.8584531249999" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="439.13532812499994" y1="-56.25" x2="458.0815781249999" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="488.2107812499999" y1="-56.25" x2="500.7107812499999" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="484.98765624999993" y1="-56.25" x2="503.9339062499999" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
 <line x1="203.7218125" y1="-56.25" x2="225.4851156165222" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="240.19914062499998" y1="-56.25" x2="265.0874437415222" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="236.97601562499997" y1="-56.25" x2="265.0874437415222" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="286.05146874999997" y1="6.25" x2="350.65379687499995" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="282.82834375" y1="6.25" x2="353.87692187499994" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
 <line x1="390.92580375339105" y1="-56.25" x2="408.33644624660883" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
@@ -185,7 +185,7 @@
 <line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
 </g>
-<line x1="6.25" y1="-56.25" x2="46.875" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="6.25" y1="-56.25" x2="50.098125" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >

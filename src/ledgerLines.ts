@@ -1,6 +1,7 @@
 // Gregorio's ledger lines: which notes and accidentals get a ledger line
 // above or below the staff, as Gregorio decides it (gabc_determine_ledger_lines()
-// in src/gabc/gabc-score-determination.c).
+// in src/gabc/gabc-score-determination.c), and the stems that depend on it
+// (adjusted_queuetype_of() in src/gregoriotex/gregoriotex-write.c).
 //
 // Each note has a state on each side: whether it has a line, and how that was
 // set.  A setting only replaces a weaker one, as Gregorio's LEDGER() does
@@ -49,6 +50,18 @@ export interface LedgerLineItem {
   staffPosition: number;
   ledgerLineState?: LedgerLineStates;
 }
+
+/**
+ * How far a ledger line goes beyond a note on each side, in staff intervals:
+ * Gregorio's additionallineswidth, 0.14584 cm at its default staff size
+ * (tex/gregoriotex-gsp-default.tex)
+ */
+export const ledgerLineOverhang = 1.0157;
+/**
+ * the same beyond a custos: additionalcustoslineswidth, 0.09114 cm (on the
+ * left only, at the end of a line)
+ */
+export const custosLedgerLineOverhang = 0.6347;
 
 /** whether a state draws a ledger line */
 export function drawsLedgerLine(state: LedgerLineState | undefined) {
@@ -207,5 +220,41 @@ export function determineLedgerLines(ctxt: ChantContext, notations: ChantNotatio
     let after = item.ledgerLineState!;
     if (!before || !sameState(before.above, after.above) || !sameState(before.below, after.below))
       owners.get(item)!.needsLayout = true;
+  }
+}
+
+/**
+ * Where a stem goes below the staff, as Gregorio's queuetype (gregoriotex-write.c),
+ * which chooses a stem's length
+ */
+export enum StemQueue {
+  OnSpaceBelowBottomLine,
+  OnSpaceAboveBottomLine,
+  OnBottomLine,
+  OnLineAboveBottomLine
+}
+
+/**
+ * Gregorio's adjusted_queuetype_of(): the queue type of a stem at note (moved
+ * by adjustment), where the ledger line below queueNote makes it the
+ * bottom line.  Only a note at c or d depends on that.  A note that a Chi-Rho
+ * clef moves off its line or space has none (undefined).
+ */
+export function stemQueue(note: Note, queueNote: Note = note, adjustment = 0) {
+  // (Gregorio counts from a, two below c)
+  var position = note.staffPosition + adjustment + 2;
+  if (position !== Math.round(position)) return undefined;
+  var lowLedgerLine = !!queueNote.ledgerLineState && queueNote.ledgerLineState.below.line;
+  switch (position) {
+    case 0:
+      return StemQueue.OnSpaceBelowBottomLine;
+    case 1:
+      return StemQueue.OnBottomLine;
+    case 2:
+      return lowLedgerLine ? StemQueue.OnSpaceAboveBottomLine : StemQueue.OnSpaceBelowBottomLine;
+    case 3:
+      return lowLedgerLine ? StemQueue.OnLineAboveBottomLine : StemQueue.OnBottomLine;
+    default:
+      return position % 2 ? StemQueue.OnLineAboveBottomLine : StemQueue.OnSpaceAboveBottomLine;
   }
 }

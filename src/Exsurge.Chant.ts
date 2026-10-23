@@ -148,8 +148,9 @@ export class Note extends ChantLayoutElement {
   shapeHint?: string;
   /**
    * Gregorio's ledger-line hint below the note (gabc [ll:1] or [ll:0]):
-   * whether to draw its virga stem and place its episemata as if there were
-   * a ledger line below it, whatever ledger lines there are
+   * whether to give its stem the length and place its episemata as if there
+   * were a ledger line below it, without drawing one or leaving one out.
+   * A stronger setting overrides it (see ledgerLineState).
    */
   lowLedgerLine?: boolean;
   /** the same above the note (gabc [hl:1] or [hl:0]), for its episemata */
@@ -176,7 +177,8 @@ export class Note extends ChantLayoutElement {
   slurs?: SlurMark[];
   /**
    * whether Gregorio's [oll:1] or [oll:0] draws a ledger line above the
-   * staff at the note, or leaves one out (see Neume.requiresLedgerLine())
+   * staff at the note, or leaves one out, whatever its pitch and the notes
+   * around it (see ledgerLineState)
    */
   ledgerLineAbove?: boolean;
   /** whether Gregorio's [ull:1] or [ull:0] draws a ledger line below the staff at the note, or leaves one out */

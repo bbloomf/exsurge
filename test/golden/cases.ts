@@ -652,10 +652,11 @@ export const featureCases: GoldenCase[] = [
       "j(h_f_[shape:stroke]) k(h'f.[shape:stroke]) (::)"
   },
   {
-    // [ll:0] gives a stem on the bottom line the short length (c, j; the
-    // first hint counts, d), and [ll:1] the long one it has anyway (b);
-    // [ll:1] and [hl:1] place an episema below c (f, g) or above k (i) as if
-    // there were a ledger line there
+    // [ll:1] gives a stem on the bottom line the long length (b), as a
+    // ledger line below it would, and without one it has the short length
+    // (a, k), as with [ll:0] (c, j; the first hint counts, d); [ll:1] and
+    // [hl:1] place an episema below c (f, g) or above k (i) as if there were
+    // a ledger line there
     name: "ledger-line-hints",
     gabc:
       "(c4) a(dv) b(dv[ll:1]) c(dv[ll:0]) d(dv[ll:0][ll:1]) e(c_0) f(c_0[ll:1]) g(dc_0[ll:1]) h(k_) " +

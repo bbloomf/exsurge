@@ -17,20 +17,12 @@ moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.875]
 beginPath()
-moveTo(10.9375, -56.25)
-lineTo(56.3085, -56.25)
+moveTo(7.7143749999999995, -56.25)
+lineTo(62.656625000000005, -56.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.875]
 beginPath()
-moveTo(56.3085, -56.25)
-lineTo(59.433499999999995, -56.25)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.875]
-beginPath()
-moveTo(114.75650000000002, -56.25)
-lineTo(157.4615, -56.25)
-stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.875]
-beginPath()
-moveTo(157.4615, -56.25)
-lineTo(172.28650000000002, -56.25)
+moveTo(111.53337500000002, -56.25)
+lineTo(169.25962500000003, -56.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.875]
 fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,23.125]
 fillRect(0, -62.5, 0.8, 28.506761363636365) [fillStyle="#000" matrix=1,0,0,1,14.0625,66.875]
