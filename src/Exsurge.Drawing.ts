@@ -4801,6 +4801,20 @@ export class Lyric extends TextElement {
   }
 
   /**
+   * Gives the lyric back the letter that its drop cap took (see
+   * generateDropCap()), without the first word's styles.
+   */
+  removeDropCap(ctxt: ChantContext) {
+    if (!this.dropCap) return;
+    this.setFirstWordStyles(ctxt, null);
+    this.sourceIndex -= this.dropCap.sourceGabc!.length;
+    this.sourceGabc = this.dropCap.sourceGabc + this.sourceGabc!;
+    this.centerStartIndex++;
+    this.dropCap = null;
+    this.generateSpansFromText(ctxt, (ctxt.textStyles.lyric.prefix || "") + this.originalText);
+  }
+
+  /**
    * Gives the lyric the styles of the score's first word (part "word"), or of
    * its first syllable ("syllable", which also styles the first letter after
    * any drop cap), from ChantContext.firstWordStyle and so on, or takes them
