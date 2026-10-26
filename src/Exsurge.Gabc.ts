@@ -1541,7 +1541,9 @@ export class Gabc {
     for (var i = 0; i < words.length; i++) {
       sourceIndex += wordLength;
       wordLength = words[i].length + 1;
-      var word = words[i].trim();
+      // (the word as it is, which starts at sourceIndex, as in
+      // updateMappingsFromSource(): its syllables skip any space it starts with)
+      var word = words[i];
 
       if (isEmptyWord(word)) continue;
 

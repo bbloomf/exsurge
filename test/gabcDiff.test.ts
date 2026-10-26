@@ -157,6 +157,8 @@ var edits = [
   ['edits the word after [[', kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)'), kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)').replace('Do(h)', 'Do(i)')],
   ['adds a closing tag after a word', kyrie, kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> ')],
   ['edits the word before a closing tag', kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> '), kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(ghf)</nlba> ')],
+  ['edits a word after a newline and a space', kyrie.replace(' Lau(f)', '\n Lau(f)'), kyrie.replace(' Lau(f)', '\n Lau(g)')],
+  ['edits a word after two spaces', kyrie.replace(' Lau(f)', '  Lau(f)'), kyrie.replace(' Lau(f)', '  Lau(f)').replace('Do(h)', 'Do(i)')],
   ['inserts a word before a choral sign', kyrie.replace('om(f)', 'om(f[cs:t])'), kyrie.replace('om(f)', 'no(g) om(f[cs:t])')]
 ];
 
