@@ -253,11 +253,10 @@
         <line key="-5" x1="0" y1="-31.25" x2="290" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-3" x1="0" y1="-18.75" x2="290" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-1" x1="0" y1="-6.25" x2="290" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine">
-      <line x1="108.36140095831966" y1="-56.25" x2="133.74391945452209" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
-      <line x1="133.74391945452209" y1="-56.25" x2="159.31196384540794" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
-      <line x1="159.31196384540794" y1="6.25" x2="178.2362897400913" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
-      <line x1="178.2362897400913" y1="6.25" x2="195.3750897400913" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
-      <line x1="209.81630453705324" y1="6.25" x2="222.31630453705324" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="105.13827595831967" y1="-56.25" x2="160.74956295072454" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="157.87436474009132" y1="6.25" x2="176.82061474009134" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="179.6519647400913" y1="6.25" x2="198.59821474009132" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="206.59317953705323" y1="6.25" x2="225.53942953705325" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
       <g class="ChantNotationElement DoClef" transform="translate(0,0)" source=<DoClef sourceIndex=70 elementIndex=11>>
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="70" element-index="11" x="0" y="-31.25" source=<DoClef sourceIndex=70 elementIndex=11>>
@@ -342,7 +341,7 @@
           <tspan source-index="0" style="">
             "-"
         <g class="Notations">
-          <rect x="0" y="-6.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine">
+          <rect x="0" y="-6.25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="358" element-index="52" id="note-46" x="3.125" y="-6.25" source=<Note sourceIndex=358 elementIndex=52 noteIndex=45>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="359" element-index="53" id="note-47" x="9.375" y="0" source=<Note sourceIndex=359 elementIndex=53 noteIndex=46>>
       <g class="ChantNotationElement Punctum" transform="translate(212.94130453705324,0)" source=<Punctum>>
