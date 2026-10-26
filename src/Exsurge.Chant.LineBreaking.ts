@@ -224,6 +224,20 @@ interface TrialLines {
   /** the settings they were laid out with (see LineBreaker.getSettings()) */
   settings: string;
   lines: Map<ChantNotationElement, TrialLine[]>;
+  /** the last layouts' plans (see LineBreaker.planAgain()) */
+  plans: Plan[];
+}
+
+/** where a layout planned each line to end (see LineBreaker.planAgain()) */
+interface Plan {
+  /** the width, the staff beside the drop cap and how many lines are beside it, and extraLines */
+  key: string;
+  startingClef: Clef;
+  notations: ChantNotationElement[];
+  layoutIds: Array<number | undefined>;
+  /** the end neume of each notation's translation (see TrialLine.translationEnds) */
+  translationEnds: Array<ChantNotationElement | undefined>;
+  plannedEnds: Map<string, number>;
 }
 const trialLines = new WeakMap<ChantScore, TrialLines>();
 
@@ -297,7 +311,7 @@ export class LineBreaker {
    */
   plannedEnd(lineIndex: number, start: number) {
     var key = lineIndex + ":" + start;
-    if (!this.plannedEnds.has(key)) {
+    if (!this.plannedEnds.has(key) && !(lineIndex === 0 && start === 0 && this.planAgain())) {
       // the score hasn't been broken from here yet (or a line didn't end where
       // it was planned to), so break the rest of it from here
       var activeClef = this.ctxt.activeClef;
@@ -308,6 +322,47 @@ export class LineBreaker {
       }
     }
     return this.plannedEnds.get(key);
+  }
+
+  /**
+   * whether an earlier layout planned the lines of the same notations, laid
+   * out as they are now, at the same width, as this layout would (and it
+   * then uses its plan); or else keeps this layout's plan for later ones
+   */
+  planAgain() {
+    var cache = this.getTrialLines(),
+      score = this.score,
+      notations = score.notations,
+      key = [this.width, JSON.stringify(this.getLineExtent(0, 0)), score.linesBesideDropCap(), this.extraLines].join(";"),
+      translationEnds = notations.map((notation) => notation.translationText?.[0]?.endNeume);
+    var same = (plan: Plan) =>
+      plan.key === key &&
+      plan.startingClef === score.startingClef &&
+      plan.notations.length === notations.length &&
+      notations.every(
+        (notation, k) =>
+          notation === plan.notations[k] &&
+          notation.layoutId === plan.layoutIds[k] &&
+          translationEnds[k] === plan.translationEnds[k]
+      );
+    var plan = cache.plans.find(same);
+    if (plan) {
+      this.plannedEnds = plan.plannedEnds;
+      return true;
+    }
+    // (the last plan at each of two widths)
+    cache.plans = [
+      ...cache.plans.filter((plan) => plan.key !== key).slice(-1),
+      {
+        key,
+        startingClef: score.startingClef,
+        notations: notations.slice(),
+        layoutIds: notations.map((notation) => notation.layoutId),
+        translationEnds,
+        plannedEnds: this.plannedEnds
+      }
+    ];
+    return false;
   }
 
   /** breaks the rest of the score into lines, from the line with the index lineIndex, which starts at start */
@@ -568,7 +623,7 @@ export class LineBreaker {
         notations = this.score.notations;
       this.trialLines = trialLines.get(this.score);
       if (!this.trialLines || this.trialLines.settings !== settings) {
-        this.trialLines = { settings, lines: new Map() };
+        this.trialLines = { settings, lines: new Map(), plans: [] };
         trialLines.set(this.score, this.trialLines);
       }
       for (var notation of this.trialLines.lines.keys())

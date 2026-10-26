@@ -294,6 +294,33 @@ describe("optimal line breaking", () => {
       assert(again > 0 && again < all / 3, `${again} of ${all}`);
     });
 
+    it("plans the lines again only where the notations have changed since a layout at the same width", async () => {
+      const LineBreaker = E.LineBreaker.prototype as any;
+      const plan = LineBreaker.plan;
+      let plans = 0;
+      LineBreaker.plan = function (...args: unknown[]) {
+        plans++;
+        return plan.apply(this, args);
+      };
+      try {
+        const { score, ctxt } = await layOut(puer, { useDropCap: true, width: 760 });
+        const plansAt = (width: number) => {
+          plans = 0;
+          score.layoutChantLines(ctxt, width);
+          return plans;
+        };
+        assert(plansAt(330) > 0);
+        assert.deepStrictEqual([plansAt(760), plansAt(330), plansAt(330)], [0, 0, 0]);
+        E.Gabc.updateMappingsFromSource(ctxt, score.mappings, puer.replace("na(iji)tus(h)", "na(ijiji)tus(h)"));
+        score.updateNotations(ctxt);
+        score.performLayout(ctxt);
+        assert(plansAt(330) > 0);
+        assert(plansAt(760) > 0);
+      } finally {
+        LineBreaker.plan = plan;
+      }
+    });
+
     it("lays scores out as laying each line out again would, through edits and changes of width", async () => {
       // (the golden cases with what lines read beyond their notations, and
       // random scores, with what changes in them edited)
@@ -305,7 +332,7 @@ describe("optimal line breaking", () => {
         scores.push({ name: `random-${seed}`, gabc: randomGabc(random, 10 + random.int(60)), useDropCap: seed % 2 === 0 } as any);
       }
       const LineBreaker = E.LineBreaker.prototype as any;
-      const getTrialLine = LineBreaker.getTrialLine;
+      const { getTrialLine, planAgain } = LineBreaker;
       for (const { name, gabc, strategy, useDropCap, setupContext, setupScore } of scores) {
         const words = gabc.split(" ");
         const edits = [
@@ -316,9 +343,12 @@ describe("optimal line breaking", () => {
         ];
         const outputs: string[][] = [];
         for (const reuse of [true, false]) {
-          if (!reuse) LineBreaker.getTrialLine = function (start: number, extent: unknown) {
-            return this.layOutLineFrom(start, extent);
-          };
+          if (!reuse) {
+            LineBreaker.getTrialLine = function (start: number, extent: unknown) {
+              return this.layOutLineFrom(start, extent);
+            };
+            LineBreaker.planAgain = () => false;
+          }
           try {
             const { score, ctxt } = await layOut(gabc, { strategy, useDropCap, setupContext, setupScore, width: 330 });
             const o: string[] = [];
@@ -338,7 +368,7 @@ describe("optimal line breaking", () => {
             }
             outputs.push(o);
           } finally {
-            LineBreaker.getTrialLine = getTrialLine;
+            Object.assign(LineBreaker, { getTrialLine, planAgain });
           }
         }
         assert.deepStrictEqual(outputs[0], outputs[1], name);
