@@ -52,9 +52,7 @@
           <tspan source-index="0" style="">
             "Here is a very long run of text only syllables"
           <tspan source-index="0" style="newLine: true;" dy="1.1em" x="-99.7056">
-            "that"
-          <tspan source-index="0" style="">
-            " will not fit"
+            "that will not fit"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class="" source-index="89" element-index="4" x="0" y="0" source=<TextOnly sourceIndex=89 elementIndex=4>>
       <g class="ChantNotationElement TextOnly" transform="translate(347.89279999999997,0)" source=<TextOnly sourceIndex=103 elementIndex=5>>
