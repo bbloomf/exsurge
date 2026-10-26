@@ -4,11 +4,12 @@
 import { describe, it } from "vitest";
 import assert from "node:assert";
 import * as E from "../src/index.js";
-import { featureCases } from "./golden/cases";
+import { featureCases, settingCases } from "./golden/cases";
 import { render, type RenderOptions } from "./golden/harness";
 
 const puer = featureCases.find((c) => c.name === "puer-natus-est")!.gabc;
 const adTeLevavi = featureCases.find((c) => c.name === "ad-te-levavi")!.gabc;
+const salveRegina = featureCases.find((c) => c.name === "salve-regina")!.gabc;
 
 async function layOut(gabc: string, options: RenderOptions & { lineBreaking?: "greedy" | "optimal" } = {}) {
   const { score, ctxt } = await render(
@@ -28,6 +29,22 @@ async function layOut(gabc: string, options: RenderOptions & { lineBreaking?: "g
 
 /** the index of the first notation on each line */
 const lineStarts = (score: any): number[] => score.lines.map((line: any) => line.notationsStartIndex);
+
+/** where each notation and its lyrics are, and how wide its lyrics are */
+const positions = (score: any) =>
+  score.notations.map((n: any) => [n.bounds.x, ...n.lyrics.map((lyric: any) => [lyric.bounds.x, lyric.bounds.width])]);
+
+/** where a new LineBreaker plans each line of a laid-out score to end, leaving out extraLines as given */
+function plannedEnds(score: any, ctxt: any, width: number, extraLines: number) {
+  const breaker = new E.LineBreaker(score, ctxt, width);
+  breaker.extraLines = extraLines;
+  const ends: (number | undefined)[] = [];
+  for (let line = 0, start = 0; start !== undefined && start < score.notations.length; line++) {
+    start = breaker.plannedEnd(line, start)!;
+    ends.push(start);
+  }
+  return ends;
+}
 
 /** the notations on each line, as the gabc of their notes or the text of their lyrics */
 function lineContents(score: any) {
@@ -143,9 +160,26 @@ describe("optimal line breaking", () => {
     assert.strictEqual(last.notationsStartIndex + last.numNotationsOnLine, score.notations.length);
   });
 
+  it("ranks a line that has to break where it does by how loose it is", async () => {
+    // a line can't end at z both full and after a word, so the lines break
+    // after the bar, where each is only a little loose, rather than leave the
+    // line before z far looser than the pretolerance
+    const la = (pitch: string, count: number) => Array(count).fill(`la(${pitch})`).join(" ");
+    const { score } = await layOut(`(c4) ${la("f", 9)} (;) ${la("g", 9)} (z) ${la("f", 20)} (::)`, { width: 250 });
+    assert.deepStrictEqual(lineStarts(score).slice(0, 3), [0, 10, 20]);
+  });
+
+  it("finds the breaks with the fewest demerits, as a search that keeps every way of breaking the lines would", async () => {
+    // (where leaving out the ways that take more than two lines more than
+    // the fewest, as it once did, lost the best one)
+    const gabc = Array(3).fill([puer, adTeLevavi, salveRegina].join(" ")).join(" ");
+    const { score, ctxt } = await layOut(gabc, { width: 140 });
+    const ends = plannedEnds(score, ctxt, 140, 2);
+    assert(!ends.includes(undefined));
+    assert.deepStrictEqual(ends, plannedEnds(score, ctxt, 140, Infinity));
+  });
+
   it("lays an edited score out as it lays out the same gabc parsed afresh", async () => {
-    const positions = (score: any) =>
-      score.notations.map((n: any) => [n.bounds.x, ...n.lyrics.map((lyric: any) => lyric.bounds.x)]);
     // (Puer natus est has lyrics under its bars, which centerDividers() moves)
     const edits = [
       [adTeLevavi, adTeLevavi.replace("le(f)vá(fe)vi(f)", "le(fgf)vá(fe)vi(f) no(g)vum(f)").replace("me(f)i:(f.)", "me(fg)i:(f.)")],
@@ -162,14 +196,27 @@ describe("optimal line breaking", () => {
   });
 
   it("lays a score out again as it lays it out the first time", async () => {
-    const positions = (score: any) =>
-      score.notations.map((n: any) => [n.bounds.x, ...n.lyrics.map((lyric: any) => lyric.bounds.x)]);
     for (const width of [180, 250, 330, 450, 600]) {
       const fresh = await layOut(puer, { useDropCap: true, width });
       for (const before of [width, 300, 800]) {
         const { score } = await layOut(puer, { useDropCap: true, width: before, relayoutWidths: [width] });
         assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `${before} then ${width}`);
         assert.deepStrictEqual(positions(score), positions(fresh.score), `${before} then ${width}`);
+      }
+    }
+  });
+
+  it("lays each golden case out again at the same width as it lays it out the first time", async () => {
+    // (a layout leaves nothing behind, such as shrunk text only, that the
+    // lines planned the next time are planned around)
+    for (const c of [...featureCases, ...settingCases]) {
+      const { gabc, strategy, useDropCap, setupContext, setupScore } = c;
+      for (const width of [220, 380, 560]) {
+        const options = { strategy, useDropCap, setupContext, setupScore, width };
+        const fresh = await layOut(gabc, options);
+        const { score } = await layOut(gabc, { ...options, relayoutWidths: [width] });
+        assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `${c.name} at ${width}`);
+        assert.deepStrictEqual(positions(score), positions(fresh.score), `${c.name} at ${width}`);
       }
     }
   });

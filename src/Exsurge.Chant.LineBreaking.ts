@@ -15,10 +15,16 @@
 // It is used when ctxt.lineBreaking is "optimal" (see ChantScore.layoutChantLines).
 //
 
-import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
+import {
+  ChantLine,
+  copyBeginningLyrics,
+  isHiddenAccidental,
+  isTextOnlyBeforeDivider,
+  restoreLyrics
+} from "./Exsurge.Chant.ChantLine.js";
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
-import { Custos, DoubleBar } from "./Exsurge.Chant.Signs.js";
-import { Lyric, LyricArray, LyricType } from "./Exsurge.Drawing.js";
+import { Custos } from "./Exsurge.Chant.Signs.js";
+import { LyricArray, LyricType } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef } from "./Exsurge.Chant.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
@@ -54,12 +60,6 @@ const looseness = -1;
 const linePenalty = 10;
 const adjDemerits = 10000;
 // (Gregorio sets \doublehyphendemerits and \finalhyphendemerits to 0)
-
-// how many more lines than the fewest it can be done in that the ways of
-// breaking the score into lines are kept for: TeX keeps them all, but looks
-// for the way with the fewest demerits and then one with a line fewer
-// (\looseness=-1), which is nearly always within this many of the fewest
-const extraLines = 2;
 
 // how much further than it can stretch a line has to stretch to be as bad as
 // a line can be: 100 * 4.65^3 > infiniteBadness
@@ -130,10 +130,6 @@ interface BreakNode {
   previous: BreakNode | null;
 }
 
-// a soft accidental that isn't printed takes no space, unless it has to hold lyrics
-const isHiddenAccidental = (notation: ChantNotationElement) =>
-  notation.isAccidental && (notation as Accidental).hidden && !notation.hasLyrics();
-
 /**
  * Breaks a score into lines as Gregorio does (see the top of this module).
  * ChantScore.layoutChantLines() asks it where each line it builds should end.
@@ -142,6 +138,14 @@ export class LineBreaker {
   score: ChantScore;
   ctxt: ChantContext;
   width: number;
+  /**
+   * how many lines more than the fewest it can be done in, or than the way
+   * with the fewest demerits for each fitness class, that the ways of
+   * breaking the score into lines up to a notation are kept for (see
+   * findBreaks()): TeX keeps them all, but looks for the way with the fewest
+   * demerits and then one with a line fewer (\looseness=-1)
+   */
+  extraLines = 2;
   /** where each line was planned to end, by its index and the notation it starts with */
   plannedEnds = new Map<string, number>();
   /** the ends of the lines that could start at a notation, by its index and where the line's staff is */
@@ -183,7 +187,6 @@ export class LineBreaker {
 
   /** breaks the rest of the score into lines, from the line with the index lineIndex, which starts at start */
   plan(lineIndex: number, start: number) {
-    var notations = this.score.notations;
     // As TeX does, look first for breaks where no line is looser or tighter
     // than the pretolerance allows, and then where none is more than the
     // tolerance allows, and look for a way to set the score in one line
@@ -203,7 +206,8 @@ export class LineBreaker {
     // (and if the rest of the score can't be broken into lines that fit,
     // because something that can't be broken is too wide for a line, plan the
     // lines as far as it can be, and fill the next one greedily: see
-    // buildFromChantNotationIndex())
+    // buildFromChantNotationIndex(); no line is planned from there, so
+    // plannedEnd() gives undefined for it)
     var node = final || reached;
     var path: BreakNode[] = [];
     for (; node && node.previous; node = node.previous) path.unshift(node);
@@ -212,7 +216,6 @@ export class LineBreaker {
       this.plannedEnds.set(node.previous!.line + ":" + previousEnd, node.position);
       previousEnd = node.position;
     }
-    if (!final && previousEnd < notations.length) this.plannedEnds.delete(lineIndex + path.length + ":" + previousEnd);
   }
 
   /**
@@ -234,14 +237,27 @@ export class LineBreaker {
       var here = nodes.get(position);
       if (!here) continue;
       nodes.delete(position);
-      // (a way to get here in more lines than the fewest it can be done in,
-      // plus extraLines, can't lead to a way of breaking the whole score in
-      // fewer than the fewest lines it can be broken into plus extraLines, so
-      // that \looseness can choose from; so it is left out, to keep the
-      // number of nodes down)
-      var fewestLines = Math.min(...Array.from(here.values(), (node) => node.line));
+      // (the lines after a way to get here don't depend on how many lines it
+      // took, only on its fitness class, so the way with the fewest demerits
+      // in each fitness class is the only one in that class that can start
+      // the best way to break the rest of the score.  Any other way that
+      // takes more than extraLines lines more than the fewest it can be done
+      // in, and than each of those, is left out, to keep the number of nodes
+      // down; the ways that are kept are nearly always enough for \looseness
+      // to choose from.)
+      var fewestLines = Infinity,
+        leastDemerits: BreakNode[] = [];
       for (var node of here.values()) {
-        if (node.line > fewestLines + extraLines) continue;
+        fewestLines = Math.min(fewestLines, node.line);
+        var least = leastDemerits[node.fitness];
+        if (!least || node.demerits < least.demerits) leastDemerits[node.fitness] = node;
+      }
+      for (node of here.values()) {
+        if (
+          node.line > fewestLines + this.extraLines &&
+          !leastDemerits.some((least) => Math.abs(node.line - least.line) <= this.extraLines)
+        )
+          continue;
         if (node.position > farthest.position || (node.position === farthest.position && node.demerits < farthest.demerits))
           farthest = node;
         for (var lineEnd of this.getLineEnds(node.line, position)) {
@@ -282,7 +298,10 @@ export class LineBreaker {
 
   /**
    * the badness and the fitness class of a line, as TeX works them out, or
-   * null if the line is too loose or too tight for the threshold
+   * null if the line is too loose or too tight for the threshold (as a line
+   * that has to break where it does, at gabc z, can be too: there is then
+   * another way to break the lines before it, or else the last pass, with no
+   * threshold, sets it however loose it is)
    */
   fit(lineEnd: LineEnd, threshold: number) {
     var badness: number,
@@ -300,11 +319,7 @@ export class LineBreaker {
       badness = 100 * Math.pow(-space / lineEnd.shrink, 3);
       fitness = badness > 12 ? tight : decent;
     }
-    if (badness > threshold) {
-      // a line that has to break where it does is set however loose it is
-      if (lineEnd.penalty > -infinitePenalty) return null;
-      badness = threshold;
-    }
+    if (badness > threshold) return null;
     return { badness, fitness };
   }
 
@@ -357,23 +372,7 @@ export class LineBreaker {
     // the lyrics of a double bar at the end of the line before go at the
     // start of this one (copied, as buildFromChantNotationIndex() copies them,
     // but leaving the double bar's own lyrics where they are)
-    var beginningLyrics: Lyric[] | null = null;
-    var bar = (start > 0 ? notations[start - 1] : null) as DoubleBar | null;
-    if (
-      bar &&
-      bar.constructor === DoubleBar &&
-      bar.hasLyrics() &&
-      (bar.lyrics.length > 1 || !bar.lyrics[0].text.match(/^(i\.?)+j\.?/))
-    ) {
-      var lyrics = bar.lyrics.map((lyric) => {
-        var newLyric = new Lyric(ctxt, lyric.originalText, lyric.lyricType, lyric.notation, lyric.notations, lyric.sourceIndex);
-        newLyric.elidesToNext = lyric.elidesToNext;
-        return newLyric;
-      });
-      var minX = Math.min(...lyrics.map((l) => l.bounds.x));
-      lyrics.forEach((l) => (l.bounds.x -= minX));
-      beginningLyrics = lyrics;
-    }
+    var beginningLyrics = start > 0 ? copyBeginningLyrics(ctxt, notations[start - 1]) : null;
 
     // the clef in effect at the start of the line
     var i = start;
@@ -433,18 +432,19 @@ export class LineBreaker {
 
       // (lyrics an earlier layout of the lines wrapped or moved go back, as in
       // buildFromChantNotationIndex(), before any line is planned around them)
-      if (curr.hasLyrics() && curr.lyrics.some((lyric) => lyric.needsLayout)) {
-        for (let lyric of curr.lyrics) {
-          if (lyric.needsLayout) {
-            lyric.recalculateMetrics(ctxt);
-            lyric.needsLayout = false;
-          }
-        }
-        curr.alignLyrics(ctxt);
-      }
+      restoreLyrics(ctxt, curr);
 
       if (isHiddenAccidental(curr)) curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
-      else line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
+      else {
+        var textOnly = curr.constructor === TextOnly && (curr as TextOnly).hasLyrics() ? (curr as TextOnly).lyrics[0] : null,
+          resize = textOnly && textOnly.resize;
+        line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
+        // (text only that it shrank to fit the line, in setMaxWidth(), is
+        // measured again before it's laid out on another line, as text that
+        // it wrapped is, so that the line built starts from the same text
+        // as it would have without this one)
+        if (textOnly && textOnly.resize !== resize) textOnly.needsLayout = true;
+      }
 
       if (curr.hasLyrics()) LyricArray.mergeIn(line.lastLyrics, curr.lyrics);
 
@@ -506,7 +506,7 @@ export class LineBreaker {
       next.isDivider ||
       next.constructor === Custos ||
       next.constructor === ChantLineBreak ||
-      this.isTextOnlyBeforeDivider(index) ||
+      isTextOnlyBeforeDivider(notations, index) ||
       prev.firstWithNoWidth ||
       translationStart ||
       (firstNote && (firstNote.shape === NoteShape.Quilisma || firstNote.shape === NoteShape.Inclinatum)) ||
@@ -550,17 +550,6 @@ export class LineBreaker {
       (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
         next.lyrics[0].lyricType === LyricType.SingleSyllable)
     );
-  }
-
-  /** whether only text-only notations come between the notation at index, which is one, and the next divider */
-  isTextOnlyBeforeDivider(index: number) {
-    var notations = this.score.notations;
-    if (notations[index].constructor !== TextOnly) return false;
-    for (var k = index + 1; k < notations.length; k++) {
-      if (notations[k].isDivider) return true;
-      if (notations[k].constructor !== TextOnly) return false;
-    }
-    return false;
   }
 
   /**
