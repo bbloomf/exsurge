@@ -83,8 +83,8 @@ export declare class Gabc {
      * turns: gabc, then the NABC of each line, then gabc again.  Returns the
      * notes with the NABC and the |s masked (keeping their length), but with a
      * / at a | between two parts of gabc, which Gregorio makes separate
-     * elements, and each part of gabc that has NABC, by where it starts in the
-     * notes, and where it put the /s.  The NABC of a part of gabc that's empty,
+     * elements, and each part of gabc that has NABC, by where it starts and ends
+     * in the notes, and where it put the /s.  The NABC of a part of gabc that's empty,
      * which Gregorio gives an element of its own, goes with the part before it,
      * after a / (a space in NABC).
      */
@@ -93,6 +93,7 @@ export declare class Gabc {
         cuts: number[];
         parts: {
             index: number;
+            end: number;
             nabc: string[];
         }[];
     };
@@ -160,6 +161,7 @@ export declare class Gabc {
     static makeLyric(ctxt: ChantContext, text: string, lyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric;
     static parseNotations(ctxt: ChantContext, data: string, sourceIndex: number, insertionIndex?: number): ChantNotationElement[];
     static createClef(type: string, line: number, flat: boolean): Clef;
+    static joinElements(neumes: Neumes.Neume[], joinsPreviousElement: boolean): boolean;
     static createNeumesFromNotes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace): Neumes.Neume[];
     static createFusedNeumes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace, autoFused: Set<Note>): Neumes.Neume[];
     static createNoteFromData(ctxt: ChantContext, clef: Clef, data: string, notes: Note[], sourceIndex: number): void;

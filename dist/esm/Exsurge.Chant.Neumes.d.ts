@@ -1,10 +1,13 @@
 import { type Note } from "./Exsurge.Chant.js";
 import { ChantNotationElement, GlyphCode, MarkingPositionHint, type ChantContext } from "./Exsurge.Drawing.js";
-/** a ledger line that a neume needs, from one of its notes to another */
+/** a ledger line that a neume's notes have, from one of its notes to another */
 export interface NeumeLedgerLine {
     element: Note;
     endElem: Note;
     staffPosition: number;
+    /** where it goes under in the neume, if it's under only part of a note's glyph */
+    x1?: number;
+    x2?: number;
 }
 declare class NeumeBuilder {
     ctxt: ChantContext;
@@ -19,7 +22,7 @@ declare class NeumeBuilder {
     lineFrom(note: Note): this;
     noteAt(note: Note, glyph: GlyphCode, withLineTo?: boolean, withStem?: boolean): this;
     virgaAt(note: Note, withLineTo?: boolean): this;
-    oriscusAt(note: Note, glyph: GlyphCode, withLineTo?: boolean): this;
+    oriscusAt(note: Note, glyph: GlyphCode, withLineTo?: boolean, fusedShift?: number): this;
     lineaAt(note: Note): this;
     advanceBy(x: number): this;
     withLineEndingAt(note: Note): this | undefined;
@@ -35,14 +38,16 @@ export declare class Neume extends ChantNotationElement {
     isNeume: true;
     notes: Note[];
     ledgerLines: NeumeLedgerLine[];
+    /** whether it's fused to the neume before it (gabc @), as Gabc.createFusedNeumes() makes it */
+    fusedToPrevious?: boolean;
     constructor(notes?: Note[]);
     addNote(note: Note): void;
     performLayout(ctxt: ChantContext): void;
     finishLayout(ctxt: ChantContext): void;
     layoutLeftBracket(ctxt: ChantContext): number;
     layoutRightBracket(ctxt: ChantContext, x: number): void;
-    requiresLedgerLine(ctxt: ChantContext): NeumeLedgerLine[];
-    ledgerLineStaffPosition(ctxt: ChantContext, note: Note, isAbove: boolean): number;
+    drawnLedgerLines(ctxt: ChantContext): NeumeLedgerLine[];
+    isClivisStroke(index: number): boolean;
     resetDependencies(): void;
     build(ctxt: ChantContext): NeumeBuilder;
     positionEpisemata(note: Note, position: MarkingPositionHint): number;
@@ -119,6 +124,7 @@ export declare class FusedNeume extends Neume {
     /** whether it's fused to the neume before it (a torculus, say) */
     fusedToPrevious: boolean;
     constructor(glyphs?: FusedGlyph[]);
+    isClivisStroke(index: number): boolean;
     static fusedShift(glyphs: FusedGlyph[], index: number, fusedToNext?: boolean): number;
     static joinsPrevious(glyphs: FusedGlyph[], index: number, fusedToNext?: boolean): boolean;
     positionMarkings(): void;

@@ -1,3 +1,48 @@
+# [2.3.0](https://github.com/bbloomf/exsurge/compare/v2.2.1...v2.3.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* **layout:** Center a bar that starts a line after the line's own clef ([a2ae2f3](https://github.com/bbloomf/exsurge/commit/a2ae2f33f57c0e26f4b532e4d23767c67e1e9996))
+* **layout:** Fix the Phase 11 code review's findings ([19b7171](https://github.com/bbloomf/exsurge/commit/19b7171270863b83037d81a55f51c5769588f0c1))
+* **layout:** Fix the Phase 9 code review's findings ([4aa9f60](https://github.com/bbloomf/exsurge/commit/4aa9f60da81f9b3763c5bbd9b24c0d8473d14d02))
+* **layout:** Fix the Phase 9 review's findings ([ebc5b51](https://github.com/bbloomf/exsurge/commit/ebc5b5159ab5011bc9d7b530d9d9d2b98d4fe553))
+* **layout:** Lay out each line from what the notations' own layout left ([f77cfce](https://github.com/bbloomf/exsurge/commit/f77cfce4392cad71290ba317f809d0d688a9c95d))
+* **layout:** Measure a shrunk lyric at its full size again ([b035659](https://github.com/bbloomf/exsurge/commit/b0356590e60a4c02cee85cd589bca199ab602a06))
+* **layout:** Measure a shrunk lyric at its full size again ([c64014f](https://github.com/bbloomf/exsurge/commit/c64014f99bf44eb0c2b6bf2501dd07aec848e310))
+* **layout:** Plan lines around a bar's lyric where the builder puts it back ([8e0e95e](https://github.com/bbloomf/exsurge/commit/8e0e95ef24d651d841b87db6bc669137ea37cb14))
+* **layout:** Plan the lines beside a drop cap with the room it takes ([e7c2e59](https://github.com/bbloomf/exsurge/commit/e7c2e59c51d31d98a067a795067da83615459f7e))
+* **ledger-lines:** Fix the Phase 12 code review's findings ([d92bef3](https://github.com/bbloomf/exsurge/commit/d92bef3c39965b07fcef5a7d1765b30e079127d3))
+* **ledger:** Follow more of Gregorio's glyphs in finding its elements ([c19297f](https://github.com/bbloomf/exsurge/commit/c19297f9dc0d626a1125fa70c5ad61d09fbb4b76))
+* **nabc:** Fix the Phase 10 code review's findings ([5aafe61](https://github.com/bbloomf/exsurge/commit/5aafe61c5b87a0907b2401dc74153f4256c55a22))
+* **text:** Put back the spans of wrapped text as they were ([91c6965](https://github.com/bbloomf/exsurge/commit/91c6965f68dff02eef31d289b97e6b81def1288e))
+
+
+### Features
+
+* **layout:** Break a score's lines together, as Gregorio does ([deb4339](https://github.com/bbloomf/exsurge/commit/deb4339a0a07914461377b5116b1793bffb6cb72))
+* **layout:** Drop the initial beside several lines, as Gregorio does ([1f6fedb](https://github.com/bbloomf/exsurge/commit/1f6fedbad1bcd539b0c836c12caa600115ffad1a))
+* **layout:** Let a dropped initial reach past the first line's own svg ([647ddcd](https://github.com/bbloomf/exsurge/commit/647ddcd864b5c3b0400090015e4741ec9f4e37c9))
+* **ledger:** Draw ledger lines, and the stems and episemata by them, as Gregorio does ([91cbec3](https://github.com/bbloomf/exsurge/commit/91cbec3b8cec3dbdb99ed53588c7264305798683))
+* **ledger:** Find each note's ledger lines as Gregorio does ([076c027](https://github.com/bbloomf/exsurge/commit/076c027ca25b6059cbb8bbc30cc66ba05e8eb452))
+* **nabc:** Add gregall's glyphs, opt-in, under the OFL ([4b18f54](https://github.com/bbloomf/exsurge/commit/4b18f54ea4575dc096dc9eee69c225d340af9c01))
+* **nabc:** Add Laon neumes (grelaon) and gresgmodern, opt-in ([2350d24](https://github.com/bbloomf/exsurge/commit/2350d24a14aa70274fdebe679052311550820c3d))
+* **nabc:** Draw Gregorio's NABC above and below the staff ([45a56fd](https://github.com/bbloomf/exsurge/commit/45a56fd32ee0907a9823987af66f2a09387d4e84))
+* **nabc:** Parse Gregorio's NABC as GregorioTeX does ([a373fa9](https://github.com/bbloomf/exsurge/commit/a373fa99e456959abfa2a41b3b533b040788c30b))
+
+
+### Performance Improvements
+
+* **layout:** Add up a planned line's stretch as it's laid out ([420394b](https://github.com/bbloomf/exsurge/commit/420394b58a39d73a286085ed6f4e5aabd1610740))
+* **layout:** Find the previous lyric's space from the end of the line ([0d48212](https://github.com/bbloomf/exsurge/commit/0d482120c2a0ccfbbea1109667fc40ae6e8cb09a))
+* **layout:** Keep the line breaker's nodes in arrays ([e78aa45](https://github.com/bbloomf/exsurge/commit/e78aa45d0a5a60d949b45e1e9e7a9963a77f3d37))
+* **layout:** Use the lines the last layout measured again, exactly ([7d8d667](https://github.com/bbloomf/exsurge/commit/7d8d667701029843e6de251a6aba5d4d71ca71d1))
+
+
+### Reverts
+
+* **layout:** Don't keep the lines the last layout measured ([e03202b](https://github.com/bbloomf/exsurge/commit/e03202b13bc9f7f99151cfb344e74a0914e78fab))
+
 ## [2.2.1](https://github.com/bbloomf/exsurge/compare/v2.2.0...v2.2.1) (2026-10-23)
 
 

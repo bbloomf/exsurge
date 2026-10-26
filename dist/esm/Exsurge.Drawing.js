@@ -28,7 +28,10 @@ import { language } from "./Exsurge.Text.js";
 import { addAccent } from "./addAccent.js";
 import { escapedSource, restoreEscapes, unescapeText } from "./gabcEscapes.js";
 import { greextraGlyphs } from "./greextraGlyphs.js";
+import { stemQueue, StemQueue } from "./ledgerLines.js";
 import { makeLigature } from "./makeLigature.js";
+import { layoutNabc, parseNabc } from "./Exsurge.Nabc.js";
+import { texLengthToStaffIntervals } from "./texLengths.js";
 function getFontFilenameForProperties(properties = {}, url = "{}") {
     var italic = properties["font-style"] === "italic" ? "Italic" : "", bold = properties["font-weight"] === "bold" ? "Bold" : "";
     return url.replace("{}", `${italic || bold ? `${bold}${italic}` : `Regular`}`);
@@ -172,6 +175,33 @@ Object.entries(TextTypes).forEach(([key, entry]) => {
 });
 /** the TextTypes, as code that goes through each of them sees them */
 const __textTypeEntries = () => Object.entries(TextTypes);
+// a TeX length, in staff intervals at Gregorio's default staff size
+const __texLength = (length) => texLengthToStaffIntervals(length);
+/**
+ * GregorioTeX's dimensions for NABC (tex/gregoriotex-gsp-default.tex), in
+ * staff intervals at its default staff size
+ */
+export const NabcDimensions = {
+    /** a point */
+    pointsPerStaffInterval: 1 / __texLength("1pt"),
+    /** the room that / makes between neumes (nabcinterelementspace), and // (nabclargerspace) */
+    interElementSpace: __texLength("0.06927cm"),
+    largerSpace: __texLength("0.10938cm"),
+    /** from the top line to the baseline of the NABC above the staff (abovelinesnabcraise) */
+    aboveLinesRaise: __texLength("0.17351cm"),
+    /** the room that the NABC above the staff takes, above its baseline (abovelinesnabcheight) */
+    aboveLinesHeight: __texLength("0.3cm"),
+    /** from the bottom line to the baseline of the NABC below the staff (belowlinesnabcheight) */
+    belowLinesHeight: __texLength("0.6cm"),
+    /**
+     * how many staff intervals above the top line notes can go before they
+     * push the NABC above the staff up (additionaltopspacenabcthreshold), and
+     * below the bottom line before they push the NABC below it down
+     * (additionalbottomspacenabcthreshold, 2, which GregorioTeX counts from a)
+     */
+    aboveThreshold: 4,
+    belowThreshold: 1
+};
 export const DefaultTrailingSpace = (ctxt) => ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier;
 DefaultTrailingSpace.isDefault = true;
 export const GlyphCode = {
@@ -620,7 +650,8 @@ export class ChantContext {
         this.textStyles.translation.prefix = "<i>";
         this.textStyles.dropCap.padding = 1; // minimum padding on either side of drop cap in staffIntervals
         this.textStyles.annotation.padding = 1; // minimum padding on either side of annotation in staffIntervals
-        this.minLedgerSeparation = 2; // multiple of staffInterval
+        this.minLedgerSeparation = 0; // multiple of staffInterval
+        this.ledgerLineHeuristic = true;
         this.minSpaceAboveStaff = 2; // multiple of staffInterval
         this.minSpaceBelowStaff = 1; // multiple of staffInterval
         this.spaceBetweenSystems = 1.5; // multiple of staffInterval
@@ -644,6 +675,9 @@ export class ChantContext {
         this.negativeFillColor = "#fff";
         this.clefVisibility = "visible";
         this.modeNumberSystem = "roman-majuscule";
+        this.dropCapLines = 1;
+        this.dropCapPosition = "lastbaseline";
+        this.dropCapAnchor = "baseline";
         this.defaultLanguage = language.latin;
         this.lyricCentering = "vowel";
         this.italicMeansElision = true;
@@ -714,6 +748,7 @@ export class ChantContext {
         // engine to separate two glyphs by only 80% of the normal inter-neume spacing value.
         this.condensingTolerance = 0.3;
         this.eolCustos = "auto";
+        this.lineBreaking = "greedy";
         // if auto color is true, then exsurge tries to automatically colorize
         // some elements of the chant (directives become rubric color, etc.)
         this.autoColor = true;
@@ -721,6 +756,10 @@ export class ChantContext {
         this.noteIdPrefix = 'note-';
         this.defIdPrefix = '';
         this.nabcLines = 0;
+        this.nabcFonts = [];
+        this.nabcSize = 8 / NabcDimensions.pointsPerStaffInterval;
+        this.nabcAlignment = "full";
+        this.nabcVisibility = ["visible", "visible"];
         this.insertFontsInDoc();
         this.setMergeAnnotationWithTextLeft(true);
     }
@@ -766,12 +805,30 @@ export class ChantContext {
             textStyle.font = font;
             textStyle.color = this.textColor || "#000";
         }
+        // (hasDefaultDropCapSize() until the drop cap's size is set again, even
+        // to the same size, or its style is replaced)
+        const dropCapStyle = this.textStyles.dropCap;
+        let dropCapSize = dropCapStyle.size;
+        Object.defineProperty(dropCapStyle, "size", {
+            configurable: true,
+            enumerable: true,
+            get: () => dropCapSize,
+            set: (size) => {
+                dropCapSize = size;
+                delete this.setFontDropCapStyle;
+            }
+        });
+        this.setFontDropCapStyle = dropCapStyle;
         this.baseTextStyle = baseStyle;
         if (fontDictionary) {
             this.textMeasuringStrategy = TextMeasuringStrategy.OpenTypeJS;
             this.fontDictionary = fontDictionary;
         }
         this.clearTextCache();
+    }
+    /** whether textStyles.dropCap.size is still the size that setFont() gave it */
+    hasDefaultDropCapSize() {
+        return this.textStyles.dropCap === this.setFontDropCapStyle;
     }
     setRubricColor(color) {
         this.rubricColor = color;
@@ -1120,11 +1177,14 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
             : note1
                 ? note1.staffPosition
                 : note0.staffPosition + 4;
+        // (the upper and lower notes, if both are notes)
+        var upperNote = note0, lowerNote = typeof note1 === "object" ? note1 : null;
         // note0 should be the upper one for our calculations here
         if (staffPosition0 < staffPosition1) {
             var temp = staffPosition0;
             staffPosition0 = staffPosition1;
             staffPosition1 = temp;
+            [upperNote, lowerNote] = [lowerNote, upperNote];
         }
         if (hanging && staffPosition0 - staffPosition1 > 4) {
             staffPosition1 = staffPosition0 - 4;
@@ -1135,10 +1195,15 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
             // if the difference between the notes is only one, and the upper
             // note is on a line, and the lower note is within the four staff lines,
             // then our hanging line goes past the lower note by a whole
-            // staff interval
+            // staff interval.  As in Gregorio (the long stem of a flexus or
+            // porrectus whose notes are a second apart), the bottom line only
+            // counts as a line if the upper note has a ledger line below it, and
+            // the ledger line below the staff doesn't (see stemQueue())
+            var queue = upperNote && lowerNote ? stemQueue(lowerNote, upperNote) : undefined;
             if (staffPosition0 - staffPosition1 === 1 &&
-                Math.abs(staffPosition0) % 2 === 1 &&
-                staffPosition1 > -3)
+                (queue === undefined
+                    ? Math.abs(staffPosition0) % 2 === 1 && staffPosition1 > -3
+                    : queue === StemQueue.OnSpaceAboveBottomLine))
                 staffPosition1--;
             y1 += (ctxt.glyphPunctumHeight * ctxt.glyphScaling) / 2.2;
         }
@@ -1232,16 +1297,32 @@ export class NeumeBeamVisualizer extends ChantLayoutElement {
     }
 }
 export class VirgaLineVisualizer extends ChantLayoutElement {
-    constructor(ctxt, note) {
+    /**
+     * @param fusedShift the interval to the next note, if a virga reversa or
+     * oriscus scapus is fused to it (see FusedNeume.fusedShift()), or else 0
+     */
+    constructor(ctxt, note, fusedShift = 0) {
         super();
         var staffPosition = note.staffPosition;
         var y0 = ctxt.calculateHeightFromStaffPosition(staffPosition);
         var y1;
-        // a note on a space has a shorter stem than one on a line, as does one on
-        // the bottom line with Gregorio's [ll:0] (as if there's no ledger line
-        // below it, where its stem would end)
-        if (Math.abs(staffPosition % 2) === 0 ||
-            (staffPosition === 1 && note.lowLedgerLine === false))
+        // a note on a space has a shorter stem than one on a line.  As in
+        // Gregorio, a note on the bottom line has the shorter one unless it has a
+        // ledger line below it (gabc [ll:1] counts), where its stem would end;
+        // and so does a note on the ledger line below the staff (see
+        // stemQueue(), whose queue types each have a stem: Gregorio's open one
+        // is drawn as the shorter one).  Fused down to a note, the stem goes by
+        // where that note is, and at a second the long and short swap, as
+        // Gregorio's fusible_queued_shape() has it
+        var queue = stemQueue(note, note, Math.min(fusedShift, 0));
+        var long = queue === undefined
+            ? Math.abs(staffPosition % 2) !== 0
+            : fusedShift === -1
+                ? queue === StemQueue.OnSpaceAboveBottomLine
+                : fusedShift < 0
+                    ? queue === StemQueue.OnBottomLine || queue === StemQueue.OnLineAboveBottomLine
+                    : queue === StemQueue.OnLineAboveBottomLine;
+        if (!long)
             y1 = y0 + ctxt.staffInterval * 1.8;
         else
             y1 = y0 + ctxt.staffInterval * 2.7;
@@ -1351,14 +1432,15 @@ export class LineaVisualizer extends ChantLayoutElement {
     }
 }
 export class GlyphVisualizer extends ChantLayoutElement {
-    constructor(ctxt, glyphCode) {
+    /** (glyph is one that isn't in Glyphs, such as a NABC font's, whose def's id is glyphCode) */
+    constructor(ctxt, glyphCode, glyph) {
         super();
         this.scale = 1;
         // setGlyph() sets the glyph just below
         this.glyph = null;
-        this.setGlyph(ctxt, glyphCode);
+        this.setGlyph(ctxt, glyphCode, glyph);
     }
-    setGlyph(ctxt, glyphCode) {
+    setGlyph(ctxt, glyphCode, ownGlyph) {
         if (typeof glyphCode === "undefined" || glyphCode === null || glyphCode === "")
             glyphCode = GlyphCode.None;
         const swash = /^Porrectus([\d.]+)(Cavum)?$/.exec(glyphCode);
@@ -1368,9 +1450,9 @@ export class GlyphVisualizer extends ChantLayoutElement {
         if (this.glyphId !== glyphId) {
             this.glyphCode = glyphCode;
             this.glyphId = glyphId;
-            let glyph = (this.glyph = swash
-                ? porrectusGlyph(glyphId, Number(swash[1]), ctxt.glyphMultiplier, !!swash[2])
-                : Glyphs[glyphCode]);
+            let glyph = (this.glyph =
+                ownGlyph ||
+                    (swash ? porrectusGlyph(glyphId, Number(swash[1]), ctxt.glyphMultiplier, !!swash[2]) : Glyphs[glyphCode]));
             this.porrectusNoteDiff = swash ? Number(swash[1]) : 0;
             // if this glyph hasn't been used yet, then load it up in the defs section for sharing
             if (!ctxt.defs.hasOwnProperty(glyphId)) {
@@ -1504,6 +1586,127 @@ export class GlyphVisualizer extends ChantLayoutElement {
         return QuickSvg.createFragment("use", this.getSvgAttributes(ctxt, source));
     }
 }
+// each NABC font that's been drawn: the name in its glyphs' defs' ids (its
+// own, or with a number after it for another font of that name, such as one
+// converted from another version of Gregorio), and the Glyph of each glyph
+// of it that's been drawn, by its name
+const __nabcFonts = new WeakMap();
+const __nabcFontNames = new Map();
+function nabcFont(font) {
+    let drawn = __nabcFonts.get(font);
+    if (!drawn) {
+        let count = (__nabcFontNames.get(font.name) || 0) + 1;
+        __nabcFontNames.set(font.name, count);
+        __nabcFonts.set(font, (drawn = { id: count > 1 ? `${font.name}-${count}` : font.name, glyphs: {} }));
+    }
+    return drawn;
+}
+/** a NABC font's glyph as a Glyph, which GlyphVisualizer can draw */
+function nabcGlyph(font, name) {
+    let glyphs = nabcFont(font).glyphs;
+    if (!Object.prototype.hasOwnProperty.call(glyphs, name)) {
+        let [width, height, depth, data] = font.glyphs[name];
+        glyphs[name] = {
+            paths: [{ type: "positive", data }],
+            bounds: { x: 0, y: -height, width, height: height + depth },
+            origin: { x: 0, y: height }
+        };
+    }
+    return glyphs[name];
+}
+/**
+ * A line of Gregorio's NABC on a notation (ChantNotationElement.nabcNeumes):
+ * its neumes, laid out with layoutNabc() and drawn with a NabcFont's
+ * glyphs.  It starts at the left of the notation, as Gregorio's starts at
+ * the left of its first glyph, and takes no room among the notes, and
+ * ChantLine.performLayout() puts its baseline above or below the staff.
+ */
+export class NabcNeumes extends ChantLayoutElement {
+    constructor(ctxt, items, voice, font, phantom = false) {
+        super();
+        this.voice = voice;
+        this.phantom = phantom;
+        let unit = (this.unit = (ctxt.nabcSize * ctxt.staffInterval) / font.unitsPerEm);
+        let layout = (this.layout = layoutNabc(items, font, {
+            interElementSpace: (NabcDimensions.interElementSpace * ctxt.staffInterval) / unit,
+            largerSpace: (NabcDimensions.largerSpace * ctxt.staffInterval) / unit,
+            alignment: ctxt.nabcAlignment,
+            // (about as wide as ERR is, which is drawn so that it can be seen)
+            errorWidth: font.unitsPerEm * NabcNeumes.errorSize * 2
+        }));
+        // (none for a phantom, which isn't drawn)
+        this.glyphs = (phantom ? [] : layout.glyphs).map((placed) => {
+            // (whose def's id is the font's name and the glyph's, as the font names
+            // it, with B, N, E and T for >, -, ! and ~)
+            let id = `Nabc-${nabcFont(font).id}-${placed.name.replace(/[>\-!~]/g, (char) => "BNET"[">-!~".indexOf(char)])}`;
+            let glyph = nabcGlyph(font, placed.name);
+            let visualizer = new GlyphVisualizer(ctxt, id, glyph);
+            visualizer.scale = unit / ctxt.glyphScaling;
+            visualizer.setGlyph(ctxt, id, glyph);
+            visualizer.bounds.x = placed.x * unit;
+            return visualizer;
+        });
+        // (as wide as the NABC's box, or its glyphs, where letters stick out of it)
+        let right = Math.max(layout.width, ...layout.glyphs.map((placed) => placed.x + font.glyphs[placed.name][0]));
+        this.bounds.x = layout.left * unit;
+        this.bounds.width = (right - layout.left) * unit;
+        this.bounds.height = (layout.height + layout.depth) * unit;
+        this.setBaseline(0);
+    }
+    setBaseline(baseline) {
+        this.baseline = baseline;
+        this.bounds.y = baseline - this.layout.height * this.unit;
+        this.glyphs.forEach((visualizer, i) => {
+            visualizer.bounds.y = baseline - this.layout.glyphs[i].y * this.unit - visualizer.origin.y;
+        });
+    }
+    // Gregorio's ERR, where the NABC is wrong, in the lyrics' font and the
+    // neumes' color, as the canvas draws it
+    errorAttributes(ctxt, x) {
+        return {
+            class: "nabcError",
+            x: x * this.unit,
+            y: this.baseline,
+            // (with the font's names in ', which mean the same as " in css, since
+            // the attribute is in ")
+            "font-family": ctxt.textStyles.lyric.font.replace(/"/g, "'"),
+            "font-size": NabcNeumes.errorSize * ctxt.nabcSize * ctxt.staffInterval,
+            fill: ctxt.neumeLineColor
+        };
+    }
+    draw(ctxt) {
+        if (this.phantom)
+            return;
+        for (let glyph of this.glyphs)
+            glyph.draw(ctxt);
+        let canvasCtxt = ctxt.canvasCtxt;
+        for (let x of this.layout.errors) {
+            canvasCtxt.font = NabcNeumes.errorSize * ctxt.nabcSize * ctxt.staffInterval + "px " + ctxt.textStyles.lyric.font;
+            canvasCtxt.fillStyle = ctxt.neumeLineColor;
+            canvasCtxt.fillText("ERR", x * this.unit, this.baseline);
+        }
+    }
+    getSvgAttributes() {
+        return { class: "nabc nabc-" + (this.voice + 1) };
+    }
+    createSvgNode(ctxt) {
+        return QuickSvg.createNode("g", this.getSvgAttributes(), [
+            ...this.glyphs.map((glyph) => glyph.createSvgNode(ctxt)),
+            ...this.layout.errors.map((x) => QuickSvg.createNode("text", this.errorAttributes(ctxt, x), "ERR"))
+        ]);
+    }
+    createSvgTree(ctxt) {
+        return QuickSvg.createSvgTree("g", this.getSvgAttributes(), ...this.glyphs.map((glyph) => glyph.createSvgTree(ctxt)), ...this.layout.errors.map((x) => QuickSvg.createSvgTree("text", this.errorAttributes(ctxt, x), "ERR")));
+    }
+    createSvgFragment(ctxt) {
+        let inner = this.glyphs.map((glyph) => glyph.createSvgFragment(ctxt)).join("");
+        for (let x of this.layout.errors)
+            inner += QuickSvg.createFragment("text", this.errorAttributes(ctxt, x), "ERR");
+        return QuickSvg.createFragment("g", this.getSvgAttributes(), inner);
+    }
+}
+/** the size of ERR, where the NABC is wrong, in the font's ems */
+NabcNeumes.errorSize = 0.6;
 /** a brace over or under notes, which a canvas strokes along its svg path */
 export class BraceVisualizer extends ChantLayoutElement {
     draw(ctxt) {
@@ -1846,6 +2049,7 @@ export class TextElement extends ChantLayoutElement {
         text = text.replace(/\s+/g, " ");
         this.text = "";
         this.spans = [];
+        delete this.wrappedSpans;
         // save ourselves a lot of grief for a very common text:
         if (text === "*" || text === "+" || text === "†") {
             let properties = text === "*"
@@ -2239,6 +2443,15 @@ export class TextElement extends ChantLayoutElement {
         });
         return lines;
     }
+    /** puts back the spans that setMaxWidth() replaced to wrap the text */
+    unwrap() {
+        var wrapped = this.wrappedSpans;
+        if (!wrapped)
+            return;
+        for (var i = wrapped.length - 1; i >= 0; i--)
+            this.spans.splice(wrapped[i].index, wrapped[i].count, ...wrapped[i].spans);
+        delete this.wrappedSpans;
+    }
     recalculateMetrics(ctxt, resetNewLines = true) {
         if (resetNewLines) {
             delete this.maxWidth;
@@ -2246,14 +2459,11 @@ export class TextElement extends ChantLayoutElement {
             delete this.rightAligned;
             delete this.resize;
             delete this.numLines;
-            // put back the whitespace that was taken out where the text was wrapped
+            // (as they were before the text was wrapped, so that it's measured and
+            // wrapped again the same way each time)
+            this.unwrap();
             this.spans.forEach((span) => {
                 delete span.xOffset;
-                if (span.newLine === true) {
-                    delete span.newLine;
-                    span.text = (span.wrappedSpace || " ") + span.text;
-                    delete span.wrappedSpace;
-                }
             });
         }
         this.bounds.x = 0;
@@ -2282,7 +2492,7 @@ export class TextElement extends ChantLayoutElement {
             (span.newLine ? __parseNewLine(span.newLine) || 1 : 0), 1);
     }
     setMaxWidth(ctxt, maxWidth, firstLineMaxWidth = maxWidth) {
-        if (this.spans.filter((s) => s.newLine === true).length) {
+        if (this.wrappedSpans) {
             // first get rid of any new lines set from a previous maxWidth
             this.recalculateMetrics(ctxt);
         }
@@ -2291,6 +2501,8 @@ export class TextElement extends ChantLayoutElement {
             var percentage = maxWidth / this.bounds.width;
             if (this instanceof Lyric && percentage >= 0.85) {
                 this.resize = percentage;
+                // so that the next layout measures it at its full size again
+                this.needsLayout = true;
             }
             else {
                 if (firstLineMaxWidth < 0)
@@ -2376,18 +2588,26 @@ export class TextElement extends ChantLayoutElement {
                             left.wrappedSpace = splitSpan.wrappedSpace;
                         newSpans.push(left);
                     }
-                    // the span that starts the new line keeps the whitespace taken out,
-                    // to put back if the text is wrapped again (see recalculateMetrics())
+                    // the span that starts the new line keeps the whitespace taken out
+                    // (see getLines())
                     if (textRight) {
                         let right = new TextSpan(textRight, endSpan.propertyArray, endSpan.activeTags, undefined, { newLine: true });
                         right.wrappedSpace = lastMatch[0];
                         newSpans.push(right);
                     }
                     else if (nextSpan) {
-                        nextSpan.newLine = true;
-                        nextSpan.wrappedSpace = lastMatch[0];
+                        // (a copy, so that the span itself is put back as it was)
+                        let next = nextSpan.clone();
+                        next.newLine = true;
+                        next.wrappedSpace = lastMatch[0];
+                        newSpans.push(next);
+                        endIndex++;
                     }
-                    this.spans.splice(spanIndex, endIndex - spanIndex + 1, ...newSpans);
+                    (this.wrappedSpans || (this.wrappedSpans = [])).push({
+                        index: spanIndex,
+                        count: newSpans.length,
+                        spans: this.spans.splice(spanIndex, endIndex - spanIndex + 1, ...newSpans)
+                    });
                     this.needsLayout = true;
                     max = maxWidth;
                     if (match.index === this.text.length ||
@@ -2731,7 +2951,7 @@ export class Lyric extends TextElement {
                 this.spans.push(this.connectorSpan);
         }
         else {
-            this.connectorWidth = 0;
+            this.clearConnectorWidth();
             this.needsConnector = false;
             this.bounds.width = this.widthWithoutConnector;
             var span = this.spans.pop();
@@ -2744,6 +2964,33 @@ export class Lyric extends TextElement {
         this.connectorSpan.textLength = width;
         if (this.needsConnector)
             this.bounds.width = this.widthWithoutConnector + this.getConnectorWidth();
+    }
+    /** gives the connector its default width, and draws it that wide */
+    clearConnectorWidth() {
+        this.connectorWidth = 0;
+        if (this.connectorSpan && this.connectorSpan.textLength)
+            this.connectorSpan.textLength = 0;
+    }
+    /**
+     * puts the connector back as recalculateMetrics() leaves it, which a lyric
+     * has only if it's forced to (and was measured with)
+     */
+    resetConnector() {
+        var needs = !!this.forceConnector && !this.preventConnector;
+        // (setConnectorWidth() and clearConnectorWidth() keep the connector's
+        // textLength the same as connectorWidth)
+        if (this.needsConnector === needs && !this.connectorWidth && this.bounds.width === this.widthWithoutConnector)
+            return;
+        var last = this.spans[this.spans.length - 1];
+        this.needsConnector = needs;
+        if (this.needsConnector) {
+            if (last && last !== this.connectorSpan)
+                this.spans.push(this.connectorSpan);
+        }
+        else if (last && last === this.connectorSpan)
+            this.spans.pop();
+        this.clearConnectorWidth();
+        this.bounds.width = this.widthWithoutConnector;
     }
     getConnectorWidth() {
         return this.connectorWidth || this.defaultConnectorWidth;
@@ -2758,7 +3005,7 @@ export class Lyric extends TextElement {
         this.setNeedsConnector();
         super.recalculateMetrics(ctxt, resetNewLines);
         this.widthWithoutConnector = this.bounds.width;
-        this.connectorWidth = 0;
+        this.clearConnectorWidth();
         this.defaultConnectorWidth = ctxt.hyphenWidth;
         var activeLanguage = this.language || ctxt.defaultLanguage;
         // calculate the point where the text lines up to the staff notation
@@ -2898,6 +3145,8 @@ export class Lyric extends TextElement {
     generateDropCap(ctxt) {
         if (this.dropCap)
             return this.dropCap;
+        // (the letter is taken from the spans as they were before any wrapping)
+        this.unwrap();
         // disallow special characters:
         if (this.spans[0].mergedProperties['font-family'] === ctxt.specialCharProperties['font-family']) {
             return null;
@@ -2964,6 +3213,7 @@ export class Lyric extends TextElement {
         if (!this.firstWordStyles)
             return true;
         // the lyric's own markup goes last, so that it wins
+        this.unwrap();
         let spans = [];
         for (let span of this.spans) {
             if (span === this.connectorSpan)
@@ -3062,7 +3312,51 @@ export class TranslationText extends TextElement {
 export class DropCap extends TextElement {
     constructor(ctxt, text, sourceIndex) {
         super(ctxt, (ctxt.textStyles.dropCap.prefix || "") + text, (ctxt) => ctxt.textStyles.dropCap.font, (ctxt) => ctxt.textStyles.dropCap.size, "middle", sourceIndex, text, TextTypes.dropCap);
+        this.fontSize = (ctxt) => this.sizeForLines || ctxt.textStyles.dropCap.size;
         this.padding = ctxt.staffInterval * ctxt.textStyles.dropCap.padding;
+    }
+    /** measures the drop cap at the given font size, or else its text style's */
+    measureAtSize(ctxt, size) {
+        if (size)
+            this.sizeForLines = size;
+        else
+            delete this.sizeForLines;
+        this.recalculateMetrics(ctxt);
+    }
+    /**
+     * Makes the drop cap's height above and below its baseline its letter's,
+     * where it was measured by its font's box instead, as it is with
+     * TextMeasuringStrategy.Svg or a canvas without actualBoundingBox metrics:
+     * its letter as measured on a canvas, where the browser can, or else a
+     * typical capital, 0.7em high.
+     */
+    fitBoundsToLetter(ctxt) {
+        var strategy = ctxt.textMeasuringStrategy, span = this.spans[0];
+        if (!span || (strategy !== TextMeasuringStrategy.Svg && strategy !== TextMeasuringStrategy.Canvas))
+            return;
+        if (strategy === TextMeasuringStrategy.Svg &&
+            typeof TextMetrics !== "undefined" &&
+            "actualBoundingBoxAscent" in TextMetrics.prototype)
+            ctxt.makeCanvasIfNeeded();
+        var metrics = ctxt.canvasCtxt &&
+            ctxt.measureCanvasText(this.getCanvasFontForProperties(ctxt, span.mergedProperties), span.text);
+        if (metrics && "actualBoundingBoxAscent" in metrics) {
+            // (as a canvas strategy has measured it already)
+            if (strategy === TextMeasuringStrategy.Canvas)
+                return;
+            this.origin.y = metrics.actualBoundingBoxAscent;
+            this.bounds.height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        }
+        else {
+            this.origin.y = this.bounds.height = this.fontSize(ctxt) * 0.7;
+        }
+    }
+    getExtraStyleProperties(ctxt) {
+        var properties = super.getExtraStyleProperties(ctxt);
+        // (the drop cap's css class gives it its text style's size)
+        return this.sizeForLines
+            ? Object.assign({}, properties, { "font-size": this.sizeForLines + "px" })
+            : properties;
     }
 }
 export class TitleTextElement extends TextElement {
@@ -3195,6 +3489,15 @@ export class Annotations extends ChantLayoutElement {
  * isNeume, isClef, isDivider and isAccidental.
  */
 export class ChantNotationElement extends ChantLayoutElement {
+    /** the NABC of each line, read with parseNabc(): its neumes, spaces and errors */
+    get parsedNabc() {
+        if (!this.nabc)
+            return undefined;
+        let nabc = JSON.stringify(this.nabc);
+        if (!this.readNabc || this.readNabc.nabc !== nabc)
+            this.readNabc = { nabc, items: this.nabc.map(parseNabc) };
+        return this.readNabc.items;
+    }
     constructor() {
         super();
         //double
@@ -3276,6 +3579,20 @@ export class ChantNotationElement extends ChantLayoutElement {
         if (this.translationText)
             for (i = 0; i < this.translationText.length; i++)
                 this.translationText[i].recalculateMetrics(ctxt);
+        // (only two lines of NABC are drawn, as in Gregorio)
+        let parsedNabc = this.parsedNabc;
+        this.nabcNeumes =
+            parsedNabc && ctxt.nabcFonts.length
+                ? parsedNabc.slice(0, 2).map((items, voice) => {
+                    let visibility = ctxt.nabcVisibility[voice] || "visible";
+                    if (!items.length || visibility === "invisible")
+                        return undefined;
+                    let font = ctxt.nabcFonts[voice] || ctxt.nabcFonts[0];
+                    return new NabcNeumes(ctxt, items, voice, font, visibility === "phantom");
+                })
+                : undefined;
+        if (this.nabcNeumes && !this.nabcNeumes.some((nabc) => nabc))
+            this.nabcNeumes = undefined;
     }
     // some subclasses have internal dependencies on other notations (for example,
     // a custos can depend on a later neume which it uses to set its height).
@@ -3286,6 +3603,7 @@ export class ChantNotationElement extends ChantLayoutElement {
     // a helper function for subclasses to call after they are done performing layout...
     finishLayout(ctxt) {
         this.bounds.x = 0;
+        this.layoutTrailingSpace = this.calculatedTrailingSpace;
         this.alignLyrics(ctxt);
         this.needsLayout = false;
     }
@@ -3315,6 +3633,10 @@ export class ChantNotationElement extends ChantLayoutElement {
         if (this.alText)
             for (i = 0; i < this.alText.length; i++)
                 this.alText[i].draw(ctxt);
+        if (this.nabcNeumes)
+            for (let nabc of this.nabcNeumes)
+                if (nabc)
+                    nabc.draw(ctxt);
         canvasCtxt.translate(-this.bounds.x, 0);
     }
     getInnerSvgNodes(ctxt, functionName = "createSvgNode") {
@@ -3327,6 +3649,10 @@ export class ChantNotationElement extends ChantLayoutElement {
         if (this.alText)
             for (i = 0; i < this.alText.length; i++)
                 inner.push(this.alText[i][functionName](ctxt));
+        if (this.nabcNeumes)
+            for (let nabc of this.nabcNeumes)
+                if (nabc && !nabc.phantom)
+                    inner.push(nabc[functionName](ctxt));
         if (this.visualizers.length) {
             // (only annotations make more than one svg node)
             let visualizers = [];
@@ -3370,6 +3696,10 @@ export class ChantNotationElement extends ChantLayoutElement {
         if (this.alText)
             for (i = 0; i < this.alText.length; i++)
                 inner += this.alText[i].createSvgFragment(ctxt);
+        if (this.nabcNeumes)
+            for (let nabc of this.nabcNeumes)
+                if (nabc && !nabc.phantom)
+                    inner += nabc.createSvgFragment(ctxt);
         for (var i = 0; i < this.visualizers.length; i++)
             inner += this.visualizers[i].createSvgFragment(ctxt, this);
         return QuickSvg.createFragment("g", this.getSvgProps(), inner);
