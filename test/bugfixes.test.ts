@@ -8,6 +8,7 @@ import * as Neumes from "../src/Exsurge.Chant.Neumes.js";
 import * as Signs from "../src/Exsurge.Chant.Signs.js";
 import { Spanish } from "../src/Exsurge.Text.js";
 import * as Exsurge from "../src/index.js";
+import { featureCases } from "./golden/cases";
 import { render } from "./golden/harness";
 
 function layoutNotations(gabc: string) {
@@ -198,6 +199,29 @@ describe('Bars before text only syllables', function() {
     var { spaceBefore, spaceAfter } = await layoutBar('(c4) a(g.) (:) <i>Antiphona repetitur hic.</i>() b(h) c(g)');
     assert(spaceBefore > 0, `${spaceBefore}`);
     assert(spaceAfter > 10 * spaceBefore, `${spaceBefore} ${spaceAfter}`);
+  });
+});
+
+describe('Text only lyrics a little too wide for the staff', function() {
+  var gabc = featureCases.find((c) => c.name === 'extra-text-only-lines')!.gabc;
+
+  // the lyric is shrunk to fit, and the next setMaxWidth() used to measure it at its
+  // shrunk width, and so grew it back to about its full size
+  it('shrinks the lyric to the width of the staff, also when it is laid out again', async function() {
+    for (var relayoutWidths of [[], [380]]) {
+      var score = (await render(Exsurge, gabc, { width: 380, relayoutWidths }, [])).score;
+      var i = score.notations.findIndex(
+        (notation: Drawing.ChantNotationElement) =>
+          notation.hasLyrics() && notation.lyrics[0].text.startsWith('Here is a very long')
+      );
+      var lyric: Drawing.Lyric = score.notations[i].lyrics[0];
+      var line = score.lines.filter((line: any) => line.notationsStartIndex <= i).pop();
+      assert(lyric.resize! < 1, `${lyric.resize}`);
+      assert(
+        lyric.bounds.width <= line.staffRight - line.textLeft + 1e-9,
+        `${lyric.bounds.width} on a staff ${line.staffRight - line.textLeft} wide, laid out at ${[380, ...relayoutWidths]}`
+      );
+    }
   });
 });
 

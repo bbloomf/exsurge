@@ -3859,6 +3859,8 @@ export class TextElement extends ChantLayoutElement {
       var percentage = maxWidth / this.bounds.width;
       if (this instanceof Lyric && percentage >= 0.85) {
         this.resize = percentage;
+        // so that the next layout measures it at its full size again
+        this.needsLayout = true;
       } else {
         if (firstLineMaxWidth < 0) firstLineMaxWidth = maxWidth;
         this.firstLineMaxWidth = firstLineMaxWidth;
