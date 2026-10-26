@@ -1,6 +1,7 @@
 import { type Pitch } from "./Exsurge.Core.js";
 import { ChantNotationElement, GlyphVisualizer, type ChantContext } from "./Exsurge.Drawing.js";
 import type { BracePoint } from "./Exsurge.Chant.Markings.js";
+import type { LedgerLineStates } from "./ledgerLines.js";
 export declare class Custos extends ChantNotationElement {
     auto: boolean;
     staffPosition: number;
@@ -28,6 +29,15 @@ export declare class Divider extends ChantNotationElement {
     high: boolean;
     /** Gregorio's parenthesized bar (gabc `?, `0?, ,? or ,0?), drawn between parentheses */
     parenthesized?: boolean;
+    /**
+     * where a high virgula, divisio minima or divisio minimis (and its
+     * parentheses) goes, from left to right, which has a ledger line under it
+     * as in Gregorio (see ChantLine.finishLayout())
+     */
+    ledgerLineExtent?: {
+        x1: number;
+        x2: number;
+    };
     constructor(withCarryover?: boolean, high?: boolean);
     performLayout(ctxt: ChantContext): void;
     finishLayout(ctxt: ChantContext): void;
@@ -74,6 +84,8 @@ export declare class Accidental extends ChantNotationElement {
     /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn between parentheses */
     parenthesized?: boolean;
     pitch?: Pitch;
+    /** whether it has a ledger line above the staff and below it, as a note can (see determineLedgerLines()) */
+    ledgerLineState?: LedgerLineStates;
     constructor(staffPosition: number, accidentalType: AccidentalType, soft?: boolean);
     performLayout(ctxt: ChantContext): void;
     setHidden(ctxt: ChantContext, hidden: boolean): void;

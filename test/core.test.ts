@@ -628,6 +628,18 @@ describe("Gregorio brace lengths", function() {
       assert.ok(Math.abs(braces[i]!.length! - 4.178554198372262) < 1e-9, `${braces[i]!.length} should be 4.178554198372262`);
     });
   });
+
+  it("ends a brace given a length at the next note, the first of repeated notes, past an accidental", function() {
+    const ends = (gabc: string) =>
+      parseNotations(gabc)
+        .flatMap((notation) => notation.notes || [])
+        .map((note) => (note.braceEnd ? `${note.sourceGabc}${note.braceEnd.automatic ? "" : " (its own)"}` : null))
+        .filter((end) => end);
+    assert.deepStrictEqual(ends("(c4) a(f[ob:1;6mm]gss) b(hvv)"), ["gss"]);
+    assert.deepStrictEqual(ends("(c4) a(f[ob:1;6mm]) b(ixi) c(hvv)"), ["i"]);
+    // (a note with a brace of its own doesn't end it)
+    assert.deepStrictEqual(ends("(c4) a(f[ob:1;6mm]g[ob:0{]h[ob:0}])"), ["h[ob:0}] (its own)"]);
+  });
 });
 
 describe("Gregorio inclinatum leaning", function() {

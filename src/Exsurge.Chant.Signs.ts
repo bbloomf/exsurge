@@ -104,6 +104,9 @@ export class Custos extends ChantNotationElement {
         this.staffPosition = ctxt.activeClef.pitchToStaffPosition(
           neume.notes[0].pitch!
         );
+      } else {
+        // as a new custos has it, rather than where the last neume after it was
+        this.staffPosition = 2;
       }
 
       // in case there was a weird fa/do clef change, let's sanitize the staffPosition by making sure it is

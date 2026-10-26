@@ -283,6 +283,15 @@ describe("Gabc.applyHeader", function() {
     }
   });
 
+  it("gives its language to the lyrics of an edit, without being called again", function() {
+    const gabc = "language: English;\n%%\n" + chant;
+    const { ctxt, score: s } = score("language: English;\n");
+    assert.strictEqual(s.language, language.english);
+    Gabc.updateMappingsFromSource(ctxt, s.mappings, gabc.replace("(::)", "e(g)lé(f)i(e)son.(f) (::)"));
+    s.updateNotations(ctxt);
+    assert.deepStrictEqual(lyricLanguages(s), new Array(7).fill(language.english));
+  });
+
   it("leaves the language as it is for one that exsurge doesn't have", function() {
     const { ctxt, score: s } = score("language: German;\n");
     assert.deepStrictEqual(lyricLanguages(s), [null, null, null]);

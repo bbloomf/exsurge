@@ -202,6 +202,68 @@ describe('Bars before text only syllables', function() {
   });
 });
 
+describe('A custos before a bar that starts a line', function() {
+  // the bar is put before the custos, and the custos ends the line, which used to
+  // throw where there was no notation on the line before the custos
+  async function layoutLines(gabc: string, width: number, lineBreaking: string) {
+    var score = (await render(Exsurge, gabc, { width, setupContext: (ctxt) => { ctxt.lineBreaking = lineBreaking; } }, [])).score;
+    var lines: Exsurge.ChantLine[] = score.lines;
+    return lines.map((line) => ({
+      line,
+      notations: score.notations.slice(line.notationsStartIndex, line.notationsStartIndex + line.numNotationsOnLine)
+    }));
+  }
+
+  ['(c4) a(f+) (;) b(g) c(h) (::)', '(c4) (f+) (;) b(g) (::)'].forEach(function(gabc) {
+    ['greedy', 'optimal'].forEach(function(lineBreaking) {
+      it(`puts the bar between the clef and the custos that ends the line in '${gabc}', with ${lineBreaking} line breaking`, async function() {
+        var [{ line, notations }] = await layoutLines(gabc, 40, lineBreaking);
+        var [custos, bar] = notations;
+        assert(custos instanceof Signs.Custos);
+        assert(bar.isDivider);
+        assert.equal(notations.length, 2);
+        assert.equal(line.custos, custos);
+        // centered between the clef and the custos at the end of the line
+        var spaceBefore = bar.bounds.x - line.startingClef.bounds.right();
+        var spaceAfter = custos.bounds.x - bar.bounds.right();
+        assert(spaceBefore > 0, `${spaceBefore}`);
+        assert(Math.abs(spaceBefore - spaceAfter) < 1e-9, `${spaceBefore} ${spaceAfter}`);
+        assert(Math.abs(custos.bounds.right() - line.staffRight) < 1e-9, `${custos.bounds.right()} ${line.staffRight}`);
+      });
+
+      it(`leaves the custos at the end of the line before the bar in '${gabc}', with ${lineBreaking} line breaking`, async function() {
+        // (where the line is too narrow for both, the custos ends a line of its own)
+        for (var width of [20, 25]) {
+          var lines = await layoutLines(gabc, width, lineBreaking);
+          var custosLine = lines.findIndex(({ notations }) => notations[0] instanceof Signs.Custos);
+          var [custos] = lines[custosLine].notations;
+          assert.deepEqual(lines[custosLine].notations, [custos], `at ${width}`);
+          var [bar] = lines[custosLine + 1].notations;
+          assert(bar.isDivider, `at ${width}`);
+          assert(bar.bounds.x > lines[custosLine + 1].line.startingClef.bounds.right(), `at ${width}`);
+        }
+      });
+    });
+  });
+
+  ['(c4) a(g) b(h) (z) (f+) (;)', '(c4) a(g) b(h) (z) a(f+) (::)'].forEach(function(gabc) {
+    ['greedy', 'optimal'].forEach(function(lineBreaking) {
+      it(`centers the bar between the clef and the custos where they end '${gabc}', with ${lineBreaking} line breaking`, async function() {
+        // the bar used to be centered against the line break at the end of the line before, over the custos
+        var lines = await layoutLines(gabc, 600, lineBreaking);
+        var { line, notations } = lines[lines.length - 1];
+        var [custos, bar] = notations;
+        assert(custos instanceof Signs.Custos);
+        assert(bar.isDivider);
+        var spaceBefore = bar.bounds.x - line.startingClef.bounds.right();
+        var spaceAfter = custos.bounds.x - bar.bounds.right();
+        assert(spaceAfter > 0, `${spaceAfter}`);
+        assert(Math.abs(spaceBefore - spaceAfter) < 1e-9, `${spaceBefore} ${spaceAfter}`);
+      });
+    });
+  });
+});
+
 describe('Text only lyrics a little too wide for the staff', function() {
   var gabc = featureCases.find((c) => c.name === 'extra-text-only-lines')!.gabc;
 

@@ -3,8 +3,10 @@ import { type Glyph } from "./Exsurge.Glyphs.js";
 import { type Language } from "./Exsurge.Text.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
+import type { LineBreaking } from "./Exsurge.Chant.LineBreaking.js";
 import type { BracePoint, LedgerLineStart, SlurStart } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import { type NabcFont, type NabcItem, type NabcLayout } from "./Exsurge.Nabc.js";
 import type { Titles } from "./Exsurge.Titles.js";
 /** the css properties of text that choose which face of a font it is in */
 export interface FontStyleProperties {
@@ -135,6 +137,31 @@ export declare const TextTypesByClass: {
 export type TrailingSpace = number | TrailingSpaceFunction;
 export type TrailingSpaceFunction = ((ctxt: ChantContext) => number) & {
     isDefault?: boolean;
+};
+/**
+ * GregorioTeX's dimensions for NABC (tex/gregoriotex-gsp-default.tex), in
+ * staff intervals at its default staff size
+ */
+export declare const NabcDimensions: {
+    /** a point */
+    pointsPerStaffInterval: number;
+    /** the room that / makes between neumes (nabcinterelementspace), and // (nabclargerspace) */
+    interElementSpace: number;
+    largerSpace: number;
+    /** from the top line to the baseline of the NABC above the staff (abovelinesnabcraise) */
+    aboveLinesRaise: number;
+    /** the room that the NABC above the staff takes, above its baseline (abovelinesnabcheight) */
+    aboveLinesHeight: number;
+    /** from the bottom line to the baseline of the NABC below the staff (belowlinesnabcheight) */
+    belowLinesHeight: number;
+    /**
+     * how many staff intervals above the top line notes can go before they
+     * push the NABC above the staff up (additionaltopspacenabcthreshold), and
+     * below the bottom line before they push the NABC below it down
+     * (additionalbottomspacenabcthreshold, 2, which GregorioTeX counts from a)
+     */
+    aboveThreshold: number;
+    belowThreshold: number;
 };
 export declare const DefaultTrailingSpace: TrailingSpaceFunction;
 /**
@@ -356,6 +383,10 @@ export type AnnotationSpansToTextLeftMapper = (spans: TextSpan[]) => TextSpan[];
 export type ClefVisibility = "visible" | "invisible" | "phantom";
 /** how the number of a mode is written (see ChantContext.modeNumberSystem) */
 export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
+/** where a score's drop cap is put (see ChantContext.dropCapPosition) */
+export type DropCapPosition = "firsttop" | "firstbaseline" | "lastbaseline" | "lastbottom";
+/** which part of a drop cap is put at its position (see ChantContext.dropCapAnchor) */
+export type DropCapAnchor = "top" | "baseline" | "bottom";
 /** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
 export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
 /**
@@ -445,7 +476,49 @@ export declare class ChantContext {
      * inclinatum.
      */
     nabcLines: number;
+    /**
+     * The fonts to draw Gregorio's NABC with: nabcFonts[0] for its first line,
+     * above the staff, and nabcFonts[1] for its second, below the staff, or
+     * nabcFonts[0] for both, as with Gregorio's \gresetnabcfont.  exsurge has
+     * none of its own, since Gregorio's are under the SIL Open Font License:
+     * import gregall from exsurge-ts/nabc-gregall, or gresgmodern or grelaon
+     * (Laon) likewise (see NabcFont).  With none, NABC isn't drawn.  Defaults
+     * to [].
+     */
+    nabcFonts: NabcFont[];
+    /**
+     * The size of the NABC fonts' em, in staff intervals.  Defaults to 8pt at
+     * Gregorio's default staff size, \gresetnabcfont's default.
+     */
+    nabcSize: number;
+    /**
+     * Where each NABC neume starts, as with Gregorio's \gresetnabcalignment:
+     * "full", the default, with its significative letters, or "neume" with
+     * the neume, its letters on the left hanging back (and the notes moving
+     * over to make room for them).
+     */
+    nabcAlignment: "full" | "neume";
+    /**
+     * Whether each line of NABC is drawn, as with Gregorio's \gresetnabc:
+     * "visible", the default, "invisible", taking no room, or "phantom",
+     * taking its room.
+     */
+    nabcVisibility: ClefVisibility[];
+    /**
+     * Ledger lines on one side of the staff that are no more than this many
+     * staff intervals apart are joined, by lengthening each of them to meet
+     * halfway.  0 by default, as Gregorio never joins them (lines that overlap
+     * are always drawn as one); 2 joins them as exsurge did before.
+     */
     minLedgerSeparation: number;
+    /**
+     * Whether an episema over a note at the space below the ledger line above
+     * the staff (or under one at the space above the line below it) is put
+     * closer to the note where there's no ledger line there, as Gregorio does
+     * with \gresetledgerlineheuristic{enable}, its default.  When it's false,
+     * the episema is always placed as if there were a ledger line.
+     */
+    ledgerLineHeuristic: boolean;
     minSpaceAboveStaff: number;
     minSpaceBelowStaff: number;
     spaceBetweenSystems: number;
@@ -511,6 +584,37 @@ export declare class ChantContext {
      * default, "roman-minuscule" (viii) or "arabic" (8)
      */
     modeNumberSystem: ModeNumberSystem;
+    /**
+     * How many lines a score's drop cap is beside, as with Gregorio's
+     * \gresetinitiallines.  1 is the default; with more, the drop cap is
+     * dropped beside that many lines, which all start after it.  0 leaves the
+     * drop cap out, as ChantScore.useDropCap false does: a score has a drop cap
+     * only with useDropCap as well, and a change to or from 0 takes effect, as
+     * one to useDropCap does, when the score makes its drop cap again
+     * (updateNotations() or recreateDropCap()); other changes take effect, as
+     * ones to the spacing do, when its lines are laid out again
+     * (ChantScore.layoutChantLines()).  What isn't a whole number from 0 up
+     * counts as 1.  A drop cap beside more than one line, with its baseline at
+     * the last one's lyric baseline or its top at the first one's top staff
+     * line, is made just big enough for its letter to reach from the one to the
+     * other, unless textStyles.dropCap.size has been set since setFont().
+     */
+    dropCapLines: number;
+    /**
+     * Where the drop cap goes, as with Gregorio's \gresetinitialposition: the
+     * top staff line of the first line ("firsttop"), the lyric baseline of the
+     * first line ("firstbaseline") or of the last line beside the drop cap
+     * ("lastbaseline", the default, which anything else counts as), or the
+     * bottom of that last line, below its lyrics and translations
+     * ("lastbottom").  dropCapAnchor says which part of the drop cap goes there.
+     */
+    dropCapPosition: DropCapPosition;
+    /**
+     * Which part of the drop cap goes at dropCapPosition, as with Gregorio's
+     * \gresetinitialanchor: the top of its letter, its baseline (the default,
+     * which anything else counts as) or the bottom of its letter.
+     */
+    dropCapAnchor: DropCapAnchor;
     defaultLanguage: Language;
     /**
      * What each lyric is centered under its notation on, as Gregorio's
@@ -597,6 +701,12 @@ export declare class ChantContext {
      * \greseteolcustos
      */
     eolCustos: "auto" | "manual";
+    /**
+     * how ChantScore.layoutChantLines() breaks the score into lines: "greedy"
+     * (the default) to fill each line in turn, or "optimal" to choose the
+     * breaks of the whole score together, as Gregorio does (see LineBreaker)
+     */
+    lineBreaking: LineBreaking;
     autoColor: boolean;
     /** gives each svg text element a font-size attribute in createSvg() */
     setFontFamilyAttributes?: boolean;
@@ -611,6 +721,7 @@ export declare class ChantContext {
      * the left text.  Set by setMergeAnnotationWithTextLeft().
      */
     mergeAnnotationWithTextLeft?: (...spans: Array<TextSpan[] | null | undefined>) => TextSpan[];
+    private setFontDropCapStyle?;
     private textMetricsCache;
     private textMetricsCacheSize;
     private fontLoadGeneration;
@@ -638,6 +749,8 @@ export declare class ChantContext {
      * @param {{ [key: string]: import('opentype.js').Font }} fontDictionary
      */
     setFont(font: string, size?: number, baseStyle?: CssProperties, fontDictionary?: FontDictionary): void;
+    /** whether textStyles.dropCap.size is still the size that setFont() gave it */
+    hasDefaultDropCapSize(): boolean;
     setRubricColor(color: string): void;
     /**
      * Forgets the text measurements and the merged text span styles that are
@@ -790,7 +903,11 @@ export declare class NeumeBeamVisualizer extends ChantLayoutElement {
     createSvgFragment(ctxt: ChantContext): string;
 }
 export declare class VirgaLineVisualizer extends ChantLayoutElement {
-    constructor(ctxt: ChantContext, note: Note);
+    /**
+     * @param fusedShift the interval to the next note, if a virga reversa or
+     * oriscus scapus is fused to it (see FusedNeume.fusedShift()), or else 0
+     */
+    constructor(ctxt: ChantContext, note: Note, fusedShift?: number);
     draw(ctxt: ChantContext): void;
     getSvgProps(ctxt: ChantContext): {
         x: number;
@@ -853,14 +970,44 @@ export declare class GlyphVisualizer extends ChantLayoutElement {
     align?: "left" | "right";
     /** the glyph's size, relative to the other glyphs (set it before setGlyph()) */
     scale: number;
-    constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null);
-    setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | ""): void;
+    /** (glyph is one that isn't in Glyphs, such as a NABC font's, whose def's id is glyphCode) */
+    constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null, glyph?: Glyph);
+    setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | "", ownGlyph?: Glyph): void;
     setStaffPosition(ctxt: ChantContext, staffPosition: number): void;
     draw(ctxt: ChantContext): void;
     getSvgAttributes(ctxt: ChantContext, source?: GlyphSource): SvgAttributes;
     createSvgNode(ctxt: ChantContext, source?: GlyphSource): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext, source?: GlyphSource): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext, source?: GlyphSource): string;
+}
+/**
+ * A line of Gregorio's NABC on a notation (ChantNotationElement.nabcNeumes):
+ * its neumes, laid out with layoutNabc() and drawn with a NabcFont's
+ * glyphs.  It starts at the left of the notation, as Gregorio's starts at
+ * the left of its first glyph, and takes no room among the notes, and
+ * ChantLine.performLayout() puts its baseline above or below the staff.
+ */
+export declare class NabcNeumes extends ChantLayoutElement {
+    /** which line of NABC it is: 0, above the staff, or 1, below it */
+    voice: number;
+    layout: NabcLayout;
+    /** the size of the font's units, in the units of the score */
+    unit: number;
+    /** whether it takes its room without being drawn (ChantContext.nabcVisibility "phantom") */
+    phantom: boolean;
+    glyphs: GlyphVisualizer[];
+    /** where its baseline is on the line */
+    baseline: number;
+    /** the size of ERR, where the NABC is wrong, in the font's ems */
+    static errorSize: number;
+    constructor(ctxt: ChantContext, items: NabcItem[], voice: number, font: NabcFont, phantom?: boolean);
+    setBaseline(baseline: number): void;
+    errorAttributes(ctxt: ChantContext, x: number): SvgAttributes;
+    draw(ctxt: ChantContext): void;
+    getSvgAttributes(): SvgAttributes;
+    createSvgNode(ctxt: ChantContext): SvgElementWithSource;
+    createSvgTree(ctxt: ChantContext): SvgTreeNode;
+    createSvgFragment(ctxt: ChantContext): string;
 }
 /** a brace over or under notes, which a canvas strokes along its svg path */
 export declare abstract class BraceVisualizer extends ChantLayoutElement {
@@ -999,6 +1146,15 @@ export declare class TextElement extends ChantLayoutElement {
     /** how much a lyric that was too wide has been shrunk */
     resize?: number;
     numLines?: number;
+    /**
+     * the spans that setMaxWidth() replaced to wrap the text, where it put the
+     * spans that replaced them and how many, in order, to put back in unwrap()
+     */
+    wrappedSpans?: Array<{
+        index: number;
+        count: number;
+        spans: TextSpan[];
+    }>;
     needsLayout?: boolean;
     svgNode?: SvgElementWithSource;
     elementIndex?: number;
@@ -1040,6 +1196,8 @@ export declare class TextElement extends ChantLayoutElement {
      * at, though this.text still does.
      */
     getLines(): TextLine[];
+    /** puts back the spans that setMaxWidth() replaced to wrap the text */
+    unwrap(): void;
     recalculateMetrics(ctxt: ChantContext, resetNewLines?: boolean): void;
     setMaxWidth(ctxt: ChantContext, maxWidth: number, firstLineMaxWidth?: number): void;
     /**
@@ -1138,11 +1296,23 @@ export declare class Lyric extends TextElement {
     setPreventConnector(prevent: boolean): void;
     setNeedsConnector(needs?: boolean, width?: number): void;
     setConnectorWidth(width: number): void;
+    /** gives the connector its default width, and draws it that wide */
+    clearConnectorWidth(): void;
+    /**
+     * puts the connector back as recalculateMetrics() leaves it, which a lyric
+     * has only if it's forced to (and was measured with)
+     */
+    resetConnector(): void;
     getConnectorWidth(): number;
     getLeft(): number;
     getRight(): number;
     recalculateMetrics(ctxt: ChantContext, resetNewLines?: boolean): void;
     generateDropCap(ctxt: ChantContext): DropCap | null;
+    /**
+     * Gives the lyric back the letter that its drop cap took (see
+     * generateDropCap()), without the first word's styles.
+     */
+    removeDropCap(ctxt: ChantContext): void;
     /**
      * Gives the lyric the styles of the score's first word (part "word"), or of
      * its first syllable ("syllable", which also styles the first letter after
@@ -1195,7 +1365,29 @@ export declare class DropCap extends TextElement {
      */
     textType: TextTypes["dropCap"];
     padding: number;
+    /**
+     * the font size that the score gave the drop cap to reach across the
+     * lines beside it (see ChantContext.dropCapLines), in place of its text
+     * style's size
+     */
+    sizeForLines?: number;
+    /**
+     * how many lines the score lays the drop cap out beside (ctxt.dropCapLines
+     * as of its last ChantScore.layoutChantLines())
+     */
+    linesBeside?: number;
     constructor(ctxt: ChantContext, text: string, sourceIndex?: number);
+    /** measures the drop cap at the given font size, or else its text style's */
+    measureAtSize(ctxt: ChantContext, size?: number): void;
+    /**
+     * Makes the drop cap's height above and below its baseline its letter's,
+     * where it was measured by its font's box instead, as it is with
+     * TextMeasuringStrategy.Svg or a canvas without actualBoundingBox metrics:
+     * its letter as measured on a canvas, where the browser can, or else a
+     * typical capital, 0.7em high.
+     */
+    fitBoundsToLetter(ctxt: ChantContext): void;
+    getExtraStyleProperties(ctxt: ChantContext): CssProperties;
 }
 export declare class TitleTextElement extends TextElement {
     /** the space after the text */
@@ -1247,11 +1439,6 @@ export declare class Annotations extends ChantLayoutElement {
     };
     createSvgFragment(ctxt: ChantContext): string;
 }
-/** what was done to a neume's trailing space for a hidden soft accidental after it */
-export interface SoftAccidentalShift {
-    unshifted: number;
-    shifted?: number;
-}
 /**
  * Where one of Gregorio's areas (<eu>…</eu> or <nlba>…</nlba>) starts or
  * ends.  An area starts at the first notation of the syllable (or, in the
@@ -1284,6 +1471,12 @@ export declare class ChantNotationElement extends ChantLayoutElement {
     trailingSpace: TrailingSpace;
     /** the trailing space for the current layout */
     calculatedTrailingSpace: number;
+    /**
+     * the trailing space that the notation's own layout gave it, which each
+     * line that it's laid out on starts from (see resetNotation() in
+     * Exsurge.Chant.ChantLine)
+     */
+    layoutTrailingSpace?: number;
     keepWithNext: boolean;
     /** lets the line break after this notation even though it's kept with the next */
     allowLineBreakBeforeNext?: boolean;
@@ -1308,23 +1501,37 @@ export declare class ChantNotationElement extends ChantLayoutElement {
     firstOfSyllable?: boolean;
     /** whether the notation is the first in its parentheses */
     firstOfParentheses?: boolean;
+    /**
+     * whether the notation is in the same one of Gregorio's elements as the
+     * notation before it: the neumes and accidentals that a ledger line can run
+     * through (see determineLedgerLines()), which are joined by gabc !, /! and
+     * /0, and some by the notes themselves (see Gabc.joinElements())
+     */
+    continuesElement?: boolean;
     /** whether the accidentals were reset (at a new word) just before this notation */
     resetsAccidentalsBefore?: boolean;
     /** whether the notation is in a group in braces that takes up no width */
     hasNoWidth?: boolean;
     /** the first notation of the group in braces that this notation is in */
     firstWithNoWidth?: ChantNotationElement;
-    softAccidentalShift?: SoftAccidentalShift | null;
     /** the css class of the notation's svg element; defaults to its class name */
     cssClass?: string;
     /** whether a Gregorio euouae area (<eu>…</eu> in the lyrics) starts or ends at this notation */
     euouae?: AreaBoundary;
     /**
      * Gregorio's NABC for the gabc that starts with this notation, a string
-     * for each line (nabc[0] above the staff, nabc[1] below it), which isn't
-     * drawn yet
+     * for each line (nabc[0] above the staff, nabc[1] below it), which is
+     * drawn when there's a NabcFont to draw it with (see nabcNeumes)
      */
     nabc?: string[];
+    private readNabc?;
+    /** the NABC of each line, read with parseNabc(): its neumes, spaces and errors */
+    get parsedNabc(): NabcItem[][] | undefined;
+    /**
+     * the NABC of each line that's drawn, laid out (when there's a NabcFont to
+     * draw it with), or undefined if none is
+     */
+    nabcNeumes?: Array<NabcNeumes | undefined>;
     /**
      * whether a Gregorio no-line-break area (<nlba>…</nlba>, in the lyrics or
      * in the notes) starts or ends at this notation
@@ -1349,7 +1556,7 @@ export declare class ChantNotationElement extends ChantLayoutElement {
     finishLayout(ctxt: ChantContext): void;
     alignLyrics(ctxt: ChantContext): void;
     draw(ctxt: ChantContext): void;
-    getInnerSvgNodes(ctxt: ChantContext, functionName?: "createSvgNode" | "createSvgTree"): (SvgTreeNode | SvgElementWithSource)[];
+    getInnerSvgNodes(ctxt: ChantContext, functionName?: "createSvgNode" | "createSvgTree"): (SvgElementWithSource | SvgTreeNode)[];
     getSvgProps(): SvgAttributes;
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext): SvgTreeNode;

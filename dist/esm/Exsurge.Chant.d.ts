@@ -2,9 +2,11 @@ import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import { Pitch, Rect } from "./Exsurge.Core.js";
 import { Annotation, ChantLayoutElement, ChantNotationElement, GlyphCode, GlyphVisualizer, Lyric, TextLeftRight } from "./Exsurge.Drawing.js";
 import { Titles } from "./Exsurge.Titles.js";
+import { type LedgerLineStates } from "./ledgerLines.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
 import type { Accent, BracePoint, CustomLedgerLine, EpisemaTuning, HorizontalEpisema, Ictus, Mora, SlurMark } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import type { Language } from "./Exsurge.Text.js";
 import type { AboveLinesText, Annotations, AreaBoundary, ChantContext, ChoralSign, DropCap, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
 export declare const LiquescentType: {
     readonly None: 0;
@@ -82,8 +84,9 @@ export declare class Note extends ChantLayoutElement {
     shapeHint?: string;
     /**
      * Gregorio's ledger-line hint below the note (gabc [ll:1] or [ll:0]):
-     * whether to draw its virga stem and place its episemata as if there were
-     * a ledger line below it, whatever ledger lines there are
+     * whether to give its stem the length and place its episemata as if there
+     * were a ledger line below it, without drawing one or leaving one out.
+     * A stronger setting overrides it (see ledgerLineState).
      */
     lowLedgerLine?: boolean;
     /** the same above the note (gabc [hl:1] or [hl:0]), for its episemata */
@@ -112,13 +115,26 @@ export declare class Note extends ChantLayoutElement {
     slurs?: SlurMark[];
     /**
      * whether Gregorio's [oll:1] or [oll:0] draws a ledger line above the
-     * staff at the note, or leaves one out (see Neume.requiresLedgerLine())
+     * staff at the note, or leaves one out, whatever its pitch and the notes
+     * around it (see ledgerLineState)
      */
     ledgerLineAbove?: boolean;
     /** whether Gregorio's [ull:1] or [ull:0] draws a ledger line below the staff at the note, or leaves one out */
     ledgerLineBelow?: boolean;
     /** Gregorio's ledger lines of a given length (gabc [oll:…] and [ull:…]) next to the note, which the chant line draws */
     customLedgerLines?: CustomLedgerLine[];
+    /**
+     * whether a new one of Gregorio's elements starts at the note, although it
+     * isn't the first of its neume, as where Gregorio makes the notes around it
+     * into glyphs of their own (see ChantNotationElement.continuesElement)
+     */
+    startsElement?: boolean;
+    /**
+     * whether the note has a ledger line above the staff and below it, and how
+     * that was set, as Gregorio decides it from the note's pitch, the notes
+     * around it and the settings above (see determineLedgerLines())
+     */
+    ledgerLineState?: LedgerLineStates;
     /**
      * Gregorio's tuning of the episema over the note (gabc [oh:…]) and under
      * it ([uh:…]), the note's own or its block's
@@ -307,6 +323,20 @@ interface ChantDocumentLayout {
         "margin-bottom": number;
     };
 }
+/**
+ * where the staff of a line of a score starts and ends, so that the line is
+ * right - left wide (see ChantScore.lineExtent())
+ */
+export interface LineExtent {
+    left: number;
+    /** Infinity when the score's width has no limit */
+    right: number;
+    /**
+     * how far left the line's text other than its lyrics may go: left, beside
+     * a drop cap that reaches down beside the line, or else 0
+     */
+    textLeft: number;
+}
 export declare class ChantScore {
     mappings: ChantMapping[];
     lines: ChantLine[];
@@ -323,10 +353,18 @@ export declare class ChantScore {
      */
     keptInAreas?: boolean[] | null;
     staffLineCount: number;
+    /**
+     * the language of the score's lyrics, which Gabc.applyHeader() sets from
+     * the header and updateNotations() gives the lyrics it doesn't have yet
+     * (such as those of an edit), or null for each lyric's own (by default
+     * ctxt.defaultLanguage)
+     */
+    language: Language | null;
     titles?: Titles;
     startingClef: Clef;
     useDropCap: boolean | undefined;
     dropCap: DropCap | null;
+    private dropCapRelayouts;
     annotation: Annotation | Annotations | null;
     compiled: boolean;
     autoColoring: boolean;
@@ -361,6 +399,11 @@ export declare class ChantScore {
     copyLines(startLine: number, endLine: number): ChantScore;
     updateSelection(selection?: Selection): void;
     updateNotations(ctxt: ChantContext): void;
+    /**
+     * Gives the notation's lyrics the score's language, if it has one, and has
+     * the notation laid out again if that changes them.
+     */
+    updateLanguage(notation: ChantNotationElement): void;
     recreateDropCap(ctxt: ChantContext): void;
     private updateBrackets;
     /**
@@ -390,6 +433,69 @@ export declare class ChantScore {
      */
     waitForLyricFont(ctxt: ChantContext, ready: () => void): void;
     layoutElementsAsync(ctxt: ChantContext, index: number, finishedCallback?: () => void): void;
+    /**
+     * How many lines the drop cap is beside: ctxt.dropCapLines (at least 1) as
+     * of the last layoutChantLines(), or 0 when there's no drop cap.
+     */
+    linesBesideDropCap(): number;
+    /**
+     * the index of the last line beside the drop cap (or 0), which paginate()
+     * keeps on the first line's page
+     */
+    get lastLineBesideDropCap(): number;
+    private staffTop;
+    /**
+     * Where the staff of the line at lineIndex (from 0) starts and ends, when
+     * the score is laid out at width (0 or less for no limit).  The lines
+     * beside the drop cap start after it and the space on each side of it, or
+     * after the annotation and the space on each side of that, if that's wider;
+     * as in Gregorio, they all leave as much room.  Without a drop cap, the
+     * first line still leaves room for the annotation, unless it's merged into
+     * the left text.  The lines' other text, such as translations, keeps to
+     * the right of a drop cap that reaches down beside them (placeDropCap()).
+     * (For any line breaker: ChantLine.buildFromChantNotationIndex() lays the
+     * line out between these edges.)
+     */
+    lineExtent(ctxt: ChantContext, lineIndex: number, width: number): LineExtent;
+    /**
+     * Whether the first line puts the drop cap and the annotation in place as
+     * it's laid out, as it does for a drop cap beside it alone, with its
+     * baseline on the lyric baseline (the default).  Otherwise placeDropCap()
+     * places them once all the lines are laid out.
+     */
+    dropCapOnFirstLine(ctxt: ChantContext): boolean;
+    /**
+     * The y on the first line of the top of the annotation, above the drop cap
+     * with its baseline at dropCapBaseline: the top staff line, as in Gregorio,
+     * or higher, to be clear of the drop cap by the annotation's padding.  With
+     * centered (as for a drop cap beside the first line alone), it's halfway
+     * down from the top staff line to where it would touch the drop cap, when
+     * that's lower.
+     */
+    annotationTop(ctxt: ChantContext, dropCapBaseline: number, centered: boolean): number;
+    private startDropCapLayout;
+    /**
+     * Once the lines are laid out, makes a drop cap beside more than one of
+     * them, with its baseline at the last one's lyric baseline or its top at
+     * the first one's top staff line, just big enough for its letter to reach
+     * from the one to the other, unless its size has been set (see
+     * ChantContext.dropCapLines).  Returns whether the lines need to be laid
+     * out again for the room that it then takes beside them, which they are
+     * twice at most: after that, it's kept no bigger than the room they have
+     * left it.
+     */
+    private fitDropCap;
+    /**
+     * Places the drop cap at ctxt.dropCapPosition and the annotation above it,
+     * unless the first line has (see dropCapOnFirstLine()), once the lines are
+     * laid out and each line's bounds.y is the y of its origin in the score.  As
+     * in Gregorio (drop_initial() in gregoriotex.lua), the drop cap takes no
+     * room from the lines beside it, except that the first line is made taller
+     * if the drop cap or the annotation reaches above it, and the last line
+     * beside the drop cap if the drop cap reaches below it, moving the lines
+     * after them down.  Returns how much taller that makes the lines.
+     */
+    private placeDropCap;
     layoutChantLines(ctxt: ChantContext, width: number, finishedCallback?: (score: ChantScore) => void): void;
     paginate(height: number): void;
     draw(ctxt: ChantContext, scale?: number): void;
@@ -399,6 +505,14 @@ export declare class ChantScore {
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext, zoom?: number | boolean): SvgTreeNode;
     createSvg(ctxt: ChantContext): string;
+    /**
+     * For drawing line i on its own, in an svg that starts at top: the
+     * transform that puts the part of a drop cap beside the line in its svg,
+     * where it reaches down from the first line (whose svg has the rest), or
+     * else null.  (Each line's svg shows only its own part, so that it can be
+     * drawn or clipped on its own.)
+     */
+    private dropCapTransformBesideLine;
     createSvgNodeForEachLine(ctxt: ChantContext): SvgElementWithSource[];
     createSvgForEachLine(ctxt: ChantContext): string;
     unserializeFromJson(data: any, ctxt?: ChantContext): void;

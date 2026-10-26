@@ -83,8 +83,8 @@ export declare class Gabc {
      * turns: gabc, then the NABC of each line, then gabc again.  Returns the
      * notes with the NABC and the |s masked (keeping their length), but with a
      * / at a | between two parts of gabc, which Gregorio makes separate
-     * elements, and each part of gabc that has NABC, by where it starts in the
-     * notes, and where it put the /s.  The NABC of a part of gabc that's empty,
+     * elements, and each part of gabc that has NABC, by where it starts and ends
+     * in the notes, and where it put the /s.  The NABC of a part of gabc that's empty,
      * which Gregorio gives an element of its own, goes with the part before it,
      * after a / (a space in NABC).
      */
@@ -93,15 +93,17 @@ export declare class Gabc {
         cuts: number[];
         parts: {
             index: number;
+            end: number;
             nabc: string[];
         }[];
     };
     /**
      * Applies the settings in a gabc header to a score, as Gregorio does.
      * exsurge doesn't otherwise read them, so call this after making the score,
-     * and again after updating its mappings (so that new lyrics get the
-     * header's language, and changes to the header take effect).  The score
-     * is then laid out again where it needs to be.
+     * and again after updating its mappings if the header has changed.  The
+     * score keeps what it applies, so the lyrics of edits get the header's
+     * language without it.  The score is then laid out again where it needs
+     * to be.
      *
      * - annotation: the first two, one line each, as the score's annotation.
      * - mode, mode-modifier and mode-differentia, if there is no annotation
@@ -109,9 +111,9 @@ export declare class Gabc {
      * - staff-lines: 2 to 5, as the score's staffLineCount.
      * - language: Latin, English, Spanish, Church Slavonic (also for Polish,
      *   Czech and Slovak, as in Gregorio) or Hungarian, by name or ISO 639
-     *   code, as the language of the score's lyrics, so that ctxt.defaultLanguage stays as
-     *   it is for other scores.  A language that exsurge doesn't have leaves
-     *   them as they are.
+     *   code, as the score's language, which its lyrics are centered for, so
+     *   that ctxt.defaultLanguage stays as it is for other scores.  A language
+     *   that exsurge doesn't have leaves them as they are.
      * - with options.legacy, the headers that Gregorio no longer reads:
      *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
      *   useDropCap, and centering-scheme (latine or english) as the language
@@ -160,10 +162,20 @@ export declare class Gabc {
     static makeLyric(ctxt: ChantContext, text: string, lyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric;
     static parseNotations(ctxt: ChantContext, data: string, sourceIndex: number, insertionIndex?: number): ChantNotationElement[];
     static createClef(type: string, line: number, flat: boolean): Clef;
+    static joinElements(neumes: Neumes.Neume[], joinsPreviousElement: boolean): boolean;
     static createNeumesFromNotes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace): Neumes.Neume[];
     static createFusedNeumes(ctxt: ChantContext, notes: Note[], finalTrailingSpace: TrailingSpace, autoFused: Set<Note>): Neumes.Neume[];
     static createNoteFromData(ctxt: ChantContext, clef: Clef, data: string, notes: Note[], sourceIndex: number): void;
     static processInstructionForNote(ctxt: ChantContext, note: Note, instruction: string, sourceIndexOffset: number): void;
+    /**
+     * Has the note end the brace that a brace given a length (gabc
+     * [ob:1;6mm] and the like) left open before it, as the next note does
+     * unless it has a brace of its own, or leaves the note's own such brace
+     * open for the notes after it.  Each note of the notations is passed in
+     * order, when they're parsed and again when they're kept by
+     * updateMappingsFromSource(), which first takes away the end it gave.
+     */
+    static endAutomaticBrace(note: Note): void;
     static processDecorationForNote(note: Note, instruction: string): boolean;
     static processEpisemaTuning(instruction: string, note: Note | null): boolean;
     static customLedgerLine(results: RegExpMatchArray): Markings.CustomLedgerLine | null;

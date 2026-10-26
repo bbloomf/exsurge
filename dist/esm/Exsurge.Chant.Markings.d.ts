@@ -1,4 +1,5 @@
 import { type Note } from "./Exsurge.Chant.js";
+import type { Rect } from "./Exsurge.Core.js";
 import { ChantLayoutElement, GlyphCode, GlyphVisualizer, MarkingPositionHint, type ChantContext, type ChantNotationElement } from "./Exsurge.Drawing.js";
 export declare class Accent extends GlyphVisualizer {
     note: Note;
@@ -45,8 +46,11 @@ export declare class HorizontalEpisema extends ChantLayoutElement {
     /** whether the episema stops at its note, rather than joining the next one */
     terminating: boolean;
     alignment: HorizontalEpisemaAlignment;
+    /** where performLayout() put the episema, which each line that joins it to others starts from */
+    layoutBounds?: Rect;
     constructor(note: Note);
     performLayout(ctxt: ChantContext): void;
+    supposesLedgerLine(ctxt: ChantContext, isAbove: boolean): boolean;
     tunedY(ctxt: ChantContext, y: number): number;
     draw(ctxt: ChantContext): void;
     getSvgProps(ctxt: ChantContext): {

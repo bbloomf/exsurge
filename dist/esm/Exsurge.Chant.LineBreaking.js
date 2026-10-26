@@ -1,0 +1,614 @@
+//
+// Line breaking across the whole score, as Gregorio does it.
+//
+// GregorioTeX sets a score as one TeX paragraph, so TeX's Knuth-Plass
+// algorithm chooses all of its line breaks together, weighing how full each
+// line would be against penalties that Gregorio puts at each place a line can
+// break (tex/gregoriotex-gsp-default.tex:26-63 in Gregorio).  This module does
+// the same with exsurge's own spacing: each line that could be made is laid
+// out as ChantLine.buildFromChantNotationIndex() would lay it out, which gives
+// its natural width, how much it can be condensed (ctxt.condensingTolerance)
+// and how many places it can be stretched at to justify it.  Then the breaks
+// with the fewest demerits are found as TeX finds them, and each ChantLine is
+// built to end where it was planned to (ChantLine.plannedEnd).
+//
+// It is used when ctxt.lineBreaking is "optimal" (see ChantScore.layoutChantLines).
+//
+import { ChantLine, copyBeginningLyrics, isHiddenAccidental, isTextOnlyBeforeDivider, resetNotation } from "./Exsurge.Chant.ChantLine.js";
+import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
+import { Custos } from "./Exsurge.Chant.Signs.js";
+import { LyricArray, LyricType } from "./Exsurge.Drawing.js";
+import { Glyphs } from "./Exsurge.Glyphs.js";
+// Gregorio's penalties (tex/gregoriotex-gsp-default.tex:26-50).  A penalty of
+// 10000 or more is a place the line can't break at; -10000 or less is one it
+// has to break at.
+const penalties = {
+    endOfWord: -100,
+    endOfSyllable: -50,
+    endOfElement: -50,
+    afterBar: -200,
+    // the \discretionary that Gregorio puts at a change of clef
+    clefChange: -200
+};
+const infinitePenalty = 10000;
+// TeX's paragraph parameters, as Gregorio sets them for a score
+// (tex/gregoriotex-gsp-default.tex:52-58, tex/gregoriotex-spaces.tex:57-102),
+// and the LaTeX defaults of those it leaves alone.
+const pretolerance = 100;
+const tolerance = 9000;
+const looseness = -1;
+const linePenalty = 10;
+const adjDemerits = 10000;
+// (Gregorio sets \doublehyphendemerits and \finalhyphendemerits to 0)
+// TeX's badness of a line too loose or too tight to be set
+const infiniteBadness = 10000;
+// TeX's fitness classes
+const veryLoose = 0, loose = 1, decent = 2, tight = 3;
+// How far the space before a notation may stretch when a line is justified,
+// in staff intervals, for badness = 100: Gregorio's interwordspacenotes is
+// 0.29cm plus 0.05cm, and its bars' spaces stretch by 0.22787cm, on a staff
+// whose lines are 0.287cm apart (tex/gregoriotex-gsp-default.tex:142, :215-229
+// and tex/gregoriotex-main.tex:1868-1870 at \gre@factor 17).
+const wordStretch = 0.05 / 0.287;
+const barStretch = 0.22787 / 0.287;
+// Gregorio doesn't break a syllable with fewer notes than this, nor within
+// this many notes of either end of one (\gresetunbreakablesyllablenotes{10}{4}{4},
+// tex/gregoriotex-syllable.tex:883-894)
+const unbreakableSyllableNotes = 10;
+const unbreakableInitialNotes = 4;
+const unbreakableFinalNotes = 4;
+// the end of a note's gabc where a space between neumes (/, //, a space or
+// /[n]) ends the neume, which, unless the neume's allowLineBreakBeforeNext
+// says otherwise (gabc /0, /! or ! before the space), a line can break at in
+// Gregorio; where exsurge splits a run of notes into neumes itself, it can't
+const breakableSpaceRegex = /(?:\/|\s|\/\[-?(?:\d+\.?\d*|\.\d+)\])$/;
+/**
+ * Breaks a score into lines as Gregorio does (see the top of this module).
+ * ChantScore.layoutChantLines() asks it where each line it builds should end.
+ */
+export class LineBreaker {
+    constructor(score, ctxt, width) {
+        /**
+         * how many lines more than the fewest it can be done in, or than the way
+         * with the fewest demerits for each fitness class, that the ways of
+         * breaking the score into lines up to a notation are kept for (see
+         * findBreaks()): TeX keeps them all, but looks for the way with the fewest
+         * demerits and then one with a line fewer (\looseness=-1)
+         */
+        this.extraLines = 2;
+        /** where each line was planned to end, by its index and the notation it starts with */
+        this.plannedEnds = new Map();
+        /** the ends of the lines that could start at each notation, by its index, for each place a line's staff can be */
+        this.lineEnds = [];
+        this.score = score;
+        this.ctxt = ctxt;
+        this.width = width;
+    }
+    /**
+     * The index of the notation after the last one to go on the line with the
+     * index lineIndex, which starts at the notation with the index start; or
+     * undefined, if the line should be filled greedily (because the rest of the
+     * score couldn't be broken into lines that fit).
+     */
+    plannedEnd(lineIndex, start) {
+        var key = lineIndex + ":" + start;
+        if (!this.plannedEnds.has(key)) {
+            // the score hasn't been broken from here yet (or a line didn't end where
+            // it was planned to), so break the rest of it from here
+            var activeClef = this.ctxt.activeClef;
+            try {
+                this.plan(lineIndex, start);
+            }
+            finally {
+                this.ctxt.activeClef = activeClef;
+            }
+        }
+        return this.plannedEnds.get(key);
+    }
+    /** breaks the rest of the score into lines, from the line with the index lineIndex, which starts at start */
+    plan(lineIndex, start) {
+        // As TeX does, look first for breaks where no line is looser or tighter
+        // than the pretolerance allows, and then where none is more than the
+        // tolerance allows, and look for a way to set the score in one line
+        // fewer than the best (\looseness=-1) in each.  Where TeX would then
+        // set a line as loose as it has to be, look for breaks with no limit on
+        // how loose a line is (as TeX's \emergencystretch would let it be), so
+        // that the lines still break only where Gregorio breaks them.
+        var final = null, reached = null;
+        for (var threshold of [pretolerance, tolerance, Infinity]) {
+            var { best, bestLooser, farthest } = this.findBreaks(lineIndex, start, threshold);
+            reached = farthest;
+            if (best)
+                final = bestLooser || best;
+            if (bestLooser || (best && threshold >= tolerance))
+                break;
+        }
+        // (and if the rest of the score can't be broken into lines that fit,
+        // because something that can't be broken is too wide for a line, plan the
+        // lines as far as it can be, and fill the next one greedily: see
+        // buildFromChantNotationIndex(); no line is planned from there, so
+        // plannedEnd() gives undefined for it)
+        var node = final || reached;
+        var path = [];
+        for (; node && node.previous; node = node.previous)
+            path.unshift(node);
+        var previousEnd = start;
+        for (node of path) {
+            this.plannedEnds.set(node.previous.line + ":" + previousEnd, node.position);
+            previousEnd = node.position;
+        }
+    }
+    /**
+     * TeX's line breaking: the way of breaking the score into lines from start
+     * that has the fewest demerits, with no line looser or tighter than
+     * threshold; and the way that has the fewest demerits with the number of
+     * lines that \looseness asks for, if it isn't the same; or else the way to
+     * break it into lines as far as it can be
+     */
+    findBreaks(lineIndex, start, threshold) {
+        var notations = this.score.notations;
+        // the nodes at each notation, one for each line and fitness, in the order
+        // that they were first found in (which decides between two as good)
+        var nodes = new Array(notations.length + 1);
+        var startNode = { position: start, line: lineIndex, fitness: decent, demerits: 0, previous: null };
+        nodes[start] = [startNode];
+        var farthest = startNode;
+        // (the lines that start further right, as getLineExtent() lays them out)
+        var besideDropCap = this.score.linesBesideDropCap();
+        for (var position = start; position < notations.length; position++) {
+            var here = nodes[position];
+            if (!here)
+                continue;
+            nodes[position] = undefined;
+            // (once past the lines beside the drop cap, the lines after a way to
+            // get here don't depend on how many lines it took, only on its fitness
+            // class, so the way with the fewest demerits in each fitness class is
+            // the only one in that class that can start the best way to break the
+            // rest of the score.  Any other way that takes more than extraLines
+            // lines more than the fewest it can be done in, and than each of those,
+            // is left out, to keep the number of nodes down; the ways that are kept
+            // are nearly always enough for \looseness to choose from.)
+            var fewestLines = Infinity, leastDemerits = [];
+            for (var node of here) {
+                if (node.line < besideDropCap)
+                    continue;
+                fewestLines = Math.min(fewestLines, node.line);
+                var least = leastDemerits[node.fitness];
+                if (!least || node.demerits < least.demerits)
+                    leastDemerits[node.fitness] = node;
+            }
+            for (node of here) {
+                if (node.line >= besideDropCap &&
+                    node.line > fewestLines + this.extraLines &&
+                    !leastDemerits.some((least) => Math.abs(node.line - least.line) <= this.extraLines))
+                    continue;
+                if (node.position > farthest.position || (node.position === farthest.position && node.demerits < farthest.demerits))
+                    farthest = node;
+                for (var lineEnd of this.getLineEnds(node.line, position)) {
+                    this.fitLineEnd(lineEnd, threshold);
+                    var fitness = lineEnd.fitness;
+                    if (fitness === null || fitness === undefined)
+                        continue;
+                    var demerits = lineEnd.demerits;
+                    if (Math.abs(fitness - node.fitness) > 1)
+                        demerits += adjDemerits;
+                    demerits = node.demerits + demerits;
+                    var line = node.line + 1;
+                    var there = nodes[lineEnd.end] || (nodes[lineEnd.end] = []);
+                    var k = 0;
+                    while (k < there.length && (there[k].line !== line || there[k].fitness !== fitness))
+                        k++;
+                    if (k < there.length && !(demerits < there[k].demerits))
+                        continue;
+                    there[k] = { position: lineEnd.end, line, fitness, demerits, previous: node };
+                }
+            }
+        }
+        var ends = nodes[notations.length] || [];
+        var best = null, bestLooser = null;
+        for (node of ends)
+            if (!best || node.demerits < best.demerits)
+                best = node;
+        for (node of ends) {
+            if (node.line - best.line === looseness && (!bestLooser || node.demerits < bestLooser.demerits))
+                bestLooser = node;
+        }
+        return { best, bestLooser, farthest };
+    }
+    /**
+     * the badness and the fitness class of a line, as TeX works them out, or
+     * null if the line is too loose or too tight for the threshold (as a line
+     * that has to break where it does, at gabc z, can be too: there is then
+     * another way to break the lines before it, or else the last pass, with no
+     * threshold, sets it however loose it is)
+     */
+    fit(lineEnd, threshold) {
+        var badness, fitness;
+        // (justifyElements() leaves the line alone when it's this close to full)
+        var space = Math.abs(lineEnd.space) < 0.5 ? 0 : lineEnd.space;
+        if (space >= 0) {
+            if (lineEnd.ragged || space === 0)
+                badness = 0;
+            else if (lineEnd.stretch <= 0)
+                badness = infiniteBadness;
+            else
+                badness = Math.min(infiniteBadness, 100 * Math.pow(space / lineEnd.stretch, 3));
+            fitness = badness > 99 ? veryLoose : badness > 12 ? loose : decent;
+        }
+        else {
+            // an overfull line
+            if (-space > lineEnd.shrink)
+                return null;
+            badness = 100 * Math.pow(-space / lineEnd.shrink, 3);
+            fitness = badness > 12 ? tight : decent;
+        }
+        if (badness > threshold)
+            return null;
+        return { badness, fitness };
+    }
+    /**
+     * works out the fitness class of the line that ends at lineEnd and its
+     * demerits, as TeX does, but for adjDemerits (see fit()), for threshold,
+     * unless they have been already
+     */
+    fitLineEnd(lineEnd, threshold) {
+        if (lineEnd.threshold === threshold)
+            return;
+        lineEnd.threshold = threshold;
+        var fit = this.fit(lineEnd, threshold);
+        if (!fit) {
+            lineEnd.fitness = null;
+            return;
+        }
+        var demerits = linePenalty + fit.badness;
+        demerits = demerits >= 10000 ? 100000000 : demerits * demerits;
+        if (lineEnd.penalty > 0)
+            demerits += lineEnd.penalty * lineEnd.penalty;
+        else if (lineEnd.penalty > -infinitePenalty)
+            demerits -= lineEnd.penalty * lineEnd.penalty;
+        lineEnd.fitness = fit.fitness;
+        lineEnd.demerits = demerits;
+    }
+    /** where the line with the index lineIndex has its staff, if it starts at start */
+    getLineExtent(lineIndex, start) {
+        // (as in buildFromChantNotationIndex(), the lines beside a drop cap
+        // and/or annotation, if present, make room for it)
+        var score = this.score;
+        if (start === 0)
+            lineIndex = 0;
+        var extent = score.lineExtent(this.ctxt, lineIndex, this.width);
+        var paddingLeft = lineIndex === 0 && score.dropCap ? (extent.left - score.dropCap.bounds.width) / 2 : 0;
+        return { staffLeft: extent.left, paddingLeft, staffRight: extent.right };
+    }
+    /** the ends of the lines that could start at start, as the line with the index lineIndex */
+    getLineEnds(lineIndex, start) {
+        var extent = this.getLineExtent(lineIndex, start);
+        var k = 0;
+        for (; k < this.lineEnds.length; k++) {
+            var other = this.lineEnds[k].extent;
+            if (other.staffLeft === extent.staffLeft &&
+                other.paddingLeft === extent.paddingLeft &&
+                other.staffRight === extent.staffRight)
+                break;
+        }
+        if (k === this.lineEnds.length)
+            this.lineEnds.push({ extent, ends: [] });
+        var ends = this.lineEnds[k].ends;
+        return ends[start] || (ends[start] = this.layOutLineFrom(start, extent));
+    }
+    /**
+     * Lays out notations from start, as buildFromChantNotationIndex() would lay
+     * them out on a line that ends where it was planned to, until the line is
+     * too full to fit even when condensed, and gives each place the line could
+     * end.
+     */
+    layOutLineFrom(start, extent) {
+        var ctxt = this.ctxt, score = this.score, notations = score.notations, lineEnds = [];
+        var line = new ChantLine(score);
+        line.notationsStartIndex = start;
+        line.staffLeft = extent.staffLeft;
+        line.paddingLeft = extent.paddingLeft;
+        line.staffRight = extent.staffRight;
+        line.extraTextOnlyIndex = null;
+        line.extraTextOnlyLyricIndex = 0;
+        // the lyrics of a double bar at the end of the line before go at the
+        // start of this one (copied, as buildFromChantNotationIndex() copies them,
+        // but leaving the double bar's own lyrics where they are)
+        var beginningLyrics = start > 0 ? copyBeginningLyrics(ctxt, notations[start - 1]) : null;
+        // the clef in effect at the start of the line
+        var i = start;
+        var startsWithClefChange = i < notations.length && !!notations[i].isClef;
+        if (startsWithClefChange) {
+            ctxt.activeClef = notations[i];
+            // (and a line break just after it ended the line before already)
+            if (this.isClefLineBreak(i))
+                i++;
+            i++;
+            line.notationsStartIndex = i;
+        }
+        else {
+            ctxt.activeClef = score.startingClef;
+            for (var k = start - 1; k >= 0; k--) {
+                if (notations[k].isClef) {
+                    ctxt.activeClef = notations[k];
+                    break;
+                }
+            }
+        }
+        line.startingClef = ctxt.activeClef.clone();
+        line.startingClef.performLayout(ctxt);
+        if (ctxt.clefVisibility !== "visible" && !startsWithClefChange)
+            line.startingClef.hide(ctxt);
+        line.startingClef.bounds.x = line.staffLeft;
+        var curr = line.startingClef;
+        if (beginningLyrics)
+            LyricArray.setNotation(beginningLyrics, curr);
+        if (curr.hasLyrics())
+            LyricArray.mergeIn(line.lastLyrics, curr.lyrics);
+        var condensableSpaces = Object.assign([], { sum: 0 });
+        var stretch = { prev: null, prevLyrics: [], accidental: null, sum: 0, custos: null, sumWithoutCustos: 0 };
+        var prevNeume = curr;
+        // a translation that the line can't break within, until its end neume
+        var translationStart = null;
+        for (; i < notations.length; i++) {
+            if (!isHiddenAccidental(curr) && curr.constructor !== TextOnly)
+                prevNeume = curr;
+            curr = notations[i];
+            if (line.numNotationsOnLine > 0) {
+                // a clef just before a line break goes at the start of the next line
+                if (this.isClefLineBreak(i)) {
+                    line.clefLineBreak = notations[i + 1];
+                    lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, stretch, -infinitePenalty, !line.clefLineBreak.justify));
+                    return lineEnds;
+                }
+                var penalty = this.getPenalty(line, i, translationStart);
+                if (penalty < infinitePenalty)
+                    lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, stretch, penalty, false));
+            }
+            // (as in buildFromChantNotationIndex(), from what the notation's own
+            // layout left, whatever lines it was laid out on before)
+            resetNotation(ctxt, curr);
+            if (curr.isAccidental && curr.soft)
+                curr.setHidden(ctxt, !line.isSoftAccidentalVisible(i));
+            else if (curr.isNeume)
+                line.spaceNeumeBeforeSoftAccidental(ctxt, i);
+            if (isHiddenAccidental(curr))
+                curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
+            else
+                line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
+            if (curr.hasLyrics())
+                LyricArray.mergeIn(line.lastLyrics, curr.lyrics);
+            if (translationStart && curr === translationStart.translationText[0].endNeume)
+                translationStart = null;
+            else if (curr.translationText && curr.translationText.length && curr.translationText[0].endNeume)
+                translationStart = curr;
+            line.numNotationsOnLine++;
+            this.addToStretch(line, stretch, i);
+            if (curr.isClef)
+                ctxt.activeClef = curr;
+            if (curr.constructor === ChantLineBreak) {
+                lineEnds.push(this.getLineEnd(line, i + 1, condensableSpaces.sum, stretch, -infinitePenalty, !curr.justify));
+                return lineEnds;
+            }
+            if (curr.constructor === Custos)
+                line.custos = curr;
+            else if (curr.isNeume)
+                line.custos = null;
+            // the line can't go on once it's too full even when condensed
+            var right = curr.bounds.right();
+            if (curr.hasLyrics())
+                right = Math.max(right, LyricArray.getRight(curr.lyrics, false, true));
+            if (right - condensableSpaces.sum > line.staffRight)
+                return lineEnds;
+        }
+        lineEnds.push(this.getLineEnd(line, notations.length, condensableSpaces.sum, stretch, -infinitePenalty, true));
+        return lineEnds;
+    }
+    /**
+     * adds the space that justifying the line could stretch before the
+     * notation at index, which has just been laid out on it, to stretch, as
+     * findNeumesToJustify() would find it
+     */
+    addToStretch(line, stretch, index) {
+        var notation = this.score.notations[index], curr = notation;
+        // (an accidental is taken with the notation after it)
+        if (stretch.accidental) {
+            curr = stretch.accidental;
+            stretch.accidental = null;
+        }
+        else if (notation.isAccidental) {
+            stretch.accidental = notation;
+            return;
+        }
+        var prev = stretch.prev;
+        stretch.prev = notation;
+        if (!prev)
+            return;
+        LyricArray.mergeIn(stretch.prevLyrics, prev.lyrics);
+        if (!line.canJustifyBefore(prev, curr, notation, index, stretch.prevLyrics))
+            return;
+        var amount = this.getStretchBefore(curr);
+        if (!notation.hasLyrics() && notation.constructor === Custos) {
+            stretch.custos = notation;
+            stretch.sumWithoutCustos = stretch.sum;
+        }
+        else
+            stretch.sumWithoutCustos += amount;
+        stretch.sum += amount;
+    }
+    /** how far the space before a notation stretches, for a badness of 100 */
+    getStretchBefore(notation) {
+        var _a;
+        var notations = this.score.notations;
+        var index = (_a = notation.notationIndex) !== null && _a !== void 0 ? _a : notations.indexOf(notation);
+        var nextToBar = notation.isDivider || (index > 0 && notations[index - 1].isDivider);
+        return (nextToBar ? barStretch : wordStretch) * this.ctxt.staffInterval;
+    }
+    /**
+     * whether the clef at index goes at the start of the next line, along with
+     * the line break just after it, as buildFromChantNotationIndex() puts it
+     */
+    isClefLineBreak(index) {
+        var notations = this.score.notations;
+        return (!!notations[index].isClef &&
+            !notations[index].hasLyrics() &&
+            index + 1 < notations.length - 1 &&
+            notations[index + 1].constructor === ChantLineBreak &&
+            !notations[index + 1].hasLyrics());
+    }
+    /**
+     * Gregorio's penalty for breaking the line just before the notation at
+     * index, or infinitePenalty where the line can't break; translationStart is
+     * the notation with a translation that is still going on there
+     */
+    getPenalty(line, index, translationStart) {
+        var notations = this.score.notations, prev = notations[index - 1], next = notations[index], firstNote = next.notes && next.notes[0];
+        // nowhere that buildFromChantNotationIndex() wouldn't break a line either
+        if (next.isDivider ||
+            next.constructor === Custos ||
+            next.constructor === ChantLineBreak ||
+            isTextOnlyBeforeDivider(notations, index) ||
+            prev.firstWithNoWidth ||
+            translationStart ||
+            (firstNote && (firstNote.shape === NoteShape.Quilisma || firstNote.shape === NoteShape.Inclinatum)) ||
+            (prev.keepWithNext && !prev.allowLineBreakBeforeNext) ||
+            this.leavesTooLittleForLastLine(index) ||
+            // (nor in a no-line-break or euouae area, gabc <nlba> or <eu>)
+            line.keepsInArea(index - 1))
+            return infinitePenalty;
+        if (next.isClef)
+            return penalties.clefChange;
+        if (prev.isDivider)
+            return penalties.afterBar;
+        if (next.firstOfParentheses)
+            return this.startsWord(index) ? penalties.endOfWord : penalties.endOfSyllable;
+        // a syllable breaks only at a space between its neumes in the gabc, and
+        // only if it is long enough
+        var lastNote = prev.notes && prev.notes[prev.notes.length - 1];
+        if (!prev.allowLineBreakBeforeNext || !lastNote || !breakableSpaceRegex.test(lastNote.sourceGabc))
+            return infinitePenalty;
+        var counts = this.getNoteCounts(), notesBefore = counts.notesBeforeInSyllable[index], notes = counts.notesInSyllable[index];
+        if (notes < unbreakableSyllableNotes ||
+            notesBefore < unbreakableInitialNotes ||
+            notes - notesBefore < unbreakableFinalNotes)
+            return infinitePenalty;
+        return penalties.endOfElement;
+    }
+    /** whether the notation at index starts a word */
+    startsWord(index) {
+        var notations = this.score.notations, prev = notations[index - 1], next = notations[index];
+        // (each gabc word has a mapping of its own)
+        if (next.mapping && prev.mapping)
+            return next.mapping !== prev.mapping;
+        return (next.hasLyrics() &&
+            (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
+                next.lyrics[0].lyricType === LyricType.SingleSyllable));
+    }
+    /**
+     * whether a line break before the notation at index would leave fewer than
+     * ctxt.minSyllablesLastLine syllables and ctxt.minNotesLastLine notes for
+     * the last line
+     */
+    leavesTooLittleForLastLine(index) {
+        var ctxt = this.ctxt;
+        if (!ctxt.minSyllablesLastLine || !ctxt.minNotesLastLine)
+            return false;
+        var counts = this.getNoteCounts();
+        return (counts.syllablesFrom[index] < ctxt.minSyllablesLastLine && counts.notesFrom[index] < ctxt.minNotesLastLine);
+    }
+    /**
+     * for each notation, the notes in its syllable, and in its syllable before
+     * it; and the syllables with text and the notes from it to the end of the
+     * score
+     */
+    getNoteCounts() {
+        if (!this.noteCounts) {
+            var notations = this.score.notations, n = notations.length;
+            var counts = (this.noteCounts = {
+                notesInSyllable: new Array(n),
+                notesBeforeInSyllable: new Array(n),
+                syllablesFrom: new Array(n + 1).fill(0),
+                notesFrom: new Array(n + 1).fill(0)
+            });
+            var syllableStart = 0, notes = 0;
+            var endSyllable = (end) => {
+                for (var k = syllableStart; k < end; k++)
+                    counts.notesInSyllable[k] = notes;
+            };
+            for (var k = 0; k < n; k++) {
+                var notation = notations[k];
+                if (notation.firstOfParentheses && k > 0) {
+                    endSyllable(k);
+                    syllableStart = k;
+                    notes = 0;
+                }
+                counts.notesBeforeInSyllable[k] = notes;
+                if (notation.isNeume)
+                    notes += notation.notes.length;
+            }
+            endSyllable(n);
+            for (k = n - 1; k >= 0; k--) {
+                counts.syllablesFrom[k] = counts.syllablesFrom[k + 1] + (notations[k].hasLyrics() ? 1 : 0);
+                counts.notesFrom[k] = counts.notesFrom[k + 1] + (notations[k].notes || []).length;
+            }
+        }
+        return this.noteCounts;
+    }
+    /** what the line laid out so far would be like if it ended just before the notation at end */
+    getLineEnd(line, end, shrink, stretchable, penalty, ragged) {
+        var ctxt = this.ctxt, notations = this.score.notations;
+        // as getWhitespaceOnRight() works it out once the line is built, with a
+        // hyphen after the last syllable if its word goes on to the next line, and
+        // the custos at the end of the line
+        var last = notations[end - 1];
+        var neumeRight = last.bounds.right() + last.calculatedTrailingSpace;
+        var lyricRight = line.lastLyrics.length ? LyricArray.getRight(line.lastLyrics, true, true) : 0;
+        var custos = !!line.custos;
+        if (line.custos) {
+            neumeRight += line.custos.bounds.width + line.custos.leadingSpace;
+            if (line.custos.hasLyrics())
+                lyricRight = LyricArray.getRight(line.custos.lyrics, false, true);
+        }
+        else if (end < notations.length && line.wantsEolCustos(ctxt)) {
+            for (var k = end; k < notations.length && !custos; k++)
+                custos = !!notations[k].isNeume;
+            if (custos)
+                neumeRight += Glyphs.CustosLong.bounds.width * ctxt.glyphScaling;
+        }
+        var space = line.staffRight - Math.max(lyricRight, neumeRight);
+        // and how far it stretches, which only matters for a line that isn't
+        // full and isn't ragged
+        var stretch = 0;
+        if (space >= 0.5 && !ragged)
+            stretch = this.getStretch(line, end, custos, stretchable);
+        return { end, space, shrink, stretch, penalty, ragged };
+    }
+    /**
+     * how far a line that ends just before the notation at end stretches, for a
+     * badness of 100, when justifyElements() justifies it: the space before
+     * each notation in findNeumesToJustify() is stretched by the same amount
+     * (as added up in stretchable by addToStretch())
+     */
+    getStretch(line, end, custos, stretchable) {
+        var ctxt = this.ctxt, notations = this.score.notations, stretch = 0;
+        if (stretchable.accidental) {
+            // (which findNeumesToJustify() takes with the notation after the line)
+            line.findNeumesToJustify([]);
+            for (var notation of line.toJustify)
+                stretch += this.getStretchBefore(notation);
+        }
+        else
+            stretch =
+                stretchable.custos && stretchable.custos === line.custos ? stretchable.sumWithoutCustos : stretchable.sum;
+        // (and before the custos, if the next line starts a word)
+        var next = notations[end];
+        if (custos &&
+            next &&
+            next.hasLyrics() &&
+            (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
+                next.lyrics[0].lyricType === LyricType.SingleSyllable))
+            stretch += wordStretch * ctxt.staffInterval;
+        return stretch;
+    }
+}
+//# sourceMappingURL=Exsurge.Chant.LineBreaking.js.map

@@ -30,6 +30,7 @@ import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
 import { escapeChar, escapedCharSource, restoreEscapes } from "./gabcEscapes.js";
+import { texLengthToStaffIntervals } from "./texLengths.js";
 var gabcStaffPosition = Neumes.gabcStaffPosition;
 // a linea (gabc =), or a punctum linea (R or r0)
 var isLinea = (note) => note.shape === NoteShape.Default &&
@@ -326,38 +327,6 @@ var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])
 //  4. { or } to indicate opening/closing (this group will be null if the metric version is used)
 //  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
 var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
-// a TeX length: a number (with TeX's . or , for the decimal point) and a unit
-// in either case, maybe with true before it (the same at TeX's usual
-// magnification), and any stretch and shrink after it (plus …, minus …)
-var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:true\s*)?([a-z]{2})(?:\s*(?:plus|minus).*)?\s*$/i;
-// TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
-var __texUnits = {
-    sp: 1,
-    pt: 65536,
-    bp: (65536 * 72.27) / 72,
-    pc: 65536 * 12,
-    in: 65536 * 72.27,
-    cm: (65536 * 72.27) / 2.54,
-    mm: (65536 * 72.27) / 25.4,
-    dd: (65536 * 1238) / 1157,
-    cc: (65536 * 12 * 1238) / 1157,
-    em: 65536 * 10,
-    ex: 65536 * 4.30554
-};
-// a staff interval (from a line to the next space) in scaled points at
-// Gregorio's default staff size, \gre@factor 17: half the distance between
-// lines, (\gre@dimen@interstafflinedistancebase + \gre@dimen@stafflinethicknessbase) * 17
-var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
-// a TeX length in staff intervals at Gregorio's default staff size, or
-// undefined if it isn't a length exsurge can read (TeX can take a macro)
-function texLengthToStaffIntervals(length) {
-    var results = length.match(__texLengthRegex);
-    var unit = results && results[2].toLowerCase();
-    if (!unit || !__texUnits.hasOwnProperty(unit))
-        return undefined;
-    return ((Number(results[1].replace(",", ".")) * __texUnits[unit]) /
-        __gregorioStaffIntervalInSp);
-}
 // Gregorio's slurs, inside [ and ] after a note: [oslur:s;w,h], or [oslur:s{]
 // and [oslur:s}] for one from note to note (and uslur under the notes).  The
 // capturing groups are:
@@ -734,8 +703,8 @@ export class Gabc {
      * turns: gabc, then the NABC of each line, then gabc again.  Returns the
      * notes with the NABC and the |s masked (keeping their length), but with a
      * / at a | between two parts of gabc, which Gregorio makes separate
-     * elements, and each part of gabc that has NABC, by where it starts in the
-     * notes, and where it put the /s.  The NABC of a part of gabc that's empty,
+     * elements, and each part of gabc that has NABC, by where it starts and ends
+     * in the notes, and where it put the /s.  The NABC of a part of gabc that's empty,
      * which Gregorio gives an element of its own, goes with the part before it,
      * after a / (a space in NABC).
      */
@@ -756,7 +725,7 @@ export class Gabc {
                 else if (i > 0)
                     gabc += __commentMask;
                 if (snippet.trim() || !part)
-                    parts.push((part = { index, nabc: [] }));
+                    parts.push((part = { index, end: index + snippet.length, nabc: [] }));
                 if (snippet.trim())
                     lastGabc = snippet;
                 gabc += snippet;
@@ -776,9 +745,10 @@ export class Gabc {
     /**
      * Applies the settings in a gabc header to a score, as Gregorio does.
      * exsurge doesn't otherwise read them, so call this after making the score,
-     * and again after updating its mappings (so that new lyrics get the
-     * header's language, and changes to the header take effect).  The score
-     * is then laid out again where it needs to be.
+     * and again after updating its mappings if the header has changed.  The
+     * score keeps what it applies, so the lyrics of edits get the header's
+     * language without it.  The score is then laid out again where it needs
+     * to be.
      *
      * - annotation: the first two, one line each, as the score's annotation.
      * - mode, mode-modifier and mode-differentia, if there is no annotation
@@ -786,9 +756,9 @@ export class Gabc {
      * - staff-lines: 2 to 5, as the score's staffLineCount.
      * - language: Latin, English, Spanish, Church Slavonic (also for Polish,
      *   Czech and Slovak, as in Gregorio) or Hungarian, by name or ISO 639
-     *   code, as the language of the score's lyrics, so that ctxt.defaultLanguage stays as
-     *   it is for other scores.  A language that exsurge doesn't have leaves
-     *   them as they are.
+     *   code, as the score's language, which its lyrics are centered for, so
+     *   that ctxt.defaultLanguage stays as it is for other scores.  A language
+     *   that exsurge doesn't have leaves them as they are.
      * - with options.legacy, the headers that Gregorio no longer reads:
      *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
      *   useDropCap, and centering-scheme (latine or english) as the language
@@ -839,14 +809,10 @@ export class Gabc {
                 __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()] ||
                     language;
         if (language) {
-            for (let notation of score.notations) {
-                for (let lyric of notation.lyrics) {
-                    if (lyric && lyric.language !== language) {
-                        lyric.language = language;
-                        notation.needsLayout = true;
-                    }
-                }
-            }
+            // (which the lyrics of later edits get too, from updateNotations())
+            score.language = language;
+            for (let notation of score.notations)
+                score.updateLanguage(notation);
         }
         if (options.legacy) {
             var initialStyle = headerText(header["initial-style"]);
@@ -1108,20 +1074,10 @@ export class Gabc {
                             for (l = 0; l < curNotation.notes.length; ++l) {
                                 let note = curNotation.notes[l];
                                 note.sourceIndex += sourceIndexDiff;
+                                if (note.choralSign)
+                                    note.choralSign.sourceIndex += sourceIndexDiff;
                                 note.pitch = ctxt.activeClef.staffPositionToPitch(note.staffPosition);
-                                if (note.braceEnd && note.braceEnd.automatic)
-                                    delete note.braceEnd;
-                                if (this.needToEndBrace && !note.braceStart && !note.braceEnd) {
-                                    note.braceEnd = new Markings.BracePoint(note, this.needToEndBrace.isAbove, this.needToEndBrace.shape, this.needToEndBrace.attachment ===
-                                        Markings.BraceAttachment.Left
-                                        ? Markings.BraceAttachment.Right
-                                        : Markings.BraceAttachment.Left);
-                                    note.braceEnd.automatic = true;
-                                    delete this.needToEndBrace;
-                                }
-                                else if (note.braceStart && note.braceStart.automatic) {
-                                    this.needToEndBrace = note.braceStart;
-                                }
+                                this.endAutomaticBrace(note);
                             }
                         }
                         if (curNotation.translationText) {
@@ -1143,7 +1099,10 @@ export class Gabc {
                                 curNotation.sourceIndex += sourceIndexDiff;
                             }
                             for (l = 0; l < curNotation.lyrics.length; ++l) {
-                                curNotation.lyrics[l].sourceIndex += sourceIndexDiff;
+                                let lyric = curNotation.lyrics[l];
+                                lyric.sourceIndex += sourceIndexDiff;
+                                if (lyric.dropCap)
+                                    lyric.dropCap.sourceIndex += sourceIndexDiff;
                             }
                             if (curNotation.alText) {
                                 for (l = 0; l < curNotation.alText.length; ++l) {
@@ -1211,7 +1170,9 @@ export class Gabc {
         for (var i = 0; i < words.length; i++) {
             sourceIndex += wordLength;
             wordLength = words[i].length + 1;
-            var word = words[i].trim();
+            // (the word as it is, which starts at sourceIndex, as in
+            // updateMappingsFromSource(): its syllables skip any space it starts with)
+            var word = words[i];
             if (isEmptyWord(word))
                 continue;
             var mapping = this.createMappingFromWord(ctxt, word, sourceIndex, lastTranslationNeumes);
@@ -1365,13 +1326,26 @@ export class Gabc {
                 : null;
             var items = this.parseNotations(ctxt, nabc ? (isEmptyWord(nabc.gabc) ? "" : nabc.gabc) : notationData, notationsSourceIndex, insertionIndex);
             if (nabc) {
+                const sourceIndexOf = (item) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex);
+                // (a clef, which may become a line's starting clef, and a line break
+                // don't draw NABC)
+                const drawsNabc = (item) => !!item && !item.isClef && item.constructor !== ChantLineBreak;
                 for (let part of nabc.parts) {
                     // the first notation of the part, or the last one before it
                     let partIndex = notationsSourceIndex + part.index;
-                    let notation = items.find((item) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex) >= partIndex) ||
-                        items[items.length - 1];
+                    let notation = items.find((item) => sourceIndexOf(item) >= partIndex) || items[items.length - 1];
                     if (!notation)
                         continue;
+                    if (!drawsNabc(notation)) {
+                        // the next notation of the part, or else one of its own just
+                        // after it, without notes (as Gregorio gives the NABC of a part of
+                        // gabc that's empty an element of its own)
+                        let index = items.indexOf(notation) + 1;
+                        let next = items[index];
+                        if (!drawsNabc(next) || sourceIndexOf(next) >= notationsSourceIndex + part.end)
+                            items.splice(index, 0, (next = new TextOnly(partIndex, 0)));
+                        notation = next;
+                    }
                     let notationNabc = (notation.nabc = notation.nabc || []);
                     part.nabc.forEach((line, v) => (notationNabc[v] = joinNabc(notationNabc[v], line)));
                 }
@@ -1388,7 +1362,10 @@ export class Gabc {
             }
             if (items.length === 0)
                 continue;
-            this.setAutomaticLeanings([].concat(...items.map((item) => item.notes || [])));
+            var itemNotes = [].concat(...items.map((item) => item.notes || []));
+            this.setAutomaticLeanings(itemNotes);
+            for (let note of itemNotes)
+                this.endAutomaticBrace(note);
             // (and the areas that the word before left for its next syllable)
             setAreaBoundaries(items, this.marksForNext.areas);
             this.marksForNext = Object.assign(Object.assign({}, this.marksForNext), { areas: {} });
@@ -1669,6 +1646,10 @@ export class Gabc {
         this.marksForNext = Object.assign(Object.assign({}, this.marksForNext), { noteMarks: [] });
         // the space before the next note, where a mark between notes ends the neume
         var spaceBeforeNextNote = null;
+        // whether the next notation is in the same one of Gregorio's elements as
+        // the last (see ChantNotationElement.continuesElement): after a !, /!,
+        // /0, [[ or ]], or after an accidental
+        var joinsNextElement = false;
         // the notes in Gregorio's automatic fusions (@[…]), which end with the notes
         var autoFused = new Set();
         var autoFusing = false;
@@ -1709,6 +1690,8 @@ export class Gabc {
             addNotation(null);
             if (endsNeume && !breakable)
                 notations[notations.length - 1].allowLineBreakBeforeNext = false;
+            // (Gregorio's spaces inside an element; any other ends it)
+            joinsNextElement = atom === "/0" || atom === "/!";
         };
         var addNotation = (notation) => {
             // first, if we have any notes left over, we create a neume out of them
@@ -1717,6 +1700,7 @@ export class Gabc {
                 var neumes = notes.some((note) => note.fused || autoFused.has(note))
                     ? this.createFusedNeumes(ctxt, notes, trailingSpace, autoFused)
                     : this.createNeumesFromNotes(ctxt, notes, trailingSpace);
+                joinsNextElement = this.joinElements(neumes, joinsNextElement);
                 for (var i = 0; i < neumes.length; i++)
                     notations.push(neumes[i]);
                 notes = [];
@@ -1729,6 +1713,10 @@ export class Gabc {
                 let prevNotation = notations[notations.length - 1];
                 notation.sourceIndex = sourceIndex;
                 notation.sourceGabc = match[0];
+                // (as in Gregorio, an accidental starts an element, unless a !, /!
+                // or /0 is before it, and the notes after it are in its element)
+                notation.continuesElement = !!notation.isAccidental && joinsNextElement;
+                joinsNextElement = !!notation.isAccidental;
                 if (notation.isClef) {
                     ctxt.activeClef = notation;
                     if (secondClef)
@@ -1957,6 +1945,7 @@ export class Gabc {
                     trailingSpace = 0;
                     addToLastSourceGabc(atom);
                     addNotation(null);
+                    joinsNextElement = true;
                     break;
                 case " ":
                     // (by default the same width as //, see ctxt.neumeSpaceMultipliers)
@@ -2040,6 +2029,8 @@ export class Gabc {
                             neume.firstWithNoWidth = bracketedNotations[0];
                         });
                         notations.push(...bracketedNotations);
+                        // (Gregorio ends an element at a { or a })
+                        joinsNextElement = false;
                     }
                     else {
                         // looks like it's a note
@@ -2047,6 +2038,9 @@ export class Gabc {
                             if (notes.length) {
                                 trailingSpace = spaceBeforeNextNote;
                                 addNotation(null);
+                                // (Gregorio keeps the notes either side of [[ or ]] in one
+                                // element, as it does at a !, and ends it at <nlba> or </nlba>)
+                                joinsNextElement = spaceBeforeNextNote === 0;
                             }
                             spaceBeforeNextNote = null;
                         }
@@ -2100,6 +2094,112 @@ export class Gabc {
         return new FaClef(staffPosition, 2, flat
             ? new Signs.Accidental(staffPosition <= 3 ? staffPosition + 3 : staffPosition - 4, Signs.AccidentalType.Flat)
             : null);
+    }
+    // which of Gregorio's elements the neumes made from one run of notes are
+    // in (the first is in the element before it if joinsPreviousElement), as
+    // gabc_det_elements_from_glyphs() decides it
+    // (src/gabc/gabc-elements-determination.c).  It goes by Gregorio's
+    // glyphs, which nextGregorioGlyph() finds in the notes of the neumes
+    // between fused ones, whatever neumes exsurge makes of them.  A fused
+    // neume (gabc @) is one glyph, as Gregorio keeps fused glyphs in one
+    // element.  A glyph starts an element, except that a glyph fused to the
+    // one before, a stropha and descending inclinata join the glyph before
+    // them, a glyph joins an inclinatum (or ascending inclinata) before it, a
+    // single note at the same pitch, inclinata less than a third away or a
+    // pes it rises from as a virga; but a mora or a stropha aucta ends an
+    // element.  Returns whether an accidental right after the notes is in
+    // their last element (after an inclinatum).
+    static joinElements(neumes, joinsPreviousElement) {
+        var tailLiquescence = LiquescentType.Large | LiquescentType.Small | LiquescentType.Ascending | LiquescentType.Descending;
+        var isInclinatum = (note) => note.shape === NoteShape.Inclinatum;
+        var glyphs = [];
+        var run = [];
+        var runIsFused = false;
+        var endRun = () => {
+            for (let i = 0; i < run.length;) {
+                let glyph = nextGregorioGlyph(run, i);
+                glyphs.push({ notes: run.slice(i, i + glyph.length), kind: glyph.kind, fused: runIsFused && i === 0 });
+                i += glyph.length;
+            }
+            run = [];
+        };
+        for (let neume of neumes) {
+            let isFusedNeume = neume instanceof Neumes.FusedNeume;
+            if (isFusedNeume || neume.fusedToPrevious || !run.length) {
+                endRun();
+                runIsFused = !!neume.fusedToPrevious;
+            }
+            if (isFusedNeume)
+                glyphs.push({ notes: neume.notes.slice(), fused: !!neume.fusedToPrevious, isFusedNeume });
+            else
+                run.push(...neume.notes);
+        }
+        endRun();
+        // (a glyph of one note: a punctum, a virga or the like, and a bivirga or
+        // distropha, the glyphs of a virga or stropha with more notes)
+        var isSingleNote = (glyph) => !isInclinatum(glyph.notes[0]) &&
+            (glyph.notes.length === 1 ||
+                (!glyph.isFusedNeume &&
+                    (glyph.notes[0].shape === NoteShape.Virga || glyph.notes[0].shape === NoteShape.Stropha)));
+        var isInclinata = (glyph) => isInclinatum(glyph.notes[0]);
+        var isPes = (glyph) => !glyph.isFusedNeume && glyph.kind === Neumes.FusedGlyphKind.Pes;
+        var isVirga = (glyph) => !glyph.isFusedNeume && glyph.kind === Neumes.FusedGlyphKind.Virga;
+        var isStropha = (glyph) => glyph.notes.length === 1 && glyph.notes[0].shape === NoteShape.Stropha;
+        var isDescending = (glyph) => glyph.notes.length > 1 && glyph.notes[glyph.notes.length - 1].staffPosition < glyph.notes[0].staffPosition;
+        var last = (glyph) => glyph.notes[glyph.notes.length - 1];
+        var doNotCut = joinsPreviousElement, forceCut = false, previous = null;
+        // (the first notes of the glyphs that start an element)
+        var starts = new Set();
+        glyphs.forEach((glyph, i) => {
+            var cut = false;
+            if (i > 0 && glyph.fused)
+                doNotCut = true;
+            else if (forceCut) {
+                cut = true;
+                previous = null;
+            }
+            forceCut = false;
+            if (isInclinata(glyph) && !isDescending(glyph)) {
+                if (!doNotCut)
+                    cut = true;
+                doNotCut = true;
+            }
+            else if (isStropha(glyph) || (isInclinata(glyph) && isDescending(glyph))) {
+                doNotCut = false;
+                if (isStropha(glyph) && last(glyph).liquescent & (LiquescentType.Ascending | LiquescentType.Descending))
+                    forceCut = true;
+            }
+            else {
+                let step = previous ? glyph.notes[0].staffPosition - last(previous).staffPosition : 0;
+                if (previous &&
+                    !(last(previous).liquescent & tailLiquescence) &&
+                    ((isSingleNote(previous) && step === 0) ||
+                        (isInclinata(previous) && isSingleNote(glyph) && Math.abs(step) < 2) ||
+                        (isPes(previous) && isVirga(glyph) && step >= 0)))
+                    doNotCut = false;
+                else if (doNotCut)
+                    doNotCut = false;
+                else
+                    cut = true;
+            }
+            if (last(glyph).morae.length)
+                forceCut = true;
+            previous = glyph;
+            // (the first glyph is in the element before it only after a !, /!, /0 or an accidental)
+            if (i === 0)
+                cut = !joinsPreviousElement;
+            if (cut)
+                starts.add(glyph.notes[0]);
+        });
+        // (a neume continues the element before it unless a glyph that starts one starts the neume)
+        for (let neume of neumes) {
+            neume.continuesElement = !starts.has(neume.notes[0]);
+            neume.notes.forEach((note, i) => {
+                if (i > 0 && starts.has(note))
+                    note.startsElement = true;
+            });
+        }
+        return doNotCut && !forceCut;
     }
     static createNeumesFromNotes(ctxt, notes, finalTrailingSpace) {
         var neumes = [];
@@ -2710,9 +2810,7 @@ export class Gabc {
             if (fusedToPrevious[n + 1]) {
                 if (current instanceof Neumes.FusedNeume)
                     current.fusedToNext = true;
-                var nextNeume = neumes[n + 1];
-                if (nextNeume instanceof Neumes.FusedNeume)
-                    nextNeume.fusedToPrevious = true;
+                neumes[n + 1].fusedToPrevious = true;
                 current.trailingSpace = 0;
                 current.keepWithNext = true;
                 current.allowLineBreakBeforeNext = false;
@@ -3030,16 +3128,6 @@ export class Gabc {
                     break;
             }
         }
-        if (this.needToEndBrace &&
-            !note.braceStart &&
-            !note.braceEnd &&
-            !/[xXyY#]/.test(c)) {
-            note.braceEnd = new Markings.BracePoint(note, this.needToEndBrace.isAbove, this.needToEndBrace.shape, this.needToEndBrace.attachment === Markings.BraceAttachment.Left
-                ? Markings.BraceAttachment.Right
-                : Markings.BraceAttachment.Left);
-            note.braceEnd.automatic = true;
-            delete this.needToEndBrace;
-        }
         notes.push(note);
     }
     // an instruction in this context is referring to a special gabc coding found after
@@ -3105,10 +3193,31 @@ export class Gabc {
             note.braceStart = new Markings.BracePoint(note, above, shape, attachmentPoint);
         else
             note.braceEnd = new Markings.BracePoint(note, above, shape, attachmentPoint);
-        // just have the next note end a brace that uses length;
+        // just have the next note end a brace that uses length (see endAutomaticBrace())
         if (results[5]) {
             note.braceStart.automatic = true;
             note.braceStart.length = texLengthToStaffIntervals(results[5]);
+        }
+    }
+    /**
+     * Has the note end the brace that a brace given a length (gabc
+     * [ob:1;6mm] and the like) left open before it, as the next note does
+     * unless it has a brace of its own, or leaves the note's own such brace
+     * open for the notes after it.  Each note of the notations is passed in
+     * order, when they're parsed and again when they're kept by
+     * updateMappingsFromSource(), which first takes away the end it gave.
+     */
+    static endAutomaticBrace(note) {
+        if (note.braceEnd && note.braceEnd.automatic)
+            delete note.braceEnd;
+        if (this.needToEndBrace && !note.braceStart && !note.braceEnd) {
+            note.braceEnd = new Markings.BracePoint(note, this.needToEndBrace.isAbove, this.needToEndBrace.shape, this.needToEndBrace.attachment === Markings.BraceAttachment.Left
+                ? Markings.BraceAttachment.Right
+                : Markings.BraceAttachment.Left);
+            note.braceEnd.automatic = true;
+            delete this.needToEndBrace;
+        }
+        else if (note.braceStart && note.braceStart.automatic) {
             this.needToEndBrace = note.braceStart;
         }
     }
@@ -3119,10 +3228,15 @@ export class Gabc {
             return true;
         var results = instruction.match(__ledgerLineRegex);
         if (results) {
-            if (results[2] && results[1] === "o")
-                note.ledgerLineAbove = results[2] === "1";
-            else if (results[2])
-                note.ledgerLineBelow = results[2] === "1";
+            // (of [oll:0/1] and [ull:0/1], the first on the note counts, as in Gregorio)
+            if (results[2] && results[1] === "o") {
+                if (note.ledgerLineAbove === undefined)
+                    note.ledgerLineAbove = results[2] === "1";
+            }
+            else if (results[2]) {
+                if (note.ledgerLineBelow === undefined)
+                    note.ledgerLineBelow = results[2] === "1";
+            }
             else {
                 let line = this.customLedgerLine(results);
                 if (line)
