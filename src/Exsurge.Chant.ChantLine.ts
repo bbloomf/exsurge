@@ -55,8 +55,64 @@ import type {
 } from "./Exsurge.Drawing.js";
 
 // a soft accidental that isn't printed takes no space, unless it has to hold lyrics
-const isHiddenAccidental = (notation: ChantNotationElement) =>
+export const isHiddenAccidental = (notation: ChantNotationElement) =>
   notation.isAccidental && (notation as Accidental).hidden && !notation.hasLyrics();
+
+// (these, like isHiddenAccidental, are shared with LineBreaker.layOutLineFrom(),
+// which lays out lines as buildFromChantNotationIndex() does)
+
+/** whether only text-only notations come between the notation at index, which is one, and the next divider */
+export function isTextOnlyBeforeDivider(notations: ChantNotationElement[], index: number) {
+  if (notations[index].constructor !== TextOnly) return false;
+  for (let k = index + 1; k < notations.length; k++) {
+    if (notations[k].isDivider) return true;
+    if (notations[k].constructor !== TextOnly) return false;
+  }
+  return false;
+}
+
+/**
+ * copies of the lyrics of the double bar that ends a line, which go at the
+ * start of the next line, the first at x = 0; or null, if it has none to go there
+ */
+export function copyBeginningLyrics(ctxt: ChantContext, notation: ChantNotationElement) {
+  if (notation.constructor !== DoubleBar) return null;
+  var bar = notation as DoubleBar;
+  if (!bar.hasLyrics() || (bar.lyrics.length === 1 && bar.lyrics[0].text.match(/^(i\.?)+j\.?/))) return null;
+  var lyrics = bar.lyrics.map((lyric) => {
+    var newLyric = new Lyric(
+      ctxt,
+      lyric.originalText,
+      lyric.lyricType,
+      lyric.notation,
+      lyric.notations,
+      lyric.sourceIndex
+    );
+    newLyric.elidesToNext = lyric.elidesToNext;
+    return newLyric;
+  });
+  var minX = lyrics.map((l) => l.bounds.x).reduce((a, b) => (a < b ? a : b));
+  lyrics.forEach((l) => {
+    l.bounds.x -= minX;
+  });
+  return lyrics;
+}
+
+/**
+ * puts the lyrics of a notation that an earlier layout of the lines wrapped
+ * (in setMaxWidth()) or moved (in centerDividers()) back to where the
+ * notation's layout put them
+ */
+export function restoreLyrics(ctxt: ChantContext, notation: ChantNotationElement) {
+  if (!notation.hasLyrics() || !notation.lyrics.some((lyric) => lyric.needsLayout)) return;
+  for (let lyric of notation.lyrics) {
+    if (lyric.needsLayout) {
+      lyric.recalculateMetrics(ctxt);
+      lyric.needsLayout = false;
+    }
+  }
+  notation.alignLyrics(ctxt);
+}
 
 // a notation whose own trailing space is negative (gabc /[-1]) moves the next one back
 const hasBackspace = (ctxt: ChantContext, notation: ChantNotationElement) =>
@@ -835,33 +891,11 @@ export class ChantLine extends ChantLayoutElement {
         this.paddingLeft = (padding - this.score.dropCap.bounds.width) / 2;
     } else {
       prev = notations[newElementStart - 1];
-      if (
-        prev.constructor === DoubleBar &&
-        (prev as DoubleBar).hasLyrics() &&
-        ((prev as DoubleBar).lyrics.length > 1 ||
-          !(prev as DoubleBar).lyrics[0].text.match(/^(i\.?)+j\.?/))
-      ) {
-        beginningLyrics = (prev as DoubleBar).lyrics.map((lyric) => {
-          var newLyric = new Lyric(
-            ctxt,
-            lyric.originalText,
-            lyric.lyricType,
-            lyric.notation,
-            lyric.notations,
-            lyric.sourceIndex
-          );
-          newLyric.elidesToNext = lyric.elidesToNext;
-          // Hide the original lyric by setting its bounds.y to an extremely high number.
-          // If the chant is re-laid out, this value will be recalculated so that it won't stay hidden.
-          lyric.bounds.y = Number.MAX_SAFE_INTEGER;
-          return newLyric;
-        });
-        var minX = beginningLyrics
-          .map(l => l.bounds.x)
-          .reduce((a, b) => a < b ? a : b);
-        beginningLyrics.forEach(l => {
-          l.bounds.x -= minX;
-        });
+      beginningLyrics = copyBeginningLyrics(ctxt, prev);
+      if (beginningLyrics) {
+        // Hide the original lyrics by setting their bounds.y to an extremely high number.
+        // If the chant is re-laid out, this value will be recalculated so that it won't stay hidden.
+        for (let lyric of prev.lyrics) lyric.bounds.y = Number.MAX_SAFE_INTEGER;
       }
     }
 
@@ -1022,17 +1056,7 @@ export class ChantLine extends ChantLayoutElement {
         textOnlyStartIndex = i;
       }
 
-      // lyrics that an earlier layout of the lines wrapped (in setMaxWidth()) or
-      // moved (in centerDividers()) go back to where the notation's layout put them
-      if (curr.hasLyrics() && curr.lyrics.some((lyric) => lyric.needsLayout)) {
-        for (let lyric of curr.lyrics) {
-          if (lyric.needsLayout) {
-            lyric.recalculateMetrics(ctxt);
-            lyric.needsLayout = false;
-          }
-        }
-        curr.alignLyrics(ctxt);
-      }
+      restoreLyrics(ctxt, curr);
 
       // try to fit the curr element on this line.
       // if it doesn't fit, we finish up here.
@@ -1133,25 +1157,15 @@ export class ChantLine extends ChantLayoutElement {
             extraTextOnlyLyricIndex
           ].getRight();
       } else if (fitsOnLine === false) {
-        const isTextOnlyBeforeDivider = (i: number) => {
-          const curr = notations[i];
-          if (curr.constructor !== TextOnly) return false;
-          // only TextOnly elements may come between it and the next divider
-          for (let k = i + 1; k < notations.length; k++) {
-            if (notations[k].isDivider) return true;
-            if (notations[k].constructor !== TextOnly) return false;
-          }
-          return false;
-        }
         // first check for elements that cannot begin a system: dividers and custodes
         while (
           this.plannedEnd !== i &&
           this.numNotationsOnLine > 1 &&
-          (curr.isDivider || curr.constructor === Custos || isTextOnlyBeforeDivider(i))
+          (curr.isDivider || curr.constructor === Custos || isTextOnlyBeforeDivider(notations, i))
         ) {
           curr = notations[--i];
           this.numNotationsOnLine--;
-          if (this.lastLyricsBeforeTextOnly && isTextOnlyBeforeDivider(i)) {
+          if (this.lastLyricsBeforeTextOnly && isTextOnlyBeforeDivider(notations, i)) {
             delete this.lastLyricsBeforeTextOnly;
           }
         }
