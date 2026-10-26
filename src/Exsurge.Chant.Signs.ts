@@ -493,6 +493,8 @@ export class Virgula extends Divider {
 
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
+    // (a high virgula is on the ledger line, whatever the number of staff lines)
+    if (this.high) this.staffPosition = ctxt.staffLineCount * 2 + 1;
 
     var glyph = new GlyphVisualizer(ctxt, GlyphCode.Virgula);
     glyph.setStaffPosition(ctxt, this.staffPosition);

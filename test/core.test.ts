@@ -917,6 +917,18 @@ describe("Gregorio ledger lines", function() {
     ]);
   });
 
+  it("keeps fused neumes, and the notes either side of brackets, in one element", function() {
+    // (a fused neume and a neume fused to the one before join its element,
+    // shown by their @, and so do the notes after [[ or ]]; a { } group ends it)
+    assert.deepStrictEqual(drawn("(c4) a(b@cdc) b(b@c@b) c(c[[b]]) d(b/0{c}d)"), [
+      "b_", "@_", "d_", "c", "b_", "@_", "@_", "c_", "b_", "b_", "c", "d"
+    ]);
+    const neumes = laidOut(new Exsurge.ChantContext(), "(c4) a(g@hih)").notations.filter(
+      (notation) => notation.isNeume
+    );
+    assert.deepStrictEqual(neumes.map((neume) => !!neume.continuesElement), [false, true]);
+  });
+
   it("finds the notes' ledger lines again when the notes around them change", function() {
     const ctxt = new Exsurge.ChantContext();
     const score = laidOut(ctxt, "(c4) a(j/!k) (::)");

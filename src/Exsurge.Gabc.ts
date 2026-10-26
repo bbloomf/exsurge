@@ -2120,8 +2120,8 @@ export class Gabc {
     // the space before the next note, where a mark between notes ends the neume
     var spaceBeforeNextNote: TrailingSpace | null = null;
     // whether the next notation is in the same one of Gregorio's elements as
-    // the last (see ChantNotationElement.continuesElement): after a !, /! or
-    // /0, or after an accidental
+    // the last (see ChantNotationElement.continuesElement): after a !, /!,
+    // /0, [[ or ]], or after an accidental
     var joinsNextElement = false;
     // the notes in Gregorio's automatic fusions (@[…]), which end with the notes
     var autoFused = new Set<Note>();
@@ -2533,12 +2533,17 @@ export class Gabc {
               neume.firstWithNoWidth = bracketedNotations[0];
             });
             notations.push(...bracketedNotations);
+            // (Gregorio ends an element at a { or a })
+            joinsNextElement = false;
           } else {
             // looks like it's a note
             if (spaceBeforeNextNote !== null) {
               if (notes.length) {
                 trailingSpace = spaceBeforeNextNote;
                 addNotation(null);
+                // (Gregorio keeps the notes either side of [[ or ]] in one
+                // element, as it does at a !, and ends it at <nlba> or </nlba>)
+                joinsNextElement = spaceBeforeNextNote === 0;
               }
               spaceBeforeNextNote = null;
             }
@@ -2619,84 +2624,54 @@ export class Gabc {
   // in (the first is in the element before it if joinsPreviousElement), as
   // gabc_det_elements_from_glyphs() decides it
   // (src/gabc/gabc-elements-determination.c).  It goes by Gregorio's
-  // glyphs: the neumes, and the parts that Gregorio makes into glyphs of
-  // their own (src/gabc/gabc-glyphs-determination.c), which end after a
-  // liquescent note and between notes more than a fifth apart, before a
-  // quilisma, a virga or an oriscus after other notes (but not in a bivirga
-  // or trivirga, or a salicus or a pes), and where inclinata start or end;
-  // a scandicus flexus is a scandicus and a punctum (which makes a flexus
-  // with a lower punctum after it), and a scandicus or porrectus starting
-  // with a quilisma is a quilisma pes or flexus and what comes after it.
-  // A fused neume (gabc @) is one glyph, as Gregorio keeps fused glyphs in
-  // one element.  A glyph starts an element, except that a glyph fused to
-  // the one before, a stropha and descending inclinata join the glyph
-  // before them, a glyph joins an inclinatum (or ascending inclinata) before
-  // it, a single note at the same pitch, inclinata less than a third away
-  // or a pes it rises from as a virga; but a mora or a stropha aucta ends an
+  // glyphs, which nextGregorioGlyph() finds in the notes of the neumes
+  // between fused ones, whatever neumes exsurge makes of them.  A fused
+  // neume (gabc @) is one glyph, as Gregorio keeps fused glyphs in one
+  // element.  A glyph starts an element, except that a glyph fused to the
+  // one before, a stropha and descending inclinata join the glyph before
+  // them, a glyph joins an inclinatum (or ascending inclinata) before it, a
+  // single note at the same pitch, inclinata less than a third away or a
+  // pes it rises from as a virga; but a mora or a stropha aucta ends an
   // element.  Returns whether an accidental right after the notes is in
   // their last element (after an inclinatum).
   static joinElements(neumes: Neumes.Neume[], joinsPreviousElement: boolean) {
-    // (a test that doesn't narrow neume's type, as the neume classes are alike)
-    var isA = (neume: Neumes.Neume, ...classes: (typeof Neumes.Neume)[]) =>
-      classes.some((neumeClass) => neume instanceof neumeClass);
     var tailLiquescence = LiquescentType.Large | LiquescentType.Small | LiquescentType.Ascending | LiquescentType.Descending;
     var isInclinatum = (note: Note) => note.shape === NoteShape.Inclinatum;
 
-    // (flexusTop is the punctum of a scandicus flexus, which a lower punctum makes a flexus with)
-    type Glyph = { notes: Note[]; neume: Neumes.Neume; flexusTop?: boolean };
+    // (fused is whether the glyph starts a neume fused to the one before)
+    type Glyph = { notes: Note[]; kind?: Neumes.FusedGlyphKind; fused: boolean; isFusedNeume?: boolean };
     var glyphs: Glyph[] = [];
-    for (let neume of neumes) {
-      if (neume instanceof Neumes.FusedNeume) {
-        glyphs.push({ notes: neume.notes.slice(), neume });
-        continue;
+    var run: Note[] = [];
+    var runIsFused = false;
+    var endRun = () => {
+      for (let i = 0; i < run.length; ) {
+        let glyph = nextGregorioGlyph(run, i);
+        glyphs.push({ notes: run.slice(i, i + glyph.length), kind: glyph.kind, fused: runIsFused && i === 0 });
+        i += glyph.length;
       }
-      // (a quilisma pes, or a quilisma flexus, ends after its second note)
-      let quilismaPes =
-        isA(neume, Neumes.Scandicus, Neumes.ScandicusFlexus, Neumes.Porrectus, Neumes.PorrectusFlexus) &&
-        neume.notes[0].shape === NoteShape.Quilisma;
-      let oriscusStartsGlyph = !isA(neume, Neumes.Salicus, Neumes.SalicusFlexus, Neumes.PesOriscus, Neumes.PesQuassus);
-      let virgaStartsGlyph = !isA(neume, Neumes.Bivirga, Neumes.Trivirga);
-      neume.notes.forEach((note, i) => {
-        let previous = neume.notes[i - 1];
-        let flexusTop = !quilismaPes && isA(neume, Neumes.ScandicusFlexus) && i === 3;
-        if (
-          !previous ||
-          (previous.liquescent & tailLiquescence && !(isInclinatum(previous) && isInclinatum(note))) ||
-          Math.abs(note.staffPosition - previous.staffPosition) > 5 ||
-          isInclinatum(note) !== isInclinatum(previous) ||
-          note.shape === NoteShape.Quilisma ||
-          (note.shape === NoteShape.Virga && virgaStartsGlyph) ||
-          (note.shape === NoteShape.Oriscus && oriscusStartsGlyph) ||
-          (quilismaPes && i === 2) ||
-          flexusTop
-        )
-          glyphs.push({ notes: [], neume, flexusTop });
-        glyphs[glyphs.length - 1].notes.push(note);
-      });
+      run = [];
+    };
+    for (let neume of neumes) {
+      let isFusedNeume = neume instanceof Neumes.FusedNeume;
+      if (isFusedNeume || neume.fusedToPrevious || !run.length) {
+        endRun();
+        runIsFused = !!neume.fusedToPrevious;
+      }
+      if (isFusedNeume) glyphs.push({ notes: neume.notes.slice(), fused: !!neume.fusedToPrevious, isFusedNeume });
+      else run.push(...neume.notes);
     }
-    // (whether a glyph is a whole neume of one of these classes)
-    var isWhole = (glyph: Glyph, ...classes: (typeof Neumes.Neume)[]) =>
-      glyph.notes.length === glyph.neume.notes.length && isA(glyph.neume, ...classes);
-    // (a note that Gregorio makes a glyph of its own is a punctum, a virga or the like)
+    endRun();
+
+    // (a glyph of one note: a punctum, a virga or the like, and a bivirga or
+    // distropha, the glyphs of a virga or stropha with more notes)
     var isSingleNote = (glyph: Glyph) =>
-      (glyph.notes.length === 1 && !isInclinatum(glyph.notes[0])) ||
-      isWhole(
-        glyph,
-        Neumes.Punctum,
-        Neumes.Virga,
-        Neumes.Bivirga,
-        Neumes.Trivirga,
-        Neumes.Oriscus,
-        Neumes.Apostropha,
-        Neumes.Distropha,
-        Neumes.Tristropha
-      );
+      !isInclinatum(glyph.notes[0]) &&
+      (glyph.notes.length === 1 ||
+        (!glyph.isFusedNeume &&
+          (glyph.notes[0].shape === NoteShape.Virga || glyph.notes[0].shape === NoteShape.Stropha)));
     var isInclinata = (glyph: Glyph) => isInclinatum(glyph.notes[0]);
-    // (a pes of its own, or the first notes of a scandicus that make one, and a virga)
-    var isPes = (glyph: Glyph) =>
-      glyph.notes.length === 2 && !isInclinata(glyph) && glyph.notes[1].staffPosition > glyph.notes[0].staffPosition;
-    var isVirga = (glyph: Glyph) => glyph.notes.length === 1 && glyph.notes[0].shape === NoteShape.Virga;
-    // (a stropha of its own, which is so even where exsurge makes a distropha of it and an inclinatum)
+    var isPes = (glyph: Glyph) => !glyph.isFusedNeume && glyph.kind === Neumes.FusedGlyphKind.Pes;
+    var isVirga = (glyph: Glyph) => !glyph.isFusedNeume && glyph.kind === Neumes.FusedGlyphKind.Virga;
     var isStropha = (glyph: Glyph) => glyph.notes.length === 1 && glyph.notes[0].shape === NoteShape.Stropha;
     var isDescending = (glyph: Glyph) =>
       glyph.notes.length > 1 && glyph.notes[glyph.notes.length - 1].staffPosition < glyph.notes[0].staffPosition;
@@ -2705,12 +2680,11 @@ export class Gabc {
     var doNotCut = joinsPreviousElement,
       forceCut = false,
       previous: Glyph | null = null;
-    // (whether a glyph starts a neume fused to the one before)
-    var isFused = (glyph: Glyph, i: number) =>
-      i > 0 && glyph.notes[0] === glyph.neume.notes[0] && !!glyph.neume.fusedToPrevious;
+    // (the first notes of the glyphs that start an element)
+    var starts = new Set<Note>();
     glyphs.forEach((glyph, i) => {
       var cut = false;
-      if (isFused(glyph, i)) doNotCut = true;
+      if (i > 0 && glyph.fused) doNotCut = true;
       else if (forceCut) {
         cut = true;
         previous = null;
@@ -2727,15 +2701,6 @@ export class Gabc {
         let step = previous ? glyph.notes[0].staffPosition - last(previous).staffPosition : 0;
         if (
           previous &&
-          previous.flexusTop &&
-          previous.notes.length === 1 &&
-          isWhole(glyph, Neumes.Punctum) &&
-          step < 0 &&
-          !doNotCut
-        ) {
-          // (one glyph)
-        } else if (
-          previous &&
           !(last(previous).liquescent & tailLiquescence) &&
           ((isSingleNote(previous) && step === 0) ||
             (isInclinata(previous) && isSingleNote(glyph) && Math.abs(step) < 2) ||
@@ -2750,9 +2715,16 @@ export class Gabc {
 
       // (the first glyph is in the element before it only after a !, /!, /0 or an accidental)
       if (i === 0) cut = !joinsPreviousElement;
-      if (glyph.notes[0] === glyph.neume.notes[0]) glyph.neume.continuesElement = !cut;
-      else if (cut) glyph.notes[0].startsElement = true;
+      if (cut) starts.add(glyph.notes[0]);
     });
+
+    // (a neume continues the element before it unless a glyph that starts one starts the neume)
+    for (let neume of neumes) {
+      neume.continuesElement = !starts.has(neume.notes[0]);
+      neume.notes.forEach((note, i) => {
+        if (i > 0 && starts.has(note)) note.startsElement = true;
+      });
+    }
     return doNotCut && !forceCut;
   }
 

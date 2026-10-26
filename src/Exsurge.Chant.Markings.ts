@@ -24,7 +24,7 @@
 //
 
 import { NoteShape, type Note } from "./Exsurge.Chant.js";
-import { LedgerLineSpecificity, type LedgerLineItem } from "./ledgerLines.js";
+import { isOnOrBeyond, LedgerLineSpecificity, type LedgerLineItem } from "./ledgerLines.js";
 import {
   ChantLayoutElement,
   GlyphCode,
@@ -308,12 +308,13 @@ export class HorizontalEpisema extends ChantLayoutElement {
     while (!hasEpisema(first)) first++;
     while (!hasEpisema(last)) last--;
     for (let i = first; i <= last; i++)
-      if (isAbove ? notes[i].staffPosition >= ledgerLine - 0.9 : notes[i].staffPosition <= ledgerLine + 0.9) return true;
+      if (isOnOrBeyond(notes[i].staffPosition, ledgerLine, isAbove)) return true;
 
     // the notes (and accidentals) of the syllable, in order
     var items: LedgerLineItem[] = [];
     var notations = ctxt.notations || [],
-      index = notations.indexOf(this.note.neume!);
+      neume = this.note.neume!,
+      index = notations[neume.notationIndex!] === neume ? neume.notationIndex! : notations.indexOf(neume);
     var start = index,
       end = index + 1;
     while (start > 0 && !notations[start].firstOfParentheses) start--;

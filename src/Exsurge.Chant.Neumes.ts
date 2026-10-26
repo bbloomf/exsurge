@@ -282,12 +282,13 @@ class NeumeBuilder {
   // oriscus scapus (gabc O) also gets a stem down on its left, like a virga
   // reversa's, as in Gregorio's OriscusScapus glyphs.  (where an oriscus
   // scapus is joined to the lower note before it, the line joining them is
-  // its stem, so it's added with noteAt() instead)
-  oriscusAt(note: Note, glyph: GlyphCode, withLineTo = true) {
+  // its stem, so it's added with noteAt() instead).  fusedShift is the
+  // interval to a note it's fused to (see VirgaLineVisualizer)
+  oriscusAt(note: Note, glyph: GlyphCode, withLineTo = true, fusedShift = 0) {
     this.noteAt(note, glyph, withLineTo);
 
     if (note.shapeModifiers & NoteShapeModifiers.Stemmed) {
-      var line = new VirgaLineVisualizer(this.ctxt, note);
+      var line = new VirgaLineVisualizer(this.ctxt, note, fusedShift);
       line.bounds.x = note.bounds.x;
       this.neume.addVisualizer(line);
     }
@@ -719,10 +720,10 @@ export class Neume extends ChantNotationElement {
         let staffPosition = ledgerLinePosition(ctxt, isAbove);
         let line: NeumeLedgerLine = { element: note, endElem: note, staffPosition };
         let punctumWidth = ctxt.glyphPunctumWidth * ctxt.glyphScaling;
-        if (isStroke(note) && i === notes.length - 2) {
+        if (isStroke(note) && this.isClivisStroke(i)) {
           line.x1 = note.bounds.x;
           line.x2 = note.bounds.x + punctumWidth;
-        } else if (isStroke(notes[i - 1]) && i === notes.length - 1) {
+        } else if (isStroke(notes[i - 1]) && this.isClivisStroke(i - 1)) {
           line.x2 = notes[i - 1].bounds.right();
           line.x1 = line.x2 - punctumWidth;
         } else if (isStroke(notes[i - 1])) {
@@ -730,13 +731,19 @@ export class Neume extends ChantNotationElement {
           let upper = notes[i - 1];
           if (!isInsideStaff(upper) || hasDrawnLedgerLine(upper, isAbove)) continue;
           line.element = line.endElem = upper;
-        } else if (isStroke(notes[i - 2])) {
+        } else if (isStroke(notes[i - 2]) && !this.isClivisStroke(i - 2)) {
           if (!isAbove || notes[i - 1].staffPosition >= staffPosition) continue;
         }
         result.push(line);
       }
     });
     return result;
+  }
+
+  // whether the stroke from the note at index is a clivis drawn as a stroke,
+  // rather than a porrectus's: the stroke of the neume's last two notes
+  isClivisStroke(index: number) {
+    return index === this.notes.length - 2;
   }
 
   resetDependencies() {}
@@ -1143,6 +1150,18 @@ export class FusedNeume extends Neume {
     this.fusedToPrevious = false;
   }
 
+  // a flexus drawn as a stroke is a porrectus's where a higher note is fused
+  // to it, and else a clivis's (see withFlexus())
+  isClivisStroke(index: number) {
+    var note = this.notes[index];
+    var i = this.glyphs.findIndex((glyph) => glyph.notes[0] === note);
+    return (
+      i >= 0 &&
+      this.glyphs[i].kind === FusedGlyphKind.Flexus &&
+      FusedNeume.fusedShift(this.glyphs, i + 1, this.fusedToNext) <= 0
+    );
+  }
+
   // the interval up from the glyph before to the glyph at index, if Gregorio
   // fuses them, or else 0 (compute_fused_shift() in gregoriotex-position.c).
   // fusedToNext is whether a glyph after the last is fused to it.
@@ -1287,7 +1306,12 @@ export class FusedNeume extends Neume {
           // (a linea (gabc =) is never fused, but a note can be fused to it)
           if (notes[0].linea) builder.lineaAt(notes[0]);
           else if (!glyph.fused && notes[0].shape === NoteShape.Oriscus)
-            builder.oriscusAt(notes[0], this.getNoteGlyphCode(ctxt, notes[0]));
+            builder.oriscusAt(
+              notes[0],
+              this.getNoteGlyphCode(ctxt, notes[0]),
+              true,
+              FusedNeume.fusedShift(glyphs, i + 1, this.fusedToNext)
+            );
           else builder.noteAt(notes[0], this.getNoteGlyphCode(ctxt, notes[0]), true, false);
           break;
         case FusedGlyphKind.Virga:
@@ -1297,7 +1321,7 @@ export class FusedNeume extends Neume {
           break;
         case FusedGlyphKind.VirgaReversa: {
           builder.noteAt(notes[0], GlyphCode.PunctumQuadratum);
-          var stem = new VirgaLineVisualizer(ctxt, notes[0]);
+          var stem = new VirgaLineVisualizer(ctxt, notes[0], FusedNeume.fusedShift(glyphs, i + 1, this.fusedToNext));
           stem.bounds.x = notes[0].bounds.x;
           this.addVisualizer(stem);
           break;

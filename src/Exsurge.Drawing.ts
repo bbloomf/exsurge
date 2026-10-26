@@ -2253,7 +2253,11 @@ export class NeumeBeamVisualizer extends ChantLayoutElement {
 }
 
 export class VirgaLineVisualizer extends ChantLayoutElement {
-  constructor(ctxt: ChantContext, note: Note) {
+  /**
+   * @param fusedShift the interval to the next note, if a virga reversa or
+   * oriscus scapus is fused to it (see FusedNeume.fusedShift()), or else 0
+   */
+  constructor(ctxt: ChantContext, note: Note, fusedShift = 0) {
     super();
 
     var staffPosition = note.staffPosition;
@@ -2266,14 +2270,19 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     // ledger line below it (gabc [ll:1] counts), where its stem would end;
     // and so does a note on the ledger line below the staff (see
     // stemQueue(), whose queue types each have a stem: Gregorio's open one
-    // is drawn as the shorter one)
-    var queue = stemQueue(note);
-    if (
+    // is drawn as the shorter one).  Fused down to a note, the stem goes by
+    // where that note is, and at a second the long and short swap, as
+    // Gregorio's fusible_queued_shape() has it
+    var queue = stemQueue(note, note, Math.min(fusedShift, 0));
+    var long =
       queue === undefined
-        ? Math.abs(staffPosition % 2) === 0
-        : queue !== StemQueue.OnLineAboveBottomLine
-    )
-      y1 = y0 + ctxt.staffInterval * 1.8;
+        ? Math.abs(staffPosition % 2) !== 0
+        : fusedShift === -1
+          ? queue === StemQueue.OnSpaceAboveBottomLine
+          : fusedShift < 0
+            ? queue === StemQueue.OnBottomLine || queue === StemQueue.OnLineAboveBottomLine
+            : queue === StemQueue.OnLineAboveBottomLine;
+    if (!long) y1 = y0 + ctxt.staffInterval * 1.8;
     else y1 = y0 + ctxt.staffInterval * 2.7;
 
     this.bounds.x = 0;

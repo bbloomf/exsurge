@@ -77,7 +77,7 @@ export function hasDrawnLedgerLine(item: LedgerLineItem, isAbove: boolean) {
 // ledgerLine), or beyond it.  A note under a Chi-Rho clef that 0 or 9 moves
 // off its line or space is on the nearest line (as exsurge has always drawn
 // its line), so positions within 0.9 of the line are on it.
-function isOnOrBeyond(staffPosition: number, ledgerLine: number, isAbove: boolean) {
+export function isOnOrBeyond(staffPosition: number, ledgerLine: number, isAbove: boolean) {
   return isAbove ? staffPosition >= ledgerLine - 0.9 : staffPosition <= ledgerLine + 0.9;
 }
 function isBeyond(staffPosition: number, ledgerLine: number, isAbove: boolean) {
