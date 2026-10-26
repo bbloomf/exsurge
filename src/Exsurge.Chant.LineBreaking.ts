@@ -435,16 +435,7 @@ export class LineBreaker {
       restoreLyrics(ctxt, curr);
 
       if (isHiddenAccidental(curr)) curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
-      else {
-        var textOnly = curr.constructor === TextOnly && (curr as TextOnly).hasLyrics() ? (curr as TextOnly).lyrics[0] : null,
-          resize = textOnly && textOnly.resize;
-        line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
-        // (text only that it shrank to fit the line, in setMaxWidth(), is
-        // measured again before it's laid out on another line, as text that
-        // it wrapped is, so that the line built starts from the same text
-        // as it would have without this one)
-        if (textOnly && textOnly.resize !== resize) textOnly.needsLayout = true;
-      }
+      else line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
 
       if (curr.hasLyrics()) LyricArray.mergeIn(line.lastLyrics, curr.lyrics);
 
