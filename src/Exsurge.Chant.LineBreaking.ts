@@ -12,17 +12,6 @@
 // with the fewest demerits are found as TeX finds them, and each ChantLine is
 // built to end where it was planned to (ChantLine.plannedEnd).
 //
-// Laying out the lines that could be made takes most of the time, so the
-// next layout of the score at the same width uses them again
-// (score.lineBreaker), where the notations that a line looked at are the same
-// ones and haven't been laid out again, nothing else that it depends on has
-// changed (see LineBreaker.getLayoutFacts()), and laying it out again would
-// read the same from its notations as it did (see LineBreaker.recordEntry()).
-// A line used again leaves its notations as laying it out did, when it would
-// have been laid out (see LineBreaker.enterLine()), so the score is laid out
-// just as it would be without it; and after an edit, only the lines that
-// could include what changed are laid out again.
-//
 // It is used when ctxt.lineBreaking is "optimal" (see ChantScore.layoutChantLines).
 //
 
@@ -151,78 +140,6 @@ interface Stretch {
   sumWithoutCustos: number;
 }
 
-/**
- * a line laid out from some notation (see LineBreaker.layOutLineFrom()), and
- * what laying it out left on the notations, for the next layout of the score
- * to use it again (see LineBreaker.enterLine())
- */
-interface MeasuredLine {
-  ends: LineEnd[];
-  /**
-   * the index of the last notation that laying the line out looked at, or
-   * the number of notations if it looked to the end of the score
-   */
-  lastRead: number;
-  /** the indices of the first and last notations that it laid out (last < first if none) */
-  first: number;
-  last: number;
-  /**
-   * where what it left on the notations from first to last starts in its line
-   * breaker's exits (see recordExit()), or -1 if it can't be used again (see
-   * recordEntry())
-   */
-  exit: number;
-}
-
-/**
- * what the lines laid out in a layout of the score depend on besides the
- * notations themselves and the context's settings, for each notation (see
- * LineBreaker.getLayoutFacts())
- */
-interface LayoutFacts {
-  notations: ChantNotationElement[];
-  timesLaidOut: Array<number | undefined>;
-  /** the clef in effect before each notation */
-  clefs: Clef[];
-  keptInAreas: boolean[];
-  /** (see LineBreaker.leavesTooLittleForLastLine()) */
-  tooLittleForLastLine: boolean[];
-  notesInSyllable: number[];
-  notesBeforeInSyllable: number[];
-  /** the notation that each notation's translation ends at */
-  translationEnds: Array<ChantNotationElement | undefined>;
-  /**
-   * each notation's calculatedTrailingSpace and width, and its lyrics, with
-   * the bounds.x, widthWithoutConnector and protrusionWidth of each from
-   * lyricsAt[i] * 3 in lyricMetrics, as they are before any line is laid out
-   * (see LineBreaker.recordEntry())
-   */
-  trailingSpaces: Float64Array;
-  widths: Float64Array;
-  /** 1 for each notation that a line can't be used again if it lays out (see recordEntry()) */
-  notReusable: Uint8Array;
-  lyrics: Lyric[];
-  lyricsAt: Int32Array;
-  lyricMetrics: Float64Array;
-  /** the context's settings and the score's */
-  settings: string;
-  language: unknown;
-}
-
-// whether a number that a line read is the one it read before (where -0 isn't
-// 0, NaN is NaN, and undefined, which is kept as NaN, is NaN)
-const same = (a: number | undefined, b: number) =>
-  a === b ? a !== 0 || 1 / a === 1 / b : Number.isNaN(b) && (a === undefined || Number.isNaN(a));
-
-// how lyric.needsConnector is kept in LineBreaker.exits
-const connectorCodes: Array<boolean | undefined> = [false, true, undefined];
-const connectorCode = (needs: boolean | undefined) => (needs === undefined ? 2 : needs ? 1 : 0);
-
-// the properties of a ChantContext that change as it lays a score out, or that
-// only set others (minLyricWordSpacingRatio, which updateHyphenWidth() sets
-// minLyricWordSpacing from)
-const contextStateProperties = ["currNotationIndex", "textMetricsCacheSize", "minLyricWordSpacingRatio"];
-
 /** a way to break the score into lines up to some notation, as TeX's active nodes are */
 interface BreakNode {
   /** the index of the notation that the next line starts with */
@@ -252,35 +169,8 @@ export class LineBreaker {
   extraLines = 2;
   /** where each line was planned to end, by its index and the notation it starts with */
   plannedEnds = new Map<string, number>();
-  /** the lines laid out from each notation, by its index, for each place a line's staff can be */
-  measuredLines: Array<{ extent: LineExtent; lines: Array<MeasuredLine | undefined> }> = [];
-  /** the line breaker of the last layout, whose measured lines this one uses again where it can */
-  previous: LineBreaker | null;
-  /** (see getLayoutFacts()) */
-  facts?: LayoutFacts;
-  /**
-   * for each notation, and the end of the score, the index it had in the
-   * last layout, if nothing a line depends on has changed at it, or else -1;
-   * or null, if nothing from the last layout can be used (see matchPrevious())
-   */
-  previousIndices?: Int32Array | null;
-  /**
-   * for each notation, the first of the notations up to it that have the
-   * indices that follow on from it in the last layout
-   */
-  runStarts?: Int32Array;
-  /**
-   * what each line that can be used again left on the notations it laid out
-   * (see recordExit()), up to exitsLength
-   */
-  exits: Float64Array = new Float64Array(1024);
-  exitsLength = 0;
-  /**
-   * 1 for each notation that has been found to read as before (see
-   * readsAsBefore()) since this plan() began, and since a line that can't be
-   * used again laid it out (as only such a line can change what it reads)
-   */
-  checked?: Uint8Array;
+  /** the ends of the lines that could start at each notation, by its index, for each place a line's staff can be */
+  lineEnds: Array<{ extent: LineExtent; ends: Array<LineEnd[] | undefined> }> = [];
   /** (see getNoteCounts()) */
   noteCounts?: {
     notesInSyllable: number[];
@@ -289,27 +179,10 @@ export class LineBreaker {
     notesFrom: number[];
   };
 
-  constructor(score: ChantScore, ctxt: ChantContext, width: number, previous: LineBreaker | null = null) {
+  constructor(score: ChantScore, ctxt: ChantContext, width: number) {
     this.score = score;
     this.ctxt = ctxt;
     this.width = width;
-    this.previous = previous;
-    // (which needs nothing from the one before it; and with room for as many
-    // lines as it measured)
-    if (previous) {
-      previous.previous = null;
-      this.exits = new Float64Array(Math.max(1024, previous.exitsLength + (previous.exitsLength >> 2)));
-    }
-  }
-
-  /**
-   * lets go of what the next layout won't use, once the lines are built: the
-   * last layout's line breaker (the lines of which that could be used again
-   * are kept in this one), and the room in exits that wasn't used
-   */
-  release() {
-    this.previous = null;
-    if (this.exits.length > this.exitsLength) this.exits = this.exits.slice(0, this.exitsLength);
   }
 
   /**
@@ -335,9 +208,6 @@ export class LineBreaker {
 
   /** breaks the rest of the score into lines, from the line with the index lineIndex, which starts at start */
   plan(lineIndex: number, start: number) {
-    // (as they are before any line is laid out, for the next layout to compare)
-    this.getLayoutFacts();
-    this.checked = new Uint8Array(this.score.notations.length);
     // As TeX does, look first for breaks where no line is looser or tighter
     // than the pretolerance allows, and then where none is more than the
     // tolerance allows, and look for a way to set the score in one line
@@ -510,406 +380,19 @@ export class LineBreaker {
   /** the ends of the lines that could start at start, as the line with the index lineIndex */
   getLineEnds(lineIndex: number, start: number) {
     var extent = this.getLineExtent(lineIndex, start);
-    var lines = this.findMeasuredLines(extent);
-    if (!lines) this.measuredLines.push({ extent, lines: (lines = []) });
-    var line = lines[start];
-    if (!line) {
-      var reused = this.reuseLine(start, extent);
-      lines[start] = line = reused && this.enterLine(reused) ? reused : this.layOutLineFrom(start, extent);
-    }
-    return line.ends;
-  }
-
-  /**
-   * Uses a line measured in the last layout as though it had been laid out
-   * again, if laying it out would read the same from the notations it lays
-   * out as it did (see recordEntry()), by leaving them as laying it out left
-   * them (see recordExit()); and returns whether it could.
-   *
-   * (Laying out a line leaves its notations where it put them, and the lines
-   * laid out after it, and the ChantLines that are built, can start from
-   * that: for instance, a translation is placed by where its end neume was
-   * left, which can be on a later line.  So a line that isn't laid out again
-   * has to leave the notations as it would have, when it would have.)
-   */
-  enterLine(line: MeasuredLine) {
-    var notations = this.score.notations,
-      exits = this.previous!.exits,
-      i: number,
-      k: number,
-      at = line.exit,
-      lyric: Lyric;
-    for (k = at, i = line.first; i <= line.last; i++) {
-      var notation = notations[i];
-      if (!this.checked![i] && !this.readsAsBefore(notation, i)) return false;
-      k++;
-      for (lyric of notation.lyrics) {
-        var required = exits[k + 2],
-          span = lyric.connectorSpan;
-        if (!Number.isNaN(required) && !same(span && span.textLength, required)) return false;
-        k += 4;
-      }
-    }
-
-    // (and kept for the next layout)
-    var length = k - at;
-    this.reserveExits(length);
-    this.exits.set(exits.subarray(at, k), this.exitsLength);
-    line.exit = this.exitsLength;
-    this.exitsLength += length;
-
-    for (k = at, i = line.first; i <= line.last; i++) {
-      notation = notations[i];
-      notation.bounds.x = exits[k++];
-      for (lyric of notation.lyrics) {
-        var needsConnector = connectorCodes[exits[k++]];
-        span = lyric.connectorSpan;
-        lyric.needsConnector = needsConnector as boolean;
-        lyric.connectorWidth = exits[k++];
-        // (as setNeedsConnector() leaves them)
-        if (needsConnector) {
-          lyric.bounds.width = lyric.widthWithoutConnector + lyric.getConnectorWidth();
-          if (lyric.spans.length > 0 && lyric.spans[lyric.spans.length - 1] !== span) lyric.spans.push(span!);
-        } else {
-          lyric.bounds.width = lyric.widthWithoutConnector;
-          if (lyric.spans.length > 0 && lyric.spans[lyric.spans.length - 1] === span) lyric.spans.pop();
-        }
-        k++;
-        var textLength = exits[k++];
-        if (span && textLength !== -Infinity) span.textLength = Number.isNaN(textLength) ? undefined : textLength;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * whether a line laid out now would read from the notation at index what
-   * it would have before any line was laid out (and as the lines that are
-   * used again read it): it reads its calculatedTrailingSpace (which can be
-   * left changed by the line before it, and is then read by the next) and
-   * its width, and where its lyrics are and how wide they are without
-   * connectors, and whether they have to be measured again
-   */
-  readsAsBefore(notation: ChantNotationElement, index: number) {
-    var facts = this.facts!;
-    if (
-      !same(notation.calculatedTrailingSpace, facts.trailingSpaces[index]) ||
-      !same(notation.bounds.width, facts.widths[index])
-    )
-      return false;
-    var lyrics = facts.lyrics,
-      metrics = facts.lyricMetrics,
-      end = facts.lyricsAt[index + 1];
-    for (var j = facts.lyricsAt[index], k = j * 3; j < end; j++, k += 3) {
-      var lyric = lyrics[j];
-      if (
-        lyric.needsLayout ||
-        !same(lyric.bounds.x, metrics[k]) ||
-        !same(lyric.widthWithoutConnector, metrics[k + 1]) ||
-        !same(lyric.protrusionWidth, metrics[k + 2])
-      )
-        return false;
-    }
-    this.checked![index] = 1;
-    return true;
-  }
-
-  /**
-   * Checks that the line can be used again, as it lays out the notation at
-   * index next (and see recordExit()): not if laying it out reads or sets more
-   * than recordExit() records.  A soft accidental can be shown or not, and
-   * the neume before it spaced to suit; text only can be shrunk or wrapped to
-   * fit; a notation can be given the negative trailing space of the one
-   * before it; a lyric with no text, one that has to have a connector, and
-   * one in the drop cap keep what their connectors were; a lyric that has to
-   * be measured again is; and a notation without width is placed by the
-   * notation that starts its group (see getLayoutFacts()).  And the rest that
-   * it reads has to be as it was before any line was laid out (see
-   * readsAsBefore()).
-   */
-  recordEntry(line: MeasuredLine, index: number) {
-    if (line.exit < 0) return;
-    if (
-      this.facts!.notReusable[index] ||
-      (!this.checked![index] && !this.readsAsBefore(this.score.notations[index], index))
-    )
-      line.exit = -1;
-  }
-
-  /**
-   * records what laying out the line left on the notations it laid out, in
-   * exits from line.exit: for each, where it is, and for each lyric, whether
-   * it needs a connector (see connectorCodes) and the connector's width
-   * (which give the lyric's width and spans, as setNeedsConnector() and
-   * setConnectorWidth() set them), the textLength that the connector has to
-   * have for the line to be used again (or NaN), and the connector's
-   * textLength after (or -Infinity if laying out the line didn't set it).
-   * (Laying out the line sets nothing else of the notations, where it can be
-   * used again: see recordEntry().)
-   */
-  recordExit(line: MeasuredLine) {
-    var notations = this.score.notations,
-      facts = this.facts!,
-      lyrics = facts.lyrics,
-      lyricsAt = facts.lyricsAt;
-    // (no notation's calculatedTrailingSpace can have changed, as none of the
-    // notations that it can change on are laid out (see getLayoutFacts()), but
-    // for the first, which is laid out after a copy of a clef)
-    var first = line.first;
-    if (
-      line.exit >= 0 &&
-      first <= line.last &&
-      !same(notations[first].calculatedTrailingSpace, facts.trailingSpaces[first])
-    )
-      line.exit = -1;
-    if (line.exit < 0) {
-      // (and one that can't be used again can have changed what the lines
-      // after it read from the notations it laid out, and from the
-      // accidental after them: see spaceNeumeBeforeSoftAccidental())
-      this.checked!.fill(0, line.first, line.last + 2);
-      return;
-    }
-    var exits = this.reserveExits(line.last - first + 1 + 4 * (lyricsAt[line.last + 1] - lyricsAt[first])),
-      k = (line.exit = this.exitsLength);
-    for (var i = line.first; i <= line.last; i++) {
-      exits[k++] = notations[i].bounds.x;
-      for (var j = lyricsAt[i], end = lyricsAt[i + 1]; j < end; j++) {
-        var lyric = lyrics[j],
-          span = lyric.connectorSpan,
-          textLength = span && span.textLength !== undefined ? span.textLength : NaN;
-        exits[k++] = connectorCode(lyric.needsConnector);
-        exits[k++] = lyric.connectorWidth;
-        // Laying out the line sets the connector's width to 0, and then sets
-        // it and the textLength together (in setConnectorWidth()), if at all.
-        // So the textLength was set if the width isn't 0, and wasn't if the
-        // width is 0 and the textLength isn't; if they're both 0, it was set
-        // to 0 or left at 0, which is the same where it's 0 (as it then has to
-        // be: see enterLine()).
-        if (lyric.connectorWidth !== 0) {
-          exits[k++] = NaN;
-          exits[k++] = textLength;
-        } else {
-          exits[k++] = textLength === 0 ? 0 : NaN;
-          exits[k++] = -Infinity;
-        }
-      }
-    }
-    this.exitsLength = k;
-  }
-
-  /** makes room for length more numbers in exits, and returns it */
-  reserveExits(length: number) {
-    if (this.exitsLength + length > this.exits.length) {
-      var exits = new Float64Array(Math.max(this.exits.length * 2, this.exitsLength + length));
-      exits.set(this.exits.subarray(0, this.exitsLength));
-      this.exits = exits;
-    }
-    return this.exits;
-  }
-
-  /** the lines laid out from each notation with their staff at extent, if any have been */
-  findMeasuredLines(extent: LineExtent) {
-    for (var measured of this.measuredLines) {
-      var other = measured.extent;
+    var k = 0;
+    for (; k < this.lineEnds.length; k++) {
+      var other = this.lineEnds[k].extent;
       if (
         other.staffLeft === extent.staffLeft &&
         other.paddingLeft === extent.paddingLeft &&
         other.staffRight === extent.staffRight
       )
-        return measured.lines;
+        break;
     }
-    return undefined;
-  }
-
-  /**
-   * the line laid out from start in the last layout, if it can be used again
-   * and nothing that it depends on has changed since, with its notations'
-   * indices moved to where they are now
-   */
-  reuseLine(start: number, extent: LineExtent): MeasuredLine | undefined {
-    if (!this.previous || !this.matchPrevious()) return undefined;
-    var indices = this.previousIndices!,
-      previousStart = indices[start],
-      lines = previousStart >= 0 && this.previous.findMeasuredLines(extent),
-      line = lines && lines[previousStart];
-    // (the line looked at the notations from the one before it, for a double
-    // bar's lyrics, to its lastRead, which have to be the same ones in order)
-    if (!line || line.exit < 0 || (start === 0) !== (previousStart === 0)) return undefined;
-    var shift = start - previousStart,
-      first = Math.max(start - 1, 0),
-      last = line.lastRead + shift;
-    if (last > this.score.notations.length || this.runStarts![last] > first) return undefined;
-    return {
-      ends: shift ? line.ends.map((end) => ({ ...end, end: end.end + shift })) : line.ends,
-      lastRead: last,
-      first: line.first + shift,
-      last: line.last + shift,
-      exit: line.exit
-    };
-  }
-
-  /**
-   * works out which notations are where they were in the last layout, with
-   * nothing that a line depends on changed at them, and returns whether
-   * anything from the last layout can be used
-   */
-  matchPrevious() {
-    if (this.previousIndices !== undefined) return this.previousIndices !== null;
-    var facts = this.getLayoutFacts(),
-      before = this.previous && this.previous.facts;
-    this.previousIndices = null;
-    if (
-      !before ||
-      this.previous!.width !== this.width ||
-      this.previous!.ctxt !== this.ctxt ||
-      before.settings !== facts.settings ||
-      before.language !== facts.language
-    )
-      return false;
-
-    var previousIndex = new Map<ChantNotationElement, number>();
-    before.notations.forEach((notation, i) => previousIndex.set(notation, i));
-    var n = facts.notations.length,
-      indices = (this.previousIndices = new Int32Array(n + 1)),
-      runStarts = (this.runStarts = new Int32Array(n + 1));
-    for (var i = 0; i <= n; i++) {
-      var j = i === n ? before.notations.length : previousIndex.get(facts.notations[i]) ?? -1;
-      if (
-        j >= 0 &&
-        i < n &&
-        (facts.timesLaidOut[i] !== before.timesLaidOut[j] ||
-          facts.clefs[i] !== before.clefs[j] ||
-          facts.keptInAreas[i] !== before.keptInAreas[j] ||
-          facts.tooLittleForLastLine[i] !== before.tooLittleForLastLine[j] ||
-          facts.notesInSyllable[i] !== before.notesInSyllable[j] ||
-          facts.notesBeforeInSyllable[i] !== before.notesBeforeInSyllable[j] ||
-          facts.translationEnds[i] !== before.translationEnds[j] ||
-          !this.sameAsBefore(before, j, i))
-      )
-        j = -1;
-      indices[i] = j;
-      runStarts[i] = j < 0 ? i + 1 : i > 0 && indices[i - 1] >= 0 && j === indices[i - 1] + 1 ? runStarts[i - 1] : i;
-    }
-    return true;
-  }
-
-  /**
-   * whether the notation at index was as it was at previousIndex in the last
-   * layout before any line was laid out, as readsAsBefore() reads it
-   */
-  sameAsBefore(before: LayoutFacts, previousIndex: number, index: number) {
-    var facts = this.facts!,
-      k = facts.lyricsAt[index],
-      j = before.lyricsAt[previousIndex],
-      end = before.lyricsAt[previousIndex + 1];
-    if (
-      !same(facts.trailingSpaces[index], before.trailingSpaces[previousIndex]) ||
-      !same(facts.widths[index], before.widths[previousIndex]) ||
-      end - j !== facts.lyricsAt[index + 1] - k
-    )
-      return false;
-    for (; j < end; j++, k++) {
-      if (
-        before.lyrics[j] !== facts.lyrics[k] ||
-        !same(facts.lyricMetrics[k * 3], before.lyricMetrics[j * 3]) ||
-        !same(facts.lyricMetrics[k * 3 + 1], before.lyricMetrics[j * 3 + 1]) ||
-        !same(facts.lyricMetrics[k * 3 + 2], before.lyricMetrics[j * 3 + 2])
-      )
-        return false;
-    }
-    return true;
-  }
-
-  /**
-   * What a line laid out in this layout depends on, other than the notations
-   * that it looks at and their own layout, for the next layout to compare
-   * with its own.  (Anything else that it reads is either part of those
-   * notations or is set again as the line is laid out.)
-   */
-  getLayoutFacts() {
-    if (this.facts) return this.facts;
-    var ctxt = this.ctxt,
-      score = this.score,
-      notations = score.notations,
-      counts = this.getNoteCounts();
-    var settings: string[] = [];
-    for (var key of Object.keys(ctxt)) {
-      var value = (ctxt as unknown as Record<string, unknown>)[key];
-      if (
-        contextStateProperties.includes(key) ||
-        (typeof value === "object" && value !== null) ||
-        typeof value === "function"
-      )
-        continue;
-      settings.push(key + "=" + value);
-    }
-    settings.push("useDropCap=" + score.useDropCap);
-
-    var clefs: Clef[] = [],
-      clef = score.startingClef;
-    for (var notation of notations) {
-      clefs.push(clef);
-      if (notation.isClef) clef = notation as Clef;
-    }
-    // (worked out for each layout of the score, by keepsInArea())
-    if (notations.length) new ChantLine(score).keepsInArea(0);
-
-    var trailingSpaces = new Float64Array(notations.length),
-      widths = new Float64Array(notations.length),
-      notReusable = new Uint8Array(notations.length),
-      lyrics: Lyric[] = [],
-      lyricsAt = new Int32Array(notations.length + 1);
-    for (var i = 0; i < notations.length; i++) {
-      notation = notations[i];
-      var next = notations[i + 1];
-      trailingSpaces[i] = notation.calculatedTrailingSpace;
-      widths[i] = notation.bounds.width;
-      if (
-        notation.constructor === TextOnly ||
-        (notation.isAccidental && (notation as Accidental).soft) ||
-        (next && next.isAccidental && (next as Accidental).soft) ||
-        notation.hasNoWidth ||
-        notation.firstWithNoWidth ||
-        // (which positionNotationElement() can give the negative trailing
-        // space of the notation before it)
-        (i > 0 && trailingSpaces[i - 1] < 0 && !notation.hasLyrics())
-      )
-        notReusable[i] = 1;
-      lyricsAt[i] = lyrics.length;
-      for (var lyric of notation.lyrics) {
-        if (!lyric.originalText || lyric.forceConnector || lyric.dropCap) notReusable[i] = 1;
-        lyrics.push(lyric);
-      }
-    }
-    lyricsAt[notations.length] = lyrics.length;
-    var lyricMetrics = new Float64Array(lyrics.length * 3);
-    for (var k = 0; k < lyrics.length; k++) {
-      lyric = lyrics[k];
-      lyricMetrics[k * 3] = lyric.bounds.x;
-      lyricMetrics[k * 3 + 1] = lyric.widthWithoutConnector;
-      lyricMetrics[k * 3 + 2] = lyric.protrusionWidth === undefined ? NaN : lyric.protrusionWidth;
-    }
-
-    return (this.facts = {
-      notations: notations.slice(),
-      timesLaidOut: notations.map((notation) => notation.timesLaidOut),
-      clefs,
-      keptInAreas: notations.length ? score.keptInAreas!.slice() : [],
-      tooLittleForLastLine: notations.map((notation, i) => this.leavesTooLittleForLastLine(i)),
-      notesInSyllable: counts.notesInSyllable,
-      notesBeforeInSyllable: counts.notesBeforeInSyllable,
-      translationEnds: notations.map((notation) =>
-        notation.translationText && notation.translationText.length ? notation.translationText[0].endNeume : undefined
-      ),
-      trailingSpaces,
-      widths,
-      notReusable,
-      lyrics,
-      lyricsAt,
-      lyricMetrics,
-      settings: settings.join(";"),
-      language: ctxt.defaultLanguage
-    });
+    if (k === this.lineEnds.length) this.lineEnds.push({ extent, ends: [] });
+    var ends = this.lineEnds[k].ends;
+    return ends[start] || (ends[start] = this.layOutLineFrom(start, extent));
   }
 
   /**
@@ -918,7 +401,7 @@ export class LineBreaker {
    * too full to fit even when condensed, and gives each place the line could
    * end.
    */
-  layOutLineFrom(start: number, extent: LineExtent): MeasuredLine {
+  layOutLineFrom(start: number, extent: LineExtent) {
     var ctxt = this.ctxt,
       score = this.score,
       notations = score.notations,
@@ -969,8 +452,6 @@ export class LineBreaker {
     // a translation that the line can't break within, until its end neume
     var translationStart: ChantNotationElement | null = null;
 
-    var measured: MeasuredLine = { ends: lineEnds, lastRead: 0, first: i, last: i - 1, exit: 0 };
-
     for (; i < notations.length; i++) {
       if (!isHiddenAccidental(curr) && curr.constructor !== TextOnly) prevNeume = curr;
       curr = notations[i];
@@ -982,15 +463,12 @@ export class LineBreaker {
           lineEnds.push(
             this.getLineEnd(line, i, condensableSpaces.sum, stretch, -infinitePenalty, !line.clefLineBreak.justify)
           );
-          return this.finishMeasuredLine(measured, i);
+          return lineEnds;
         }
         var penalty = this.getPenalty(line, i, translationStart);
         if (penalty < infinitePenalty)
           lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, stretch, penalty, false));
       }
-
-      this.recordEntry(measured, i);
-      measured.last = i;
 
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !line.isSoftAccidentalVisible(i));
@@ -1026,7 +504,7 @@ export class LineBreaker {
         lineEnds.push(
           this.getLineEnd(line, i + 1, condensableSpaces.sum, stretch, -infinitePenalty, !(curr as ChantLineBreak).justify)
         );
-        return this.finishMeasuredLine(measured, i);
+        return lineEnds;
       }
 
       if (curr.constructor === Custos) line.custos = curr as Custos;
@@ -1035,26 +513,11 @@ export class LineBreaker {
       // the line can't go on once it's too full even when condensed
       var right = curr.bounds.right();
       if (curr.hasLyrics()) right = Math.max(right, LyricArray.getRight(curr.lyrics, false, true));
-      if (right - condensableSpaces.sum > line.staffRight) return this.finishMeasuredLine(measured, i);
+      if (right - condensableSpaces.sum > line.staffRight) return lineEnds;
     }
 
     lineEnds.push(this.getLineEnd(line, notations.length, condensableSpaces.sum, stretch, -infinitePenalty, true));
-    return this.finishMeasuredLine(measured, notations.length - 1);
-  }
-
-  /**
-   * finishes measuring a line laid out as far as the notation at last, which
-   * looked at the two after it as well (in isClefLineBreak() and
-   * spaceNeumeBeforeSoftAccidental()), and on to the next neume (in
-   * getLineEnd(), wantsEolCustos() and isTextOnlyBeforeDivider())
-   */
-  finishMeasuredLine(line: MeasuredLine, last: number): MeasuredLine {
-    var notations = this.score.notations,
-      lastRead = last + 1;
-    while (lastRead < notations.length && !notations[lastRead].isNeume) lastRead++;
-    line.lastRead = Math.min(Math.max(lastRead, last + 2), notations.length);
-    this.recordExit(line);
-    return line;
+    return lineEnds;
   }
 
   /**
