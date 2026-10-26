@@ -24,6 +24,7 @@
 //
 
 import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
+import { LineBreaker } from "./Exsurge.Chant.LineBreaking.js";
 import { InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import { Pitch, Rect, Step } from "./Exsurge.Core.js";
 import {
@@ -1546,10 +1547,12 @@ export class ChantScore {
     ctxt.activeClef = this.startingClef;
 
     var spaceBetweenSystems = ctxt.staffInterval * ctxt.spaceBetweenSystems;
+    var lineBreaker = ctxt.lineBreaking === "optimal" && width > 0 ? new LineBreaker(this, ctxt, width) : null;
 
     do {
       var line = new ChantLine(this);
 
+      if (lineBreaker) line.plannedEnd = lineBreaker.plannedEnd(this.lines.length, currIndex);
       line.buildFromChantNotationIndex(ctxt, currIndex, width);
       currIndex = line.notationsStartIndex + line.numNotationsOnLine;
       line.performLayout(ctxt);

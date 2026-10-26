@@ -36,6 +36,7 @@ import { stemQueue, StemQueue } from "./ledgerLines.js";
 import { makeLigature } from "./makeLigature.js";
 import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
+import type { LineBreaking } from "./Exsurge.Chant.LineBreaking.js";
 import type { BracePoint, LedgerLineStart, SlurStart } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import { layoutNabc, type NabcFont, type NabcItem, type NabcLayout, parseNabc } from "./Exsurge.Nabc.js";
@@ -1296,6 +1297,13 @@ export class ChantContext {
    */
   eolCustos: "auto" | "manual";
 
+  /**
+   * how ChantScore.layoutChantLines() breaks the score into lines: "greedy"
+   * (the default) to fill each line in turn, or "optimal" to choose the
+   * breaks of the whole score together, as Gregorio does (see LineBreaker)
+   */
+  lineBreaking: LineBreaking;
+
   autoColor: boolean;
 
   /** gives each svg text element a font-size attribute in createSvg() */
@@ -1531,6 +1539,8 @@ export class ChantContext {
     this.condensingTolerance = 0.3;
 
     this.eolCustos = "auto";
+
+    this.lineBreaking = "greedy";
 
     // if auto color is true, then exsurge tries to automatically colorize
     // some elements of the chant (directives become rubric color, etc.)

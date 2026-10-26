@@ -53,6 +53,9 @@ same<typeof ctxt.staffInterval, number>(true);
 same<typeof ctxt.editable, boolean | undefined>(true);
 // @ts-expect-error derived from minLyricWordSpacing; set that instead
 ctxt.minLyricWordSpacingRatio = 2;
+ctxt.lineBreaking = "optimal";
+// @ts-expect-error either "greedy" or "optimal"
+ctxt.lineBreaking = "knuth-plass";
 document.head.appendChild(ctxt.createStyleNode());
 const styleTree: SvgTreeNode = ctxt.createStyleTree();
 // @ts-expect-error createStyleReact() is createStyleTree()

@@ -57,8 +57,64 @@ import type {
 } from "./Exsurge.Drawing.js";
 
 // a soft accidental that isn't printed takes no space, unless it has to hold lyrics
-const isHiddenAccidental = (notation: ChantNotationElement) =>
+export const isHiddenAccidental = (notation: ChantNotationElement) =>
   notation.isAccidental && (notation as Accidental).hidden && !notation.hasLyrics();
+
+// (these, like isHiddenAccidental, are shared with LineBreaker.layOutLineFrom(),
+// which lays out lines as buildFromChantNotationIndex() does)
+
+/** whether only text-only notations come between the notation at index, which is one, and the next divider */
+export function isTextOnlyBeforeDivider(notations: ChantNotationElement[], index: number) {
+  if (notations[index].constructor !== TextOnly) return false;
+  for (let k = index + 1; k < notations.length; k++) {
+    if (notations[k].isDivider) return true;
+    if (notations[k].constructor !== TextOnly) return false;
+  }
+  return false;
+}
+
+/**
+ * copies of the lyrics of the double bar that ends a line, which go at the
+ * start of the next line, the first at x = 0; or null, if it has none to go there
+ */
+export function copyBeginningLyrics(ctxt: ChantContext, notation: ChantNotationElement) {
+  if (notation.constructor !== DoubleBar) return null;
+  var bar = notation as DoubleBar;
+  if (!bar.hasLyrics() || (bar.lyrics.length === 1 && bar.lyrics[0].text.match(/^(i\.?)+j\.?/))) return null;
+  var lyrics = bar.lyrics.map((lyric) => {
+    var newLyric = new Lyric(
+      ctxt,
+      lyric.originalText,
+      lyric.lyricType,
+      lyric.notation,
+      lyric.notations,
+      lyric.sourceIndex
+    );
+    newLyric.elidesToNext = lyric.elidesToNext;
+    return newLyric;
+  });
+  var minX = lyrics.map((l) => l.bounds.x).reduce((a, b) => (a < b ? a : b));
+  lyrics.forEach((l) => {
+    l.bounds.x -= minX;
+  });
+  return lyrics;
+}
+
+/**
+ * puts the lyrics of a notation that an earlier layout of the lines wrapped
+ * (in setMaxWidth()) or moved (in centerDividers()) back to where the
+ * notation's layout put them
+ */
+export function restoreLyrics(ctxt: ChantContext, notation: ChantNotationElement) {
+  if (!notation.hasLyrics() || !notation.lyrics.some((lyric) => lyric.needsLayout)) return;
+  for (let lyric of notation.lyrics) {
+    if (lyric.needsLayout) {
+      lyric.recalculateMetrics(ctxt);
+      lyric.needsLayout = false;
+    }
+  }
+  notation.alignLyrics(ctxt);
+}
 
 // a notation whose own trailing space is negative (gabc /[-1]) moves the next one back
 const hasBackspace = (ctxt: ChantContext, notation: ChantNotationElement) =>
@@ -152,6 +208,13 @@ interface CondensableSpace {
 /** the spaces between notations so far on a line, and the sum of their condensable space */
 type CondensableSpaces = CondensableSpace[] & { sum: number };
 
+// the sum of the condensable space in spaces, added up in order
+const sumCondensable = (spaces: CondensableSpace[]) => {
+  var sum = 0;
+  for (var i = 0; i < spaces.length; i++) sum += spaces[i].condensable;
+  return sum;
+};
+
 // QuickSvg.createNode() or QuickSvg.createSvgTree(), as getInnerNodes() calls them
 type CreateSvgElement = (
   name: string,
@@ -168,6 +231,12 @@ export class ChantLine extends ChantLayoutElement {
   numNotationsOnLine: number;
   /** how many notations would have fit, when fewer were kept on the line to keep some together */
   maxNumNotationsOnLine?: number;
+  /**
+   * the index of the notation after the last one that the optimal line
+   * breaker planned for the line (see LineBreaker), which the line then
+   * takes all of, or undefined to fill the line greedily
+   */
+  plannedEnd?: number;
   notationBounds: Rect | null;
   staffLeft: number;
   staffRight: number;
@@ -903,33 +972,11 @@ export class ChantLine extends ChantLayoutElement {
         this.paddingLeft = (this.staffLeft - this.score.dropCap.bounds.width) / 2;
     } else {
       prev = notations[newElementStart - 1];
-      if (
-        prev.constructor === DoubleBar &&
-        (prev as DoubleBar).hasLyrics() &&
-        ((prev as DoubleBar).lyrics.length > 1 ||
-          !(prev as DoubleBar).lyrics[0].text.match(/^(i\.?)+j\.?/))
-      ) {
-        beginningLyrics = (prev as DoubleBar).lyrics.map((lyric) => {
-          var newLyric = new Lyric(
-            ctxt,
-            lyric.originalText,
-            lyric.lyricType,
-            lyric.notation,
-            lyric.notations,
-            lyric.sourceIndex
-          );
-          newLyric.elidesToNext = lyric.elidesToNext;
-          // Hide the original lyric by setting its bounds.y to an extremely high number.
-          // If the chant is re-laid out, this value will be recalculated so that it won't stay hidden.
-          lyric.bounds.y = Number.MAX_SAFE_INTEGER;
-          return newLyric;
-        });
-        var minX = beginningLyrics
-          .map(l => l.bounds.x)
-          .reduce((a, b) => a < b ? a : b);
-        beginningLyrics.forEach(l => {
-          l.bounds.x -= minX;
-        });
+      beginningLyrics = copyBeginningLyrics(ctxt, prev);
+      if (beginningLyrics) {
+        // Hide the original lyrics by setting their bounds.y to an extremely high number.
+        // If the chant is re-laid out, this value will be recalculated so that it won't stay hidden.
+        for (let lyric of prev.lyrics) lyric.bounds.y = Number.MAX_SAFE_INTEGER;
       }
     }
 
@@ -1044,10 +1091,15 @@ export class ChantLine extends ChantLayoutElement {
         // Otherwise, we use rightNotationBoundary, which leaves room for a custos...
         actualRightBoundary = rightNotationBoundary;
       }
+      // (a line planned by the optimal line breaker takes everything up to
+      // where it was planned to end, and ends there)
+      var planned = this.plannedEnd !== undefined && i < this.plannedEnd;
+      if (planned) actualRightBoundary = Infinity;
 
       // First check if we're already beyond the rightNotationBoundary (due to condensing that hasn't yet happened) and have a good element to end with
       // but if we have 2 or fewer elements, or if the current element is a line break or a custos, we'll go ahead and try for them anyway.
       var forceBreak =
+        !planned &&
         !curr.isDivider &&
         curr.constructor !== ChantLineBreak &&
         curr.constructor !== Custos &&
@@ -1063,6 +1115,7 @@ export class ChantLine extends ChantLayoutElement {
       // also force a break if we've run into extra TextOnly elements, but the current notation is not a TextOnly and has lyrics
       forceBreak =
         forceBreak ||
+        this.plannedEnd === i ||
         (this.extraTextOnlyIndex !== null &&
           curr.constructor !== TextOnly &&
           curr.constructor !== ChantLineBreak &&
@@ -1084,22 +1137,12 @@ export class ChantLine extends ChantLayoutElement {
         textOnlyStartIndex = i;
       }
 
-      // lyrics that an earlier layout of the lines wrapped (in setMaxWidth()) or
-      // moved (in centerDividers()) go back to where the notation's layout put them
-      if (curr.hasLyrics() && curr.lyrics.some((lyric) => lyric.needsLayout)) {
-        for (let lyric of curr.lyrics) {
-          if (lyric.needsLayout) {
-            lyric.recalculateMetrics(ctxt);
-            lyric.needsLayout = false;
-          }
-        }
-        curr.alignLyrics(ctxt);
-      }
+      restoreLyrics(ctxt, curr);
 
       // try to fit the curr element on this line.
       // if it doesn't fit, we finish up here.
       var fitsOnLine;
-      if (isHiddenAccidental(curr)) {
+      if (isHiddenAccidental(curr) && this.plannedEnd !== i) {
         // it will be moved to the notation that follows it in alignHiddenAccidentals()
         curr.bounds.x = prevNeume!.bounds.right() + prevNeume!.calculatedTrailingSpace;
         fitsOnLine = true;
@@ -1117,6 +1160,7 @@ export class ChantLine extends ChantLayoutElement {
       }
       var candidateForExtraTextOnlyLine =
         ctxt.useExtraTextOnly &&
+        this.plannedEnd === undefined &&
         curr.constructor === TextOnly &&
         LyricArray.hasOnlyOneLyric((curr as TextOnly).lyrics) &&
         (fitsOnLine === false || this.extraTextOnlyIndex !== null);
@@ -1194,24 +1238,15 @@ export class ChantLine extends ChantLayoutElement {
             extraTextOnlyLyricIndex
           ].getRight();
       } else if (fitsOnLine === false) {
-        const isTextOnlyBeforeDivider = (i: number) => {
-          const curr = notations[i];
-          if (curr.constructor !== TextOnly) return false;
-          // only TextOnly elements may come between it and the next divider
-          for (let k = i + 1; k < notations.length; k++) {
-            if (notations[k].isDivider) return true;
-            if (notations[k].constructor !== TextOnly) return false;
-          }
-          return false;
-        }
         // first check for elements that cannot begin a system: dividers and custodes
         while (
+          this.plannedEnd !== i &&
           this.numNotationsOnLine > 1 &&
-          (curr.isDivider || curr.constructor === Custos || isTextOnlyBeforeDivider(i))
+          (curr.isDivider || curr.constructor === Custos || isTextOnlyBeforeDivider(notations, i))
         ) {
           curr = notations[--i];
           this.numNotationsOnLine--;
-          if (this.lastLyricsBeforeTextOnly && isTextOnlyBeforeDivider(i)) {
+          if (this.lastLyricsBeforeTextOnly && isTextOnlyBeforeDivider(notations, i)) {
             delete this.lastLyricsBeforeTextOnly;
           }
         }
@@ -1245,7 +1280,7 @@ export class ChantLine extends ChantLayoutElement {
 
         // check if the prev elements want to be kept with this one
         var breakInArea: number | undefined;
-        for (j = i - 1; j > this.notationsStartIndex; j--) {
+        for (j = i - 1; j > this.notationsStartIndex && this.plannedEnd !== i; j--) {
           var cne = notations[j];
           curr = notations[j + 1];
 
@@ -1742,7 +1777,6 @@ export class ChantLine extends ChantLayoutElement {
       curr = this.score.notations[i];
       next = curr.isAccidental && this.score.notations[++i];
       nextOrCurr = next || curr;
-      var hasLyrics = nextOrCurr.hasLyrics();
 
       if (!curr || !prev) continue;
 
@@ -1753,30 +1787,48 @@ export class ChantLine extends ChantLayoutElement {
       )
         continue;
 
-      if (prev !== null) {
-        LyricArray.mergeIn(prevLyrics, prev.lyrics);
-        if (prev.keepWithNext === true) continue;
-      }
+      LyricArray.mergeIn(prevLyrics, prev.lyrics);
+      if (!this.canJustifyBefore(prev, curr, nextOrCurr, i, prevLyrics)) continue;
 
-      if (
-        !curr.isDivider &&
-        prevLyrics.length &&
-        prevLyrics[0].allowsConnector() &&
-        hasLyrics
-      )
-        continue;
-
-      if (nextOrCurr.constructor === ChantLineBreak) continue;
-
-      if (nextOrCurr === this.custos && !hasLyrics) continue;
-
-      if (i === 0 && this.score.useDropCap && hasLyrics) continue;
+      if (nextOrCurr === this.custos && !nextOrCurr.hasLyrics()) continue;
 
       // otherwise, we can add space before this element
       this.toJustify.push(curr);
     }
     if (nextOrCurr !== null) LyricArray.mergeIn(prevLyrics, nextOrCurr.lyrics);
     return nextOrCurr;
+  }
+
+  /**
+   * whether justifying the line can add space before curr, which follows
+   * prev, as findNeumesToJustify() works it out: nextOrCurr is the notation
+   * at index, which is curr, or the one after it if curr is an accidental,
+   * and prevLyrics are the last lyrics before it.  (Space isn't added before
+   * the line's custos either, unless it has lyrics.)
+   */
+  canJustifyBefore(
+    prev: ChantNotationElement,
+    curr: ChantNotationElement,
+    nextOrCurr: ChantNotationElement,
+    index: number,
+    prevLyrics: Lyric[]
+  ) {
+    if (prev.keepWithNext === true) return false;
+
+    var hasLyrics = nextOrCurr.hasLyrics();
+    if (
+      !curr.isDivider &&
+      prevLyrics.length &&
+      prevLyrics[0].allowsConnector() &&
+      hasLyrics
+    )
+      return false;
+
+    if (nextOrCurr.constructor === ChantLineBreak) return false;
+
+    if (index === 0 && this.score.useDropCap && hasLyrics) return false;
+
+    return true;
   }
 
   getWhitespaceOnRight(ctxt?: ChantContext) {
@@ -2672,16 +2724,15 @@ export class ChantLine extends ChantLayoutElement {
         let condensableSpaceSincePrevLyric = null;
         if (i < prevLyrics.length && prevLyrics[i]) {
           prevLyricRight = prevLyrics[i].getRight();
-          let notationI = condensableSpaces
-            .map(s => s.notation)
-            .lastIndexOf(prevLyrics[i].notation);
+          // (the space before the previous lyric's notation is usually one
+          // of the last few, so look for it from the end)
+          let notationI = condensableSpaces.length - 1;
+          while (notationI >= 0 && condensableSpaces[notationI].notation !== prevLyrics[i].notation) notationI--;
           if (notationI >= 0) {
             condensableSpacesSincePrevLyric = condensableSpaces.slice(
               notationI + 1
             ) as CondensableSpaces;
-            condensableSpacesSincePrevLyric.sum = condensableSpacesSincePrevLyric
-              .map(s => s.condensable)
-              .reduce((a, b) => a + b, 0);
+            condensableSpacesSincePrevLyric.sum = sumCondensable(condensableSpacesSincePrevLyric);
           } else {
             condensableSpacesSincePrevLyric.sum = 0;
           }
@@ -2774,9 +2825,7 @@ export class ChantLine extends ChantLayoutElement {
               condensableSpacesSincePrevLyric.forEach(space => {
                 space.condensable *= multiplier;
               });
-              condensableSpaces.sum = condensableSpaces
-                .map(s => s.condensable)
-                .reduce((a, b) => a + b, 0);
+              condensableSpaces.sum = sumCondensable(condensableSpaces);
             }
           }
         }
@@ -2802,8 +2851,9 @@ export class ChantLine extends ChantLayoutElement {
     if (
       currRight() + curr.calculatedTrailingSpace <
         rightNotationBoundary + condensableSpaces.sum + space.condensable &&
-      LyricArray.getRight(curr.lyrics, true, true) <=
-        this.staffRight + condensableSpaces.sum + space.condensable
+      (rightNotationBoundary === Infinity ||
+        LyricArray.getRight(curr.lyrics, true, true) <=
+          this.staffRight + condensableSpaces.sum + space.condensable)
     ) {
       if (prev.isAccidental && !(prev as Accidental).hidden) {
         // move the previous accidental up next to the current note:
