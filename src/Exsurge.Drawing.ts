@@ -4961,6 +4961,12 @@ export class ChantNotationElement extends ChantLayoutElement {
   /** lets the line break after this notation even though it's kept with the next */
   allowLineBreakBeforeNext?: boolean;
   needsLayout: boolean;
+  /**
+   * how many times ChantScore.performLayout() (or performLayoutAsync()) has
+   * laid the notation out, which tells the optimal line breaker whether a
+   * line it measured before is still the same (see LineBreaker)
+   */
+  timesLaidOut?: number;
 
   lyrics: Lyric[];
   alText?: AboveLinesText[];

@@ -771,6 +771,12 @@ export class ChantScore {
    * layoutChantLines()
    */
   keptInAreas?: boolean[] | null;
+  /**
+   * the optimal line breaker of the last layout of the lines, the lines of
+   * which the next layout at the same width uses again where it can (see
+   * LineBreaker); null lets them go, and the next layout lays out every line
+   */
+  lineBreaker?: LineBreaker | null;
   staffLineCount: number;
   titles?: Titles;
   startingClef: Clef;
@@ -1111,6 +1117,7 @@ export class ChantScore {
       if (force || notation.needsLayout) {
         ctxt.currNotationIndex = i;
         notation.performLayout(ctxt);
+        notation.timesLaidOut = (notation.timesLaidOut || 0) + 1;
       }
     }
 
@@ -1250,6 +1257,7 @@ export class ChantScore {
       if (notation.needsLayout) {
         ctxt.currNotationIndex = index;
         notation.performLayout(ctxt);
+        notation.timesLaidOut = (notation.timesLaidOut || 0) + 1;
       }
 
       index++;
@@ -1294,7 +1302,9 @@ export class ChantScore {
     ctxt.activeClef = this.startingClef;
 
     var spaceBetweenSystems = ctxt.staffInterval * ctxt.spaceBetweenSystems;
-    var lineBreaker = ctxt.lineBreaking === "optimal" && width > 0 ? new LineBreaker(this, ctxt, width) : null;
+    var lineBreaker =
+      ctxt.lineBreaking === "optimal" && width > 0 ? new LineBreaker(this, ctxt, width, this.lineBreaker) : null;
+    this.lineBreaker = lineBreaker;
 
     do {
       var line = new ChantLine(this);
@@ -1309,6 +1319,7 @@ export class ChantScore {
       line.bounds.y = -line.bounds.y + y;
       y += line.bounds.height + spaceBetweenSystems;
     } while (currIndex < this.notations.length);
+    if (lineBreaker) lineBreaker.release();
 
     var firstLine = this.lines[0];
 

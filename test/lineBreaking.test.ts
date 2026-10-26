@@ -6,6 +6,7 @@ import assert from "node:assert";
 import * as E from "../src/index.js";
 import { featureCases, settingCases } from "./golden/cases";
 import { render, type RenderOptions } from "./golden/harness";
+import { createRandom, randomGabc } from "./reference/gabcFuzzer";
 
 const puer = featureCases.find((c) => c.name === "puer-natus-est")!.gabc;
 const adTeLevavi = featureCases.find((c) => c.name === "ad-te-levavi")!.gabc;
@@ -217,6 +218,95 @@ describe("optimal line breaking", () => {
         const { score } = await layOut(gabc, { ...options, relayoutWidths: [width] });
         assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `${c.name} at ${width}`);
         assert.deepStrictEqual(positions(score), positions(fresh.score), `${c.name} at ${width}`);
+      }
+    }
+  });
+
+  it("lays out again only the lines that could include what an edit changed", async () => {
+    const gabc = Array(6).fill(adTeLevavi.replace(/\(::\)\s*$/, "(:)")).join(" ") + " (::)";
+    const { score, ctxt } = await layOut(gabc, { width: 330 });
+    const linesLaidOut = (layOut: () => void) => {
+      const layOutLineFrom = E.LineBreaker.prototype.layOutLineFrom;
+      let count = 0;
+      E.LineBreaker.prototype.layOutLineFrom = function (this: E.LineBreaker, ...args) {
+        count++;
+        return layOutLineFrom.apply(this, args);
+      };
+      try {
+        layOut();
+      } finally {
+        E.LineBreaker.prototype.layOutLineFrom = layOutLineFrom;
+      }
+      return count;
+    };
+    const before = positions(score);
+    assert.strictEqual(linesLaidOut(() => score.layoutChantLines(ctxt, 330)), 0);
+    assert.deepStrictEqual(positions(score), before);
+
+    const all = linesLaidOut(() => {
+      score.lineBreaker = null;
+      score.layoutChantLines(ctxt, 330);
+    });
+    const edited = gabc.replace("ex(f)spé(fe)ctant", "ex(fg)spé(fe)ctant");
+    const some = linesLaidOut(() => {
+      E.Gabc.updateMappingsFromSource(ctxt, score.mappings, edited);
+      score.updateNotations(ctxt);
+      score.performLayout(ctxt);
+      score.layoutChantLines(ctxt, 330);
+    });
+    assert(some > 0 && some < all / 10, `${some} of ${all}`);
+  });
+
+  it("lays a score out with the lines laid out the last time as it would laying them all out again", async () => {
+    // (a line laid out leaves its notations where it put them, and lines
+    // laid out later, and the lines that are built, can read that: so the
+    // lines used again have to leave them as they would have)
+    const scores: { name: string; gabc: string; useDropCap?: boolean }[] = [
+      { name: "puer-natus-est", gabc: puer, useDropCap: true },
+      { name: "ad-te-levavi", gabc: adTeLevavi },
+      { name: "salve-regina", gabc: salveRegina }
+    ];
+    for (let seed = 1; seed <= 12; seed++) {
+      const gabc = randomGabc(createRandom(seed), 20 + 5 * seed);
+      // (and with notes for most of the syllables that have none, which
+      // would be text only, so that more of the lines can be used again)
+      const random = createRandom(seed + 100);
+      const tame = gabc.replace(/([^\s(])\(\)/g, (empty, c) =>
+        random.chance(0.9) ? `${c}(${random.pick(["f", "gh", "hg/hi"])})` : empty
+      );
+      scores.push({ name: `random ${seed}`, gabc, useDropCap: seed % 2 === 0 }, { name: `tame ${seed}`, gabc: tame });
+    }
+    const state = (score: any, ctxt: any) => ({
+      lineStarts: lineStarts(score),
+      positions: positions(score),
+      trailingSpaces: score.notations.map((n: any) => n.calculatedTrailingSpace),
+      svg: score.createSvg(ctxt)
+    });
+    for (const { name, gabc, useDropCap } of scores) {
+      const words = gabc.split(" ");
+      const edited = [...words.slice(0, 3), "no(gh)vum(g)", ...words.slice(3)].join(" ");
+      const steps: [string, (score: any, ctxt: any) => void][] = [
+        ["again", (score, ctxt) => score.layoutChantLines(ctxt, 330)],
+        [
+          "edited",
+          (score, ctxt) => {
+            E.Gabc.updateMappingsFromSource(ctxt, score.mappings, edited);
+            score.updateNotations(ctxt);
+            score.performLayout(ctxt);
+            score.layoutChantLines(ctxt, 330);
+          }
+        ],
+        ["again", (score, ctxt) => score.layoutChantLines(ctxt, 330)],
+        ["narrower", (score, ctxt) => score.layoutChantLines(ctxt, 200)],
+        ["again", (score, ctxt) => score.layoutChantLines(ctxt, 200)]
+      ];
+      const reusing = await layOut(gabc, { useDropCap, width: 330 });
+      const not = await layOut(gabc, { useDropCap, width: 330 });
+      for (const [step, layOutAgain] of steps) {
+        layOutAgain(reusing.score, reusing.ctxt);
+        not.score.lineBreaker = null;
+        layOutAgain(not.score, not.ctxt);
+        assert.deepStrictEqual(state(reusing.score, reusing.ctxt), state(not.score, not.ctxt), `${name}, ${step}`);
       }
     }
   });
