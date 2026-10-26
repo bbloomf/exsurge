@@ -1,6 +1,6 @@
 {
   "name": "exsurge-ts",
-  "version": "2.1.1",
+  "version": "2.2.1",
   "description": "A JavaScript library for rendering Gregorian Chant in square note notation",
   "main": "dist/exsurge.min.js",
   "types": "dist/esm/index.d.ts",
@@ -9,11 +9,18 @@
     "dist/exsurge.min.js",
     "dist/exsurge.min.js.map",
     "dist/esm",
-    "src"
+    "dist/nabc-gregall.min.js",
+    "dist/nabc-gresgmodern.min.js",
+    "dist/nabc-grelaon.min.js",
+    "nabc-gregall",
+    "nabc-gresgmodern",
+    "nabc-grelaon",
+    "src",
+    "LICENSE-OFL.txt"
   ],
   "scripts": {
     "build": "npm run build:esm && npm run build:umd",
-    "build:esm": "tsc -p tsconfig.build.json",
+    "build:esm": "tsc -p tsconfig.build.json && tsc -p tsconfig.nabc.json",
     "build:umd": "rollup -c",
     "dev": "rollup -c --watch",
     "lint": "eslint .",
@@ -51,7 +58,7 @@
     "url": "git+https://github.com/bbloomf/exsurge.git"
   },
   "author": "Benjamin Bloomfield",
-  "license": "MIT",
+  "license": "MIT AND OFL-1.1",
   "bugs": {
     "url": "https://github.com/bbloomf/exsurge/issues"
   },

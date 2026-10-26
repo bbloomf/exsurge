@@ -3,6 +3,9 @@
 // change how it lays them out.
 
 import type { OutputName, RenderOptions } from "./harness";
+import { nabcFonts } from "./nabcFonts";
+
+const { gregall, gresgmodern, grelaon } = nabcFonts;
 
 export interface GoldenCase extends RenderOptions {
   name: string;
@@ -360,8 +363,8 @@ export const featureCases: GoldenCase[] = [
       "_it<sp>_</sp>al_(g) <i>a<tt>b</tt>c</i>(h) (::)"
   },
   {
-    // no notes are lost or made up; the fusion is read but not drawn yet (i
-    // is a linea, j a pes quadratum and o a bivirga)
+    // no notes are lost or made up (i is a linea, j a pes quadratum and o a
+    // bivirga)
     name: "gregorio-note-tokens",
     gabc:
       "(c4) a([[gh]]) b(f[[gh]]i) c(fg<nlba>hg</nlba>ih) d(<nlba>fg) e(hg</nlba>) f(h@iw@ji@j@ih~) " +
@@ -782,6 +785,258 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(g_) b(g_[oh:m]) c(g_[oh:l]) d(g_[oh:h]) e(h_[oh:l]) f(h_[oh:+1mm]) g(h_[oh:m-0.5mm]) h(g_0[uh:l]) " +
       "i(h_0[uh:m]) j(g_0[uh:oh]) (::) k(e_[oh:{]f_) l(g_ h_[oh}]) m(g_) n([oh:h{]f_ g_ e_[oh}]) o([uh:{]h_0 j_0) p(f_0[uh}]) (::)"
+  },
+
+  // Gregorio: Phase 8
+  {
+    // Gregorio's neume fusion with @ (a-c are Gabc.tex's examples): the glyphs
+    // either side of an @ are joined, by a line where they're more than a step
+    // apart (e, f, i, j), and a flexus joined to a higher note is a
+    // porrectus's stroke (a, h).  A pes or porrectus can only end the shape (g,
+    // l, q), and a fused oriscus scapus has no stem (p).  Where Gregorio doesn't
+    // join them, the glyph after the @ follows with no space: a quilisma (a, r),
+    // a flexus after inclinata (c), a pes after a higher note (u, but not m's
+    // pes quassus), a torculus (s).  The glyphs either side of the @ are
+    // Gregorio's, so t's second j isn't in a distropha.  Then episemata, morae
+    // and ictus on fused shapes, and ledger lines
+    name: "fusion-manual",
+    gabc:
+      "(c4) a(h@iw@ji@j@ih~) b(d@eo@fd) c(IJ@kh) d(g@h@g@h@g) e(e@g@e) f(g@ih) g(e@gfg) h(hg@hg) " +
+      "i(gV@e) j(g@iv) k(h@gv) l(h@fg~) m(h@fog) n(gO@h) o(gO@f) p(f@gO@h) q(gw@hi) r(g@hw) s(g@hih) " +
+      "t(jj@h) u(h@fg) (:) v(g_@h_@g_) w(e_@gfg_) x(h_@iw@j_i_@j@ih~) y(g_@ih) z(hg_@h'g) A(e@g@e__) " +
+      "B(g.@h@g.) C(g@h.@g@h.) D(f.@hgh.) E(g'@h@g') F(gV'@e.) G(b@d@b) H(l@j@l) (::)"
+  },
+  {
+    // Gregorio's automatic fusion, @[…] (a-c are Gabc.tex's examples, drawn as
+    // in fusion-manual), which splits the notes as Gregorio does: a flexus
+    // before a higher note is a porrectus's stroke (d, k), and the last two
+    // notes are a pes or flexus, or the last three a porrectus (g, which is
+    // drawn as usual).  An oriscus, quilisma or virga starts a glyph, and a
+    // virga or a liquescent ends one (h, n, o); other notes make their neumes
+    // as usual (c's inclinata, l's virga reversa).  The glyphs after the first
+    // are fused, and the first only with an @ (p-r), even after a ! or a space
+    // in the @[…] (s, t)
+    name: "fusion-automatic",
+    gabc:
+      "(c4) a(@[hiwjijih~]) b(@[deofd]) c(@[IJkh]) d(@[ghghg]) e(@[ghiji]) f(@[hgfe]) g(@[hgh]) " +
+      "h(@[gh~ij]) i(@[gwhg]) j(@[gogh]) k(@[hghg]) l(@[gVhg]) m(@[gOhg]) n(@[fhvg]) o(@[fgOgjV~]) " +
+      "p(f@[ghg]f) q(@[gh]@[ij]) r(@[gh]@[@ij]) s(@[fg!hg]) t(@[fg hg]) (::)"
+  },
+  {
+    // an @ before a flexus or porrectus leaves out its stem, even where it
+    // isn't joined to the glyph before (l, m), and a flexus's oriscus scapus
+    // (j) has no stem either; a, c and k are as usual
+    name: "fusion-no-stem",
+    gabc: "(c4) a(hg) b(@hg) c(hgh) d(@hgh) e(@ig) f(@kfk) g(@hg~) h(@kf) i(@gof) j(@gOf) k(gOf) l(fg@hg) m(fg@hgh) (::)"
+  },
+  {
+    // a note fused to a linea is joined to its bar (a, b); a fused porrectus
+    // flexus or ancus isn't joined to the glyph before, and keeps its stem
+    // (c-e); [shape:stroke] draws a flexus that isn't joined to the glyph after
+    // it as a stroke, without its stem if it's fused (f, g); a quilisma
+    // quadratum isn't joined to the glyph before (h, i); an empty @[] fuses
+    // nothing (j); and a fused note's episema goes above after a fused
+    // torculus (k), and below before an episema below (l)
+    name: "fusion-details",
+    gabc:
+      "(c4) a(j=@h) b(h=@j) c(g@hghg) d(e@hghg) e(e@igf~) f(hf[shape:stroke]@f) g(@hf[shape:stroke]) " +
+      "h(f@gW) i(@[fgWh]) j(@[]ghg) k(g@hih@g_@h) l(g_@h_0) (::)"
+  },
+
+  // Gregorio: Phase 9
+  {
+    // a drop cap beside two lines (Gregorio's \gresetinitiallines{2}), made
+    // big enough to reach across them, with its baseline on the second
+    // line's lyric baseline; both lines start after it.  (Drawn line by line,
+    // each line's svg has the part of the drop cap beside it.)
+    name: "two-line-initial",
+    outputs: withLines,
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  },
+  {
+    // with the annotation centered above it
+    name: "two-line-initial-annotation",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Intr.", "VIII"))
+  },
+  {
+    // a drop cap beside three lines at the size set in its text style, which
+    // isn't made bigger to reach across them: the annotation, at the first
+    // line's top staff line, is wider, so all three lines start after it
+    name: "three-line-initial-narrow",
+    gabc:
+      "(c4) IN(d)tro(f)í(gh)bo(g) ad(f) al(gh)tá(h)re(h) De(hi)i:(h.) (;) ad(h) De(g)um(hj) qui(h) " +
+      "lae(gf)tí(g)fi(h)cat(gf) ju(e)ven(f)tú(gh)tem(g) me(f)am.(f.) (:) Con(f)fi(gh)té(h)bor(g) ti(f)bi(gh) " +
+      "in(h) cí(hi)tha(h)ra,(g.) (;) De(f)us,(gh) De(h)us(g) me(f)us.(f.) (:) Quid(f) tri(gh)stis(h) es(g) " +
+      "á(f)ni(gh)ma(h) me(hi)a,(h.) (;) et(h) qua(g)re(hj) con(h)túr(gf)bas(g) me?(f.) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 3;
+      ctxt.textStyles.dropCap.size = 96;
+    },
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ad Introitum", "Tonus VIII"))
+  },
+  {
+    // the top of the drop cap on the first line's top staff line (Gregorio's
+    // \gresetinitialanchor{top} and \gresetinitialposition{firsttop}), and
+    // the annotation above it, which makes the first line taller
+    name: "two-line-initial-first-top",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapAnchor = "top";
+      ctxt.dropCapPosition = "firsttop";
+    },
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Intr.", "VIII"))
+  },
+  {
+    // the baseline of the drop cap on the first line's lyric baseline, at its
+    // text style's size, since it doesn't reach across the lines from there
+    name: "two-line-initial-first-baseline",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapPosition = "firstbaseline";
+    }
+  },
+  {
+    // the baseline of the drop cap at the bottom of the second line, below its
+    // lyrics, at its text style's size
+    name: "two-line-initial-last-bottom",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapPosition = "lastbottom";
+    }
+  },
+  {
+    // a drop cap beside three lines in a score of one line goes on that line,
+    // made just big enough to reach across it
+    name: "three-line-initial-one-line",
+    gabc: "(c4) AL(f)le(g)lú(h)ia.(g) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 3)
+  },
+  {
+    // the second line, beside the drop cap, stays on the first page although
+    // the page is too short for it (and drawn line by line, the second line's
+    // svg has the part of the drop cap beside it)
+    name: "two-line-initial-paginated",
+    outputs: ["svg", "tree", "canvas", "lines"],
+    gabc: adTeLevavi,
+    useDropCap: true,
+    width: 400,
+    paginate: 150,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  },
+  {
+    // text other than the lyrics on the lines beside the drop cap starts
+    // after it too: the text-only syllables that go on below the first line,
+    // and the text above the second line and its translation
+    name: "two-line-initial-text",
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (,) Here is a very long run of text only syllables that will not fit() " +
+      "on the line() and so goes underneath() (;) e(g)lé(f)i(e)son.(f) (:) " +
+      "Chri(g)ste[Christ, have mercy upon us](h) e<alt>Some text above the staff that goes on</alt>(g)lé(f)i(e)son.(f) (:) " +
+      "Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (::)",
+    useDropCap: true,
+    width: 500,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.translationCentering = "center";
+    }
+  },
+
+  // Gregorio: Phase 10
+  {
+    // the example that Gregorio's NABC reference starts with, drawn with
+    // gregall above the staff, each neume at the left of its notes
+    name: "nabc-st-gall-basic",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) AL(ef~|ta>)le(fg/hggf|peclhgpi)lú(ef~|ta>)ia.(f.|ta-) (,) " +
+      "(ii//|bv-|gh!ivHG//|vi-hhppu2su1sut1|fhg/|to|eef.|pt) (;)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // the second line of NABC below the staff, with the lyrics below it,
+    // and NABC wider than its notes pushing the next syllable over.  On the
+    // second line of the score, a neume pitched low (hb) pushes the first
+    // line of NABC up, and a note two below the staff pushes the second down.
+    name: "nabc-two-voices",
+    gabc:
+      "nabc-lines: 2;\n%%\n(c4) A(f|vi|ta)ve(gh|pe|pe-) Ma(hg|cl|cllst2)rí(gf/ef|po|po)a(e.|ta-|pu) (;) " +
+      "gra(f|vihh|vi)ti(f|pe|pe)a(f|vi|vi) (z) ple(h|vihb|vi)na(b|cl|cl) Dó(c|tolsc3ppt1|tolsc3ppt1)mi(d|vi|vi)nus(d|pu|pu) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // significative letters: at each position, in glyphs with the neume
+    // (vilsc3) and around it, several at one position, and with puncta
+    // before and after the neume
+    name: "nabc-significative-letters",
+    gabc:
+      "nabc-lines: 1;\n%%\n(c3) FAc(e|talsi8)tus(ei|pe) est(i|vilsc3) re(i|vihhlsl2lsc2)pén(i|vilst1lsc4lsx7)te(e.|tahglsi9) (,) " +
+      "de(e|pfhhlsl2lsc2) cæ(e|cllsc3lse7)lo(e|tolst2lss9lsc7) so(e|vippt1lsc2)nus,(dc..|clppt2lsc6lst8) (;)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // NABC on syllables without notes, which takes its own room
+    name: "nabc-only",
+    gabc: "nabc-lines: 1;\n%%\n(c4) a(|vi) b(|pe) c(|cllsc3) d(f|ta) e(|/to) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // NABC that Gregorio can't draw, where ERR goes: a neume that isn't
+    // one, glyphs too far apart in pitch, a letter that GregorioTeX doesn't
+    // know, and a neume (pv) that gregall has no glyph for
+    name: "nabc-errors",
+    gabc: "nabc-lines: 1;\n%%\n(c4) a(f|vixx) b(g|viha!puhp/pe) c(h|vilspulcre2) d(g|pv) e(f|ta) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // with nabcAlignment "neume", the letters on the left hang back, and
+    // the notes move over to make room for them
+    name: "nabc-neume-alignment",
+    gabc: "nabc-lines: 1;\n%%\n(c4) a(f|vilst4lsc1) b(g|pelsx7) c(h|tolse4lsc6) (::)",
+    setupContext: (ctxt) => {
+      ctxt.nabcFonts = [gregall];
+      ctxt.nabcAlignment = "neume";
+    }
+  },
+  {
+    // the first line of NABC as a phantom, taking its room, and the second
+    // invisible, taking none
+    name: "nabc-visibility",
+    gabc: "nabc-lines: 2;\n%%\n(c4) A(f|vi|ta)ve(gh|pe|pe-) Ma(hg|cl|cllst2)ri(gf|cl|cl)a(e.|ta-|pu) (::)",
+    setupContext: (ctxt) => {
+      ctxt.nabcFonts = [gregall];
+      ctxt.nabcVisibility = ["phantom", "invisible"];
+    }
+  },
+  {
+    // the Laon neumes of the score that Gregorio's NABC reference prints
+    // (doc/omnes.gabc), drawn with grelaon: un and oc, letters inside the
+    // neume (lsa5), and a Tironian note (ltsr6)
+    name: "nabc-laon",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) OM(f_c/ef~|clGhhta>)nes(f.|un1hg) *(,) qui(e|puhd) in(f|pu) Chris(f/ghf|un1helst8`tohi)to(f_ef.|clGhglsa5vi) (,) " +
+      "bap(f|puhd)ti(hh|bvlsa2)zá(h|un)ti(fe|unhd) es(e!gwh!ivHG'/hwihi|un1hbppn1ppq1sun2ql!po)tis,(ie..|clGhg) (;) " +
+      "al(hhf~|unlsa2`vi>)le(hh|bvlsa2)lú(hih|to>ltsr6)ia.(f.|unhd) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [grelaon])
+  },
+  {
+    // nabc-st-gall-basic, drawn with gresgmodern
+    name: "nabc-gresgmodern",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) AL(ef~|ta>)le(fg/hggf|peclhgpi)lú(ef~|ta>)ia.(f.|ta-) (,) " +
+      "(ii//|bv-|gh!ivHG//|vi-hhppu2su1sut1|fhg/|to|eef.|pt) (;)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gresgmodern])
   },
 
   // Gregorio: Phase 12
@@ -1215,6 +1470,12 @@ export const settingCases: GoldenCase[] = [
     gabc: "(c4) Ky(f)ri(gfg)e(h) (::)",
     setupContext: (ctxt) => (ctxt.noteIdPrefix = "n")
   },
+  {
+    name: "def-id-prefix",
+    outputs: ["svg", "node"],
+    gabc: "(c4) Ky(f)ri(gfg)e(h) (::)",
+    setupContext: (ctxt) => (ctxt.defIdPrefix = "s1-")
+  },
 
   // ---- editing
   {
@@ -1263,7 +1524,19 @@ export const settingCases: GoldenCase[] = [
   { name: "async-layout", gabc: christus, useDropCap: true, async: true },
   { name: "paginated", outputs: ["svg", "tree", "canvas"], gabc: puer, useDropCap: true, width: 320, paginate: 140, setupScore: titles },
   { name: "tree-zoom", outputs: ["tree"], gabc: kyrie, zoom: 1.5 },
-  { name: "tree-fill-container", outputs: ["tree"], gabc: kyrie, zoom: true }
+  { name: "tree-fill-container", outputs: ["tree"], gabc: kyrie, zoom: true },
+
+  // Gregorio: Phase 9
+  {
+    // a canvas without actualBoundingBox metrics measures only the font's box,
+    // so a drop cap beside two lines is sized as a typical capital
+    name: "canvas-basic-two-line-initial",
+    outputs: ["svg", "canvas"],
+    gabc: adTeLevavi,
+    useDropCap: true,
+    strategy: "canvas-basic",
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  }
 ];
 
 // -----------------------------------------------------------------------------
@@ -1328,6 +1601,16 @@ export const svgMeasuredCases: GoldenCase[] = [
     ...settingCases.find((c) => c.name === "titles-aligned-and-wrapped")!,
     name: "svg-measured-titles",
     outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+
+  // Gregorio: Phase 9
+  {
+    // getBBox() measures only the font's box (where there's no canvas to
+    // measure the letter on), so the drop cap is sized as a typical capital
+    ...featureCases.find((c) => c.name === "two-line-initial")!,
+    name: "svg-measured-two-line-initial",
+    outputs: ["svg", "node", "nodeLines"],
     strategy: "svg"
   }
 ];

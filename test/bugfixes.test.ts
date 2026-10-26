@@ -7,6 +7,8 @@ import { Gabc } from "../src/Exsurge.Gabc.js";
 import * as Neumes from "../src/Exsurge.Chant.Neumes.js";
 import * as Signs from "../src/Exsurge.Chant.Signs.js";
 import { Spanish } from "../src/Exsurge.Text.js";
+import * as Exsurge from "../src/index.js";
+import { render } from "./golden/harness";
 
 function layoutNotations(gabc: string) {
   var ctxt = new Drawing.ChantContext();
@@ -169,6 +171,33 @@ describe('Braces', function() {
     assert.equal(line.custos, score.notations[score.notations.length - 1]);
     assert.equal(line.braces.length, 1);
     assert.equal(line.braces[0].bounds.right(), line.custos.bounds.right());
+  });
+});
+
+describe('Bars before text only syllables', function() {
+  // with text measured, so that the text can start under the bar
+  async function layoutBar(gabc: string) {
+    var notations: Drawing.ChantNotationElement[] = (await render(Exsurge, gabc, {}, [])).score.notations;
+    var i = notations.findIndex((notation) => notation.isDivider);
+    var bar = notations[i];
+    var next = notations.slice(i + 1).find((notation) => !(notation instanceof Chant.TextOnly))!;
+    return {
+      spaceBefore: bar.bounds.x - notations[i - 1].bounds.right(),
+      spaceAfter: next.bounds.x - bar.bounds.right()
+    };
+  }
+
+  it('centers a bar between its notes and the custos when the text after it starts under it', async function() {
+    // the bar used to be centered before the text, against the dot of the last note
+    var { spaceBefore, spaceAfter } = await layoutBar('(c4) te.(ghd___/ffg.) (::) <i>Ant.</i>() (k+Z)');
+    assert(spaceBefore > 0, `${spaceBefore}`);
+    assert(Math.abs(spaceBefore - spaceAfter) < 1e-9, `${spaceBefore} ${spaceAfter}`);
+  });
+
+  it('keeps a bar by its notes when a long text after it pushes the next neume along', async function() {
+    var { spaceBefore, spaceAfter } = await layoutBar('(c4) a(g.) (:) <i>Antiphona repetitur hic.</i>() b(h) c(g)');
+    assert(spaceBefore > 0, `${spaceBefore}`);
+    assert(spaceAfter > 10 * spaceBefore, `${spaceBefore} ${spaceAfter}`);
   });
 });
 
@@ -338,5 +367,88 @@ describe('Canvas drawing', function() {
       assert(belowSecondNote > 52 * ctxt.glyphScaling && belowSecondNote < 63 * ctxt.glyphScaling,
         'the swash ends ' + belowSecondNote + ' below its second note');
     });
+  });
+});
+
+describe('Svg defs', function() {
+  interface DefsAndUses {
+    defs: { id: string; transform: string }[];
+    hrefs: string[];
+  }
+
+  function attributesOfTag(tag: string) {
+    var attributes: { [name: string]: string } = {};
+    tag.replace(/([\w:-]+)="([^"]*)"/g, function(_, name: string, value: string) {
+      attributes[name] = value;
+      return '';
+    });
+    return attributes;
+  }
+
+  function defsAndUsesOfSvg(svg: string): DefsAndUses {
+    return {
+      defs: (svg.match(/<g [^>]*class="glyph"[^>]*>/g) || []).map(function(tag) {
+        var attributes = attributesOfTag(tag);
+        return { id: attributes.id, transform: attributes.transform };
+      }),
+      hrefs: (svg.match(/<use [^>]*>/g) || []).map(function(tag) {
+        return attributesOfTag(tag)['xlink:href'];
+      })
+    };
+  }
+
+  function defsAndUsesOfSvgTree(tree: Drawing.SvgTreeNode, result: DefsAndUses = { defs: [], hrefs: [] }) {
+    var props = tree.props || {};
+    if (props.className === 'glyph') result.defs.push({ id: props.id, transform: props.transform });
+    if (tree.name === 'use') result.hrefs.push(props.xlinkHref);
+    tree.children.forEach(function(child) {
+      if (typeof child !== 'string') defsAndUsesOfSvgTree(child, result);
+    });
+    return result;
+  }
+
+  // as a page does, each href goes to the first element in the page with its id
+  function assertEachSvgInAPageDrawsItsOwnDefs(svgs: DefsAndUses[], contexts: Drawing.ChantContext[]) {
+    var page: { [id: string]: { svgIndex: number; transform: string } } = {};
+    svgs.forEach(function(svg, svgIndex) {
+      svg.defs.forEach(function(def) {
+        if (!page.hasOwnProperty(def.id)) page[def.id] = { svgIndex: svgIndex, transform: def.transform };
+      });
+    });
+    svgs.forEach(function(svg, svgIndex) {
+      assert(svg.hrefs.length > 0);
+      svg.hrefs.forEach(function(href) {
+        assert.equal(href[0], '#', href);
+        assert.deepEqual(page[href.slice(1)], {
+          svgIndex: svgIndex,
+          transform: 'scale(' + contexts[svgIndex].glyphScaling + ')'
+        }, href);
+      });
+    });
+  }
+
+  it('gives each context its own def ids, so two svgs in one page draw at their own scales', function() {
+    // def ids used to be bare glyph codes, so the second svg in a page drew
+    // the first svg's defs, at the first svg's scale
+    var contexts = [{ prefix: 'a-', glyphMultiplier: 1 }, { prefix: 'b-', glyphMultiplier: 0.8 }].map(function(options) {
+      var ctxt = new Drawing.ChantContext();
+      ctxt.defIdPrefix = options.prefix;
+      ctxt.setStaffHeight(37.5, options.glyphMultiplier);
+      return ctxt;
+    });
+    assert.notEqual(contexts[0].glyphScaling, contexts[1].glyphScaling);
+    var scores = contexts.map(function(ctxt) {
+      var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) Ky(f)ri(gfg)e(h) (::)'), false);
+      score.performLayout(ctxt);
+      score.layoutChantLines(ctxt, 600);
+      return score;
+    });
+
+    assertEachSvgInAPageDrawsItsOwnDefs(scores.map(function(score, i) {
+      return defsAndUsesOfSvg(score.createSvg(contexts[i]));
+    }), contexts);
+    assertEachSvgInAPageDrawsItsOwnDefs(scores.map(function(score, i) {
+      return defsAndUsesOfSvgTree(score.createSvgTree(contexts[i]));
+    }), contexts);
   });
 });

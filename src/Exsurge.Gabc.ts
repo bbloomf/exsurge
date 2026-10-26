@@ -69,6 +69,7 @@ import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
 import { escapeChar, escapedCharSource, restoreEscapes } from "./gabcEscapes.js";
+import { texLengthToStaffIntervals } from "./texLengths.js";
 import type {
   AreaBoundary,
   ChantContext,
@@ -100,6 +101,288 @@ interface NeumeState {
   /** returns the next state, after making a neume if this note can't continue this one */
   handle(currNote: Note, prevNote: Note, notesRemaining: number): NeumeState;
 }
+
+// a glyph or neume of Gregorio's neume fusion, in Gabc.createFusedNeumes()
+interface FusionPiece {
+  /** the glyph, if it's one that Gregorio fuses */
+  glyph?: Neumes.FusedGlyph;
+  /** the neume that the state machine made of the notes, if it made one */
+  neume?: Neumes.Neume;
+  /** whether it's fused to the piece before */
+  fused: boolean;
+}
+
+var gabcStaffPosition = Neumes.gabcStaffPosition;
+
+// a linea (gabc =), or a punctum linea (R or r0)
+var isLinea = (note: Note) =>
+  note.shape === NoteShape.Default &&
+  (!!(note.shapeModifiers & NoteShapeModifiers.Linea) || !!note.linea);
+
+// the glyph that Gregorio fuses that a neume is, if it's one
+var fusedGlyphOfNeume = (neume: Neumes.Neume, fused: boolean): Neumes.FusedGlyph | undefined => {
+  var kind: Neumes.FusedGlyphKind;
+  if (neume instanceof Neumes.Punctum || neume instanceof Neumes.Oriscus)
+    kind = Neumes.FusedGlyphKind.Punctum;
+  else if (neume instanceof Neumes.Virga)
+    kind =
+      neume.notes[0].shapeModifiers & NoteShapeModifiers.Reverse
+        ? Neumes.FusedGlyphKind.VirgaReversa
+        : Neumes.FusedGlyphKind.Virga;
+  else if (neume instanceof Neumes.Clivis) kind = Neumes.FusedGlyphKind.Flexus;
+  else if (neume instanceof Neumes.Podatus || neume instanceof Neumes.PesQuassus)
+    kind = Neumes.FusedGlyphKind.Pes;
+  else if (neume instanceof Neumes.Porrectus) kind = Neumes.FusedGlyphKind.Porrectus;
+  else return undefined;
+  return { kind, notes: neume.notes, fused };
+};
+
+// the notes that Gregorio fuses in @[…]: puncta (but not lineae), oriscus
+// notes, quilismata and virgae (but not virgae reversae)
+var isAutoFusible = (note: Note) => {
+  switch (note.shape) {
+    case NoteShape.Default:
+      return !isLinea(note);
+    case NoteShape.Oriscus:
+    case NoteShape.Quilisma:
+      return true;
+    case NoteShape.Virga:
+      return !(note.shapeModifiers & NoteShapeModifiers.Reverse);
+    default:
+      return false;
+  }
+};
+
+// whether a note in @[…] starts a new fused glyph rather than continuing one:
+// all but a punctum do, as does an @ or an initio debilis
+var startsAutoFusedGlyph = (note: Note) =>
+  !!note.fused ||
+  note.shape !== NoteShape.Default ||
+  !!note.quadratum ||
+  !!note.quilismaQuadratum ||
+  !!(note.liquescent & LiquescentType.InitioDebilis);
+
+// a liquescent other than an initio debilis, which ends a fused glyph
+var isTailLiquescent = (note: Note) => !!(note.liquescent & ~LiquescentType.InitioDebilis);
+
+// a note that Gregorio doesn't fuse to the glyph before, even after an @: a
+// stropha or a linea
+var isNeverFused = (note: Note) => note.shape === NoteShape.Stropha || isLinea(note);
+
+// a punctum that isn't a linea or the first note of a pes quadratum
+var isPlainPunctum = (note: Note) =>
+  note.shape === NoteShape.Default && !isLinea(note) && !note.quadratum && !note.quilismaQuadratum;
+
+// Gregorio's glyphs that can't have more notes
+var __completeGregorioGlyphs = [
+  "scandicus",
+  "pesQuadratum",
+  "salicusFlexus",
+  "ancus",
+  "torculusLiquescens",
+  "torculusResupinusFlexus",
+  "porrectusFlexus"
+];
+
+// Gregorio's glyph that starts with the note at index (add_note_to_a_glyph()
+// in gabc-glyphs-determination.c): how many notes it has, its kind if it's a
+// glyph that Gregorio fuses, and whether Gregorio fuses the next glyph to it.
+// Gregorio's glyphs either side of an @ are the ones that it fuses, where
+// exsurge's neumes can be other groups (a distropha of two puncta at the
+// unison, say).
+var nextGregorioGlyph = (
+  notes: Note[],
+  index: number
+): { length: number; kind?: Neumes.FusedGlyphKind; fusesNext?: boolean } => {
+  var first = notes[index];
+  var position = (i: number) => gabcStaffPosition(notes[i]);
+  // (an @ or an initio debilis starts a glyph)
+  var canAdd = (i: number) =>
+    i < notes.length && !notes[i].fused && !(notes[i].liquescent & LiquescentType.InitioDebilis);
+  var end = index + 1;
+
+  switch (first.shape) {
+    case NoteShape.Inclinatum:
+      while (
+        canAdd(end) &&
+        notes[end].shape === NoteShape.Inclinatum &&
+        position(end) !== position(end - 1)
+      )
+        end++;
+      return { length: end - index };
+    case NoteShape.Stropha:
+      while (
+        end - index < 3 &&
+        canAdd(end) &&
+        notes[end].shape === NoteShape.Stropha &&
+        position(end) === position(index)
+      )
+        end++;
+      return { length: end - index };
+    case NoteShape.Virga:
+      if (first.shapeModifiers & NoteShapeModifiers.Reverse)
+        return { length: 1, kind: Neumes.FusedGlyphKind.VirgaReversa };
+      while (
+        end - index < 3 &&
+        canAdd(end) &&
+        notes[end].shape === NoteShape.Virga &&
+        !(notes[end].shapeModifiers & NoteShapeModifiers.Reverse) &&
+        position(end) === position(index)
+      )
+        end++;
+      return end - index === 1
+        ? { length: 1, kind: Neumes.FusedGlyphKind.Virga }
+        : { length: end - index };
+  }
+  if (isLinea(first)) return { length: 1 };
+  if (isTailLiquescent(first)) return { length: 1, kind: Neumes.FusedGlyphKind.Punctum };
+
+  // a punctum, oriscus, quilisma or the first note of a pes quadratum, and
+  // the notes that Gregorio adds to it
+  var isNormalPunctum =
+    first.shape === NoteShape.Default && !(first.liquescent & LiquescentType.InitioDebilis);
+  var type = first.quadratum ? "quadratum" : first.quilismaQuadratum ? "quilismaQuadratum" : "punctum";
+  for (; canAdd(end); end++) {
+    var note = notes[end];
+    var interval = position(end) - position(end - 1);
+    var next: string | null = null;
+
+    if (Math.abs(interval) > 5) break;
+    if (note.shape === NoteShape.Oriscus && note.shapeModifiers & NoteShapeModifiers.Stemmed) {
+      if (type === "punctum" && interval > 0) next = "pesOriscus";
+    } else if (isPlainPunctum(note) && interval !== 0) {
+      switch (type) {
+        case "punctum":
+          next = interval > 0 ? "pes" : "flexus";
+          break;
+        case "pes":
+          if (interval < 0) next = "torculus";
+          else if (isNormalPunctum) next = "scandicus";
+          break;
+        case "quadratum":
+          next = interval > 0 ? "pesQuadratum" : "flexus";
+          break;
+        case "quilismaQuadratum":
+          if (interval > 0) next = "pesQuadratum";
+          break;
+        case "pesOriscus":
+          if (interval > 0) next = "salicus";
+          break;
+        case "salicus":
+          if (interval < 0) next = "salicusFlexus";
+          break;
+        case "flexus":
+          if (interval > 0) {
+            if (isNormalPunctum) next = "porrectus";
+          } else if (note.liquescent & LiquescentType.Small) next = "ancus";
+          break;
+        case "torculus":
+          if (interval > 0) next = "torculusResupinus";
+          else if (note.liquescent === LiquescentType.Small) next = "torculusLiquescens";
+          break;
+        case "torculusResupinus":
+        case "porrectus":
+          if (interval < 0) next = type + "Flexus";
+          break;
+      }
+    }
+    if (next === null) break;
+
+    type = next;
+    // (these glyphs, and a liquescent, end the glyph)
+    if (__completeGregorioGlyphs.indexOf(type) >= 0 || isTailLiquescent(note)) {
+      end++;
+      break;
+    }
+  }
+
+  // (Gregorio has no torculus that starts with an oriscus, and fuses the
+  // oriscus and a flexus instead, as close_glyph() does)
+  if (type === "torculus" && first.shape === NoteShape.Oriscus)
+    return { length: 1, kind: Neumes.FusedGlyphKind.Punctum, fusesNext: true };
+
+  var kinds: { [type: string]: Neumes.FusedGlyphKind } = {
+    punctum: Neumes.FusedGlyphKind.Punctum,
+    quadratum: Neumes.FusedGlyphKind.Punctum,
+    quilismaQuadratum: Neumes.FusedGlyphKind.Punctum,
+    pes: Neumes.FusedGlyphKind.Pes,
+    flexus: Neumes.FusedGlyphKind.Flexus,
+    porrectus: Neumes.FusedGlyphKind.Porrectus
+  };
+  return { length: end - index, kind: kinds[type] };
+};
+
+// Gregorio's split of the notes of a fused glyph in @[…] into the glyphs it
+// fuses (close_fusion_glyph() in gabc-glyphs-determination.c): a pes or
+// flexus of the last two notes, a porrectus of the last three, a flexus
+// before a higher note (which it draws as a porrectus's stroke), and single
+// notes.  The first glyph is fused if fused is, and the others are.
+// previousInterval is the interval up to the first note from a note before it
+// that Gregorio counts (a virga reversa or stropha), or else 0.
+var splitFusion = (notes: Note[], fused: boolean, previousInterval: number) => {
+  var pieces: FusionPiece[] = [];
+  var add = (kind: Neumes.FusedGlyphKind, glyphNotes: Note[]) => {
+    var glyphFused = fused || pieces.length > 0;
+    pieces.push({ glyph: { kind, notes: glyphNotes, fused: glyphFused }, fused: glyphFused });
+  };
+  var interval = (i: number) => gabcStaffPosition(notes[i + 1]) - gabcStaffPosition(notes[i]);
+
+  for (var i = 0; i < notes.length; ) {
+    if (i === notes.length - 1) {
+      add(
+        notes[i].shape === NoteShape.Virga ? Neumes.FusedGlyphKind.Virga : Neumes.FusedGlyphKind.Punctum,
+        [notes[i]]
+      );
+      break;
+    }
+
+    var shift = interval(i);
+    if (shift !== 0 && i + 1 === notes.length - 1) {
+      add(shift < 0 ? Neumes.FusedGlyphKind.Flexus : Neumes.FusedGlyphKind.Pes, notes.slice(i));
+      break;
+    }
+    // (with two notes left, a flexus would have ended the notes above)
+    if (previousInterval >= 0 && shift < 0 && interval(i + 1) > 0) {
+      if (i + 2 === notes.length - 1) {
+        add(Neumes.FusedGlyphKind.Porrectus, notes.slice(i));
+        break;
+      }
+      add(Neumes.FusedGlyphKind.Flexus, notes.slice(i, i + 2));
+      previousInterval = interval(i + 1);
+      i += 2;
+      continue;
+    }
+
+    add(Neumes.FusedGlyphKind.Punctum, [notes[i]]);
+    previousInterval = shift;
+    i++;
+  }
+  return pieces;
+};
+
+// gives the last of a syllable's neumes the space after it
+var setFinalTrailingSpace = (
+  ctxt: ChantContext,
+  neumes: Neumes.Neume[],
+  finalTrailingSpace: TrailingSpace
+) => {
+  if (neumes.length > 0) {
+    if (!(finalTrailingSpace as TrailingSpaceFunction).isDefault) {
+      neumes[neumes.length - 1].trailingSpace = finalTrailingSpace;
+      neumes[neumes.length - 1].keepWithNext = true;
+
+      // finalTrailingSpace is either 0 or a function of the context
+      if (
+        typeof finalTrailingSpace === "function"
+          ? finalTrailingSpace(ctxt) > 0
+          : finalTrailingSpace > 0
+      )
+        neumes[neumes.length - 1].allowLineBreakBeforeNext = neumes[
+          neumes.length - 1
+        ].keepWithNext = true;
+    }
+  }
+};
 
 // what Gregorio's comments are masked with (see maskGabc() below)
 var __commentMask = "\uFDD0";
@@ -162,40 +445,6 @@ var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])
 //  4. { or } to indicate opening/closing (this group will be null if the metric version is used)
 //  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
 var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
-// a TeX length: a number (with TeX's . or , for the decimal point) and a unit
-// in either case, maybe with true before it (the same at TeX's usual
-// magnification), and any stretch and shrink after it (plus …, minus …)
-var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:true\s*)?([a-z]{2})(?:\s*(?:plus|minus).*)?\s*$/i;
-// TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
-var __texUnits: { [unit: string]: number } = {
-  sp: 1,
-  pt: 65536,
-  bp: (65536 * 72.27) / 72,
-  pc: 65536 * 12,
-  in: 65536 * 72.27,
-  cm: (65536 * 72.27) / 2.54,
-  mm: (65536 * 72.27) / 25.4,
-  dd: (65536 * 1238) / 1157,
-  cc: (65536 * 12 * 1238) / 1157,
-  em: 65536 * 10,
-  ex: 65536 * 4.30554
-};
-// a staff interval (from a line to the next space) in scaled points at
-// Gregorio's default staff size, \gre@factor 17: half the distance between
-// lines, (\gre@dimen@interstafflinedistancebase + \gre@dimen@stafflinethicknessbase) * 17
-var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
-
-// a TeX length in staff intervals at Gregorio's default staff size, or
-// undefined if it isn't a length exsurge can read (TeX can take a macro)
-function texLengthToStaffIntervals(length: string) {
-  var results = length.match(__texLengthRegex);
-  var unit = results && results[2].toLowerCase();
-  if (!unit || !__texUnits.hasOwnProperty(unit)) return undefined;
-  return (
-    (Number(results![1].replace(",", ".")) * __texUnits[unit]) /
-    __gregorioStaffIntervalInSp
-  );
-}
 
 // Gregorio's slurs, inside [ and ] after a note: [oslur:s;w,h], or [oslur:s{]
 // and [oslur:s}] for one from note to note (and uslur under the notes).  The
@@ -578,6 +827,10 @@ var markBracketStart = (note: Note) => (note.bracketStart = true);
 var markNoLineBreakStart = (element: { noLineBreak?: AreaBoundary }) =>
   (element.noLineBreak = { ...element.noLineBreak, start: true });
 
+// what Gregorio's @[ marks on the note after it
+var markAutoFusionStart = (note: Note) =>
+  (note.autoFusion = { ...note.autoFusion, start: true });
+
 // the NABC for one notation of two of Gregorio's elements, the second after a space ("/")
 var joinNabc = (first: string | undefined, second: string) =>
   first && second ? first + "/" + second : (first || "") + second;
@@ -677,16 +930,16 @@ export class Gabc {
    * turns: gabc, then the NABC of each line, then gabc again.  Returns the
    * notes with the NABC and the |s masked (keeping their length), but with a
    * / at a | between two parts of gabc, which Gregorio makes separate
-   * elements, and each part of gabc that has NABC, by where it starts in the
-   * notes, and where it put the /s.  The NABC of a part of gabc that's empty,
+   * elements, and each part of gabc that has NABC, by where it starts and ends
+   * in the notes, and where it put the /s.  The NABC of a part of gabc that's empty,
    * which Gregorio gives an element of its own, goes with the part before it,
    * after a / (a space in NABC).
    */
   static splitNabc(data: string, nabcLines: number) {
     let gabc = "";
     let cuts: number[] = [];
-    let parts: { index: number; nabc: string[] }[] = [];
-    let part: { index: number; nabc: string[] } | null = null;
+    let parts: { index: number; end: number; nabc: string[] }[] = [];
+    let part: { index: number; end: number; nabc: string[] } | null = null;
     let lastGabc = "";
     let index = 0;
     data.split("|").forEach((snippet, i) => {
@@ -696,7 +949,7 @@ export class Gabc {
           cuts.push(gabc.length);
           gabc += "/";
         } else if (i > 0) gabc += __commentMask;
-        if (snippet.trim() || !part) parts.push((part = { index, nabc: [] }));
+        if (snippet.trim() || !part) parts.push((part = { index, end: index + snippet.length, nabc: [] }));
         if (snippet.trim()) lastGabc = snippet;
         gabc += snippet;
       } else {
@@ -1471,13 +1724,25 @@ export class Gabc {
         insertionIndex
       );
       if (nabc) {
+        const sourceIndexOf = (item: ChantNotationElement) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex!);
+        // (a clef, which may become a line's starting clef, and a line break
+        // don't draw NABC)
+        const drawsNabc = (item?: ChantNotationElement) => !!item && !item.isClef && item.constructor !== ChantLineBreak;
         for (let part of nabc.parts) {
           // the first notation of the part, or the last one before it
           let partIndex = notationsSourceIndex + part.index;
-          let notation =
-            items.find((item) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex!) >= partIndex) ||
-            items[items.length - 1];
+          let notation = items.find((item) => sourceIndexOf(item) >= partIndex) || items[items.length - 1];
           if (!notation) continue;
+          if (!drawsNabc(notation)) {
+            // the next notation of the part, or else one of its own just
+            // after it, without notes (as Gregorio gives the NABC of a part of
+            // gabc that's empty an element of its own)
+            let index = items.indexOf(notation) + 1;
+            let next = items[index];
+            if (!drawsNabc(next) || sourceIndexOf(next) >= notationsSourceIndex + part.end)
+              items.splice(index, 0, (next = new TextOnly(partIndex, 0)));
+            notation = next;
+          }
           let notationNabc = (notation.nabc = notation.nabc || []);
           part.nabc.forEach((line, v) => (notationNabc[v] = joinNabc(notationNabc[v], line)));
         }
@@ -1858,6 +2123,9 @@ export class Gabc {
     // the last (see ChantNotationElement.continuesElement): after a !, /! or
     // /0, or after an accidental
     var joinsNextElement = false;
+    // the notes in Gregorio's automatic fusions (@[…]), which end with the notes
+    var autoFused = new Set<Note>();
+    var autoFusing = false;
 
     // the last note before a mark, if any (the marks after it are recorded on it)
     var lastNote = () => {
@@ -1905,7 +2173,9 @@ export class Gabc {
       // first, if we have any notes left over, we create a neume out of them
       if (notes.length > 0) {
         // create neume(s)
-        var neumes = this.createNeumesFromNotes(ctxt, notes, trailingSpace);
+        var neumes = notes.some((note) => note.fused || autoFused.has(note))
+          ? this.createFusedNeumes(ctxt, notes, trailingSpace, autoFused)
+          : this.createNeumesFromNotes(ctxt, notes, trailingSpace);
         joinsNextElement = this.joinElements(neumes, joinsNextElement);
         for (var i = 0; i < neumes.length; i++) notations.push(neumes[i]);
 
@@ -2146,11 +2416,14 @@ export class Gabc {
           break;
         }
         case "@[":
-          nextNoteMarks.push((note) => (note.autoFusion = { ...note.autoFusion, start: true }));
+          nextNoteMarks.push(markAutoFusionStart);
           break;
         case "]": {
           let note = lastNote();
           if (note) note.autoFusion = { ...note.autoFusion, end: true };
+          autoFusing = false;
+          // (an @[ with no notes before the ] fuses none after it)
+          nextNoteMarks = nextNoteMarks.filter((mark) => mark !== markAutoFusionStart);
           break;
         }
 
@@ -2283,6 +2556,10 @@ export class Gabc {
             );
             for (let mark of nextNoteMarks) mark(notes[firstNewNote]);
             nextNoteMarks = [];
+            if (notes[firstNewNote].autoFusion && notes[firstNewNote].autoFusion.start)
+              autoFusing = true;
+            if (autoFusing)
+              for (let i = firstNewNote; i < notes.length; i++) autoFused.add(notes[i]);
             --insertionIndex!;
           }
           break;
@@ -2346,16 +2623,18 @@ export class Gabc {
   // their own (src/gabc/gabc-glyphs-determination.c), which end after a
   // liquescent note and between notes more than a fifth apart, before a
   // quilisma, a virga or an oriscus after other notes (but not in a bivirga
-  // or trivirga, or a salicus or a pes), and where inclinata start or end; a scandicus flexus is a scandicus and a punctum
-  // (which makes a flexus with a lower punctum after it), and a scandicus
-  // or porrectus starting with a quilisma is a quilisma pes or flexus and
-  // what comes after it.  A glyph starts an element, except that a stropha
-  // and descending inclinata join the glyph before them, a glyph joins an
-  // inclinatum (or ascending inclinata) before it, a single note at the same
-  // pitch, inclinata less than a third away or a pes it rises from as a
-  // virga; but a mora or a stropha aucta ends an element.  Returns whether
-  // an accidental right after the notes is in their last element (after an
-  // inclinatum).
+  // or trivirga, or a salicus or a pes), and where inclinata start or end;
+  // a scandicus flexus is a scandicus and a punctum (which makes a flexus
+  // with a lower punctum after it), and a scandicus or porrectus starting
+  // with a quilisma is a quilisma pes or flexus and what comes after it.
+  // A fused neume (gabc @) is one glyph, as Gregorio keeps fused glyphs in
+  // one element.  A glyph starts an element, except that a glyph fused to
+  // the one before, a stropha and descending inclinata join the glyph
+  // before them, a glyph joins an inclinatum (or ascending inclinata) before
+  // it, a single note at the same pitch, inclinata less than a third away
+  // or a pes it rises from as a virga; but a mora or a stropha aucta ends an
+  // element.  Returns whether an accidental right after the notes is in
+  // their last element (after an inclinatum).
   static joinElements(neumes: Neumes.Neume[], joinsPreviousElement: boolean) {
     // (a test that doesn't narrow neume's type, as the neume classes are alike)
     var isA = (neume: Neumes.Neume, ...classes: (typeof Neumes.Neume)[]) =>
@@ -2367,6 +2646,10 @@ export class Gabc {
     type Glyph = { notes: Note[]; neume: Neumes.Neume; flexusTop?: boolean };
     var glyphs: Glyph[] = [];
     for (let neume of neumes) {
+      if (neume instanceof Neumes.FusedNeume) {
+        glyphs.push({ notes: neume.notes.slice(), neume });
+        continue;
+      }
       // (a quilisma pes, or a quilisma flexus, ends after its second note)
       let quilismaPes =
         isA(neume, Neumes.Scandicus, Neumes.ScandicusFlexus, Neumes.Porrectus, Neumes.PorrectusFlexus) &&
@@ -2422,9 +2705,13 @@ export class Gabc {
     var doNotCut = joinsPreviousElement,
       forceCut = false,
       previous: Glyph | null = null;
+    // (whether a glyph starts a neume fused to the one before)
+    var isFused = (glyph: Glyph, i: number) =>
+      i > 0 && glyph.notes[0] === glyph.neume.notes[0] && !!glyph.neume.fusedToPrevious;
     glyphs.forEach((glyph, i) => {
       var cut = false;
-      if (forceCut) {
+      if (isFused(glyph, i)) doNotCut = true;
+      else if (forceCut) {
         cut = true;
         previous = null;
       }
@@ -2930,22 +3217,232 @@ export class Gabc {
       currNoteIndex++;
     }
 
-    if (neumes.length > 0) {
-      if (!(finalTrailingSpace as TrailingSpaceFunction).isDefault) {
-        neumes[neumes.length - 1].trailingSpace = finalTrailingSpace;
-        neumes[neumes.length - 1].keepWithNext = true;
+    setFinalTrailingSpace(ctxt, neumes, finalTrailingSpace);
 
-        // finalTrailingSpace is either 0 or a function of the context
-        if (
-          typeof finalTrailingSpace === "function"
-            ? finalTrailingSpace(ctxt) > 0
-            : finalTrailingSpace > 0
+    return neumes;
+  }
+
+  // makes neumes of notes that Gregorio fuses (gabc @ before a note, and
+  // @[…]), as createNeumesFromNotes() makes them of other notes.  Gregorio's
+  // glyphs end at each @, which fuses the glyph after it to the glyph before,
+  // and at each end of @[…], in which it splits the notes into glyphs and
+  // fuses each to the one before.  Glyphs that Gregorio fuses (see
+  // fusedGlyphOfNeume()), fused one to the next, make a FusedNeume, and a
+  // fused glyph of another kind (a torculus, say) is a neume of its own, right
+  // after the neume before it with no space.
+  static createFusedNeumes(
+    ctxt: ChantContext,
+    notes: Note[],
+    finalTrailingSpace: TrailingSpace,
+    autoFused: Set<Note>
+  ) {
+    var pieces: FusionPiece[] = [];
+    // (the first note of @[…] isn't fused, unless there's an @ before it)
+    var startsArea = (note: Note) => !!(note.autoFusion && note.autoFusion.start);
+
+    // the neumes that the state machine makes of some notes; the first is
+    // fused to the piece before if fused is
+    var addNeumes = (someNotes: Note[], fused: boolean) => {
+      this.createNeumesFromNotes(ctxt, someNotes, DefaultTrailingSpace).forEach((neume, i) => {
+        var neumeFused = fused && i === 0;
+        pieces.push({ glyph: fusedGlyphOfNeume(neume, neumeFused), neume, fused: neumeFused });
+      });
+    };
+
+    // the notes outside @[…] between two @s, or an @ and the end: the glyphs
+    // next to the @s are Gregorio's (see nextGregorioGlyph()), and the notes
+    // between them make neumes as usual
+    var addSegment = (segment: Note[], fusedAfter: boolean) => {
+      var glyphs: { start: number; length: number; kind?: Neumes.FusedGlyphKind; fused: boolean }[] = [];
+      for (var i = 0, fused = !!segment[0].fused && !isNeverFused(segment[0]); i < segment.length; ) {
+        var glyph = nextGregorioGlyph(segment, i);
+        glyphs.push({ start: i, length: glyph.length, kind: glyph.kind, fused });
+        fused = !!glyph.fusesNext;
+        i += glyph.length;
+      }
+
+      // the glyphs fused to the @ before the segment, and to the @ after it
+      var first = 0;
+      while (first < glyphs.length && glyphs[first].fused && glyphs[first].kind) first++;
+      var last = glyphs.length;
+      if (fusedAfter)
+        while (
+          last > first &&
+          glyphs[last - 1].kind &&
+          (last === glyphs.length || glyphs[last].fused)
         )
-          neumes[neumes.length - 1].allowLineBreakBeforeNext = neumes[
-            neumes.length - 1
-          ].keepWithNext = true;
+          last--;
+
+      var addGlyph = (glyph: (typeof glyphs)[number]) =>
+        pieces.push({
+          glyph: {
+            kind: glyph.kind!,
+            notes: segment.slice(glyph.start, glyph.start + glyph.length),
+            fused: glyph.fused
+          },
+          fused: glyph.fused
+        });
+      glyphs.slice(0, first).forEach(addGlyph);
+      if (last > first)
+        addNeumes(
+          segment.slice(glyphs[first].start, glyphs[last - 1].start + glyphs[last - 1].length),
+          glyphs[first].fused
+        );
+      glyphs.slice(last).forEach(addGlyph);
+    };
+
+    // Gregorio's glyphs in @[…] (gabc_det_glyphs_from_notes() with
+    // autofuse): the notes it fuses make fused glyphs, which splitFusion()
+    // splits.  An oriscus, quilisma or virga starts one, as does a punctum
+    // after other notes, and a virga or a liquescent (of any shape) ends one.
+    // The other notes make neumes, fused to the glyph before if it ended
+    // with its last note.
+    var addAutoFused = (areaNotes: Note[]) => {
+      var fusing: Note[] = [];
+      var fusingIsFused = false;
+      var others: Note[] = [];
+      var othersAreFused = false;
+      var endedWithNote = false;
+      // (Gregorio makes a stropha or virga reversa before a punctum the first
+      // note of its fused glyph, as a glyph of its own, which splitFusion()
+      // counts in the intervals)
+      var fusingInterval = 0;
+      var endFusing = () => {
+        if (fusing.length) pieces.push(...splitFusion(fusing, fusingIsFused, fusingInterval));
+        fusing = [];
+      };
+      var endOthers = () => {
+        if (others.length) addNeumes(others, othersAreFused);
+        others = [];
+      };
+
+      areaNotes.forEach((note) => {
+        if (
+          fusing.length &&
+          isTailLiquescent(note) &&
+          !note.fused &&
+          !(note.liquescent & LiquescentType.InitioDebilis)
+        ) {
+          fusing.push(note);
+          endFusing();
+          endedWithNote = true;
+        } else if (isAutoFusible(note)) {
+          var previous = others[others.length - 1];
+          endOthers();
+          if (startsAutoFusedGlyph(note)) endFusing();
+          if (!fusing.length) {
+            fusingIsFused =
+              !!note.fused || (!startsArea(note) && !(note.liquescent & LiquescentType.InitioDebilis));
+            fusingInterval =
+              previous &&
+              !startsAutoFusedGlyph(note) &&
+              (previous.shape === NoteShape.Stropha || previous.shape === NoteShape.Virga)
+                ? gabcStaffPosition(note) - gabcStaffPosition(previous)
+                : 0;
+          }
+          fusing.push(note);
+          endedWithNote = isTailLiquescent(note) || note.shape === NoteShape.Virga;
+          if (endedWithNote) endFusing();
+        } else {
+          endFusing();
+          if (note.fused) endOthers();
+          if (!others.length)
+            othersAreFused =
+              (!!note.fused || (!startsArea(note) && endedWithNote)) && !isNeverFused(note);
+          others.push(note);
+          endedWithNote = false;
+        }
+      });
+      endFusing();
+      endOthers();
+    };
+
+    // the notes in each @[…], and the notes outside them split at each @
+    for (var start = 0; start < notes.length; ) {
+      var inArea = autoFused.has(notes[start]);
+      var end = start + 1;
+      while (
+        end < notes.length &&
+        autoFused.has(notes[end]) === inArea &&
+        !(inArea && startsArea(notes[end]))
+      )
+        end++;
+
+      if (inArea) addAutoFused(notes.slice(start, end));
+      else {
+        for (var segmentStart = start; segmentStart < end; ) {
+          var segmentEnd = segmentStart + 1;
+          while (segmentEnd < end && !notes[segmentEnd].fused) segmentEnd++;
+          addSegment(
+            notes.slice(segmentStart, segmentEnd),
+            segmentEnd < notes.length && !!notes[segmentEnd].fused && !isNeverFused(notes[segmentEnd])
+          );
+          segmentStart = segmentEnd;
+        }
+      }
+      start = end;
+    }
+
+    // the neumes: each run of glyphs fused one to the next makes a
+    // FusedNeume, as does a fused glyph on its own (a flexus or porrectus
+    // without its stem)
+    var neumes: Neumes.Neume[] = [];
+    var fusedToPrevious: boolean[] = [];
+    for (var first = 0; first < pieces.length; ) {
+      var last = first + 1;
+      if (pieces[first].glyph)
+        while (last < pieces.length && pieces[last].fused && pieces[last].glyph) last++;
+      var run = pieces.slice(first, last);
+
+      var runNeumes: Neumes.Neume[];
+      if (run.length > 1 || (run[0].glyph && run[0].fused)) {
+        var neume = new Neumes.FusedNeume(run.map((piece) => piece.glyph!));
+        // (it ends as the neume of its last glyph did)
+        var lastNeume = run[run.length - 1].neume;
+        if (lastNeume) {
+          neume.trailingSpace = lastNeume.trailingSpace;
+          neume.keepWithNext = lastNeume.keepWithNext;
+          neume.allowLineBreakBeforeNext = lastNeume.allowLineBreakBeforeNext;
+        }
+        neume.notes.forEach((note, i) => {
+          if (note.alText) {
+            if (!neume.alText) neume.alText = [];
+            neume.alText.push(note.alText);
+            note.alText.noteIndex = i;
+          }
+        });
+        runNeumes = [neume];
+      } else if (run[0].neume) runNeumes = [run[0].neume];
+      else runNeumes = this.createNeumesFromNotes(ctxt, run[0].glyph!.notes, DefaultTrailingSpace);
+
+      runNeumes.forEach((neume, i) => {
+        neumes.push(neume);
+        fusedToPrevious.push(i === 0 && run[0].fused && neumes.length > 1);
+      });
+      first = last;
+    }
+
+    // a fused neume follows the one before with no space, and other neumes
+    // follow with the space that createNeumesFromNotes() leaves between them
+    for (var n = 0; n + 1 < neumes.length; n++) {
+      var current = neumes[n];
+      if (fusedToPrevious[n + 1]) {
+        if (current instanceof Neumes.FusedNeume) current.fusedToNext = true;
+        neumes[n + 1].fusedToPrevious = true;
+        current.trailingSpace = 0;
+        current.keepWithNext = true;
+        current.allowLineBreakBeforeNext = false;
+      } else if ((current.trailingSpace as TrailingSpaceFunction).isDefault) {
+        current.keepWithNext = true;
+        if (neumes[n + 1].notes[0].shape === NoteShape.Quilisma) current.trailingSpace = 0;
+        else {
+          current.trailingSpace = TrailingSpaceMultiple(1);
+          current.allowLineBreakBeforeNext = true;
+        }
       }
     }
+
+    setFinalTrailingSpace(ctxt, neumes, finalTrailingSpace);
 
     return neumes;
   }

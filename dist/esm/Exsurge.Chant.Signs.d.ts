@@ -26,6 +26,8 @@ export declare class Divider extends ChantNotationElement {
     hasVerticalEpisema: boolean;
     /** whether the divider is a space higher, on or above the ledger line above the staff (gabc `0, ,0 and ^0) */
     high: boolean;
+    /** Gregorio's parenthesized bar (gabc `?, `0?, ,? or ,0?), drawn between parentheses */
+    parenthesized?: boolean;
     constructor(withCarryover?: boolean, high?: boolean);
     performLayout(ctxt: ChantContext): void;
     finishLayout(ctxt: ChantContext): void;
@@ -69,7 +71,7 @@ export declare class Accidental extends ChantNotationElement {
     /** a soft accidental (gabc X, Y or ##) is only printed if it changes the accidental in effect */
     soft: boolean;
     hidden: boolean;
-    /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn without its parentheses for now */
+    /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn between parentheses */
     parenthesized?: boolean;
     pitch?: Pitch;
     constructor(staffPosition: number, accidentalType: AccidentalType, soft?: boolean);

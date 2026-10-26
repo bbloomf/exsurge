@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="86.31057650134909" viewBox="0 0 600 86.31057650134909" >
+<g >
+<defs >
+<g id="Mora" class="glyph" transform="scale(0.0625)" >
+<path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-taB" class="glyph" transform="scale(0.0625)" >
+<path d="m20-48c0 0 0 0 0-2 2-22 2-44 10-66 8-24 8-24 16-46l12-26c10-22 22-20 34-2 12 18 12 36 2 56-10 20-16 40-20 54-4 14 0 22 20 26 4 0 10 2 14 2 26 0 54-14 84-42 36-34 70-68 98-104 20-20 22-34 46-56 4-4 8-8 12-8 6 0 8 6 8 14 0 4 0 12-2 18-20 72-90 154-154 196-32 22-64 34-96 34l-30-4c-34-8-54-22-54-44z" >
+</path>
+</g>
+<g id="BeginningAscLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-50 43.688V-61c4.167 7.292 12.76 10.938 25.78 10.938 9.376 0 20.053-1.563 32.032-4.688C31.773-60.48 45.833-71.677 50-88.344v117.97C43.75 42.645 32.812 51.5 17.187 56.186-.52 61.398-15.886 64-28.906 64-42.97 64-50 57.23-50 43.687z" >
+</path>
+</g>
+<g id="TerminatingAscLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-9.375 40.22c0-11.98-4.948-17.97-14.844-17.97-10.936 0-19.53 3.646-25.78 10.938v-53.126c0-6.77 2.604-12.76 7.813-17.968 5.208-5.21 10.677-8.594 16.406-10.157 2.603-.52 5.207-.78 7.81-.78 3.647 0 7.032.78 10.157 2.343C-2.603-43.896 0-39.73 0-34V73.03h-9.375V40.22z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-pe" class="glyph" transform="scale(0.0625)" >
+<path d="m20-70c0-8 2-16 4-26 8-22 18-46 34-72l38-64c24 2 36 10 32 26-4 16-10 36-20 56-10 20-18 38-26 56-8 18 0 30 20 34 6 2 12 2 20 2 28 0 56-14 90-44 42-36 80-76 118-128 38-52 74-106 108-160 34-54 60-94 80-122 28-42 26-42 32-52 4-6 20-12 42-16 14 2 20 10 20 24 0 6 0 16-4 24-10 28-24 60-46 94-22 34-44 64-70 98-38 48-38 52-58 74-12 16-12 16-48 64-22 32-50 62-82 94-32 32-68 60-104 82-26 16-52 26-78 26-8 0-18-2-26-4-36-8-58-20-68-36-6-10-8-20-8-30z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-cl" class="glyph" transform="scale(0.0625)" >
+<path d="m20-50c0-20 6-48 16-82 24-78 52-136 104-220 66-106 156-190 192-212 16-10 68-26 94-26 2 0 4 0 6 0 26 6 48 16 62 28 10 10 20 36 28 72 6 24 8 52 8 82 0 16 0 32-2 50-4 66-14 128-28 182-14 54-34 86-60 90-2 0-4 0-6 0-8 0-12-2-12-10 0-10 4-24 12-46 16-44 22-84 28-138 0-12 2-22 2-32 0-38-6-72-16-118-10-44-46-64-76-64-10 0-18 2-26 6-32 20-80 52-138 138-56 84-56 106-80 152-20 40-38 90-48 132-10 38-18 60-30 60-2 0-2 0-4 0-16-4-26-18-26-44z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-pi" class="glyph" transform="scale(0.0625)" >
+<path d="m244-310c0-18 6-32 18-44 14-14 26-22 46-24 2 0 2 0 4 0 18 0 36 14 50 38 2 6 4 14 4 20 0 12-6 26-18 42-14 18-26 24-42 24-6 0-16-2-22-4-26-14-40-26-40-52zm-224 34c0-4 0-6 0-8 0-12 2-18 20-62 18-38 38-84 64-138 26-54 60-92 108-102 6-2 10-2 16-2 16 0 30 6 46 20 20 18 28 28 44 48 16 20 28 36 46 52 18 16 36 14 56 4 16-8 26-12 46-18 8-2 22-2 22 8 0 4-2 10-8 18-10 16-12 8-44 24-12 6-44 20-54 20-22 0-40-8-58-22-16-12-32-30-52-56-16-22-34-32-52-32-4 0-8 0-12 2-18 4-36 28-56 80l-62 128c-6 12-12 18-24 36-12 14-22 22-30 22-4 0-8-2-12-6-2-4-4-8-4-16z" >
+</path>
+</g>
+<g id="PodatusLowerShort" class="glyph" transform="scale(0.0625)" >
+<path d="M-4.688-30.28c22.396 0 34.636-.262 36.72-.782 5.728-1.563 8.593-5.21 8.593-10.938H50v97.656c0 2.604-1.302 4.167-3.906 4.688-5.21.52-21.355.78-48.438.78-23.958 0-38.54-.26-43.75-.78-2.604 0-3.906-1.302-3.906-3.906v-82.032c0-3.646 1.302-5.468 3.906-5.468h2.344c2.604.52 15.625.78 39.063.78z" >
+</path>
+</g>
+<g id="PodatusUpperShort" class="glyph" transform="scale(0.0625)" >
+<path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
+</path>
+</g>
+<g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-taN" class="glyph" transform="scale(0.0625)" >
+<path d="m20-162c0-6 8-10 20-14 28-8 82-12 150-14 10 0 18 0 26 0 30 0 56 0 78 2v-10c4-12 0-24 4-36 4-12 8-22 16-26 4-2 6-2 10-2 8 0 18 2 30 8 2 6 0 10 0 16 0 12-2 24-4 36-4 16-10 34-8 52 2 18 6 32 12 44 2 6 4 10 4 16 0 6-2 12-4 16-4 4-10 8-20 12-6 2-8 2-12 2-6 0-10-4-16-10-4-8-4-18-8-30-2-8-4-14-4-20-22 4-50 4-88 4-54 0-106 0-160-2-12-16-20-32-24-40 0-2-2-2-2-4z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-bvN" class="glyph" transform="scale(0.0625)" >
+<path d="m260-16v-2c0-22 20-66 56-130 52-96 46-80 78-142 42-82 90-162 106-190 12-20 18-36 30-54l-2-2c-20-12-58-28-58-56 0-10 8-28 24-30 14 4 6 2 42 26 20 20 62 44 94 48 20 2 36 16 32 36-6 14-14 18-28 18-16-2-44-10-56-14-6 14-12 26-24 54-28 48-24 52-90 164-66 112-66 112-102 176-28 44-46 76-68 100-12 12-18 16-24 16-6 0-10-6-10-18zm-240 0v-2c0-22 20-66 56-130 52-96 46-80 78-142 42-82 90-162 106-190 12-20 18-36 30-54l-2-2c-20-12-58-28-58-56 0-10 8-28 24-30 14 4 6 2 42 26 20 20 62 44 94 48 20 2 36 16 32 36-6 14-14 18-28 18-16-2-44-10-56-14-6 14-12 26-24 54-28 48-24 52-90 164-66 112-66 112-102 176-28 44-46 76-68 100-12 12-18 16-24 16-6 0-10-6-10-18z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-ppu2" class="glyph" transform="scale(0.0625)" >
+<path d="m294-162c4-10 0-26 4-36 4-10 8-18 14-22 4-2 6-2 10-2 6 0 14 2 24 8 2 6 2 6 2 12 0 10-4 22-6 32-2 8-4 18-6 28v2c0 2 0 6 0 8 0 2 0 4 0 6 2 16 4 28 10 38 2 6 2 8 2 14 0 6 0 10-2 14-4 4-10 6-18 10-6 2-6 2-10 2-6 0-8-4-14-10-4-6-2-16-6-26-2-6-4-6-4-10-22 4-50 4-88 4-54 0-106 0-160-2-12-16-20-32-24-40 0-2-2-2-2-4 0-6 8-10 20-14 28-8 82-12 150-14 10 0 18 0 26 0 30 0 56 0 78 2zm180-200c4-10 0-26 4-36 4-10 8-18 14-22 4-2 6-2 10-2 6 0 14 2 24 8 2 6 2 6 2 12 0 10-4 22-6 32-2 8-4 18-6 28v2c0 2 0 8 0 10 0 2 0 2 0 4 2 16 4 28 10 38 2 6 2 8 2 14 0 6 0 10-2 14-4 4-10 6-18 10-6 2-6 2-10 2-6 0-8-4-14-10-4-6-2-16-6-26-2-6-4-6-4-10-22 4-50 4-88 4-54 0-106 0-160-2-12-16-20-32-24-40 0-2-2-2-2-4 0-6 8-10 20-14 28-8 82-12 150-14 10 0 18 0 26 0 30 0 56 0 78 2z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-viNsu1sut1" class="glyph" transform="scale(0.0625)" >
+<path d="m543-96c0-6 8-10 20-14 28-8 82-12 150-14 10 0 18 0 26 0 56 0 96 4 120 8 0 4 0 10 0 14 0 20-6 34-18 40-22 10-58 12-112 12-54 0-106 0-160-2-12-16-20-32-24-40 0-2-2-2-2-4zm-140-160c0-18 6-32 18-44 14-14 26-22 46-24 2 0 2 0 4 0 18 0 36 14 50 38 2 6 4 14 4 20 0 12-6 26-18 42-14 18-26 24-42 24-6 0-16-2-22-4-26-14-40-26-40-52zm-382 126v-2c4-22 32-62 78-118 68-86 60-70 102-126 56-74 116-144 136-168 16-18 26-32 40-48l-2-2c-17-15-49-36-49-61 0-14 13-29 31-29 14 6 4 2 36 32 16 24 54 54 84 64 16 5 28 16 28 30 0 3-1 6-2 10-8 12-16 16-30 14-16-4-42-18-54-24-8 12-16 22-32 48-36 42-34 48-118 146-84 98-84 100-130 156-36 38-58 66-84 86-12 8-18 13-23 13-1 0-2-1-3-1-6-2-10-8-8-20z" >
+</path>
+</g>
+<g id="PunctumInclinatumDescendens" class="glyph" transform="scale(0.0625)" >
+<path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-to" class="glyph" transform="scale(0.0625)" >
+<path d="m20-73c0-16 2-33 4-43 2-4 14-46 24-62 4-6 6-10 12-16 12-10 26-16 38 2 12 18 12 38 2 58-10 20-16 16-20 48-2 10 12 26 26 28 10 0 54-14 84-38 36-30 70-66 98-102 26-34 46-62 60-90 14-28 30-54 52-90 52-84 106-148 164-192 36-28 72-42 104-42 20 0 40 6 58 16 12 8 26 32 38 74 10 34 16 72 16 118 0 14-2 26-2 40-4 66-14 130-28 184-14 54-34 86-60 90-2 0-4 0-6 0-12 0-16-4-16-16 0-10 2-24 10-42 18-44 30-92 36-146 0-10 2-20 2-32 0-42-8-86-24-128-16-40-36-58-60-58-8 0-18 2-26 6-34 16-64 40-98 76-34 36-60 76-88 120-14 22-34 52-58 90-24 38-52 72-84 108-32 36-62 64-98 86-26 16-52 26-78 26-8 0-18-2-26-4-34-8-44-14-54-46-1-5-2-14-2-23z" >
+</path>
+</g>
+<g id="Nabc-gresgmodern-pt" class="glyph" transform="scale(0.0625)" >
+<path d="m20-78c0-6 0-12 2-18 10-26 24-52 36-74l36-64c24 2 32 12 32 26 0 16-12 38-20 56-8 16-24 46-24 68 0 12 4 22 20 24 8 2 14 2 22 2 26 0 50-10 74-28 64-46 104-128 140-204 18-38 32-68 44-90 18-36 46-86 80-146 34-60 72-94 120-102 4 0 10 0 14 0 20 0 36 8 50 22 16 18 30 34 44 56 14 22 32 40 48 54 12 10 24 14 36 14 26 0 52-16 80-26 12-4 20-4 20 2 0 6-6 16-16 28-12 12-32 28-68 40-12 4-22 6-32 6-52 0-88-46-116-90-18-26-36-38-58-38-4 0-6 0-10 0-8 2-18 14-32 36-14 22-30 44-44 74l-44 82c-12 28-24 46-28 56-44 112-120 228-216 290-24 16-52 22-78 22-28 0-54-6-78-18-16-10-34-32-34-60z" >
+</path>
+</g>
+<g id="FaClef" class="glyph" transform="scale(0.0625)" >
+<path d="M85.156-32v193.75c0 9.375-1.562 14.323-4.687 14.844-1.564 0-2.605-.52-3.126-1.563-.52-1.04-.782-2.603-.78-4.686V56.28c-8.335-8.332-19.793-12.5-34.376-12.5-17.71 0-31.77 3.907-42.188 11.72V-32c0-18.23 14.193-27.344 42.578-27.344 28.385 0 42.578 9.115 42.578 27.344zM98.438 93V-92.156c0-19.27 5.73-34.896 17.187-46.875 11.458-11.98 26.562-17.97 45.313-17.97 10.937 0 19.14 2.865 24.61 8.594 5.467 5.73 8.202 13.542 8.202 23.437v103.126l-5.47-4.687c-3.645-3.647-9.374-7.293-17.186-10.94-7.813-3.645-15.886-5.467-24.22-5.468-11.978 0-22.004 4.167-30.077 12.5-8.073 8.334-12.11 18.36-12.11 30.08 0 11.717 4.037 22.004 12.11 30.858s18.1 13.28 30.078 13.28c8.333 0 16.406-1.822 24.22-5.468 7.81-3.645 13.54-7.03 17.186-10.156l5.47-5.468V125.81c0 9.896-2.865 17.84-8.594 23.83-5.73 5.988-13.802 8.983-24.22 8.983-18.75 0-33.853-6.12-45.31-18.36-11.46-12.24-17.19-27.994-17.19-47.265z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,67.97057650134909)" element-index="0" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<g class="ChantNotationElement FaClef" transform="translate(0,0)" >
+<use xlink:href="#FaClef" class="" source-index="1" element-index="-1" x="0.0000625" y="-31.25" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(19.922,0)" >
+<text source-index="5" x="-1.6701999999999995" y="13.012" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >AL</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-taB" class="" x="0" y="-261.99705529340616" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#BeginningAscLiquescent" class=" note" source-index="8" element-index="0" id="note-1" x="3.125" y="-12.5" >
+</use>
+<use xlink:href="#TerminatingAscLiquescent" class=" note" source-index="9" element-index="1" id="note-2" x="6.25" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(44.7188,0)" >
+<text source-index="16" x="-7.4734" y="13.012" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >le</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-pe" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gresgmodern-cl" class="" x="39.5" y="-271.2158052934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gresgmodern-pi" class="" x="73.875" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PodatusLowerShort" class=" note" source-index="19" element-index="2" id="note-3" x="3.125" y="-18.75" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="20" element-index="3" id="note-4" x="6.25" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(54.0938,0)" >
+<rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="22" element-index="4" id="note-5" x="3.125" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="23" element-index="5" id="note-6" x="9.375" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(69.7188,0)" >
+<rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="24" element-index="6" id="note-7" x="3.125" y="-25" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="25" element-index="7" id="note-8" x="9.375" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(90.0313,0)" >
+<text source-index="36" x="-7.855" y="13.012" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >lú</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-taB" class="" x="0" y="-261.99705529340616" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#BeginningAscLiquescent" class=" note" source-index="39" element-index="8" id="note-9" x="3.125" y="-12.5" >
+</use>
+<use xlink:href="#TerminatingAscLiquescent" class=" note" source-index="40" element-index="9" id="note-10" x="6.25" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(103.6609,0)" >
+<text source-index="47" x="-7.833400000000001" y="13.012" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ia.</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-taN" class="" x="0" y="-261.99705529340616" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="51" element-index="10" id="note-11" x="3.125" y="-18.75" >
+</use>
+<use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
+</use>
+</g>
+<g class="ChantNotationElement QuarterBar" transform="translate(121.59839999999998,0)" >
+<rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="60" element-index="11" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Distropha" transform="translate(129.46089999999998,0)" >
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-bvN" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="64" element-index="12" id="note-12" x="3.125" y="-37.5" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="65" element-index="13" id="note-13" x="12.5" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(151.33589999999998,0)" >
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-ppu2" class="" x="0" y="-280.4345552934061" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-gresgmodern-viNsu1sut1" class="" x="34.25" y="-280.4345552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PodatusLowerShort" class=" note" source-index="73" element-index="14" id="note-14" x="3.125" y="-25" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="74" element-index="15" id="note-15" x="6.25" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Climacus" transform="translate(157.58589999999998,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="76" element-index="16" id="note-16" x="3.125" y="-37.5" >
+</use>
+<rect x="5.45" y="-37.5" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="78" element-index="17" id="note-17" x="11.7" y="-31.25" >
+</use>
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="79" element-index="18" id="note-18" x="16.88701998281125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(183.84791998281122,0)" >
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-to" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="100" element-index="19" id="note-19" x="3.125" y="-18.75" >
+</use>
+<rect x="5.45" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="101" element-index="20" id="note-20" x="8.575" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="102" element-index="21" id="note-21" x="14.825" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Apostropha" transform="translate(204.9229199828112,0)" >
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-gresgmodern-pt" class="" x="0" y="-261.99705529340605" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="108" element-index="22" id="note-22" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(214.2979199828112,0)" >
+<use xlink:href="#PodatusLowerShort" class=" note" source-index="109" element-index="23" id="note-23" x="3.125" y="-12.5" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="110" element-index="24" id="note-24" x="6.25" y="-18.75" >
+</use>
+<use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
+</use>
+</g>
+<g class="ChantNotationElement HalfBar" transform="translate(231.4854199828112,0)" >
+<rect x="0" y="-37.5" width="0.8" height="25" fill="#000" class="dividerLine" source-index="118" element-index="25" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>
