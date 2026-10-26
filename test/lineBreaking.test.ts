@@ -169,14 +169,16 @@ describe("optimal line breaking", () => {
     assert.deepStrictEqual(lineStarts(score).slice(0, 3), [0, 10, 20]);
   });
 
-  it("finds the breaks with the fewest demerits, as a search that keeps every way of breaking the lines would", async () => {
+  it("finds the breaks with the fewest demerits, as a search that keeps far more ways of breaking the lines would", async () => {
     // (where leaving out the ways that take more than two lines more than
-    // the fewest, as it once did, lost the best one)
+    // the fewest, as it once did, lost the best one.  Keeping those within
+    // 20 lines finds the same breaks here as keeping every way, which is
+    // much slower)
     const gabc = Array(3).fill([puer, adTeLevavi, salveRegina].join(" ")).join(" ");
     const { score, ctxt } = await layOut(gabc, { width: 140 });
     const ends = plannedEnds(score, ctxt, 140, 2);
     assert(!ends.includes(undefined));
-    assert.deepStrictEqual(ends, plannedEnds(score, ctxt, 140, Infinity));
+    assert.deepStrictEqual(ends, plannedEnds(score, ctxt, 140, 20));
   });
 
   it("lays an edited score out as it lays out the same gabc parsed afresh", async () => {
