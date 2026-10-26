@@ -62,10 +62,9 @@
 <rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="21" element-index="3" source="[object Object]" >
 </rect>
 </g>
-<g class="ChantNotationElement TextOnly" transform="translate(290.12160000000006,0)" >
+<g class="ChantNotationElement TextOnly" transform="translate(290.1216,0)" >
 <text source-index="24" x="-393.8976" y="28.85200000000001" class="lyric" text-anchor="start" style="" >
-<tspan source-index="0" style="" >Here is a very long run of text only</tspan>
-<tspan source-index="0" style="" > syllables that will not fit</tspan>
+<tspan source-index="0" style="" >Here is a very long run of text only syllables that will not fit</tspan>
 </text>
 <use xlink:href="#None" class="" source-index="89" element-index="4" x="0" y="0" >
 </use>

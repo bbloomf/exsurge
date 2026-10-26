@@ -128,8 +128,7 @@
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(393.8976,0)" >
 <text source-index="24" x="-393.8976" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
-<tspan source-index="0" style="" >Here is a very long run of text only</tspan>
-<tspan source-index="0" style="" > syllables that will not fit</tspan>
+<tspan source-index="0" style="" >Here is a very long run of text only syllables that will not fit</tspan>
 </text>
 <use xlink:href="#None" class="" source-index="89" element-index="4" x="0" y="0" >
 </use>

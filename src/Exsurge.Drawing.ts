@@ -2992,6 +2992,11 @@ export class TextElement extends ChantLayoutElement {
   /** how much a lyric that was too wide has been shrunk */
   resize?: number;
   numLines?: number;
+  /**
+   * the spans that setMaxWidth() replaced to wrap the text, where it put the
+   * spans that replaced them and how many, in order, to put back in unwrap()
+   */
+  wrappedSpans?: Array<{ index: number; count: number; spans: TextSpan[] }>;
   needsLayout?: boolean;
   svgNode?: SvgElementWithSource;
   elementIndex?: number;
@@ -3042,6 +3047,7 @@ export class TextElement extends ChantLayoutElement {
     text = text.replace(/\s+/g, " ");
     this.text = "";
     this.spans = [];
+    delete this.wrappedSpans;
 
     // save ourselves a lot of grief for a very common text:
     if (text === "*" || text === "+" || text === "†") {
@@ -3537,6 +3543,15 @@ export class TextElement extends ChantLayoutElement {
     return lines;
   }
 
+  /** puts back the spans that setMaxWidth() replaced to wrap the text */
+  unwrap() {
+    var wrapped = this.wrappedSpans;
+    if (!wrapped) return;
+    for (var i = wrapped.length - 1; i >= 0; i--)
+      this.spans.splice(wrapped[i].index, wrapped[i].count, ...wrapped[i].spans);
+    delete this.wrappedSpans;
+  }
+
   recalculateMetrics(ctxt: ChantContext, resetNewLines = true) {
     if (resetNewLines) {
       delete this.maxWidth;
@@ -3544,14 +3559,11 @@ export class TextElement extends ChantLayoutElement {
       delete this.rightAligned;
       delete this.resize;
       delete this.numLines;
-      // put back the whitespace that was taken out where the text was wrapped
+      // (as they were before the text was wrapped, so that it's measured and
+      // wrapped again the same way each time)
+      this.unwrap();
       this.spans.forEach((span) => {
         delete span.xOffset;
-        if (span.newLine === true) {
-          delete span.newLine;
-          span.text = (span.wrappedSpace || " ") + span.text;
-          delete span.wrappedSpace;
-        }
       });
     }
 
@@ -3588,7 +3600,7 @@ export class TextElement extends ChantLayoutElement {
   }
 
   setMaxWidth(ctxt: ChantContext, maxWidth: number, firstLineMaxWidth = maxWidth) {
-    if (this.spans.filter((s) => s.newLine === true).length) {
+    if (this.wrappedSpans) {
       // first get rid of any new lines set from a previous maxWidth
       this.recalculateMetrics(ctxt);
     }
@@ -3708,8 +3720,8 @@ export class TextElement extends ChantLayoutElement {
               left.wrappedSpace = splitSpan.wrappedSpace;
             newSpans.push(left);
           }
-          // the span that starts the new line keeps the whitespace taken out,
-          // to put back if the text is wrapped again (see recalculateMetrics())
+          // the span that starts the new line keeps the whitespace taken out
+          // (see getLines())
           if (textRight) {
             let right = new TextSpan(
               textRight,
@@ -3721,10 +3733,18 @@ export class TextElement extends ChantLayoutElement {
             right.wrappedSpace = lastMatch[0];
             newSpans.push(right);
           } else if (nextSpan) {
-            nextSpan.newLine = true;
-            nextSpan.wrappedSpace = lastMatch[0];
+            // (a copy, so that the span itself is put back as it was)
+            let next = nextSpan.clone();
+            next.newLine = true;
+            next.wrappedSpace = lastMatch[0];
+            newSpans.push(next);
+            endIndex++;
           }
-          this.spans.splice(spanIndex, endIndex - spanIndex + 1, ...newSpans);
+          (this.wrappedSpans || (this.wrappedSpans = [])).push({
+            index: spanIndex,
+            count: newSpans.length,
+            spans: this.spans.splice(spanIndex, endIndex - spanIndex + 1, ...newSpans)
+          });
           this.needsLayout = true;
           max = maxWidth;
           if (
@@ -4412,6 +4432,8 @@ export class Lyric extends TextElement {
 
   generateDropCap(ctxt: ChantContext): DropCap | null {
     if (this.dropCap) return this.dropCap;
+    // (the letter is taken from the spans as they were before any wrapping)
+    this.unwrap();
     // disallow special characters:
     if (this.spans[0].mergedProperties['font-family'] === ctxt.specialCharProperties['font-family']) {
       return null;
@@ -4490,6 +4512,7 @@ export class Lyric extends TextElement {
     if (!this.firstWordStyles) return true;
 
     // the lyric's own markup goes last, so that it wins
+    this.unwrap();
     let spans: TextSpan[] = [];
     for (let span of this.spans) {
       if (span === this.connectorSpan) continue;

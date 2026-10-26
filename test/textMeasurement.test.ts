@@ -226,6 +226,23 @@ describe('Text measurement', function() {
     assert.deepEqual(lines, ['Ad te levávi', 'ánimam', 'meam Deus', 'meus in te', 'confído non', 'erubéscam']);
     assert.strictEqual(title.numLines, 6);
   });
+  it('puts back the spans that wrapping the text split', function() {
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Fake', 16, {}, { Regular: countingFont() });
+    var title = new Drawing.Title(ctxt, 'Ad te <i>levávi</i> ánimam<br>meam Deus meus <i>in te confído</i> non erubéscam');
+    var spans = title.spans.slice();
+    var texts = spans.map(function(span) { return span.text; });
+    var svg = title.createSvgFragment(ctxt);
+    // (at 7 characters, it breaks between spans, after "Ad te ")
+    [12, 7, 20].forEach(function(chars) {
+      title.setMaxWidth(ctxt, chars * ctxt.textStyles.title.size / 2);
+      assert(title.numLines! > 2, 'wrapped to ' + chars);
+      title.recalculateMetrics(ctxt);
+      assert.deepEqual(title.spans.map(function(span) { return span.text; }), texts, 'after wrapping to ' + chars);
+      title.spans.forEach(function(span, i) { assert.strictEqual(span, spans[i]); });
+      assert.strictEqual(title.createSvgFragment(ctxt), svg, 'after wrapping to ' + chars);
+    });
+  });
   describe('wrapping around line breaks', function() {
     var ctxt: Drawing.ChantContext;
     beforeEach(function() {
