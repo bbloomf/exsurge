@@ -73,7 +73,10 @@ function serializeMappings(mappings: ChantMapping[]): any[] {
         notation.trailingSpace,
         notation.isAccidental ? notation.pitch.toInt() : null,
         (notation.notes || []).map(function(note: any) {
-          return [note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape, note.bracketStart];
+          return [
+            note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape, note.bracketStart,
+            note.choralSign && note.choralSign.sourceIndex
+          ];
         }),
         (notation.lyrics || []).map(function(lyric: any) {
           return [lyric.text, lyric.sourceIndex, lyric.lyricType];
@@ -153,7 +156,8 @@ var edits = [
   ['adds [[ after a word\'s last notes', kyrie, kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)')],
   ['edits the word after [[', kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)'), kyrie.replace('Lau(f)da(g)te(h)', 'Lau(f)da(g)te(h[[)').replace('Do(h)', 'Do(i)')],
   ['adds a closing tag after a word', kyrie, kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> ')],
-  ['edits the word before a closing tag', kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> '), kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(ghf)</nlba> ')]
+  ['edits the word before a closing tag', kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> '), kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(ghf)</nlba> ')],
+  ['inserts a word before a choral sign', kyrie.replace('om(f)', 'om(f[cs:t])'), kyrie.replace('om(f)', 'no(g) om(f[cs:t])')]
 ];
 
 describe('Gabc diff', function() {
@@ -206,7 +210,8 @@ describe('Gabc diff', function() {
 
   it('updates mappings to match a fresh parse for random edits with repeated words', function() {
     var vocabulary = ['(,)', '*(:)', '(;)', '(::)', 'Ky(f)', 'ri(gh)', 'e(h.)', 'a(fg)', 'b(gx)', 'c(h)', '(c3)', 'e(i;)', '<i>Ps.</i>(::)',
-      '(f3)', '(cb3)', 'a(ix)', 'd(ixi)', '(ixhi)', 'e(hy)', 'o(i#i)', 'f(e0f9)', 'q(f[ub:0;4mm])', 'r(gh[ob:1;6mm])'];
+      '(f3)', '(cb3)', 'a(ix)', 'd(ixi)', '(ixhi)', 'e(hy)', 'o(i#i)', 'f(e0f9)', 'q(f[ub:0;4mm])', 'r(gh[ob:1;6mm])',
+      'u(g[cs:t]f)'];
     // a small seeded generator (mulberry32), so that failures are reproducible
     var seed = 12345;
     function random(n: number) {

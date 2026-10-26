@@ -1403,6 +1403,7 @@ export class Gabc {
               for (l = 0; l < curNotation.notes.length; ++l) {
                 let note = curNotation.notes[l];
                 note.sourceIndex += sourceIndexDiff;
+                if (note.choralSign) note.choralSign.sourceIndex! += sourceIndexDiff;
                 note.pitch = ctxt.activeClef.staffPositionToPitch(note.staffPosition);
                 if (note.braceEnd && note.braceEnd.automatic)
                   delete note.braceEnd;
@@ -1445,7 +1446,9 @@ export class Gabc {
                 curNotation.sourceIndex += sourceIndexDiff;
               }
               for (l = 0; l < curNotation.lyrics.length; ++l) {
-                curNotation.lyrics[l].sourceIndex += sourceIndexDiff;
+                let lyric = curNotation.lyrics[l];
+                lyric.sourceIndex += sourceIndexDiff;
+                if (lyric.dropCap) lyric.dropCap.sourceIndex! += sourceIndexDiff;
               }
               if (curNotation.alText) {
                 for (l = 0; l < curNotation.alText.length; ++l) {
