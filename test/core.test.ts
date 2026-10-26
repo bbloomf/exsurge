@@ -847,3 +847,102 @@ describe("Gregorio brackets", function() {
     );
   });
 });
+
+describe("Gregorio ledger lines", function() {
+  const laidOut = (ctxt: Exsurge.ChantContext, gabc: string) => {
+    const score = new Exsurge.ChantScore(ctxt, Exsurge.Gabc.createMappingsFromSource(ctxt, gabc), false);
+    score.performLayout(ctxt);
+    return score;
+  };
+  const notesOf = (score: Exsurge.ChantScore) =>
+    score.notations.flatMap((notation): (Exsurge.Note | Exsurge.Accidental)[] =>
+      notation.isAccidental ? [notation as Exsurge.Accidental] : notation.notes || []
+    );
+  // each note's state above and below the staff, as "T" or "F" (whether it
+  // has a line) and how it was set, with an x after an accidental's pitch
+  const states = (gabc: string) =>
+    notesOf(laidOut(new Exsurge.ChantContext(), gabc)).map((item) => {
+      const state = item.ledgerLineState!;
+      const side = (s: Exsurge.LedgerLineState) => (s.line ? "T" : "F") + s.specificity;
+      return side(state.above) + "/" + side(state.below);
+    });
+  // the notes (and accidentals) with a ledger line drawn, by their gabc
+  const drawn = (gabc: string) =>
+    notesOf(laidOut(new Exsurge.ChantContext(), gabc)).map(
+      (item) =>
+        (item instanceof Exsurge.Accidental ? "x" : item.sourceGabc[0]) +
+        (Exsurge.hasDrawnLedgerLine(item, true) ? "^" : "") +
+        (Exsurge.hasDrawnLedgerLine(item, false) ? "_" : "")
+    );
+
+  it("keeps the strongest setting on each side of each note, and the first of two as strong", function() {
+    const { Supposed, Explicit, Drawn, ExplicitlyDrawn } = Exsurge.LedgerLineSpecificity;
+    assert.deepStrictEqual(
+      states("(c4) a(l[hl:0]) b(l[oll:0]) c(k[oll:1][oll:0]) d(k[hl:1][hl:0]) e(c[ll:1][ull:0]) f(g)"),
+      [
+        `T${Drawn}/F${Supposed}`,
+        `F${ExplicitlyDrawn}/F${Supposed}`,
+        `T${ExplicitlyDrawn}/F${Supposed}`,
+        `T${Explicit}/F${Supposed}`,
+        `F${Supposed}/F${ExplicitlyDrawn}`,
+        `F${Supposed}/F${Supposed}`
+      ]
+    );
+  });
+
+  it("gives the notes in a custom ledger line from note to note the explicit state", function() {
+    const { Supposed, Explicit, Drawn } = Exsurge.LedgerLineSpecificity;
+    assert.deepStrictEqual(states("(c4) a(c[ull:1{1]d) b([ull:0{0]e b) c(f[ull:}]g)").slice(0, 6), [
+      `F${Supposed}/F${Supposed}`,
+      `F${Supposed}/T${Explicit}`,
+      `F${Supposed}/T${Explicit}`,
+      `F${Supposed}/T${Drawn}`,
+      `F${Supposed}/T${Explicit}`,
+      `F${Supposed}/F${Supposed}`
+    ]);
+  });
+
+  it("runs ledger lines through the notes as Gregorio does", function() {
+    assert.deepStrictEqual(drawn("(c4) a(klk) b(j/!m) c(m/!j/!k) d(c/!b/!c/!d/!c) e(b/c)"), [
+      "k", "l^", "k", "j^", "m^", "m^", "j^", "k^", "c_", "b_", "c_", "d_", "c", "b_", "c"
+    ]);
+  });
+
+  it("keeps a ledger line in Gregorio's element", function() {
+    // (!, /! and /0 join neumes in one, and an accidental joins the note after
+    // it; a space ends one, and so does an inclinatum after other notes, a
+    // quilisma pes and the last note of a scandicus flexus)
+    assert.deepStrictEqual(drawn("(c4) a(b!c) b(b/0c) c(b/c) d(bxc) e(bx/c) f(cdB) g(bcwd) h(bcdc)"), [
+      "b_", "c_", "b_", "c_", "b_", "c", "x_", "c_", "x_", "c", "c", "d", "B_", "b_", "c", "d", "b_", "c_", "d_", "c"
+    ]);
+  });
+
+  it("keeps fused neumes, and the notes either side of brackets, in one element", function() {
+    // (a fused neume and a neume fused to the one before join its element,
+    // shown by their @, and so do the notes after [[ or ]]; a { } group ends it)
+    assert.deepStrictEqual(drawn("(c4) a(b@cdc) b(b@c@b) c(c[[b]]) d(b/0{c}d)"), [
+      "b_", "@_", "d_", "c", "b_", "@_", "@_", "c_", "b_", "b_", "c", "d"
+    ]);
+    const neumes = laidOut(new Exsurge.ChantContext(), "(c4) a(g@hih)").notations.filter(
+      (notation) => notation.isNeume
+    );
+    assert.deepStrictEqual(neumes.map((neume) => !!neume.continuesElement), [false, true]);
+  });
+
+  it("finds the notes' ledger lines again when the notes around them change", function() {
+    const ctxt = new Exsurge.ChantContext();
+    const score = laidOut(ctxt, "(c4) a(j/!k) (::)");
+    Exsurge.Gabc.updateMappingsFromSource(ctxt, score.mappings, "(c4) a(j/!m) (::)");
+    score.updateNotations(ctxt);
+    score.performLayout(ctxt);
+    const neume = score.notations.find((notation) => notation.isNeume) as Exsurge.Neume;
+    assert.ok(Exsurge.hasDrawnLedgerLine(neume.notes[0], true));
+    assert.strictEqual(neume.ledgerLines.length, 1);
+  });
+
+  it("doesn't join ledger lines, and places episemata by Gregorio's guess, by default", function() {
+    const ctxt = new Exsurge.ChantContext();
+    assert.strictEqual(ctxt.minLedgerSeparation, 0);
+    assert.strictEqual(ctxt.ledgerLineHeuristic, true);
+  });
+});

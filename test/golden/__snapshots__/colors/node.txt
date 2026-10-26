@@ -500,7 +500,7 @@
         <line key="-5" x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#222" stroke-width="0.8" class="staffLine">
         <line key="-3" x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#222" stroke-width="0.8" class="staffLine">
         <line key="-1" x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#222" stroke-width="0.8" class="staffLine">
-      <line x1="125.48601985139024" y1="-56.25" x2="146.56101985139023" y2="-56.25" stroke="#222" stroke-width="0.8" class="ledgerLine">
+      <line x1="122.26289485139024" y1="-56.25" x2="141.20914485139025" y2="-56.25" stroke="#222" stroke-width="0.8" class="ledgerLine">
       <g class="ChantNotationElement DoClef" transform="translate(0,0)" source=<DoClef sourceIndex=291 elementIndex=96>>
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="291" element-index="96" x="0" y="-31.25" source=<DoClef sourceIndex=291 elementIndex=96>>

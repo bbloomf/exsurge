@@ -17,8 +17,8 @@ moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
 beginPath()
-moveTo(175, -56.25)
-lineTo(187.5, -56.25)
+moveTo(171.776875, -56.25)
+lineTo(190.723125, -56.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
 stroke(Path2D(path "M 14.06 -50.00 C 17.19 -59.38 29.69 -59.38 32.81 -50.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]
 stroke(Path2D(path "M 43.75 0.00 C 45.83 9.38 54.17 9.38 56.25 0.00")) [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,66.4863125]

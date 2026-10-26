@@ -36,6 +36,7 @@ import {
 } from "./Exsurge.Drawing.js";
 import { Gabc } from "./Exsurge.Gabc.js";
 import { Titles } from "./Exsurge.Titles.js";
+import { determineLedgerLines, type LedgerLineStates } from "./ledgerLines.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
 import type {
   Accent,
@@ -147,8 +148,9 @@ export class Note extends ChantLayoutElement {
   shapeHint?: string;
   /**
    * Gregorio's ledger-line hint below the note (gabc [ll:1] or [ll:0]):
-   * whether to draw its virga stem and place its episemata as if there were
-   * a ledger line below it, whatever ledger lines there are
+   * whether to give its stem the length and place its episemata as if there
+   * were a ledger line below it, without drawing one or leaving one out.
+   * A stronger setting overrides it (see ledgerLineState).
    */
   lowLedgerLine?: boolean;
   /** the same above the note (gabc [hl:1] or [hl:0]), for its episemata */
@@ -175,13 +177,26 @@ export class Note extends ChantLayoutElement {
   slurs?: SlurMark[];
   /**
    * whether Gregorio's [oll:1] or [oll:0] draws a ledger line above the
-   * staff at the note, or leaves one out (see Neume.requiresLedgerLine())
+   * staff at the note, or leaves one out, whatever its pitch and the notes
+   * around it (see ledgerLineState)
    */
   ledgerLineAbove?: boolean;
   /** whether Gregorio's [ull:1] or [ull:0] draws a ledger line below the staff at the note, or leaves one out */
   ledgerLineBelow?: boolean;
   /** Gregorio's ledger lines of a given length (gabc [oll:…] and [ull:…]) next to the note, which the chant line draws */
   customLedgerLines?: CustomLedgerLine[];
+  /**
+   * whether a new one of Gregorio's elements starts at the note, although it
+   * isn't the first of its neume, as where Gregorio makes the notes around it
+   * into glyphs of their own (see ChantNotationElement.continuesElement)
+   */
+  startsElement?: boolean;
+  /**
+   * whether the note has a ledger line above the staff and below it, and how
+   * that was set, as Gregorio decides it from the note's pitch, the notes
+   * around it and the settings above (see determineLedgerLines())
+   */
+  ledgerLineState?: LedgerLineStates;
   /**
    * Gregorio's tuning of the episema over the note (gabc [oh:…]) and under
    * it ([uh:…]), the note's own or its block's
@@ -1137,6 +1152,7 @@ export class ChantScore {
     ctxt.currNotationIndex = 0;
     ctxt.staffLineCount = this.staffLineCount;
     this.updateBrackets();
+    determineLedgerLines(ctxt, this.notations);
 
     if (this.dropCap) this.dropCap.measureAtSize(ctxt);
 

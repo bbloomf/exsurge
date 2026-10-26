@@ -17,8 +17,8 @@ moveTo(0, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,70.329625]
 beginPath()
-moveTo(106.25, -56.25)
-lineTo(118.75, -56.25)
+moveTo(103.026875, -56.25)
+lineTo(121.973125, -56.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,70.329625]
 fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,26.579624999999993]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,17.1875,51.57962499999999]

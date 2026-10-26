@@ -33,6 +33,7 @@ import {
   DoubleBar,
   FullBar
 } from "./Exsurge.Chant.Signs.js";
+import { custosLedgerLineOverhang, hasDrawnLedgerLine, ledgerLineOverhang } from "./ledgerLines.js";
 import { Point, Rect } from "./Exsurge.Core.js";
 import {
   ChantLayoutElement, CurlyBraceVisualizer, GlyphCode, Lyric,
@@ -42,8 +43,8 @@ import {
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
 import type { BraceNote, EpisemaTuning, HorizontalEpisema, LedgerLineExtent } from "./Exsurge.Chant.Markings.js";
-import type { Neume } from "./Exsurge.Chant.Neumes.js";
-import type { Accidental, InsertionCursor } from "./Exsurge.Chant.Signs.js";
+import type { Neume, NeumeLedgerLine } from "./Exsurge.Chant.Neumes.js";
+import type { Accidental, Divider, InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import type {
   ChantContext,
   ChantNotationElement,
@@ -2085,57 +2086,66 @@ export class ChantLine extends ChantLayoutElement {
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
 
-    // an element needs to have a staffPosition property, as well as the standard
-    // bounds property. so it could be a note, or it could be a custos
-    // offsetX can be used to add to the position info for the element,
-    // useful in the case of notes.
-    var processElementForLedgerLine = (
-      element: Note | Custos,
-      endElem: Note | Custos = element,
-      staffPosition: number = element.staffPosition,
-      offsetX: number = (element as Note).neume ? (element as Note).neume!.bounds.x : 0
-    ) => {
-      // do we need a ledger line for this note?
-      const ledgerLinePositionAbove = ctxt.staffLineCount * 2 + 1;
-      if (staffPosition >= ledgerLinePositionAbove || staffPosition <= -1) {
-        var x1 = offsetX + element.bounds.x - ctxt.intraNeumeSpacing;
-        var x2 =
-          offsetX +
-          endElem.bounds.x +
-          endElem.bounds.width +
-          ctxt.intraNeumeSpacing;
-
-        // round the staffPosition to the nearest line
-        if (staffPosition > 0)
-          staffPosition = staffPosition - ((staffPosition - 1) % 2);
-        else staffPosition = staffPosition - ((staffPosition + 1) % 2);
-
-        // if we have a ledger line close by, then average out the distance between the two
-        var minLedgerSeparation = ctxt.staffInterval * ctxt.minLedgerSeparation;
-
-        if (
-          this.ledgerLines.length > 0 &&
-          this.ledgerLines[this.ledgerLines.length - 1].x2 +
-            minLedgerSeparation >=
-            x1
-        ) {
-          // average out the distance
-          var half =
-            (x1 - this.ledgerLines[this.ledgerLines.length - 1].x2) / 2;
-          this.ledgerLines[this.ledgerLines.length - 1].x2 += half;
-          x1 -= half;
-        }
-
-        // never let a ledger line extend past the staff width
-        if (x2 > this.staffRight) x2 = this.staffRight;
-
-        // finally, add the ledger line
-        this.ledgerLines.push({
-          x1,
-          x2,
-          staffPosition
+    // adds a ledger line from x1 to x2 at staffPosition, but never past the
+    // staff's right edge.  A line that overlaps the last one there is drawn
+    // as one line with it, and one no more than ctxt.minLedgerSeparation
+    // staff intervals from it is joined to it, each lengthened to meet the
+    // other halfway (0 by default, as Gregorio never joins them)
+    var addLedgerLine = (x1: number, x2: number, staffPosition: number) => {
+      x2 = Math.min(x2, this.staffRight);
+      var last: LedgerLine | undefined;
+      for (let i = this.ledgerLines.length - 1; i >= 0 && !last; i--)
+        if (this.ledgerLines[i].staffPosition === staffPosition) last = this.ledgerLines[i];
+      if (last && x1 <= last.x2 && x2 >= last.x1) {
+        last.x1 = Math.min(last.x1, x1);
+        last.x2 = Math.max(last.x2, x2);
+        return;
+      }
+      if (last && x1 > last.x2 && x1 - last.x2 <= ctxt.staffInterval * ctxt.minLedgerSeparation) {
+        var half = (x1 - last.x2) / 2;
+        last.x2 += half;
+        x1 -= half;
+      }
+      this.ledgerLines.push({ x1, x2, staffPosition });
+    };
+    // a ledger line under notes from element to endElem of a neume (see
+    // Neume.drawnLedgerLines()), as far beyond them on each side as Gregorio's
+    // reaches (see ledgerLineOverhang)
+    var processElementForLedgerLine = (line: NeumeLedgerLine) => {
+      var offsetX = line.element.neume!.bounds.x;
+      var overhang = ctxt.staffInterval * ledgerLineOverhang;
+      var x1 = line.x1 === undefined ? line.element.bounds.x : line.x1;
+      var x2 = line.x2 === undefined ? line.endElem.bounds.right() : line.x2;
+      addLedgerLine(offsetX + x1 - overhang, offsetX + x2 + overhang, line.staffPosition);
+    };
+    // and under a sign that has one: an accidental on or beyond a ledger
+    // line, a custos there, whose line goes a little less far (and not past
+    // its right at the end of a line), or a high bar (gabc `0, ,0 or ^0)
+    var processSignForLedgerLine = (notation: ChantNotationElement) => {
+      var lines: { x1: number; x2: number; isAbove: boolean }[] = [];
+      var overhang = ctxt.staffInterval * ledgerLineOverhang;
+      if (notation.isAccidental && !(notation as Accidental).hidden) {
+        for (let isAbove of [false, true])
+          if (hasDrawnLedgerLine(notation as Accidental, isAbove))
+            lines.push({ x1: notation.bounds.x - overhang, x2: notation.bounds.right() + overhang, isAbove });
+      } else if (notation instanceof Custos) {
+        let custosOverhang = ctxt.staffInterval * custosLedgerLineOverhang;
+        let isAbove = notation.staffPosition >= ledgerLinePosition(ctxt, true);
+        if (isAbove || notation.staffPosition <= ledgerLinePosition(ctxt, false))
+          lines.push({
+            x1: notation.bounds.x - custosOverhang,
+            x2: notation.bounds.right() + (notation === this.custos ? 0 : custosOverhang),
+            isAbove
+          });
+      } else if (notation.isDivider && (notation as Divider).ledgerLineExtent) {
+        let extent = (notation as Divider).ledgerLineExtent!;
+        lines.push({
+          x1: notation.bounds.x + extent.x1 - overhang,
+          x2: notation.bounds.x + extent.x2 + overhang,
+          isAbove: true
         });
       }
+      for (let line of lines) addLedgerLine(line.x1, line.x2, ledgerLinePosition(ctxt, line.isAbove));
     };
 
     var episemata: HorizontalEpisema[] = []; // keep track of episemata in case we can connect some
@@ -2169,9 +2179,10 @@ export class ChantLine extends ChantLayoutElement {
       maxY = Math.max(maxY, neume.bounds.bottom());
 
       if (neume.constructor === Custos) {
-        processElementForLedgerLine(neume);
+        processSignForLedgerLine(neume);
         continue;
       }
+      processSignForLedgerLine(neume);
 
       // if the AboveLinesText would extend beyond the right edge of the staff, right align it instead
       if (neume.alText) {
@@ -2208,10 +2219,8 @@ export class ChantLine extends ChantLayoutElement {
       // if it's not a neume then just skip here
       if (!neume.isNeume) continue;
 
-      for (j = 0; j < (neume as Neume).ledgerLines.length; j++) {
-        var ll = (neume as Neume).ledgerLines[j];
-        processElementForLedgerLine(ll.element, ll.endElem, ll.staffPosition);
-      }
+      for (j = 0; j < (neume as Neume).ledgerLines.length; j++)
+        processElementForLedgerLine((neume as Neume).ledgerLines[j]);
 
       for (j = 0; j < neume.notes!.length; j++) {
         var k,
@@ -2346,7 +2355,7 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     // don't forget to also include the final custos, which may need a ledger line too
-    if (this.custos) processElementForLedgerLine(this.custos);
+    if (this.custos) processSignForLedgerLine(this.custos);
 
     // a slur that goes on to the next line goes to the end of this one (and
     // one that isn't closed by the end of the score isn't drawn)
@@ -2390,7 +2399,7 @@ export class ChantLine extends ChantLayoutElement {
   // one, is ignored.
   handleCustomLedgerLines(ctxt: ChantContext, note: Note, customLedgerLines: LedgerLine[]) {
     var openLedgerLines = (ctxt.openLedgerLines = ctxt.openLedgerLines || {});
-    var extent = (e: LedgerLineExtent) => (e === "overhang" ? ctxt.intraNeumeSpacing : e * ctxt.staffInterval);
+    var extent = (e: LedgerLineExtent) => (e === "overhang" ? ledgerLineOverhang : e) * ctxt.staffInterval;
     for (let line of note.customLedgerLines!) {
       let side = line.isAbove ? ("above" as const) : ("below" as const);
       let staffPosition = ledgerLinePosition(ctxt, line.isAbove);

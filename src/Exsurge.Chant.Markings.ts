@@ -24,6 +24,7 @@
 //
 
 import { NoteShape, type Note } from "./Exsurge.Chant.js";
+import { isOnOrBeyond, LedgerLineSpecificity, type LedgerLineItem } from "./ledgerLines.js";
 import {
   ChantLayoutElement,
   GlyphCode,
@@ -146,15 +147,11 @@ export class HorizontalEpisema extends ChantLayoutElement {
       step;
     var minDistanceAway = ctxt.staffInterval * 0.25; // min distance from neume
     var glyphCode = this.note.glyphVisualizer!.glyphCode;
-    var ledgerLine: { staffPosition?: number } = this.note.neume!.ledgerLines[0] || {};
-    // whether there's a ledger line at a step outside the staff (steps go
-    // down from the middle of the staff), or, with Gregorio's [ll:…] or
-    // [hl:…] hint on that side, whether to place the episema as if there were
-    var hasLedgerLineAt = (step: number) => {
-      var hint = step > 0 ? this.note.lowLedgerLine : this.note.highLedgerLine;
-      if (hint !== undefined) return hint;
-      return ctxt.convertStaffPositionToSymmetric(ledgerLine.staffPosition as number) === -step;
-    };
+    // whether to place the episema as if there were a ledger line at a step
+    // outside the staff (steps go down from the middle of the staff), which
+    // only the first ledger line on each side can be
+    var hasLedgerLineAt = (step: number) =>
+      Math.abs(step) === ctxt.staffLineCount + 1 && this.supposesLedgerLine(ctxt, step < 0);
     var punctumInclinatumShorten = false;
 
     if (isInclinatumGlyph(glyphCode)) {
@@ -271,6 +268,72 @@ export class HorizontalEpisema extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
+  // whether Gregorio places the episema as if there were a ledger line
+  // between it and its note, at the first ledger line above the staff (or
+  // below it): always, with ctxt.ledgerLineHeuristic off, as GregorioTeX
+  // does with \gresetledgerlineheuristic{disable}; otherwise if the note's
+  // ledger-line state on that side says so, whatever set it (gabc [hl:1] and
+  // [ll:1] do, without drawing one).  Where nothing set it, Gregorio guesses
+  // (set_h_episema_height() in src/gregoriotex/gregoriotex-position.c): there
+  // is one if any of the notes that the episema runs over is on or beyond the
+  // ledger line, or if the note just before them or just after them has one
+  // (and the note past that, where it's stacked with the note next to it, as
+  // the notes of a pes are)
+  supposesLedgerLine(ctxt: ChantContext, isAbove: boolean) {
+    if (!ctxt.ledgerLineHeuristic) return true;
+    var side = isAbove ? ("above" as const) : ("below" as const);
+    var state = this.note.ledgerLineState && this.note.ledgerLineState[side];
+    if (!state) return false;
+    if (state.line || state.specificity !== LedgerLineSpecificity.Supposed) return state.line;
+
+    var ledgerLine = ledgerLinePosition(ctxt, isAbove);
+    var hint = isAbove ? MarkingPositionHint.Above : MarkingPositionHint.Below;
+    var notes = this.note.neume!.notes;
+    // (a note of a pes stacked on the one before it, or under the one after it)
+    var isUpper = (i: number) =>
+      i > 0 && !!notes[i].glyphVisualizer && notes[i].glyphVisualizer!.align === "right" &&
+      notes[i].staffPosition > notes[i - 1].staffPosition;
+    var isLower = (i: number) => i < notes.length - 1 && isUpper(i + 1);
+    // the notes the episema runs over: those next to it in the neume with an
+    // episema on this side, passing the note of a pes that's on the other side
+    // (an episema with no position goes above)
+    var hasEpisema = (i: number) =>
+      notes[i].episemata.some((episema) => (episema.positionHint || MarkingPositionHint.Above) === hint);
+    var isRunOver = (i: number) => hasEpisema(i) || (isAbove ? isLower(i) : isUpper(i));
+    var first = notes.indexOf(this.note),
+      last = first;
+    if (first < 0 || !hasEpisema(first)) return false;
+    while (first > 0 && isRunOver(first - 1)) first--;
+    while (last < notes.length - 1 && isRunOver(last + 1)) last++;
+    while (!hasEpisema(first)) first++;
+    while (!hasEpisema(last)) last--;
+    for (let i = first; i <= last; i++)
+      if (isOnOrBeyond(notes[i].staffPosition, ledgerLine, isAbove)) return true;
+
+    // the notes (and accidentals) of the syllable, in order
+    var items: LedgerLineItem[] = [];
+    var notations = ctxt.notations || [],
+      neume = this.note.neume!,
+      index = notations[neume.notationIndex!] === neume ? neume.notationIndex! : notations.indexOf(neume);
+    var start = index,
+      end = index + 1;
+    while (start > 0 && !notations[start].firstOfParentheses) start--;
+    while (end < notations.length && !notations[end].firstOfParentheses) end++;
+    for (let notation of notations.slice(start, end))
+      if (notation.isAccidental) items.push(notation as ChantNotationElement & LedgerLineItem);
+      else if (notation.isNeume) items.push(...notation.notes!);
+    var hasLine = (item: LedgerLineItem | undefined) =>
+      !!item && !!item.ledgerLineState && item.ledgerLineState[side].line;
+    var before = items.indexOf(notes[first]) - 1,
+      after = items.indexOf(notes[last]) + 1;
+    return (
+      hasLine(items[before]) ||
+      (isUpper(first) && hasLine(items[before - 1])) ||
+      hasLine(items[after]) ||
+      (isLower(last) && hasLine(items[after + 1]))
+    );
+  }
+
   // y, the middle of the episema, as Gregorio's episema tuning of its note
   // ([oh:…] or [uh:…]) moves it: to a position in the space that Gregorio
   // puts it in, which is the space above (or below) the note, or the one
@@ -282,10 +345,11 @@ export class HorizontalEpisema extends ChantLayoutElement {
 
     if (tuning.position) {
       let staffPosition = isAbove ? Math.floor(this.note.staffPosition) + 1 : Math.ceil(this.note.staffPosition) - 1;
+      // (a ledger line counts where the episema is placed as if there were one there)
       let isOnLine =
         Math.abs(staffPosition) % 2 === 1 &&
         ((staffPosition > 0 && staffPosition < 2 * ctxt.staffLineCount) ||
-          this.note.neume!.ledgerLines.some((ledgerLine) => ledgerLine.staffPosition === staffPosition));
+          (staffPosition === ledgerLinePosition(ctxt, isAbove) && this.supposesLedgerLine(ctxt, isAbove)));
       if (isOnLine) staffPosition += isAbove ? 1 : -1;
       let position = tuning.position;
       if (position === "l" || position === "h") position = ((isAbove ? "o" : "u") + position) as EpisemaTuningPosition;
@@ -364,8 +428,7 @@ export class Ictus extends GlyphVisualizer {
     var collisionWithStaffLine =
       staffPosition % 2 &&
       (Math.abs(ctxt.convertStaffPositionToSymmetric(staffPosition)) < ctxt.staffLineCount ||
-        (this.note.neume!.ledgerLines[0] || ({} as { staffPosition?: number })).staffPosition ===
-          staffPosition);
+        this.note.neume!.ledgerLines.some((ledgerLine) => ledgerLine.staffPosition === staffPosition));
 
     // The porrectus requires special handling of the note width,
     // otherwise the width is just that of the note itself.  (its notes are
