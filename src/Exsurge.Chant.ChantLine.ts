@@ -1502,7 +1502,9 @@ export class ChantLine extends ChantLayoutElement {
 
       if (curr && curr.isDivider) {
         var j = 1;
-        var prev = this.score.notations[i - 1];
+        // (the clef at the start of the line, rather than the change of clef
+        // before it, which the line draws a copy of)
+        var prev = i > this.notationsStartIndex ? this.score.notations[i - 1] : this.startingClef;
         var next =
           i + 1 === lastIndex ? this.custos : this.score.notations[i + 1];
         if (prev === next && next === this.custos) {

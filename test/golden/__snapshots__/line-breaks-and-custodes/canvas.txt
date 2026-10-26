@@ -139,8 +139,8 @@ moveTo(597.0703125, 6.25)
 lineTo(600, 6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,319.744375]
 fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,0,275.994375]
-fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,307.99664999999993,319.744375]
-fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,307.99664999999993,319.744375]
+fillRect(0, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,14.0625,319.744375]
+fillRect(5.45, -43.75, 0.8, 37.5) [fillStyle="#000" matrix=1,0,0,1,14.0625,319.744375]
 fill(Path2D(CustosDescShort[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,28.125,269.744375]
 fillText("a", -4.248, 33.6174375, undefined) [font="14.4px Fake-{}" fillStyle="#d00" textAlign="start" matrix=1,0,0,1,28.125,319.744375]
 fill(Path2D(CustosDescLong[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,41.8698,275.994375]

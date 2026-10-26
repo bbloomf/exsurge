@@ -212,7 +212,7 @@
       <g transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">
-      <g transform="translate(307.99664999999993,0)" source=<DoubleBar sourceIndex=143 elementIndex=26> className="ChantNotationElement DoubleBar" source-gabc="::">
+      <g transform="translate(14.0625,0)" source=<DoubleBar sourceIndex=143 elementIndex=26> className="ChantNotationElement DoubleBar" source-gabc="::">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=143 element-index=26 source=<DoubleBar sourceIndex=143 elementIndex=26> className="dividerLine" source-gabc="::">
           <rect x=5.45 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=143 element-index=26 source=<DoubleBar sourceIndex=143 elementIndex=26> className="dividerLine" source-gabc="::">
