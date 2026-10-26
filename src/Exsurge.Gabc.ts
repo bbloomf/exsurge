@@ -966,9 +966,10 @@ export class Gabc {
   /**
    * Applies the settings in a gabc header to a score, as Gregorio does.
    * exsurge doesn't otherwise read them, so call this after making the score,
-   * and again after updating its mappings (so that new lyrics get the
-   * header's language, and changes to the header take effect).  The score
-   * is then laid out again where it needs to be.
+   * and again after updating its mappings if the header has changed.  The
+   * score keeps what it applies, so the lyrics of edits get the header's
+   * language without it.  The score is then laid out again where it needs
+   * to be.
    *
    * - annotation: the first two, one line each, as the score's annotation.
    * - mode, mode-modifier and mode-differentia, if there is no annotation
@@ -976,9 +977,9 @@ export class Gabc {
    * - staff-lines: 2 to 5, as the score's staffLineCount.
    * - language: Latin, English, Spanish, Church Slavonic (also for Polish,
    *   Czech and Slovak, as in Gregorio) or Hungarian, by name or ISO 639
-   *   code, as the language of the score's lyrics, so that ctxt.defaultLanguage stays as
-   *   it is for other scores.  A language that exsurge doesn't have leaves
-   *   them as they are.
+   *   code, as the score's language, which its lyrics are centered for, so
+   *   that ctxt.defaultLanguage stays as it is for other scores.  A language
+   *   that exsurge doesn't have leaves them as they are.
    * - with options.legacy, the headers that Gregorio no longer reads:
    *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
    *   useDropCap, and centering-scheme (latine or english) as the language
@@ -1040,14 +1041,9 @@ export class Gabc {
         __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()] ||
         language;
     if (language) {
-      for (let notation of score.notations) {
-        for (let lyric of notation.lyrics) {
-          if (lyric && lyric.language !== language) {
-            lyric.language = language;
-            notation.needsLayout = true;
-          }
-        }
-      }
+      // (which the lyrics of later edits get too, from updateNotations())
+      score.language = language;
+      for (let notation of score.notations) score.updateLanguage(notation);
     }
 
     if (options.legacy) {
@@ -1403,24 +1399,9 @@ export class Gabc {
               for (l = 0; l < curNotation.notes.length; ++l) {
                 let note = curNotation.notes[l];
                 note.sourceIndex += sourceIndexDiff;
+                if (note.choralSign) note.choralSign.sourceIndex! += sourceIndexDiff;
                 note.pitch = ctxt.activeClef.staffPositionToPitch(note.staffPosition);
-                if (note.braceEnd && note.braceEnd.automatic)
-                  delete note.braceEnd;
-                if (this.needToEndBrace && !note.braceStart && !note.braceEnd) {
-                  note.braceEnd = new Markings.BracePoint(
-                    note,
-                    this.needToEndBrace.isAbove,
-                    this.needToEndBrace.shape,
-                    this.needToEndBrace.attachment ===
-                    Markings.BraceAttachment.Left
-                      ? Markings.BraceAttachment.Right
-                      : Markings.BraceAttachment.Left
-                  );
-                  note.braceEnd.automatic = true;
-                  delete this.needToEndBrace;
-                } else if (note.braceStart && note.braceStart.automatic) {
-                  this.needToEndBrace = note.braceStart;
-                }
+                this.endAutomaticBrace(note);
               }
             }
             if (curNotation.translationText) {
@@ -1445,7 +1426,9 @@ export class Gabc {
                 curNotation.sourceIndex += sourceIndexDiff;
               }
               for (l = 0; l < curNotation.lyrics.length; ++l) {
-                curNotation.lyrics[l].sourceIndex += sourceIndexDiff;
+                let lyric = curNotation.lyrics[l];
+                lyric.sourceIndex += sourceIndexDiff;
+                if (lyric.dropCap) lyric.dropCap.sourceIndex! += sourceIndexDiff;
               }
               if (curNotation.alText) {
                 for (l = 0; l < curNotation.alText.length; ++l) {
@@ -1538,7 +1521,9 @@ export class Gabc {
     for (var i = 0; i < words.length; i++) {
       sourceIndex += wordLength;
       wordLength = words[i].length + 1;
-      var word = words[i].trim();
+      // (the word as it is, which starts at sourceIndex, as in
+      // updateMappingsFromSource(): its syllables skip any space it starts with)
+      var word = words[i];
 
       if (isEmptyWord(word)) continue;
 
@@ -1761,7 +1746,9 @@ export class Gabc {
       }
 
       if (items.length === 0) continue;
-      this.setAutomaticLeanings(([] as Note[]).concat(...items.map((item) => item.notes || [])));
+      var itemNotes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
+      this.setAutomaticLeanings(itemNotes);
+      for (let note of itemNotes) this.endAutomaticBrace(note);
       // (and the areas that the word before left for its next syllable)
       setAreaBoundaries(items, this.marksForNext.areas);
       this.marksForNext = { ...this.marksForNext, areas: {} };
@@ -3766,24 +3753,6 @@ export class Gabc {
       }
     }
 
-    if (
-      this.needToEndBrace &&
-      !note.braceStart &&
-      !note.braceEnd &&
-      !/[xXyY#]/.test(c!)
-    ) {
-      note.braceEnd = new Markings.BracePoint(
-        note,
-        this.needToEndBrace.isAbove,
-        this.needToEndBrace.shape,
-        this.needToEndBrace.attachment === Markings.BraceAttachment.Left
-          ? Markings.BraceAttachment.Right
-          : Markings.BraceAttachment.Left
-      );
-      note.braceEnd.automatic = true;
-      delete this.needToEndBrace;
-    }
-
     notes.push(note);
   }
 
@@ -3881,10 +3850,35 @@ export class Gabc {
         attachmentPoint
       );
 
-    // just have the next note end a brace that uses length;
+    // just have the next note end a brace that uses length (see endAutomaticBrace())
     if (results[5]) {
       note.braceStart!.automatic = true;
       note.braceStart!.length = texLengthToStaffIntervals(results[5]);
+    }
+  }
+
+  /**
+   * Has the note end the brace that a brace given a length (gabc
+   * [ob:1;6mm] and the like) left open before it, as the next note does
+   * unless it has a brace of its own, or leaves the note's own such brace
+   * open for the notes after it.  Each note of the notations is passed in
+   * order, when they're parsed and again when they're kept by
+   * updateMappingsFromSource(), which first takes away the end it gave.
+   */
+  static endAutomaticBrace(note: Note) {
+    if (note.braceEnd && note.braceEnd.automatic) delete note.braceEnd;
+    if (this.needToEndBrace && !note.braceStart && !note.braceEnd) {
+      note.braceEnd = new Markings.BracePoint(
+        note,
+        this.needToEndBrace.isAbove,
+        this.needToEndBrace.shape,
+        this.needToEndBrace.attachment === Markings.BraceAttachment.Left
+          ? Markings.BraceAttachment.Right
+          : Markings.BraceAttachment.Left
+      );
+      note.braceEnd.automatic = true;
+      delete this.needToEndBrace;
+    } else if (note.braceStart && note.braceStart.automatic) {
       this.needToEndBrace = note.braceStart;
     }
   }
