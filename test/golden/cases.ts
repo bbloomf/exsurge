@@ -837,6 +837,117 @@ export const featureCases: GoldenCase[] = [
     gabc:
       "(c4) a(j=@h) b(h=@j) c(g@hghg) d(e@hghg) e(e@igf~) f(hf[shape:stroke]@f) g(@hf[shape:stroke]) " +
       "h(f@gW) i(@[fgWh]) j(@[]ghg) k(g@hih@g_@h) l(g_@h_0) (::)"
+  },
+
+  // Gregorio: Phase 9
+  {
+    // a drop cap beside two lines (Gregorio's \gresetinitiallines{2}), made
+    // big enough to reach across them, with its baseline on the second
+    // line's lyric baseline; both lines start after it.  (Drawn line by line,
+    // each line's svg has the part of the drop cap beside it.)
+    name: "two-line-initial",
+    outputs: withLines,
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  },
+  {
+    // with the annotation centered above it
+    name: "two-line-initial-annotation",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2),
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Intr.", "VIII"))
+  },
+  {
+    // a drop cap beside three lines at the size set in its text style, which
+    // isn't made bigger to reach across them: the annotation, at the first
+    // line's top staff line, is wider, so all three lines start after it
+    name: "three-line-initial-narrow",
+    gabc:
+      "(c4) IN(d)tro(f)í(gh)bo(g) ad(f) al(gh)tá(h)re(h) De(hi)i:(h.) (;) ad(h) De(g)um(hj) qui(h) " +
+      "lae(gf)tí(g)fi(h)cat(gf) ju(e)ven(f)tú(gh)tem(g) me(f)am.(f.) (:) Con(f)fi(gh)té(h)bor(g) ti(f)bi(gh) " +
+      "in(h) cí(hi)tha(h)ra,(g.) (;) De(f)us,(gh) De(h)us(g) me(f)us.(f.) (:) Quid(f) tri(gh)stis(h) es(g) " +
+      "á(f)ni(gh)ma(h) me(hi)a,(h.) (;) et(h) qua(g)re(hj) con(h)túr(gf)bas(g) me?(f.) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 3;
+      ctxt.textStyles.dropCap.size = 96;
+    },
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ad Introitum", "Tonus VIII"))
+  },
+  {
+    // the top of the drop cap on the first line's top staff line (Gregorio's
+    // \gresetinitialanchor{top} and \gresetinitialposition{firsttop}), and
+    // the annotation above it, which makes the first line taller
+    name: "two-line-initial-first-top",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapAnchor = "top";
+      ctxt.dropCapPosition = "firsttop";
+    },
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Intr.", "VIII"))
+  },
+  {
+    // the baseline of the drop cap on the first line's lyric baseline, at its
+    // text style's size, since it doesn't reach across the lines from there
+    name: "two-line-initial-first-baseline",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapPosition = "firstbaseline";
+    }
+  },
+  {
+    // the baseline of the drop cap at the bottom of the second line, below its
+    // lyrics, at its text style's size
+    name: "two-line-initial-last-bottom",
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.dropCapPosition = "lastbottom";
+    }
+  },
+  {
+    // a drop cap beside three lines in a score of one line goes on that line,
+    // made just big enough to reach across it
+    name: "three-line-initial-one-line",
+    gabc: "(c4) AL(f)le(g)lú(h)ia.(g) (::)",
+    useDropCap: true,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 3)
+  },
+  {
+    // the second line, beside the drop cap, stays on the first page although
+    // the page is too short for it (and drawn line by line, the second line's
+    // svg has the part of the drop cap beside it)
+    name: "two-line-initial-paginated",
+    outputs: ["svg", "tree", "canvas", "lines"],
+    gabc: adTeLevavi,
+    useDropCap: true,
+    width: 400,
+    paginate: 150,
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  },
+  {
+    // text other than the lyrics on the lines beside the drop cap starts
+    // after it too: the text-only syllables that go on below the first line,
+    // and the text above the second line and its translation
+    name: "two-line-initial-text",
+    gabc:
+      "(c4) Ky(f)ri(g)e(h) (,) Here is a very long run of text only syllables that will not fit() " +
+      "on the line() and so goes underneath() (;) e(g)lé(f)i(e)son.(f) (:) " +
+      "Chri(g)ste[Christ, have mercy upon us](h) e<alt>Some text above the staff that goes on</alt>(g)lé(f)i(e)son.(f) (:) " +
+      "Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (::)",
+    useDropCap: true,
+    width: 500,
+    setupContext: (ctxt) => {
+      ctxt.dropCapLines = 2;
+      ctxt.translationCentering = "center";
+    }
   }
 ];
 
@@ -1224,7 +1335,19 @@ export const settingCases: GoldenCase[] = [
   { name: "async-layout", gabc: christus, useDropCap: true, async: true },
   { name: "paginated", outputs: ["svg", "tree", "canvas"], gabc: puer, useDropCap: true, width: 320, paginate: 140, setupScore: titles },
   { name: "tree-zoom", outputs: ["tree"], gabc: kyrie, zoom: 1.5 },
-  { name: "tree-fill-container", outputs: ["tree"], gabc: kyrie, zoom: true }
+  { name: "tree-fill-container", outputs: ["tree"], gabc: kyrie, zoom: true },
+
+  // Gregorio: Phase 9
+  {
+    // a canvas without actualBoundingBox metrics measures only the font's box,
+    // so a drop cap beside two lines is sized as a typical capital
+    name: "canvas-basic-two-line-initial",
+    outputs: ["svg", "canvas"],
+    gabc: adTeLevavi,
+    useDropCap: true,
+    strategy: "canvas-basic",
+    setupContext: (ctxt) => (ctxt.dropCapLines = 2)
+  }
 ];
 
 // -----------------------------------------------------------------------------
@@ -1289,6 +1412,16 @@ export const svgMeasuredCases: GoldenCase[] = [
     ...settingCases.find((c) => c.name === "titles-aligned-and-wrapped")!,
     name: "svg-measured-titles",
     outputs: ["svg", "node"],
+    strategy: "svg"
+  },
+
+  // Gregorio: Phase 9
+  {
+    // getBBox() measures only the font's box (where there's no canvas to
+    // measure the letter on), so the drop cap is sized as a typical capital
+    ...featureCases.find((c) => c.name === "two-line-initial")!,
+    name: "svg-measured-two-line-initial",
+    outputs: ["svg", "node", "nodeLines"],
     strategy: "svg"
   }
 ];
