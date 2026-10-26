@@ -170,6 +170,14 @@ export class ChantLine extends ChantLayoutElement {
   notationBounds: Rect | null;
   staffLeft: number;
   staffRight: number;
+  /**
+   * how far left the line's text other than its lyrics may go, to keep clear
+   * of a drop cap that reaches down beside the line (see
+   * ChantScore.lineExtent())
+   */
+  textLeft: number;
+  /** whether the line is the score's first, which has its drop cap and annotation */
+  isFirstLine: boolean;
   /** the space to the left of the drop cap */
   paddingLeft!: number;
   /** a copy of the clef in effect at the start of the line */
@@ -230,6 +238,8 @@ export class ChantLine extends ChantLayoutElement {
 
     this.staffLeft = 0;
     this.staffRight = 0;
+    this.textLeft = 0;
+    this.isFirstLine = false;
 
     this.startingClef = null as unknown as Clef; // necessary for the layout process
     this.custos = null;
@@ -443,26 +453,16 @@ export class ChantLine extends ChantLayoutElement {
       }
     }
 
-    // dropCap and the annotations
-    if (this.notationsStartIndex === 0) {
+    // dropCap and the annotations (which ChantScore.placeDropCap() places once
+    // the lines are laid out, for a drop cap beside more lines than this)
+    if (this.isFirstLine) {
+      var dropCap = this.score.dropCapOnFirstLine(ctxt) ? this.score.dropCap : null;
       if (this.score.annotation !== null) {
         // annotations use dominant-baseline to align text to the top
         this.score.annotation.bounds.x = this.staffLeft / 2;
         this.score.annotation.bounds.y = -ctxt.staffInterval * (staffLineCount * 2 - 1);
-        if (this.score.dropCap !== null) {
-          var lowestPossibleAnnotationY =
-            this.lyricLineBaseline -
-            this.score.annotation.bounds.height -
-            ctxt.staffInterval * ctxt.textStyles.annotation.padding -
-            this.score.dropCap.origin.y;
-          // if the annotation would overlap with the drop cap, move the annotation higher.
-          // otherwise, center the annotation in the vertical space between the top of the drop cap and the top of the staff.
-          if (lowestPossibleAnnotationY < this.score.annotation.bounds.y) {
-            this.score.annotation.bounds.y = lowestPossibleAnnotationY;
-          } else {
-            this.score.annotation.bounds.y =
-              (this.score.annotation.bounds.y + lowestPossibleAnnotationY) / 2;
-          }
+        if (dropCap !== null) {
+          this.score.annotation.bounds.y = this.score.annotationTop(ctxt, this.lyricLineBaseline, true);
           if (this.score.annotation.bounds.y < this.notationBounds.y) {
             this.notationBounds.y = this.score.annotation.bounds.y;
             this.notationBounds.height +=
@@ -472,14 +472,13 @@ export class ChantLine extends ChantLayoutElement {
         this.score.annotation.bounds.y += this.score.annotation.origin.y;
       }
 
-      if (this.score.dropCap !== null) {
+      if (dropCap !== null) {
         // drop caps and annotations are drawn from their center, so aligning them
         // horizontally is as easy as this.staffLeft / 2
-        this.score.dropCap.bounds.x = this.staffLeft / 2;
-        this.score.dropCap.bounds.y =
-          this.lyricLineBaseline - this.score.dropCap.origin.y;
-        this.notationBounds.union(this.score.dropCap.bounds);
-        this.score.dropCap.bounds.y = this.lyricLineBaseline;
+        dropCap.bounds.x = this.staffLeft / 2;
+        dropCap.bounds.y = this.lyricLineBaseline - dropCap.origin.y;
+        this.notationBounds.union(dropCap.bounds);
+        dropCap.bounds.y = this.lyricLineBaseline;
       }
     }
 
@@ -535,6 +534,22 @@ export class ChantLine extends ChantLayoutElement {
 
     // the origin of the chant line's coordinate space is at the center line of the left extremity of the staff
     this.origin = new Point(this.staffLeft, -this.notationBounds.y);
+  }
+
+  /**
+   * Makes the line, once it's laid out, reach up to top and down to bottom
+   * (in its own coordinates), as performLayout() would have for something
+   * there, and returns how much taller that makes it above its staff and
+   * below it, by which it and the lines below it have to move down.
+   */
+  reach(top: number, bottom: number) {
+    var bounds = this.notationBounds!,
+      above = Math.max(0, bounds.y - top),
+      below = Math.max(0, bottom - bounds.bottom());
+    bounds.union(new Rect(bounds.x, bounds.y - above, 0, bounds.height + above + below));
+    this.bounds.height = bounds.height;
+    this.origin.y = -bounds.y;
+    return { above, below };
   }
 
   // TODO: remove if not necsessary
@@ -594,7 +609,7 @@ export class ChantLine extends ChantLayoutElement {
     for (i = 0; i < this.braces.length; i++) this.braces[i].draw(ctxt);
 
     // draw the dropCap and the annotations
-    if (this.notationsStartIndex === 0) {
+    if (this.isFirstLine) {
       if (this.score.dropCap !== null) this.score.dropCap.draw(ctxt);
 
       if (
@@ -698,7 +713,7 @@ export class ChantLine extends ChantLayoutElement {
       inner.push(this.slurs[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
     // dropCap and the annotations
-    if (this.notationsStartIndex === 0) {
+    if (this.isFirstLine) {
       if (this.score.dropCap !== null)
         inner.push(this.score.dropCap[functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
 
@@ -814,7 +829,7 @@ export class ChantLine extends ChantLayoutElement {
       inner += this.slurs[i].createSvgFragment(ctxt);
 
     // dropCap and the annotations
-    if (this.notationsStartIndex === 0) {
+    if (this.isFirstLine) {
       if (this.score.dropCap !== null)
         inner += this.score.dropCap.createSvgFragment(ctxt);
 
@@ -850,7 +865,14 @@ export class ChantLine extends ChantLayoutElement {
     );
   }
 
-  buildFromChantNotationIndex(ctxt: ChantContext, newElementStart: number, width: number) {
+  buildFromChantNotationIndex(
+    ctxt: ChantContext,
+    newElementStart: number,
+    width: number,
+    // which of the score's lines this is (see ChantScore.lineExtent()): the
+    // first if it starts at the first notation, or else the next one
+    lineIndex = newElementStart ? this.score.lines.length : 0
+  ) {
     // todo: reset / clear the children we have in case they have data
     var notations = this.score.notations,
       beginningLyrics: Lyric[] | null = null,
@@ -862,36 +884,22 @@ export class ChantLine extends ChantLayoutElement {
     this.numNotationsOnLine = 0;
     this.clefLineBreak = null;
 
-    this.staffLeft = 0;
     this.paddingLeft = 0;
 
     this.extraTextOnlyIndex = null;
     this.extraTextOnlyLyricIndex = 0;
 
-    if (width > 0) this.staffRight = width;
-    else this.staffRight = Infinity; // no limit to staff size
+    // room for a drop cap and/or annotation, if present (and no limit to the
+    // staff size with no width)
+    var extent = this.score.lineExtent(ctxt, lineIndex, width);
+    this.staffLeft = extent.left;
+    this.staffRight = extent.right;
+    this.textLeft = extent.textLeft;
+    this.isFirstLine = lineIndex === 0;
 
-    // If this is the first chant line, then we have to make room for a
-    // drop cap and/or annotation, if present
-    if (this.notationsStartIndex === 0) {
-      var padding = 0;
-
+    if (this.isFirstLine) {
       if (this.score.dropCap)
-        padding =
-          this.score.dropCap.bounds.width + this.score.dropCap.padding * 2;
-
-      if (
-        this.score.annotation &&
-        (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
-      )
-        padding = Math.max(
-          padding,
-          this.score.annotation.bounds.width + this.score.annotation.padding * 2
-        );
-
-      this.staffLeft += padding;
-      if (this.score.dropCap)
-        this.paddingLeft = (padding - this.score.dropCap.bounds.width) / 2;
+        this.paddingLeft = (this.staffLeft - this.score.dropCap.bounds.width) / 2;
     } else {
       prev = notations[newElementStart - 1];
       if (
@@ -935,7 +943,7 @@ export class ChantLine extends ChantLayoutElement {
 
       // the line break just after the clef may have ended the line before
       // already (see clefLineBreak)
-      let previousLine = this.score.lines && this.score.lines[this.score.lines.length - 1];
+      let previousLine = lineIndex > 0 && this.score.lines && this.score.lines[lineIndex - 1];
       if (previousLine && previousLine.clefLineBreak && previousLine.clefLineBreak === notations[newElementStart]) {
         newElementStart++;
         this.notationsStartIndex++;
@@ -1075,8 +1083,16 @@ export class ChantLine extends ChantLayoutElement {
         textOnlyStartIndex = i;
       }
 
-      if (curr.hasLyrics() && curr.lyrics[0].needsLayout) {
-        curr.lyrics[0].recalculateMetrics(ctxt);
+      // lyrics that an earlier layout of the lines wrapped (in setMaxWidth()) or
+      // moved (in centerDividers()) go back to where the notation's layout put them
+      if (curr.hasLyrics() && curr.lyrics.some((lyric) => lyric.needsLayout)) {
+        for (let lyric of curr.lyrics) {
+          if (lyric.needsLayout) {
+            lyric.recalculateMetrics(ctxt);
+            lyric.needsLayout = false;
+          }
+        }
+        curr.alignLyrics(ctxt);
       }
 
       // try to fit the curr element on this line.
@@ -1160,14 +1176,14 @@ export class ChantLine extends ChantLayoutElement {
         }
         delete curr.lyrics[extraTextOnlyLyricIndex].lineWidth;
         if (!fitsOnLine || i === this.extraTextOnlyIndex) {
-          curr.bounds.x = curr.lyrics[extraTextOnlyLyricIndex].origin.x;
+          curr.bounds.x = this.textLeft + curr.lyrics[extraTextOnlyLyricIndex].origin.x;
           let lastLyricRight = ctxt.startExtraTextOnlyFromFirst
             ? LyricArray.getRight(this.lastLyrics) +
               (ctxt.minLyricWordSpacing || 0)
-            : 0;
+            : this.textLeft;
           curr.lyrics[extraTextOnlyLyricIndex].setMaxWidth(
             ctxt,
-            this.staffRight,
+            this.staffRight - this.textLeft,
             this.staffRight - lastLyricRight
           );
           firstOnLine = curr;
@@ -1569,7 +1585,26 @@ export class ChantLine extends ChantLayoutElement {
             }
             leftPoint = prev ? prev.bounds.right() : 0;
           }
-          if (leftPoint) {
+          if (next instanceof TextOnly) {
+            // a TextOnly's lyric is under the staff, and can start under the bar (as
+            // Ant. does in "(::) Ant.() (f+)"), so the bar is centered before the next
+            // notation on the staff, if the text doesn't push that along (as it does a
+            // neume with lyrics, or a bar, which is centered in its turn).  Otherwise
+            // it's centered before the text if that starts after it, or left where it is.
+            let next,
+              end = this.notationsStartIndex + this.numNotationsOnLine;
+            for (let k = i + 1; k < end; k++) {
+              let notation = this.score.notations[k];
+              if (!(notation instanceof TextOnly) && !(notation instanceof ChantLineBreak)) {
+                next = notation;
+                break;
+              }
+            }
+            next = next || this.custos;
+            if (next && !next.isDivider && !next.hasLyrics()) rightPoint = next.bounds.x;
+            else if (rightPoint < curr.bounds.right()) rightPoint = 0;
+          }
+          if (leftPoint && rightPoint) {
             curr.bounds.x = (leftPoint + rightPoint - barWidth) / 2;
           }
           if (curr.hasLyrics()) {
@@ -2110,7 +2145,7 @@ export class ChantLine extends ChantLayoutElement {
 
     // (centered between leftX and rightX, when there's a rightX)
     var positionNonLyricText = (text: TextElement, neume: ChantNotationElement, rightX?: number, leftX = 0) => {
-      text.setMaxWidth(ctxt, this.staffRight);
+      text.setMaxWidth(ctxt, this.staffRight - this.textLeft);
       //text.bounds.x = neume.hasLyrics()? Math.min(...neume.lyrics.map(l => l.bounds.x)) : 0;
       text.bounds.x = leftX;
       if (rightX !== undefined)
@@ -2120,8 +2155,8 @@ export class ChantLine extends ChantLayoutElement {
       if (beyondStaffRight > 0) {
         text.bounds.x -= beyondStaffRight;
       }
-      if (neume.bounds.x + text.bounds.x < 0) {
-        text.bounds.x = -neume.bounds.x;
+      if (neume.bounds.x + text.bounds.x < this.textLeft) {
+        text.bounds.x = this.textLeft - neume.bounds.x;
       }
     };
 

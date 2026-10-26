@@ -949,6 +949,12 @@ export type ClefVisibility = "visible" | "invisible" | "phantom";
 /** how the number of a mode is written (see ChantContext.modeNumberSystem) */
 export type ModeNumberSystem = "roman-majuscule" | "roman-minuscule" | "arabic";
 
+/** where a score's drop cap is put (see ChantContext.dropCapPosition) */
+export type DropCapPosition = "firsttop" | "firstbaseline" | "lastbaseline" | "lastbottom";
+
+/** which part of a drop cap is put at its position (see ChantContext.dropCapAnchor) */
+export type DropCapAnchor = "top" | "baseline" | "bottom";
+
 /** how a ~ in the lyrics (Gregorio's lyric tie) is drawn: see ChantContext.lyricTie */
 export type LyricTie = "space" | "undertie" | "overtie" | "doubletie";
 
@@ -1144,6 +1150,38 @@ export class ChantContext {
    */
   modeNumberSystem: ModeNumberSystem;
 
+  /**
+   * How many lines a score's drop cap is beside, as with Gregorio's
+   * \gresetinitiallines.  1 is the default; with more, the drop cap is
+   * dropped beside that many lines, which all start after it.  0 leaves the
+   * drop cap out, as ChantScore.useDropCap false does: a score has a drop cap
+   * only with useDropCap as well, and a change to or from 0 takes effect, as
+   * one to useDropCap does, when the score makes its drop cap again
+   * (updateNotations() or recreateDropCap()); other changes take effect, as
+   * ones to the spacing do, when its lines are laid out again
+   * (ChantScore.layoutChantLines()).  What isn't a whole number from 0 up
+   * counts as 1.  A drop cap beside more than one line, with its baseline at
+   * the last one's lyric baseline or its top at the first one's top staff
+   * line, is made just big enough for its letter to reach from the one to the
+   * other, unless textStyles.dropCap.size has been set since setFont().
+   */
+  dropCapLines: number;
+  /**
+   * Where the drop cap goes, as with Gregorio's \gresetinitialposition: the
+   * top staff line of the first line ("firsttop"), the lyric baseline of the
+   * first line ("firstbaseline") or of the last line beside the drop cap
+   * ("lastbaseline", the default, which anything else counts as), or the
+   * bottom of that last line, below its lyrics and translations
+   * ("lastbottom").  dropCapAnchor says which part of the drop cap goes there.
+   */
+  dropCapPosition: DropCapPosition;
+  /**
+   * Which part of the drop cap goes at dropCapPosition, as with Gregorio's
+   * \gresetinitialanchor: the top of its letter, its baseline (the default,
+   * which anything else counts as) or the bottom of its letter.
+   */
+  dropCapAnchor: DropCapAnchor;
+
   defaultLanguage: Language;
   /**
    * What each lyric is centered under its notation on, as Gregorio's
@@ -1262,6 +1300,9 @@ export class ChantContext {
     ...spans: Array<TextSpan[] | null | undefined>
   ) => TextSpan[];
 
+  // the drop cap's text style, while its size is the one that setFont() gave
+  // it (see hasDefaultDropCapSize())
+  private setFontDropCapStyle?: TextStyle;
   // the text measured so far (see clearTextCache())
   private textMetricsCache!: Map<object, Map<string, any>>;
   private textMetricsCacheSize!: number;
@@ -1382,6 +1423,9 @@ export class ChantContext {
 
     this.clefVisibility = "visible";
     this.modeNumberSystem = "roman-majuscule";
+    this.dropCapLines = 1;
+    this.dropCapPosition = "lastbaseline";
+    this.dropCapAnchor = "baseline";
 
     this.defaultLanguage = language.latin;
     this.lyricCentering = "vowel";
@@ -1546,6 +1590,20 @@ export class ChantContext {
       textStyle.font = font;
       textStyle.color = this.textColor || "#000";
     }
+    // (hasDefaultDropCapSize() until the drop cap's size is set again, even
+    // to the same size, or its style is replaced)
+    const dropCapStyle = this.textStyles.dropCap;
+    let dropCapSize = dropCapStyle.size;
+    Object.defineProperty(dropCapStyle, "size", {
+      configurable: true,
+      enumerable: true,
+      get: () => dropCapSize,
+      set: (size: number) => {
+        dropCapSize = size;
+        delete this.setFontDropCapStyle;
+      }
+    });
+    this.setFontDropCapStyle = dropCapStyle;
 
     this.baseTextStyle = baseStyle;
 
@@ -1554,6 +1612,11 @@ export class ChantContext {
       this.fontDictionary = fontDictionary;
     }
     this.clearTextCache();
+  }
+
+  /** whether textStyles.dropCap.size is still the size that setFont() gave it */
+  hasDefaultDropCapSize() {
+    return this.textStyles.dropCap === this.setFontDropCapStyle;
   }
 
   setRubricColor(color: string) {
@@ -4862,6 +4925,17 @@ export class DropCap extends TextElement {
    */
   declare textType: TextTypes["dropCap"];
   padding: number;
+  /**
+   * the font size that the score gave the drop cap to reach across the
+   * lines beside it (see ChantContext.dropCapLines), in place of its text
+   * style's size
+   */
+  sizeForLines?: number;
+  /**
+   * how many lines the score lays the drop cap out beside (ctxt.dropCapLines
+   * as of its last ChantScore.layoutChantLines())
+   */
+  linesBeside?: number;
 
   constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
     super(
@@ -4874,8 +4948,54 @@ export class DropCap extends TextElement {
       text,
       TextTypes.dropCap
     );
+    this.fontSize = (ctxt) => this.sizeForLines || ctxt.textStyles.dropCap.size;
 
     this.padding = ctxt.staffInterval * ctxt.textStyles.dropCap.padding;
+  }
+
+  /** measures the drop cap at the given font size, or else its text style's */
+  measureAtSize(ctxt: ChantContext, size?: number) {
+    if (size) this.sizeForLines = size;
+    else delete this.sizeForLines;
+    this.recalculateMetrics(ctxt);
+  }
+
+  /**
+   * Makes the drop cap's height above and below its baseline its letter's,
+   * where it was measured by its font's box instead, as it is with
+   * TextMeasuringStrategy.Svg or a canvas without actualBoundingBox metrics:
+   * its letter as measured on a canvas, where the browser can, or else a
+   * typical capital, 0.7em high.
+   */
+  fitBoundsToLetter(ctxt: ChantContext) {
+    var strategy = ctxt.textMeasuringStrategy,
+      span = this.spans[0];
+    if (!span || (strategy !== TextMeasuringStrategy.Svg && strategy !== TextMeasuringStrategy.Canvas)) return;
+    if (
+      strategy === TextMeasuringStrategy.Svg &&
+      typeof TextMetrics !== "undefined" &&
+      "actualBoundingBoxAscent" in TextMetrics.prototype
+    )
+      ctxt.makeCanvasIfNeeded();
+    var metrics =
+      ctxt.canvasCtxt &&
+      ctxt.measureCanvasText(this.getCanvasFontForProperties(ctxt, span.mergedProperties), span.text);
+    if (metrics && "actualBoundingBoxAscent" in metrics) {
+      // (as a canvas strategy has measured it already)
+      if (strategy === TextMeasuringStrategy.Canvas) return;
+      this.origin.y = metrics.actualBoundingBoxAscent;
+      this.bounds.height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    } else {
+      this.origin.y = this.bounds.height = this.fontSize(ctxt) * 0.7;
+    }
+  }
+
+  getExtraStyleProperties(ctxt: ChantContext): CssProperties {
+    var properties = super.getExtraStyleProperties(ctxt);
+    // (the drop cap's css class gives it its text style's size)
+    return this.sizeForLines
+      ? Object.assign({}, properties, { "font-size": this.sizeForLines + "px" })
+      : properties;
   }
 }
 
@@ -5352,6 +5472,13 @@ export class ChantNotationElement extends ChantLayoutElement {
   finishLayout(ctxt: ChantContext) {
     this.bounds.x = 0;
 
+    this.alignLyrics(ctxt);
+
+    this.needsLayout = false;
+  }
+
+  // lines the lyrics up with the notation, once they and the notation have been measured
+  alignLyrics(ctxt: ChantContext) {
     let language =
       (this.lyrics[0] && this.lyrics[0].language) || ctxt.defaultLanguage;
     // center the neume itself over the syllable, or just the first punctum
@@ -5364,8 +5491,6 @@ export class ChantNotationElement extends ChantLayoutElement {
               : this.origin.x - lyric.origin.x)
       : (lyric: Lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
     this.lyrics.forEach(calculateLyricX);
-
-    this.needsLayout = false;
   }
 
   draw(ctxt: ChantContext) {

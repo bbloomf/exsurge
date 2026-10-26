@@ -1,3 +1,12 @@
+## [2.2.1](https://github.com/bbloomf/exsurge/compare/v2.2.0...v2.2.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **drawing:** Let each context prefix its glyph def ids ([f444b82](https://github.com/bbloomf/exsurge/commit/f444b82795c149bb538e2fec23841a1a2f2381f4))
+* **layout:** Center a bar before the custos, not under the text after it ([89f5e2f](https://github.com/bbloomf/exsurge/commit/89f5e2f9f2e4d9274936e8ac20fcf1a41a3f9ee8))
+* **layout:** Put a divider's lyric back where its notation's layout puts it ([6c13266](https://github.com/bbloomf/exsurge/commit/6c13266a4c4281c69c2e9a4feb9b6ff7b3ab00dd))
+
 # [2.2.0](https://github.com/bbloomf/exsurge/compare/v2.1.1...v2.2.0) (2026-10-23)
 
 
