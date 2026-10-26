@@ -65,18 +65,16 @@ const hasBackspace = (ctxt: ChantContext, notation: ChantNotationElement) =>
     ? notation.trailingSpace(ctxt)
     : notation.trailingSpace) < 0;
 
-// how far right Gregorio's NABC goes on a notation and on those before it in
-// its syllable on the line, or -Infinity if they have none
-function nabcRight(line: ChantLine, notation: ChantNotationElement) {
+// how far right Gregorio's NABC goes on the line's notations, from the one at
+// index back through the syllable of the one at stop (the last with notes,
+// after which those without notes are placed), or -Infinity if they have none
+function nabcRight(line: ChantLine, index: number, stop = index) {
   let notations = line.score.notations;
-  let index = notation.notationIndex!;
-  // (the clef at the start of the line isn't one of them)
-  if (notations[index] !== notation) return -Infinity;
   let right = -Infinity;
   for (let i = index; i >= line.notationsStartIndex; i--) {
     for (let nabc of notations[i].nabcNeumes || [])
       if (nabc) right = Math.max(right, notations[i].bounds.x + nabc.bounds.right());
-    if (notations[i].firstOfParentheses) break;
+    if (i <= stop && notations[i].firstOfParentheses) break;
   }
   return right;
 }
@@ -1453,7 +1451,7 @@ export class ChantLine extends ChantLayoutElement {
               this.custos.leadingSpace;
           } else {
             this.custos.bounds.x =
-              prevNeume!.bounds.right() + prevNeume!.calculatedTrailingSpace;
+              this.notationRight(prevNeume!) + prevNeume!.calculatedTrailingSpace;
           }
           // nothing more to see here...
           break;
@@ -1754,7 +1752,7 @@ export class ChantLine extends ChantLayoutElement {
       last = notations[lastIndex - 1];
     }
     var lastRightNeume = last
-      ? last.bounds.right() + last.calculatedTrailingSpace
+      ? this.notationRight(last) + last.calculatedTrailingSpace
       : 0;
     var lastLyrics = this.lastLyricsBeforeTextOnly || this.lastLyrics;
     // (a lyric's protrusion may go past the end of the staff)
@@ -1771,6 +1769,23 @@ export class ChantLine extends ChantLayoutElement {
       lastRightNeume += Glyphs.CustosLong.bounds.width * ctxt.glyphScaling;
     }
     return this.staffRight - Math.max(lastRightLyric, lastRightNeume);
+  }
+
+  /**
+   * How far right a notation on the line goes: its notes, or Gregorio's
+   * NABC, which widens its syllable, on it and on the notations before it in
+   * its syllable (and for one without notes, in the syllable of the last
+   * with notes before it, which it's placed after).  Line layout measures a
+   * notation by this rather than by its bounds.
+   */
+  notationRight(notation: ChantNotationElement) {
+    let notations = this.score.notations;
+    let index = notation.notationIndex!;
+    // (the clef at the start of the line isn't one of them)
+    if (notations[index] !== notation) return notation.bounds.right();
+    let stop = index;
+    while (stop > this.notationsStartIndex && notations[stop].constructor === TextOnly) stop--;
+    return Math.max(notation.bounds.right(), nabcRight(this, index, stop));
   }
 
   /**
@@ -1859,7 +1874,7 @@ export class ChantLine extends ChantLayoutElement {
       this.custos &&
       lastNotation.keepWithNext &&
       this.custos.bounds.x -
-        lastNotation.bounds.right() -
+        this.notationRight(lastNotation) -
         lastNotation.calculatedTrailingSpace) as number;
     if (extraSpaceBeforeCustos > 0) {
       // first, shrink the hyphen(s) if applicable, to move the neumes closer to the custos:
@@ -1882,7 +1897,7 @@ export class ChantLine extends ChantLayoutElement {
         ++i;
       }
       this.custos!.bounds.x =
-        lastNotation.bounds.right() + lastNotation.calculatedTrailingSpace;
+        this.notationRight(lastNotation) + lastNotation.calculatedTrailingSpace;
     }
 
     // first step of justification is to determine how much space we have to use up
@@ -1960,7 +1975,7 @@ export class ChantLine extends ChantLayoutElement {
 
     if (extraSpaceBeforeCustos > 0) {
       this.custos!.bounds.x =
-        lastNotation.bounds.right() + lastNotation.calculatedTrailingSpace;
+        this.notationRight(lastNotation) + lastNotation.calculatedTrailingSpace;
     }
   }
 
@@ -2502,14 +2517,18 @@ export class ChantLine extends ChantLayoutElement {
       // a syllable starts after it too.)  With "neume" alignment, the notes
       // make room for the letters that hang back before the NABC on them.
       if (curr.firstOfParentheses || curr.nabcNeumes) {
-        let shift = Math.max(0, nabcRight(this, prev) - prev.bounds.right());
-        shift += Math.max(0, ...(curr.nabcNeumes || []).map((nabc) => (nabc ? -nabc.bounds.x : 0)));
+        // (the NABC on prev's syllable, and on the notations without notes
+        // between prev and curr, which are placed after prev)
+        let notations = this.score.notations;
+        let stop = notations[prev.notationIndex!] === prev ? prev.notationIndex! : this.notationsStartIndex;
+        let shift = Math.max(0, nabcRight(this, curr.notationIndex! - 1, stop) - prev.bounds.right());
+        if (ctxt.nabcAlignment === "neume")
+          shift += Math.max(0, ...(curr.nabcNeumes || []).map((nabc) => (nabc ? -nabc.bounds.x : 0)));
         curr.bounds.x += shift;
         space.total += shift;
       }
     }
-    // (as far right as it or the NABC of its syllable goes)
-    const currRight = () => Math.max(curr.bounds.right(), nabcRight(this, curr));
+    const currRight = () => this.notationRight(curr);
 
     // Gregorio's <clear>: a lyric's text may not start before the previous
     // notation's notes end, nor its notation's notes before the previous

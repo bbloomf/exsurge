@@ -412,6 +412,123 @@ describe("NABC on the staff", function() {
     assert.ok(score.notations.every((notation: ChantNotationElement) => !notation.nabcNeumes));
     assert.ok(score.notations.some((notation: ChantNotationElement) => notation.parsedNabc));
   });
+
+  it("draws ERR in the lyrics' font, with its names in ', and in the neumes' color", async function() {
+    const { outputs } = await render(Exsurge as any, "nabc-lines: 1;\n%%\n(c4) (f|vixx) (::)", {
+      strategy: "none",
+      setupContext: (ctxt) => {
+        ctxt.nabcFonts = [gregall];
+        ctxt.textStyles.lyric.font = '"Times New Roman", serif';
+        ctxt.neumeLineColor = "#a00";
+      }
+    }, ["svg"]);
+    assert.match(outputs.svg!, /<text class="nabcError" [^>]*font-family="'Times New Roman', serif" [^>]*fill="#a00" >ERR</);
+  });
+
+  it("gives another font of the same name defs of its own", async function() {
+    const copy: NabcFont = { ...gregall, glyphs: { ...gregall.glyphs, vi: gregall.glyphs.pe } };
+    const { outputs } = await render(Exsurge as any, "nabc-lines: 2;\n%%\n(c4) a(f|vi|vi) (::)", {
+      setupContext: (ctxt) => (ctxt.nabcFonts = [gregall, copy])
+    }, ["svg"]);
+    const hrefs = [...outputs.svg!.matchAll(/xlink:href="#(Nabc-[^"]*)"/g)].map((match) => match[1]);
+    assert.strictEqual(hrefs.length, 2);
+    assert.notStrictEqual(hrefs[0], hrefs[1]);
+    for (const id of hrefs) assert.ok(outputs.svg!.includes(`id="${id}"`), id);
+  });
+
+  it("has no glyphs or defs where it's a phantom", async function() {
+    const { score, ctxt } = await render(Exsurge as any, "nabc-lines: 1;\n%%\n(c4) a(f|vilsc2) b(g|pe) (::)", {
+      setupContext: (ctxt) => {
+        ctxt.nabcFonts = [gregall];
+        ctxt.nabcVisibility = ["phantom"];
+      }
+    }, ["svg"]);
+    const nabcs = score.notations.flatMap((notation: ChantNotationElement) => notation.nabcNeumes || []);
+    assert.strictEqual(nabcs.length, 2);
+    assert.ok(nabcs.every((nabc: any) => nabc.phantom && nabc.glyphs.length === 0 && nabc.bounds.width > 0));
+    assert.deepStrictEqual(Object.keys(ctxt.defs).filter((id) => id.startsWith("Nabc-")), []);
+  });
+});
+
+describe("NABC among the notes", function() {
+  const layOut = async (gabc: string, options: Parameters<typeof render>[2] = {}) =>
+    (await render(Exsurge as any, gabc, { setupContext: (ctxt) => (ctxt.nabcFonts = [gregall]), ...options }, ["svg"])).score;
+  // where the NABC of each notation that has it starts and ends on its line
+  const nabcExtents = (score: any) =>
+    score.notations.flatMap((notation: ChantNotationElement) =>
+      (notation.nabcNeumes || []).flatMap((nabc) =>
+        nabc ? [[notation.bounds.x + nabc.bounds.x, notation.bounds.x + nabc.bounds.right()]] : []
+      )
+    );
+  const wide = "vilst4lsc1/pelsc2/cllsc3/tolsc2/vilsc3/pelsc2";
+
+  it("stays within the staff when the line is justified", async function() {
+    const syllables = Array.from({ length: 16 }, (_, i) => `la(g|${i % 2 ? wide : "vi"})`);
+    for (const width of [250, 300, 350]) {
+      const score = await layOut(`nabc-lines: 1;\n%%\n(c4) ${syllables.join(" ")} (::)`, { width });
+      assert.ok(score.lines.length > 1);
+      for (const line of score.lines) {
+        assert.ok(line.bounds.width <= line.staffRight + 1e-9, `${width}: ${line.bounds.width}`);
+        for (let i = line.notationsStartIndex; i < line.notationsStartIndex + line.numNotationsOnLine; i++)
+          for (const [, right] of nabcExtents({ notations: [score.notations[i]] }))
+            assert.ok(right <= line.staffRight + 1e-9, `${width}: ${right}`);
+      }
+    }
+  });
+
+  it("of a syllable without notes is kept clear by the syllables after it", async function() {
+    for (const strategy of ["fontkit", "none"] as const) {
+      const score = await layOut(`nabc-lines: 1;\n%%\n(c4) a(f|vi) b(|${wide}) c(g|ta) d(|pe) e(|cl) f(g|vi) (::)`, {
+        width: 0,
+        strategy
+      });
+      const extents = nabcExtents(score);
+      assert.strictEqual(extents.length, 6);
+      extents.slice(1).forEach(([left]: number[], i: number) => assert.ok(left >= extents[i][1], `${strategy}: ${i + 1}`));
+    }
+  });
+
+  it("moves the notes over for the letters that hang back only with 'neume' alignment", async function() {
+    const notesAt = async (nabc: string, nabcAlignment: "full" | "neume") =>
+      (await layOut(`nabc-lines: 1;\n%%\n(c4) a(f|${nabc}) b(g|vi) (::)`, {
+        width: 0,
+        setupContext: (ctxt) => {
+          ctxt.nabcFonts = [gregall];
+          ctxt.nabcAlignment = nabcAlignment;
+        }
+      })).notations[0].bounds.x;
+    // (` moves the NABC back, rather than the notes on)
+    assert.strictEqual(await notesAt("`vi", "full"), await notesAt("vi", "full"));
+    assert.ok((await notesAt("vilst4", "neume")) > (await notesAt("vilst4", "full")));
+  });
+
+  it("doesn't move notes that have none drawn", async function() {
+    const at = async (gabc: string) => {
+      const score = await layOut(`nabc-lines: 2;\n%%\n(c4) ${gabc} (::)`, {
+        width: 0,
+        setupContext: (ctxt) => {
+          ctxt.nabcFonts = [gregall];
+          ctxt.nabcVisibility = ["visible", "invisible"];
+        }
+      });
+      return score.notations.map((notation: ChantNotationElement) => [notation.bounds.x, !!notation.nabcNeumes]);
+    };
+    // (the second part's NABC is on the second line, which isn't drawn)
+    const drawn = await at(`a(f|${wide}|pu|g||ta)`);
+    assert.deepStrictEqual(drawn.map(([, nabc]: any[]) => nabc), [true, false, false]);
+    assert.deepStrictEqual(drawn, await at(`a(f|${wide}|pu|g)`));
+  });
+
+  it("on a clef or a line break is drawn after it", async function() {
+    const score = await layOut("nabc-lines: 1;\n%%\n(c4|vi) a(f|pe) (z|to) b(g|cl) (c3|pu) c(h|ta) (::)");
+    const drawn = score.notations.filter((notation: ChantNotationElement) => notation.nabcNeumes);
+    assert.deepStrictEqual(
+      drawn.map((notation: ChantNotationElement) => [notation.constructor.name, notation.nabc]),
+      [["TextOnly", ["vi"]], ["Punctum", ["pe"]], ["TextOnly", ["to"]], ["Punctum", ["cl"]], ["TextOnly", ["pu"]], ["Punctum", ["ta"]]]
+    );
+    // (the line break's on the next line)
+    assert.strictEqual(score.lines[1].notationsStartIndex, drawn[2].notationIndex);
+  });
 });
 
 describe("NABC in gabc", function() {
@@ -451,5 +568,33 @@ describe("NABC in gabc", function() {
     // (a(fg|pe||vi) has an empty part of gabc, whose NABC Gabc puts after a /)
     const joined = parseNotations("nabc-lines: 1;\n%%\n(c3) a(fg|pe||vi)");
     assert.deepStrictEqual(parsedNabcOf(joined[0]), [["pe", "space", "vi"]]);
+  });
+
+  it("is read again when the notation's NABC changes", function() {
+    const [notation] = parseNotations("nabc-lines: 1;\n%%\n(c3) a(g|vi)");
+    assert.deepStrictEqual(parsedNabcOf(notation), [["vi"]]);
+    notation.nabc = ["pe"];
+    assert.deepStrictEqual(parsedNabcOf(notation), [["pe"]]);
+    notation.nabc[0] = "cl";
+    assert.deepStrictEqual(parsedNabcOf(notation), [["cl"]]);
+    delete notation.nabc;
+    assert.strictEqual(notation.parsedNabc, undefined);
+  });
+
+  it("on a clef or a line break goes on the next notation of its part, or one of its own after it", function() {
+    const notations = parseNotations("nabc-lines: 1;\n%%\n(c4) a(f|vi) (z|pe) b(g|ta) (c3 hg|cl) c(h|vi) (c4|to|g|pu) d(f|vi)");
+    assert.deepStrictEqual(
+      notations.filter((notation) => notation.nabc).map((notation) => [notation.constructor.name, notation.nabc]),
+      [
+        ["Punctum", ["vi"]],
+        ["TextOnly", ["pe"]],
+        ["Punctum", ["ta"]],
+        ["Clivis", ["cl"]],
+        ["Punctum", ["vi"]],
+        ["TextOnly", ["to"]],
+        ["Punctum", ["pu"]],
+        ["Punctum", ["vi"]]
+      ]
+    );
   });
 });

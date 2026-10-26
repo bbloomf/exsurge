@@ -3,9 +3,9 @@
 // change how it lays them out.
 
 import type { OutputName, RenderOptions } from "./harness";
-import { gregall } from "../../src/nabc/gregall";
-import { grelaon } from "../../src/nabc/grelaon";
-import { gresgmodern } from "../../src/nabc/gresgmodern";
+import { nabcFonts } from "./nabcFonts";
+
+const { gregall, gresgmodern, grelaon } = nabcFonts;
 
 export interface GoldenCase extends RenderOptions {
   name: string;

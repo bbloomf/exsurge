@@ -29,7 +29,7 @@
             "a"
         <g class="nabc nabc-1">
           <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-vi" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)">
-          <text class="nabcError" x="8.958422408963584" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069">
+          <text class="nabcError" x="8.958422408963584" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000">
             "ERR"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-18.75" source=<Note sourceIndex=7 elementIndex=0 noteIndex=0>>
@@ -38,8 +38,8 @@
           <tspan source-index="0" style="">
             "b"
         <g class="nabc nabc-1">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-pe" class="" x="90.39783126230316" y="-261.9970552934061" transform="scale(0.19581251167133518)">
-          <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-pe" class="" x="90.39783126230314" y="-261.9970552934061" transform="scale(0.19581251167133518)">
+          <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000">
             "ERR"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="17" element-index="1" id="note-2" x="3.125" y="-25" source=<Note sourceIndex=17 elementIndex=1 noteIndex=1>>
@@ -48,7 +48,7 @@
           <tspan source-index="0" style="">
             "c"
         <g class="nabc nabc-1">
-          <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069">
+          <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000">
             "ERR"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="35" element-index="2" id="note-3" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=35 elementIndex=2 noteIndex=2>>
@@ -57,7 +57,7 @@
           <tspan source-index="0" style="">
             "d"
         <g class="nabc nabc-1">
-          <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069">
+          <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000">
             "ERR"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="52" element-index="3" id="note-4" x="3.125" y="-25" source=<Note sourceIndex=52 elementIndex=3 noteIndex=3>>

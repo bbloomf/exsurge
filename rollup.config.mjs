@@ -8,6 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
+import ts from "typescript";
 
 const umd = {
   format: "umd",
@@ -26,6 +27,18 @@ const licenseOf = (font) =>
   /^\/\*![\s\S]*?\*\//.exec(
     readFileSync(join(dirname(fileURLToPath(import.meta.url)), "src", "nabc", font + ".ts"), "utf8")
   )[0];
+// a NABC font's module is only data with a type, which needs only its types
+// taken out, rather than @rollup/plugin-typescript's whole program
+const stripTypes = {
+  name: "strip-types",
+  transform: (code, id) => ({
+    code: ts.transpileModule(code, {
+      fileName: id,
+      compilerOptions: { target: ts.ScriptTarget.ES2017, module: ts.ModuleKind.ESNext }
+    }).outputText,
+    map: null
+  })
+};
 
 export default [
   {
@@ -69,6 +82,6 @@ export default [
       // with the license at the top (rather than in the UMD wrapper)
       plugins: [terser({ ecma: 2017, format: { comments: false, preamble: licenseOf(font) } })]
     },
-    plugins: [typescript({ tsconfig: "./tsconfig.json", compilerOptions: { noEmit: false } })]
+    plugins: [stripTypes]
   }))
 ];

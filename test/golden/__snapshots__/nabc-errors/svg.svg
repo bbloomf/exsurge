@@ -47,7 +47,7 @@
 <g class="nabc nabc-1" >
 <use xlink:href="#Nabc-gregall-vi" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
-<text class="nabcError" x="8.958422408963584" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" >ERR</text>
+<text class="nabcError" x="8.958422408963584" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-18.75" >
 </use>
@@ -57,9 +57,9 @@
 <tspan source-index="0" style="" >b</tspan>
 </text>
 <g class="nabc nabc-1" >
-<use xlink:href="#Nabc-gregall-pe" class="" x="90.39783126230316" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
+<use xlink:href="#Nabc-gregall-pe" class="" x="90.39783126230314" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
-<text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" >ERR</text>
+<text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="17" element-index="1" id="note-2" x="3.125" y="-25" >
 </use>
@@ -69,7 +69,7 @@
 <tspan source-index="0" style="" >c</tspan>
 </text>
 <g class="nabc nabc-1" >
-<text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" >ERR</text>
+<text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="35" element-index="2" id="note-3" x="3.125" y="-31.249999999999996" >
 </use>
@@ -79,7 +79,7 @@
 <tspan source-index="0" style="" >d</tspan>
 </text>
 <g class="nabc nabc-1" >
-<text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" >ERR</text>
+<text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="52" element-index="3" id="note-4" x="3.125" y="-25" >
 </use>

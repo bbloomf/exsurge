@@ -15,6 +15,7 @@ import rollupConfig, { nabcFonts } from "../rollup.config.mjs";
 import { svgMeasuredCases } from "./golden/cases";
 import { describeGoldenCases, describeGoldenTables, describeNabcFontTables } from "./golden/golden";
 import { stubSvgTextMeasurement, type OutputName } from "./golden/harness";
+import { nabcFonts as testedNabcFonts } from "./golden/nabcFonts";
 
 const root = resolve(__dirname, "..");
 const tsc = join(root, "node_modules/typescript/bin/tsc");
@@ -96,6 +97,8 @@ describe("the published builds", () => {
       for (const file of [`nabc-${font}`, `dist/nabc-${font}.min.js`]) assert.ok(pkg.files.includes(file), file);
     });
     assert.ok(pkg.files.includes("LICENSE-OFL.txt"));
+    // (the fonts that the tests draw with are those that are built)
+    assert.deepStrictEqual(Object.keys(testedNabcFonts), nabcFonts);
   });
   describeGoldenCases("minified bundle", loadMinifiedBundle, stringOutputs);
   describeGoldenCases("minified bundle svg nodes", loadMinifiedBundle, nodeOutputs);

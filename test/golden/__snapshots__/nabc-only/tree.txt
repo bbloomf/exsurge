@@ -45,7 +45,7 @@
           <use x=0 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-pe">
         <g className="Notations">
           <use source-index=14 element-index=1 x=0 y=0 source=<TextOnly sourceIndex=14 elementIndex=1> className="" xlinkHref="#None">
-      <g transform="translate(34.2724,0)" source=<TextOnly sourceIndex=21 elementIndex=2> className="ChantNotationElement TextOnly">
+      <g transform="translate(35.55389449112978,0)" source=<TextOnly sourceIndex=21 elementIndex=2> className="ChantNotationElement TextOnly">
         <text source-index=19 x=-4.7808 y=13.012000000000008 style={} source=<Lyric sourceIndex=19> className="lyric" textAnchor="start" source-gabc="c">
           <tspan source-index=0 style={} className=undefined>
             "c"
@@ -53,7 +53,7 @@
           <use x=0 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-cllsc3">
         <g className="Notations">
           <use source-index=21 element-index=2 x=0 y=0 source=<TextOnly sourceIndex=21 elementIndex=2> className="" xlinkHref="#None">
-      <g transform="translate(42.93379999999999,0)" source=<Punctum> className="ChantNotationElement Punctum">
+      <g transform="translate(59.586356209150324,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=30 x=1.1018 y=13.012000000000008 style={} source=<Lyric sourceIndex=30> className="lyric" textAnchor="start" source-gabc="d">
           <tspan source-index=0 style={} className=undefined>
             "d"
@@ -61,15 +61,15 @@
           <use x=0 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-ta">
         <g className="Notations">
           <use source-index=32 element-index=3 id="note-1" x=3.125 y=-18.75 source=<Note sourceIndex=32 elementIndex=3 noteIndex=0> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
-      <g transform="translate(55.353999999999985,0)" source=<TextOnly sourceIndex=40 elementIndex=4> className="ChantNotationElement TextOnly">
+      <g transform="translate(72.00655620915033,0)" source=<TextOnly sourceIndex=40 elementIndex=4> className="ChantNotationElement TextOnly">
         <text source-index=38 x=-2.2896 y=13.012000000000008 style={} source=<Lyric sourceIndex=38> className="lyric" textAnchor="start" source-gabc="e">
           <tspan source-index=0 style={} className=undefined>
             "e"
         <g className="nabc nabc-1">
-          <use x=15.397831262303152 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-to">
+          <use x=15.397831262303148 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-to">
         <g className="Notations">
           <use source-index=40 element-index=4 x=0 y=0 source=<TextOnly sourceIndex=40 elementIndex=4> className="" xlinkHref="#None">
-      <g transform="translate(56.99629999999999,0)" source=<DoubleBar sourceIndex=47 elementIndex=5> className="ChantNotationElement DoubleBar" source-gabc="::">
+      <g transform="translate(91.75585178593853,0)" source=<DoubleBar sourceIndex=47 elementIndex=5> className="ChantNotationElement DoubleBar" source-gabc="::">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=47 element-index=5 source=<DoubleBar sourceIndex=47 elementIndex=5> className="dividerLine" source-gabc="::">
           <rect x=5.45 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=47 element-index=5 source=<DoubleBar sourceIndex=47 elementIndex=5> className="dividerLine" source-gabc="::">

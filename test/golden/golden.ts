@@ -7,8 +7,8 @@ import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { NabcFont } from "../../src/index";
-import { nabcFonts } from "../../rollup.config.mjs";
 import { featureCases, settingCases, type GoldenCase } from "./cases";
+import { nabcFonts } from "./nabcFonts";
 import { render, type Exsurge, type OutputName } from "./harness";
 
 const extensions: Record<OutputName, string> = {
@@ -114,7 +114,7 @@ export function describeGoldenTables(title: string, loadExsurge: () => Promise<E
  */
 export function describeNabcFontTables(title: string, loadFont: (font: string) => Promise<NabcFont>) {
   describe(title, () => {
-    for (const name of nabcFonts) {
+    for (const name of Object.keys(nabcFonts)) {
       it(`nabc-${name}`, async () => {
         const font = await loadFont(name);
         const glyphs = Object.entries(font.glyphs).map(([glyph, [width, height, depth, path]]) => {

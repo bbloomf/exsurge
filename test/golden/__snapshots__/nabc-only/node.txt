@@ -45,7 +45,7 @@
           <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-pe" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)">
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class="" source-index="14" element-index="1" x="0" y="0" source=<TextOnly sourceIndex=14 elementIndex=1>>
-      <g class="ChantNotationElement TextOnly" transform="translate(34.2724,0)" source=<TextOnly sourceIndex=21 elementIndex=2>>
+      <g class="ChantNotationElement TextOnly" transform="translate(35.55389449112978,0)" source=<TextOnly sourceIndex=21 elementIndex=2>>
         <text source-index="19" x="-4.7808" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=19>>
           <tspan source-index="0" style="">
             "c"
@@ -53,7 +53,7 @@
           <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-cllsc3" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)">
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class="" source-index="21" element-index="2" x="0" y="0" source=<TextOnly sourceIndex=21 elementIndex=2>>
-      <g class="ChantNotationElement Punctum" transform="translate(42.93379999999999,0)" source=<Punctum>>
+      <g class="ChantNotationElement Punctum" transform="translate(59.586356209150324,0)" source=<Punctum>>
         <text source-index="30" x="1.1018" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=30>>
           <tspan source-index="0" style="">
             "d"
@@ -61,15 +61,15 @@
           <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-ta" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)">
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="32" element-index="3" id="note-1" x="3.125" y="-18.75" source=<Note sourceIndex=32 elementIndex=3 noteIndex=0>>
-      <g class="ChantNotationElement TextOnly" transform="translate(55.353999999999985,0)" source=<TextOnly sourceIndex=40 elementIndex=4>>
+      <g class="ChantNotationElement TextOnly" transform="translate(72.00655620915033,0)" source=<TextOnly sourceIndex=40 elementIndex=4>>
         <text source-index="38" x="-2.2896" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=38>>
           <tspan source-index="0" style="">
             "e"
         <g class="nabc nabc-1">
-          <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-to" class="" x="15.397831262303152" y="-261.9970552934061" transform="scale(0.19581251167133518)">
+          <use {http://www.w3.org/1999/xlink}xlink:href="#Nabc-gregall-to" class="" x="15.397831262303148" y="-261.9970552934061" transform="scale(0.19581251167133518)">
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class="" source-index="40" element-index="4" x="0" y="0" source=<TextOnly sourceIndex=40 elementIndex=4>>
-      <g class="ChantNotationElement DoubleBar" transform="translate(56.99629999999999,0)" source=<DoubleBar sourceIndex=47 elementIndex=5>>
+      <g class="ChantNotationElement DoubleBar" transform="translate(91.75585178593853,0)" source=<DoubleBar sourceIndex=47 elementIndex=5>>
         <g class="Notations">
           <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="47" element-index="5" source=<DoubleBar sourceIndex=47 elementIndex=5>>
           <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="47" element-index="5" source=<DoubleBar sourceIndex=47 elementIndex=5>>

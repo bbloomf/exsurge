@@ -29,7 +29,7 @@
             "a"
         <g className="nabc nabc-1">
           <use x=0 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-vi">
-          <text x=8.958422408963584 y=-51.30230144749553 className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
+          <text x=8.958422408963584 y=-51.30230144749553 fill="#000" className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
             "ERR"
         <g className="Notations">
           <use source-index=7 element-index=0 id="note-1" x=3.125 y=-18.75 source=<Note sourceIndex=7 elementIndex=0 noteIndex=0> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="f">
@@ -38,8 +38,8 @@
           <tspan source-index=0 style={} className=undefined>
             "b"
         <g className="nabc nabc-1">
-          <use x=90.39783126230316 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-pe">
-          <text x=0 y=-51.30230144749553 className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
+          <use x=90.39783126230314 y=-261.9970552934061 transform="scale(0.19581251167133518)" className="" xlinkHref="#Nabc-gregall-pe">
+          <text x=0 y=-51.30230144749553 fill="#000" className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
             "ERR"
         <g className="Notations">
           <use source-index=17 element-index=1 id="note-2" x=3.125 y=-25 source=<Note sourceIndex=17 elementIndex=1 noteIndex=1> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
@@ -48,7 +48,7 @@
           <tspan source-index=0 style={} className=undefined>
             "c"
         <g className="nabc nabc-1">
-          <text x=0 y=-51.30230144749553 className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
+          <text x=0 y=-51.30230144749553 fill="#000" className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
             "ERR"
         <g className="Notations">
           <use source-index=35 element-index=2 id="note-3" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=35 elementIndex=2 noteIndex=2> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
@@ -57,7 +57,7 @@
           <tspan source-index=0 style={} className=undefined>
             "d"
         <g className="nabc nabc-1">
-          <text x=0 y=-51.30230144749553 className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
+          <text x=0 y=-51.30230144749553 fill="#000" className="nabcError" fontFamily="Fake-{}" fontSize=7.342969187675069>
             "ERR"
         <g className="Notations">
           <use source-index=52 element-index=3 id="note-4" x=3.125 y=-25 source=<Note sourceIndex=52 elementIndex=3 noteIndex=3> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
