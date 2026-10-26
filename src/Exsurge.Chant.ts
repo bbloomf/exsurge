@@ -1176,6 +1176,9 @@ export class ChantScore {
       if (force || notation.needsLayout) {
         ctxt.currNotationIndex = i;
         notation.performLayout(ctxt);
+      } else if (notation.isClef) {
+        // what's laid out after it is under it, as if it had been laid out
+        ctxt.activeClef = notation as Clef;
       }
     }
 
@@ -1315,6 +1318,8 @@ export class ChantScore {
       if (notation.needsLayout) {
         ctxt.currNotationIndex = index;
         notation.performLayout(ctxt);
+      } else if (notation.isClef) {
+        ctxt.activeClef = notation as Clef;
       }
 
       index++;
