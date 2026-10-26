@@ -230,18 +230,20 @@ describe("optimal line breaking", () => {
     }
   });
 
-  it("lays each golden case out again at the same width as it lays it out the first time", async () => {
-    // (a layout leaves nothing behind, such as shrunk text only, that the
-    // lines planned the next time are planned around)
+  // (a layout leaves nothing behind, such as shrunk text only, that the lines
+  // planned the next time are planned around)
+  describe("lays each golden case out again at the same width as it lays it out the first time", () => {
     for (const c of [...featureCases, ...settingCases]) {
-      const { gabc, strategy, useDropCap, setupContext, setupScore } = c;
-      for (const width of [220, 380, 560]) {
-        const options = { strategy, useDropCap, setupContext, setupScore, width };
-        const fresh = await layOut(gabc, options);
-        const { score } = await layOut(gabc, { ...options, relayoutWidths: [width] });
-        assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `${c.name} at ${width}`);
-        assert.deepStrictEqual(positions(score), positions(fresh.score), `${c.name} at ${width}`);
-      }
+      it(c.name, async () => {
+        const { gabc, strategy, useDropCap, setupContext, setupScore } = c;
+        for (const width of [220, 380, 560]) {
+          const options = { strategy, useDropCap, setupContext, setupScore, width };
+          const fresh = await layOut(gabc, options);
+          const { score } = await layOut(gabc, { ...options, relayoutWidths: [width] });
+          assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `at ${width}`);
+          assert.deepStrictEqual(positions(score), positions(fresh.score), `at ${width}`);
+        }
+      });
     }
   });
 
