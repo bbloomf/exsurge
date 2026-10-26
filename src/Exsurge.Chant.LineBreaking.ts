@@ -178,6 +178,8 @@ export class LineBreaker {
     syllablesFrom: number[];
     notesFrom: number[];
   };
+  /** the clef in effect just before each notation (see clefBefore()) */
+  clefs?: Clef[];
 
   constructor(score: ChantScore, ctxt: ChantContext, width: number) {
     this.score = score;
@@ -425,15 +427,7 @@ export class LineBreaker {
       if (this.isClefLineBreak(i)) i++;
       i++;
       line.notationsStartIndex = i;
-    } else {
-      ctxt.activeClef = score.startingClef;
-      for (var k = start - 1; k >= 0; k--) {
-        if (notations[k].isClef) {
-          ctxt.activeClef = notations[k] as Clef;
-          break;
-        }
-      }
-    }
+    } else ctxt.activeClef = this.clefBefore(start);
     line.startingClef = ctxt.activeClef.clone();
     line.startingClef.performLayout(ctxt);
     if (ctxt.clefVisibility !== "visible" && !startsWithClefChange) line.startingClef.hide(ctxt);
@@ -544,6 +538,20 @@ export class LineBreaker {
     var index = notation.notationIndex ?? notations.indexOf(notation);
     var nextToBar = notation.isDivider || (index > 0 && notations[index - 1].isDivider);
     return (nextToBar ? barStretch : wordStretch) * this.ctxt.staffInterval;
+  }
+
+  /** the clef in effect just before the notation at index */
+  clefBefore(index: number) {
+    if (!this.clefs) {
+      // (worked out once, rather than by looking back from each line)
+      var clef = this.score.startingClef;
+      this.clefs = this.score.notations.map((notation) => {
+        var before = clef;
+        if (notation.isClef) clef = notation as Clef;
+        return before;
+      });
+    }
+    return this.clefs[index];
   }
 
   /**
