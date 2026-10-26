@@ -50,6 +50,7 @@ import type {
   SlurMark
 } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import type { Language } from "./Exsurge.Text.js";
 import type {
   AboveLinesText,
   Annotations,
@@ -823,6 +824,13 @@ export class ChantScore {
    */
   keptInAreas?: boolean[] | null;
   staffLineCount: number;
+  /**
+   * the language of the score's lyrics, which Gabc.applyHeader() sets from
+   * the header and updateNotations() gives the lyrics it doesn't have yet
+   * (such as those of an edit), or null for each lyric's own (by default
+   * ctxt.defaultLanguage)
+   */
+  language: Language | null;
   titles?: Titles;
   startingClef: Clef;
   useDropCap: boolean | undefined;
@@ -862,6 +870,7 @@ export class ChantScore {
     this.lines = [];
     this.notes = [];
     this.staffLineCount = 4;
+    this.language = null;
     if (ctxt) this.titles = new Titles(ctxt, this);
 
     // set by updateNotations()
@@ -1000,6 +1009,7 @@ export class ChantScore {
 
         notation.notationIndex = this.notations.push(notation) - 1;
         if (!this.hasLyrics && notation.hasLyrics()) this.hasLyrics = true;
+        this.updateLanguage(notation);
         if (!this.hasAboveLinesText && notation.alText)
           this.hasAboveLinesText = true;
         if (!this.hasTranslations && notation.translationText)
@@ -1031,6 +1041,20 @@ export class ChantScore {
     this.updateFirstWordStyles(ctxt);
 
     this.needsLayout = true;
+  }
+
+  /**
+   * Gives the notation's lyrics the score's language, if it has one, and has
+   * the notation laid out again if that changes them.
+   */
+  updateLanguage(notation: ChantNotationElement) {
+    if (!this.language) return;
+    for (let lyric of notation.lyrics) {
+      if (lyric && lyric.language !== this.language) {
+        lyric.language = this.language;
+        notation.needsLayout = true;
+      }
+    }
   }
 
   recreateDropCap(ctxt: ChantContext) {

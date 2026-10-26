@@ -966,9 +966,10 @@ export class Gabc {
   /**
    * Applies the settings in a gabc header to a score, as Gregorio does.
    * exsurge doesn't otherwise read them, so call this after making the score,
-   * and again after updating its mappings (so that new lyrics get the
-   * header's language, and changes to the header take effect).  The score
-   * is then laid out again where it needs to be.
+   * and again after updating its mappings if the header has changed.  The
+   * score keeps what it applies, so the lyrics of edits get the header's
+   * language without it.  The score is then laid out again where it needs
+   * to be.
    *
    * - annotation: the first two, one line each, as the score's annotation.
    * - mode, mode-modifier and mode-differentia, if there is no annotation
@@ -976,9 +977,9 @@ export class Gabc {
    * - staff-lines: 2 to 5, as the score's staffLineCount.
    * - language: Latin, English, Spanish, Church Slavonic (also for Polish,
    *   Czech and Slovak, as in Gregorio) or Hungarian, by name or ISO 639
-   *   code, as the language of the score's lyrics, so that ctxt.defaultLanguage stays as
-   *   it is for other scores.  A language that exsurge doesn't have leaves
-   *   them as they are.
+   *   code, as the score's language, which its lyrics are centered for, so
+   *   that ctxt.defaultLanguage stays as it is for other scores.  A language
+   *   that exsurge doesn't have leaves them as they are.
    * - with options.legacy, the headers that Gregorio no longer reads:
    *   initial-style (0 for no drop cap, 1 or 2 for one) as the score's
    *   useDropCap, and centering-scheme (latine or english) as the language
@@ -1040,14 +1041,9 @@ export class Gabc {
         __languagesByCenteringScheme[headerText(header["centering-scheme"]).toLowerCase()] ||
         language;
     if (language) {
-      for (let notation of score.notations) {
-        for (let lyric of notation.lyrics) {
-          if (lyric && lyric.language !== language) {
-            lyric.language = language;
-            notation.needsLayout = true;
-          }
-        }
-      }
+      // (which the lyrics of later edits get too, from updateNotations())
+      score.language = language;
+      for (let notation of score.notations) score.updateLanguage(notation);
     }
 
     if (options.legacy) {
