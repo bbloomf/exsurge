@@ -661,7 +661,7 @@ export class ChantLineBreak extends ChantNotationElement {
 
   constructor(justify?: boolean, custos: LineBreakCustos = "auto") {
     super();
-    this.calculatedTrailingSpace = this.trailingSpace = 0;
+    this.calculatedTrailingSpace = this.layoutTrailingSpace = this.trailingSpace = 0;
     this.justify = justify;
     this.custos = custos;
   }
@@ -1292,6 +1292,11 @@ export class ChantScore {
     var currIndex = 0;
 
     ctxt.activeClef = this.startingClef;
+    // (a brace, slur or custom ledger line left open by the last layout
+    // doesn't go on into this one)
+    delete ctxt.lastStartBrace;
+    delete ctxt.openSlurs;
+    delete ctxt.openLedgerLines;
 
     var spaceBetweenSystems = ctxt.staffInterval * ctxt.spaceBetweenSystems;
     var lineBreaker = ctxt.lineBreaking === "optimal" && width > 0 ? new LineBreaker(this, ctxt, width) : null;

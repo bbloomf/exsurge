@@ -99,19 +99,31 @@ export function copyBeginningLyrics(ctxt: ChantContext, notation: ChantNotationE
 }
 
 /**
- * puts the lyrics of a notation that an earlier layout of the lines wrapped
- * (in setMaxWidth()) or moved (in centerDividers()) back to where the
- * notation's layout put them
+ * Puts back what laying a notation out on a line changed, as the notation's
+ * own layout left it, before it's laid out on another line: its trailing
+ * space, its lyrics' connectors, and lyrics that a line wrapped or shrank (in
+ * setMaxWidth()) or moved (in centerDividers()).  So each line is laid out
+ * the same however the score was laid out before, and whichever lines the
+ * optimal line breaker tried first.
  */
-export function restoreLyrics(ctxt: ChantContext, notation: ChantNotationElement) {
-  if (!notation.hasLyrics() || !notation.lyrics.some((lyric) => lyric.needsLayout)) return;
+export function resetNotation(ctxt: ChantContext, notation: ChantNotationElement) {
+  if (notation.layoutTrailingSpace !== undefined) notation.calculatedTrailingSpace = notation.layoutTrailingSpace;
+  // (text that the line doesn't place vertically, as on lines of text only
+  // syllables, stays where its layout put it)
+  if (notation.alText) for (let text of notation.alText) text.bounds.y = 0;
+  if (notation.translationText) for (let text of notation.translationText) text.bounds.y = 0;
+  if (!notation.hasLyrics()) return;
+  let moved = false;
   for (let lyric of notation.lyrics) {
     if (lyric.needsLayout) {
       lyric.recalculateMetrics(ctxt);
       lyric.needsLayout = false;
-    }
+      moved = true;
+    } else lyric.resetConnector();
+    lyric.bounds.y = 0;
+    if (lyric.lineWidth !== undefined) delete lyric.lineWidth;
   }
-  notation.alignLyrics(ctxt);
+  if (moved) notation.alignLyrics(ctxt);
 }
 
 // a notation whose own trailing space is negative (gabc /[-1]) moves the next one back
@@ -974,6 +986,8 @@ export class ChantLine extends ChantLayoutElement {
         break;
       }
 
+      resetNotation(ctxt, curr);
+
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !this.isSoftAccidentalVisible(i));
       else if (curr.isNeume) this.spaceNeumeBeforeSoftAccidental(ctxt, i);
@@ -1048,8 +1062,6 @@ export class ChantLine extends ChantLayoutElement {
         // that does have lyrics, we will use it instead
         textOnlyStartIndex = i;
       }
-
-      restoreLyrics(ctxt, curr);
 
       // try to fit the curr element on this line.
       // if it doesn't fit, we finish up here.
@@ -1620,14 +1632,6 @@ export class ChantLine extends ChantLayoutElement {
 
     accidental.setHidden(ctxt, !this.isSoftAccidentalVisible(index + 1));
 
-    // The neume's trailing space may have been adjusted in its layout (e.g., for a
-    // mora), so it is shifted rather than replaced. A shift left from an earlier
-    // line is undone first, unless the neume has been laid out again since.
-    var shift = neume.softAccidentalShift;
-    if (shift && neume.calculatedTrailingSpace === shift.shifted)
-      neume.calculatedTrailingSpace = shift.unshifted;
-    neume.softAccidentalShift = null;
-
     neume.keepWithNext = accidental.hidden;
     neume.allowLineBreakBeforeNext = false;
     if (accidental.hidden) {
@@ -1636,11 +1640,11 @@ export class ChantLine extends ChantLayoutElement {
         splitSpace = ctxt.intraNeumeSpacing;
         neume.allowLineBreakBeforeNext = true;
       }
-      shift = { unshifted: neume.calculatedTrailingSpace };
+      // The neume's trailing space may have been adjusted in its layout (e.g.,
+      // for a mora), so it is shifted rather than replaced.  (resetNotation()
+      // has put it back as the layout left it, before the neume's line.)
       neume.calculatedTrailingSpace +=
         splitSpace - (neume.trailingSpace as TrailingSpaceFunction)(ctxt);
-      shift.shifted = neume.calculatedTrailingSpace;
-      neume.softAccidentalShift = shift;
     }
   }
 
@@ -1991,10 +1995,6 @@ export class ChantLine extends ChantLayoutElement {
     this.slurs = [];
     // (Gregorio's custom ledger lines, which go after the automatic ones)
     var customLedgerLines: LedgerLine[] = [];
-    if (this.notationsStartIndex === 0) {
-      delete ctxt.openSlurs;
-      delete ctxt.openLedgerLines;
-    }
 
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
@@ -2099,7 +2099,13 @@ export class ChantLine extends ChantLayoutElement {
         for (j = 0; j < neume.translationText.length; j++) {
           var text = neume.translationText[j];
           if (text.endNeume) {
-            var rightX = text.endNeume.hasLyrics()
+            // (a translation whose end neume is on a later line, where the
+            // line couldn't be kept from breaking, goes on to the end of this one)
+            let endsOnLine = false;
+            for (let k = i; k < lastIndex && !endsOnLine; k++) endsOnLine = notations[k] === text.endNeume;
+            var rightX = !endsOnLine
+              ? this.staffRight
+              : text.endNeume.hasLyrics()
               ? text.endNeume.bounds.x +
                 Math.max(...text.endNeume.lyrics.map(l => l.bounds.right()))
               : text.endNeume.bounds.right();
@@ -2135,6 +2141,8 @@ export class ChantLine extends ChantLayoutElement {
         if (note.episemata.length === 0) episemata = [];
         for (k = 0; k < note.episemata.length; k++) {
           var episema = note.episemata[k];
+          // (from where the episema's layout put it, however an earlier line joined it to others)
+          if (episema.layoutBounds) episema.bounds = episema.layoutBounds.clone();
 
           var spaceBetweenEpisemata = 0;
 

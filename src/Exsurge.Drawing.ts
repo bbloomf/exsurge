@@ -4232,7 +4232,7 @@ export class Lyric extends TextElement {
       )
         this.spans.push(this.connectorSpan!);
     } else {
-      this.connectorWidth = 0;
+      this.clearConnectorWidth();
       this.needsConnector = false;
       this.bounds.width = this.widthWithoutConnector;
 
@@ -4246,6 +4246,31 @@ export class Lyric extends TextElement {
     this.connectorSpan!.textLength = width;
     if (this.needsConnector)
       this.bounds.width = this.widthWithoutConnector + this.getConnectorWidth();
+  }
+
+  /** gives the connector its default width, and draws it that wide */
+  clearConnectorWidth() {
+    this.connectorWidth = 0;
+    if (this.connectorSpan && this.connectorSpan.textLength) this.connectorSpan.textLength = 0;
+  }
+
+  /**
+   * puts the connector back as recalculateMetrics() leaves it, which a lyric
+   * has only if it's forced to (and was measured with)
+   */
+  resetConnector() {
+    var needs = !!this.forceConnector && !this.preventConnector;
+    // (setConnectorWidth() and clearConnectorWidth() keep the connector's
+    // textLength the same as connectorWidth)
+    if (this.needsConnector === needs && !this.connectorWidth && this.bounds.width === this.widthWithoutConnector)
+      return;
+    var last = this.spans[this.spans.length - 1];
+    this.needsConnector = needs;
+    if (this.needsConnector) {
+      if (last && last !== this.connectorSpan) this.spans.push(this.connectorSpan!);
+    } else if (last && last === this.connectorSpan) this.spans.pop();
+    this.clearConnectorWidth();
+    this.bounds.width = this.widthWithoutConnector;
   }
 
   getConnectorWidth() {
@@ -4267,7 +4292,7 @@ export class Lyric extends TextElement {
 
     this.widthWithoutConnector = this.bounds.width;
 
-    this.connectorWidth = 0;
+    this.clearConnectorWidth();
     this.defaultConnectorWidth = ctxt.hyphenWidth;
 
     var activeLanguage = this.language || ctxt.defaultLanguage;
@@ -4942,12 +4967,6 @@ export class Annotations extends ChantLayoutElement {
   }
 }
 
-/** what was done to a neume's trailing space for a hidden soft accidental after it */
-export interface SoftAccidentalShift {
-  unshifted: number;
-  shifted?: number;
-}
-
 /**
  * Where one of Gregorio's areas (<eu>…</eu> or <nlba>…</nlba>) starts or
  * ends.  An area starts at the first notation of the syllable (or, in the
@@ -4982,6 +5001,12 @@ export class ChantNotationElement extends ChantLayoutElement {
   trailingSpace: TrailingSpace;
   /** the trailing space for the current layout */
   calculatedTrailingSpace!: number;
+  /**
+   * the trailing space that the notation's own layout gave it, which each
+   * line that it's laid out on starts from (see resetNotation() in
+   * Exsurge.Chant.ChantLine)
+   */
+  layoutTrailingSpace?: number;
   keepWithNext: boolean;
   /** lets the line break after this notation even though it's kept with the next */
   allowLineBreakBeforeNext?: boolean;
@@ -5016,7 +5041,6 @@ export class ChantNotationElement extends ChantLayoutElement {
   hasNoWidth?: boolean;
   /** the first notation of the group in braces that this notation is in */
   firstWithNoWidth?: ChantNotationElement;
-  softAccidentalShift?: SoftAccidentalShift | null;
   /** the css class of the notation's svg element; defaults to its class name */
   cssClass?: string;
   /** whether a Gregorio euouae area (<eu>…</eu> in the lyrics) starts or ends at this notation */
@@ -5150,6 +5174,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   // a helper function for subclasses to call after they are done performing layout...
   finishLayout(ctxt: ChantContext) {
     this.bounds.x = 0;
+    this.layoutTrailingSpace = this.calculatedTrailingSpace;
 
     this.alignLyrics(ctxt);
 

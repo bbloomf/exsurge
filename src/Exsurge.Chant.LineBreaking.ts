@@ -20,7 +20,7 @@ import {
   copyBeginningLyrics,
   isHiddenAccidental,
   isTextOnlyBeforeDivider,
-  restoreLyrics
+  resetNotation
 } from "./Exsurge.Chant.ChantLine.js";
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
 import { Custos } from "./Exsurge.Chant.Signs.js";
@@ -426,13 +426,13 @@ export class LineBreaker {
           lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, dividers, penalty, false));
       }
 
+      // (as in buildFromChantNotationIndex(), from what the notation's own
+      // layout left, whatever lines it was laid out on before)
+      resetNotation(ctxt, curr);
+
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !line.isSoftAccidentalVisible(i));
       else if (curr.isNeume) line.spaceNeumeBeforeSoftAccidental(ctxt, i);
-
-      // (lyrics an earlier layout of the lines wrapped or moved go back, as in
-      // buildFromChantNotationIndex(), before any line is planned around them)
-      restoreLyrics(ctxt, curr);
 
       if (isHiddenAccidental(curr)) curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
       else line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
