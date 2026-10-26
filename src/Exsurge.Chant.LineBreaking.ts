@@ -254,28 +254,32 @@ export class LineBreaker {
     var startNode: BreakNode = { position: start, line: lineIndex, fitness: decent, demerits: 0, previous: null };
     nodes[start] = [startNode];
     var farthest = startNode;
+    // (the lines that start further right, as getLineExtent() lays them out)
+    var besideDropCap = this.score.linesBesideDropCap();
 
     for (var position = start; position < notations.length; position++) {
       var here = nodes[position];
       if (!here) continue;
       nodes[position] = undefined;
-      // (the lines after a way to get here don't depend on how many lines it
-      // took, only on its fitness class, so the way with the fewest demerits
-      // in each fitness class is the only one in that class that can start
-      // the best way to break the rest of the score.  Any other way that
-      // takes more than extraLines lines more than the fewest it can be done
-      // in, and than each of those, is left out, to keep the number of nodes
-      // down; the ways that are kept are nearly always enough for \looseness
-      // to choose from.)
+      // (once past the lines beside the drop cap, the lines after a way to
+      // get here don't depend on how many lines it took, only on its fitness
+      // class, so the way with the fewest demerits in each fitness class is
+      // the only one in that class that can start the best way to break the
+      // rest of the score.  Any other way that takes more than extraLines
+      // lines more than the fewest it can be done in, and than each of those,
+      // is left out, to keep the number of nodes down; the ways that are kept
+      // are nearly always enough for \looseness to choose from.)
       var fewestLines = Infinity,
         leastDemerits: BreakNode[] = [];
       for (var node of here) {
+        if (node.line < besideDropCap) continue;
         fewestLines = Math.min(fewestLines, node.line);
         var least = leastDemerits[node.fitness];
         if (!least || node.demerits < least.demerits) leastDemerits[node.fitness] = node;
       }
       for (node of here) {
         if (
+          node.line >= besideDropCap &&
           node.line > fewestLines + this.extraLines &&
           !leastDemerits.some((least) => Math.abs(node.line - least.line) <= this.extraLines)
         )
@@ -361,20 +365,13 @@ export class LineBreaker {
 
   /** where the line with the index lineIndex has its staff, if it starts at start */
   getLineExtent(lineIndex: number, start: number): LineExtent {
-    // (as in buildFromChantNotationIndex(), the first line makes room for a
-    // drop cap and/or annotation, if present)
-    var score = this.score,
-      staffLeft = 0,
-      paddingLeft = 0;
-    if (start === 0) {
-      var padding = 0;
-      if (score.dropCap) padding = score.dropCap.bounds.width + score.dropCap.padding * 2;
-      if (score.annotation && (!this.ctxt.mergeAnnotationWithTextLeft || score.dropCap))
-        padding = Math.max(padding, score.annotation.bounds.width + score.annotation.padding * 2);
-      staffLeft += padding;
-      if (score.dropCap) paddingLeft = (padding - score.dropCap.bounds.width) / 2;
-    }
-    return { staffLeft, paddingLeft, staffRight: this.width };
+    // (as in buildFromChantNotationIndex(), the lines beside a drop cap
+    // and/or annotation, if present, make room for it)
+    var score = this.score;
+    if (start === 0) lineIndex = 0;
+    var extent = score.lineExtent(this.ctxt, lineIndex, this.width);
+    var paddingLeft = lineIndex === 0 && score.dropCap ? (extent.left - score.dropCap.bounds.width) / 2 : 0;
+    return { staffLeft: extent.left, paddingLeft, staffRight: extent.right };
   }
 
   /** the ends of the lines that could start at start, as the line with the index lineIndex */

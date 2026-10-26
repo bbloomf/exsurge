@@ -70,6 +70,28 @@ describe("optimal line breaking", () => {
     }
   });
 
+  it("plans the lines beside a drop cap over several lines with the room it takes", async () => {
+    for (const dropCapLines of [2, 3]) {
+      for (const width of [220, 330, 470]) {
+        const { score, ctxt } = await layOut(puer, {
+          useDropCap: true,
+          width,
+          setupContext: (ctxt) => (ctxt.dropCapLines = dropCapLines)
+        });
+        assert(score.lines.length > dropCapLines);
+        assert(score.lines[1].staffLeft > 0 && score.lines[dropCapLines].staffLeft === 0);
+        const breaker = new E.LineBreaker(score, ctxt, width);
+        score.lines.forEach((line: any, i: number) => {
+          // (a line that starts with a change of clef is planned from the clef)
+          const start = line.notationsStartIndex - (score.notations[line.notationsStartIndex - 1]?.isClef ? 1 : 0);
+          const { staffLeft, paddingLeft, staffRight } = line;
+          assert.deepStrictEqual(breaker.getLineExtent(i, start), { staffLeft, paddingLeft, staffRight }, `line ${i}`);
+          assert.strictEqual(line.notationsStartIndex + line.numNotationsOnLine, line.plannedEnd);
+        });
+      }
+    }
+  });
+
   it("puts each notation on one line, in order", async () => {
     for (const width of [150, 330, 600]) {
       const { score } = await layOut(puer, { useDropCap: true, width });
