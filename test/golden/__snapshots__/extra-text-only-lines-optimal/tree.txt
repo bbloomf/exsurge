@@ -55,7 +55,7 @@
             "e"
         <g className="Notations">
           <use source-index=17 element-index=2 id="note-3" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=17 elementIndex=2 noteIndex=2> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(21.985999999999997,0)" source=<QuarterBar sourceIndex=21 elementIndex=3> className="ChantNotationElement QuarterBar" source-gabc=",">
+      <g transform="translate(28.125,0)" source=<QuarterBar sourceIndex=21 elementIndex=3> className="ChantNotationElement QuarterBar" source-gabc=",">
         <g className="Notations">
           <rect x=0 y=-50 width=0.8 height=12.5 fill="#000" source-index=21 element-index=3 source=<QuarterBar sourceIndex=21 elementIndex=3> className="dividerLine" source-gabc=",">
       <g transform="translate(290.1216,0)" source=<TextOnly sourceIndex=89 elementIndex=4> className="ChantNotationElement TextOnly">

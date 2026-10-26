@@ -10,5 +10,7 @@
     "sourceMap": true,
     "inlineSources": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // (tsconfig.nabc.json builds the NABC glyph data)
+  "exclude": ["src/nabc"]
 }

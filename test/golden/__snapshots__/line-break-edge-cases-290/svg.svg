@@ -332,15 +332,13 @@
 <line x1="0" y1="-6.25" x2="290" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
 </g>
-<line x1="81.6449672692662" y1="-56.25" x2="106.31756990624822" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="78.42184226926621" y1="-56.25" x2="132.61329754323023" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="106.31756990624822" y1="-56.25" x2="130.18181623500504" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="127.75033492677987" y1="6.25" x2="146.69658492677988" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="130.18181623500504" y1="6.25" x2="148.11225992677987" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="149.52793492677984" y1="6.25" x2="168.47418492677986" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="148.11225992677987" y1="6.25" x2="165.25105992677985" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
-</line>
-<line x1="179.12434203636548" y1="6.25" x2="191.62434203636548" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="175.90121703636547" y1="6.25" x2="194.8474670363655" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
 <use xlink:href="#DoClef" class="" source-index="70" element-index="11" x="0" y="-31.25" >
@@ -430,7 +428,7 @@
 <tspan source-index="0" style="" >se</tspan>
 <tspan source-index="0" style="" >-</tspan>
 </text>
-<rect x="0" y="-6.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
+<rect x="0" y="-6.25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="358" element-index="52" id="note-46" x="3.125" y="-6.25" >
 </use>

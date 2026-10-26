@@ -70,6 +70,28 @@ describe("optimal line breaking", () => {
     }
   });
 
+  it("plans the lines beside a drop cap over several lines with the room it takes", async () => {
+    for (const dropCapLines of [2, 3]) {
+      for (const width of [220, 330, 470]) {
+        const { score, ctxt } = await layOut(puer, {
+          useDropCap: true,
+          width,
+          setupContext: (ctxt) => (ctxt.dropCapLines = dropCapLines)
+        });
+        assert(score.lines.length > dropCapLines);
+        assert(score.lines[1].staffLeft > 0 && score.lines[dropCapLines].staffLeft === 0);
+        const breaker = new E.LineBreaker(score, ctxt, width);
+        score.lines.forEach((line: any, i: number) => {
+          // (a line that starts with a change of clef is planned from the clef)
+          const start = line.notationsStartIndex - (score.notations[line.notationsStartIndex - 1]?.isClef ? 1 : 0);
+          const { staffLeft, paddingLeft, staffRight } = line;
+          assert.deepStrictEqual(breaker.getLineExtent(i, start), { staffLeft, paddingLeft, staffRight }, `line ${i}`);
+          assert.strictEqual(line.notationsStartIndex + line.numNotationsOnLine, line.plannedEnd);
+        });
+      }
+    }
+  });
+
   it("puts each notation on one line, in order", async () => {
     for (const width of [150, 330, 600]) {
       const { score } = await layOut(puer, { useDropCap: true, width });
@@ -169,14 +191,16 @@ describe("optimal line breaking", () => {
     assert.deepStrictEqual(lineStarts(score).slice(0, 3), [0, 10, 20]);
   });
 
-  it("finds the breaks with the fewest demerits, as a search that keeps every way of breaking the lines would", async () => {
+  it("finds the breaks with the fewest demerits, as a search that keeps far more ways of breaking the lines would", async () => {
     // (where leaving out the ways that take more than two lines more than
-    // the fewest, as it once did, lost the best one)
+    // the fewest, as it once did, lost the best one.  Keeping those within
+    // 20 lines finds the same breaks here as keeping every way, which is
+    // much slower)
     const gabc = Array(3).fill([puer, adTeLevavi, salveRegina].join(" ")).join(" ");
     const { score, ctxt } = await layOut(gabc, { width: 140 });
     const ends = plannedEnds(score, ctxt, 140, 2);
     assert(!ends.includes(undefined));
-    assert.deepStrictEqual(ends, plannedEnds(score, ctxt, 140, Infinity));
+    assert.deepStrictEqual(ends, plannedEnds(score, ctxt, 140, 20));
   });
 
   it("lays an edited score out as it lays out the same gabc parsed afresh", async () => {
@@ -206,18 +230,20 @@ describe("optimal line breaking", () => {
     }
   });
 
-  it("lays each golden case out again at the same width as it lays it out the first time", async () => {
-    // (a layout leaves nothing behind, such as shrunk text only, that the
-    // lines planned the next time are planned around)
+  // (a layout leaves nothing behind, such as shrunk text only, that the lines
+  // planned the next time are planned around)
+  describe("lays each golden case out again at the same width as it lays it out the first time", () => {
     for (const c of [...featureCases, ...settingCases]) {
-      const { gabc, strategy, useDropCap, setupContext, setupScore } = c;
-      for (const width of [220, 380, 560]) {
-        const options = { strategy, useDropCap, setupContext, setupScore, width };
-        const fresh = await layOut(gabc, options);
-        const { score } = await layOut(gabc, { ...options, relayoutWidths: [width] });
-        assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `${c.name} at ${width}`);
-        assert.deepStrictEqual(positions(score), positions(fresh.score), `${c.name} at ${width}`);
-      }
+      it(c.name, async () => {
+        const { gabc, strategy, useDropCap, setupContext, setupScore } = c;
+        for (const width of [220, 380, 560]) {
+          const options = { strategy, useDropCap, setupContext, setupScore, width };
+          const fresh = await layOut(gabc, options);
+          const { score } = await layOut(gabc, { ...options, relayoutWidths: [width] });
+          assert.deepStrictEqual(lineStarts(score), lineStarts(fresh.score), `at ${width}`);
+          assert.deepStrictEqual(positions(score), positions(fresh.score), `at ${width}`);
+        }
+      });
     }
   });
 

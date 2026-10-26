@@ -429,6 +429,15 @@ export declare class ChantContext {
     /** prefix for the id of each note's svg element; defaults to "note-" */
     noteIdPrefix: string;
     /**
+     * Prefix for the id of each glyph's def, which the svg's <use> elements
+     * refer to; defaults to "".  A page looks an id up among all of its
+     * elements, so when svgs with different staff heights, glyph multipliers
+     * or negativeFillColors are inline in one page, give each context its own
+     * prefix, or the later svgs draw the first one's glyphs.  Set it before
+     * the first layout: the defs are made then (and remade by setStaffHeight()).
+     */
+    defIdPrefix: string;
+    /**
      * The number of lines of Gregorio's NABC (St. Gall or Laon neumes) in the
      * gabc, from its nabc-lines header, which Gabc.createMappingsFromSource()
      * and updateMappingsFromSource() set.  When it's more than 0, a | in the
@@ -1338,6 +1347,7 @@ export declare class ChantNotationElement extends ChantLayoutElement {
     performLayout(ctxt: ChantContext): void;
     resetDependencies(): void;
     finishLayout(ctxt: ChantContext): void;
+    alignLyrics(ctxt: ChantContext): void;
     draw(ctxt: ChantContext): void;
     getInnerSvgNodes(ctxt: ChantContext, functionName?: "createSvgNode" | "createSvgTree"): (SvgTreeNode | SvgElementWithSource)[];
     getSvgProps(): SvgAttributes;

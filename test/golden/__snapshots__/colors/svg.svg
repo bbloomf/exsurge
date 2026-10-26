@@ -704,7 +704,7 @@
 <line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#222" stroke-width="0.8" class="staffLine" >
 </line>
 </g>
-<line x1="125.48601985139024" y1="-56.25" x2="146.56101985139023" y2="-56.25" stroke="#222" stroke-width="0.8" class="ledgerLine" >
+<line x1="122.26289485139024" y1="-56.25" x2="141.20914485139025" y2="-56.25" stroke="#222" stroke-width="0.8" class="ledgerLine" >
 </line>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
 <use xlink:href="#DoClef" class="" source-index="291" element-index="96" x="0" y="-31.25" >

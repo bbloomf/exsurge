@@ -7,6 +7,9 @@ import { Gabc } from "../src/Exsurge.Gabc.js";
 import * as Neumes from "../src/Exsurge.Chant.Neumes.js";
 import * as Signs from "../src/Exsurge.Chant.Signs.js";
 import { Spanish } from "../src/Exsurge.Text.js";
+import * as Exsurge from "../src/index.js";
+import { featureCases } from "./golden/cases";
+import { render } from "./golden/harness";
 
 function layoutNotations(gabc: string) {
   var ctxt = new Drawing.ChantContext();
@@ -169,6 +172,56 @@ describe('Braces', function() {
     assert.equal(line.custos, score.notations[score.notations.length - 1]);
     assert.equal(line.braces.length, 1);
     assert.equal(line.braces[0].bounds.right(), line.custos.bounds.right());
+  });
+});
+
+describe('Bars before text only syllables', function() {
+  // with text measured, so that the text can start under the bar
+  async function layoutBar(gabc: string) {
+    var notations: Drawing.ChantNotationElement[] = (await render(Exsurge, gabc, {}, [])).score.notations;
+    var i = notations.findIndex((notation) => notation.isDivider);
+    var bar = notations[i];
+    var next = notations.slice(i + 1).find((notation) => !(notation instanceof Chant.TextOnly))!;
+    return {
+      spaceBefore: bar.bounds.x - notations[i - 1].bounds.right(),
+      spaceAfter: next.bounds.x - bar.bounds.right()
+    };
+  }
+
+  it('centers a bar between its notes and the custos when the text after it starts under it', async function() {
+    // the bar used to be centered before the text, against the dot of the last note
+    var { spaceBefore, spaceAfter } = await layoutBar('(c4) te.(ghd___/ffg.) (::) <i>Ant.</i>() (k+Z)');
+    assert(spaceBefore > 0, `${spaceBefore}`);
+    assert(Math.abs(spaceBefore - spaceAfter) < 1e-9, `${spaceBefore} ${spaceAfter}`);
+  });
+
+  it('keeps a bar by its notes when a long text after it pushes the next neume along', async function() {
+    var { spaceBefore, spaceAfter } = await layoutBar('(c4) a(g.) (:) <i>Antiphona repetitur hic.</i>() b(h) c(g)');
+    assert(spaceBefore > 0, `${spaceBefore}`);
+    assert(spaceAfter > 10 * spaceBefore, `${spaceBefore} ${spaceAfter}`);
+  });
+});
+
+describe('Text only lyrics a little too wide for the staff', function() {
+  var gabc = featureCases.find((c) => c.name === 'extra-text-only-lines')!.gabc;
+
+  // the lyric is shrunk to fit, and the next setMaxWidth() used to measure it at its
+  // shrunk width, and so grew it back to about its full size
+  it('shrinks the lyric to the width of the staff, also when it is laid out again', async function() {
+    for (var relayoutWidths of [[], [380]]) {
+      var score = (await render(Exsurge, gabc, { width: 380, relayoutWidths }, [])).score;
+      var i = score.notations.findIndex(
+        (notation: Drawing.ChantNotationElement) =>
+          notation.hasLyrics() && notation.lyrics[0].text.startsWith('Here is a very long')
+      );
+      var lyric: Drawing.Lyric = score.notations[i].lyrics[0];
+      var line = score.lines.filter((line: any) => line.notationsStartIndex <= i).pop();
+      assert(lyric.resize! < 1, `${lyric.resize}`);
+      assert(
+        lyric.bounds.width <= line.staffRight - line.textLeft + 1e-9,
+        `${lyric.bounds.width} on a staff ${line.staffRight - line.textLeft} wide, laid out at ${[380, ...relayoutWidths]}`
+      );
+    }
   });
 });
 

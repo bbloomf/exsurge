@@ -205,10 +205,9 @@
         <line key="-5" x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-3" x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-1" x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine">
-      <line x1="53.02239999999999" y1="-56.25" x2="63.489131249999986" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
-      <line x1="63.489131249999986" y1="6.25" x2="73.9558625" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
-      <line x1="594.140625" y1="6.25" x2="597.0703125" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
-      <line x1="597.0703125" y1="6.25" x2="600" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="52.18052499999999" y1="-56.25" x2="63.01133749999999" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="63.96692499999999" y1="6.25" x2="74.7977375" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="593.29875" y1="6.25" x2="600" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
       <g class="ChantNotationElement DoClef" transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1>>
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" source=<DoClef sourceIndex=1 elementIndex=-1>>

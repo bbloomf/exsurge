@@ -98,8 +98,10 @@ export * from './Exsurge.Chant.Markings.js'
 export * from './Exsurge.Chant.Signs.js'
 export * from './Exsurge.Chant.Neumes.js'
 export * from './Exsurge.Gabc.js'
+export * from './Exsurge.Nabc.js'
 export * from './Exsurge.Titles.js'
 export * from './greextraGlyphs.js'
+export * from './ledgerLines.js'
 
 // names that the hand-written typings had for these, before exsurge was in TypeScript
 import type { ChantNotationElement } from './Exsurge.Drawing.js'
