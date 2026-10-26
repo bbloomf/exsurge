@@ -24,7 +24,7 @@ fillText("ri", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px 
 fillText("-", -5.687799999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,39.6369,58.75]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,44.656400000000005,27.500000000000004]
 fillText("e", 0.8353999999999999, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,41.531400000000005,58.75]
-fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,49.45490000000001,58.75]
+fillRect(0, -50, 0.8, 12.5) [fillStyle="#000" matrix=1,0,0,1,55.593900000000005,58.75]
 fillText("Here is a very long run of text only", -238.1932, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,320.4076,58.75]
 fillText("syllables that will not fit", -238.1932, 13.012000000000008, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,356.3068,74.59]
 fillText("on the line", -50.3856, 44.69200000000001, undefined) [font="14.4px Fake-{}" fillStyle="#000" textAlign="start" matrix=1,0,0,1,147.8927999999999,58.75]

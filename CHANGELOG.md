@@ -1,3 +1,83 @@
+## [2.2.1](https://github.com/bbloomf/exsurge/compare/v2.2.0...v2.2.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **drawing:** Let each context prefix its glyph def ids ([f444b82](https://github.com/bbloomf/exsurge/commit/f444b82795c149bb538e2fec23841a1a2f2381f4))
+* **layout:** Center a bar before the custos, not under the text after it ([89f5e2f](https://github.com/bbloomf/exsurge/commit/89f5e2f9f2e4d9274936e8ac20fcf1a41a3f9ee8))
+* **layout:** Put a divider's lyric back where its notation's layout puts it ([6c13266](https://github.com/bbloomf/exsurge/commit/6c13266a4c4281c69c2e9a4feb9b6ff7b3ab00dd))
+
+# [2.2.0](https://github.com/bbloomf/exsurge/compare/v2.1.1...v2.2.0) (2026-10-23)
+
+
+### Bug Fixes
+
+* **annotation:** Stack an annotation below the last line of the one before it ([d9b2fed](https://github.com/bbloomf/exsurge/commit/d9b2fede05ba188834926ac497b1affc3b70a6eb))
+* **annotation:** Stack annotations by the annotation text style's lineHeight ([e9f608e](https://github.com/bbloomf/exsurge/commit/e9f608ef66ee61bebe2c79e7e6ace0bc27cd2074))
+* **canvas:** Draw a line's starting clef before its notations ([3934b76](https://github.com/bbloomf/exsurge/commit/3934b76b9357f2b8a1de674f1645b1fb671f1e7b))
+* **canvas:** Space a text element's lines 1.1em apart, as in the svg ([8a8ae0a](https://github.com/bbloomf/exsurge/commit/8a8ae0ac91f6b34b32f431ce085b820ea9b4584e))
+* **canvas:** Undo the full line break offset after drawing a lyric ([82a606f](https://github.com/bbloomf/exsurge/commit/82a606fef50ceee09269ff50b2e7b55e80f4160b))
+* **drawing:** Draw a porrectus's swash at the glyph multiplier's size ([98672e8](https://github.com/bbloomf/exsurge/commit/98672e886ae3974ad903054c553c522a2836dbbc))
+* **layout:** Put extra text only lyrics below the lines of the lyrics before them ([62ffd71](https://github.com/bbloomf/exsurge/commit/62ffd718bcdd8f5f0ba8d0305b7da21779f7c08a))
+* **lyric:** Center a lyric on its vowel on the line the vowel is on ([b9075ed](https://github.com/bbloomf/exsurge/commit/b9075ed607ae197a7cc3d08d646990a9560b5b25))
+* **lyric:** Center a right aligned lyric where its lines are drawn ([c6a6ff9](https://github.com/bbloomf/exsurge/commit/c6a6ff9cc58742ba4171e5e505ef0328cf4e4d31))
+* **markings:** Fix the Phase 7 review's findings ([f3ce63d](https://github.com/bbloomf/exsurge/commit/f3ce63d6652c88e0efe4e1f7712474d283afcdd1))
+* **markings:** Size the marks on a porrectus's notes by the glyph multiplier ([79f92d8](https://github.com/bbloomf/exsurge/commit/79f92d85107bee81e26864f2cb37f3137397028f))
+* **neumes:** Apply the Phase 8 code review's fixes to neume fusion ([ecaa6bc](https://github.com/bbloomf/exsurge/commit/ecaa6bc8aed8f70f1dda5639e08edd6ea67f7694))
+* **neumes:** Draw a fused oriscus scapus without its stem ([d7ab285](https://github.com/bbloomf/exsurge/commit/d7ab2850f0ea906fbb654f6c0de820f9899140f4))
+* **neumes:** Fix issues found in reviewing Phase 5 ([cf92a28](https://github.com/bbloomf/exsurge/commit/cf92a289678a5376c1ac9aad9c413e46253650bb)), closes [#None](https://github.com/bbloomf/exsurge/issues/None) [#Linea](https://github.com/bbloomf/exsurge/issues/Linea)
+* **neumes:** Fix issues found in reviewing Phase 6 ([5105cfe](https://github.com/bbloomf/exsurge/commit/5105cfe3d5871673753efa414620a1b347c95ab7))
+* **neumes:** Space leaning inclinata so their edges line up ([6b31b1f](https://github.com/bbloomf/exsurge/commit/6b31b1f0de1621cbea9ba877fd534aae9c8b55e8))
+* **neumes:** Stand a leaning inclinatum's stem on its top point ([d7fefaf](https://github.com/bbloomf/exsurge/commit/d7fefaf9ebf4b48cf95d338804100c8a992a2d74))
+* **svg:** Squeeze a lyric's sized spans with the rest of it ([32be4f9](https://github.com/bbloomf/exsurge/commit/32be4f98c129dec44d817a81defcecb5a85c33c5))
+* **text:** Measure a text element's lines 1.1em apart, as they are drawn ([6b45646](https://github.com/bbloomf/exsurge/commit/6b45646f233bb351a463ca965ecf04600e09f552))
+* **text:** Space a line by the size of the span that starts it ([3ed0eac](https://github.com/bbloomf/exsurge/commit/3ed0eac4f20d46bf1982ec5665b74b0302b833c1))
+* **text:** Space a text's line breaks by its text style's lineHeight ([9c30802](https://github.com/bbloomf/exsurge/commit/9c30802f8e33577c1b0b05529058691fee40b2f3))
+
+
+### Documentation
+
+* Note that puncta inclinata now lean by default ([9f8964d](https://github.com/bbloomf/exsurge/commit/9f8964da52fd80b8f6b2644562010a57be85eb55))
+
+
+### Features
+
+* **gabc:** Accept brace lengths in any TeX unit ([4daea2a](https://github.com/bbloomf/exsurge/commit/4daea2a1d9e92fdea20eb4fea8e121b5450a0591))
+* **gabc:** Read VV and VVV as Gregorio does ([a09a050](https://github.com/bbloomf/exsurge/commit/a09a050e473a93cbe1078a727958e99636344a5e))
+* **glyphs:** Draw a porrectus's swash for any fall ([8401d32](https://github.com/bbloomf/exsurge/commit/8401d32a60de28985192442170ee46d85e3b0bec))
+* **markings:** Draw Gregorio's brackets around notes ([495375c](https://github.com/bbloomf/exsurge/commit/495375c024c91dda017e2db53ab952a727cc2cd1))
+* **markings:** Draw Gregorio's custom ledger lines ([9e0fc53](https://github.com/bbloomf/exsurge/commit/9e0fc531a2084cf940194fb9d5c9f3aa21739d23))
+* **markings:** Draw Gregorio's slurs ([d42f6e4](https://github.com/bbloomf/exsurge/commit/d42f6e48d43cc10b2606195c5f124d8d5637aebf))
+* **markings:** Follow Gregorio's ledger-line hints [ll:…] and [hl:…] ([1ef8483](https://github.com/bbloomf/exsurge/commit/1ef84832f316bfefe2a4825a439fec9b5f99dc95))
+* **markings:** Tune episemata as Gregorio does ([a8dcd1c](https://github.com/bbloomf/exsurge/commit/a8dcd1cfc24800d05ca8320143f7a7e228b92a19))
+* **neumes:** Draw a cavum on any note of a neume ([35e30d7](https://github.com/bbloomf/exsurge/commit/35e30d71c61c53930020fc3aa4422991ed23b193))
+* **neumes:** Draw a clivis as a stroke with [shape:stroke] ([ca0f9f4](https://github.com/bbloomf/exsurge/commit/ca0f9f45fe7b5ace5d1b744aa770ac0aa2ea796b))
+* **neumes:** Draw a flexus or porrectus after gabc @ without its stem ([965ebe8](https://github.com/bbloomf/exsurge/commit/965ebe84f240478f654dc268e20c5b573db87eb0))
+* **neumes:** Draw a porrectus stroke of a fifth ([0aee985](https://github.com/bbloomf/exsurge/commit/0aee985f6a983d60d5257f5b2b612dfb3e727118))
+* **neumes:** Draw a stropha aucta ([7f26682](https://github.com/bbloomf/exsurge/commit/7f26682e3ec807b202e8d1c42c1eef015f01b4de))
+* **neumes:** Draw a virga reversa auctus ([c83eabb](https://github.com/bbloomf/exsurge/commit/c83eabbfad159d12b56b70012371a11cb4193f4c))
+* **neumes:** Draw Gregorio's quilisma quadratum ([8ddaf23](https://github.com/bbloomf/exsurge/commit/8ddaf23395d05166005d71de7600514858a68de8))
+* **neumes:** Draw the linea ([5c34862](https://github.com/bbloomf/exsurge/commit/5c34862410ada530ae042539ca59a41793c18d2c))
+* **neumes:** Draw the oriscus scapus as Gregorio does ([bfafe84](https://github.com/bbloomf/exsurge/commit/bfafe844dc2571849bd05c4978d59d41670720dd))
+* **neumes:** Draw the pes quadratum ([63485db](https://github.com/bbloomf/exsurge/commit/63485db36fd5762b051fea67bb4e95438a60aa85))
+* **neumes:** Fuse neumes at gabc @ as Gregorio does ([a264bdc](https://github.com/bbloomf/exsurge/commit/a264bdc1f8c75bf01117b07c405be8713f5fe2ba))
+* **neumes:** Fuse the notes in gabc @[…] automatically as Gregorio does ([7283efc](https://github.com/bbloomf/exsurge/commit/7283efccf887f6ad56f4034c1d6c5050822785f5))
+* **neumes:** Lean inclinata as Gregorio does by default ([35f44a6](https://github.com/bbloomf/exsurge/commit/35f44a6626a4806cfdbbe7163bb2b2c2cee470e5))
+* **neumes:** Lean inclinata as Gregorio does, and draw the inclinatum auctus ([91a6575](https://github.com/bbloomf/exsurge/commit/91a657559a6cec87d9c3326f2524a05e49f2bc0c))
+* **neumes:** Orient the oriscus as Gregorio does ([4a87ee4](https://github.com/bbloomf/exsurge/commit/4a87ee4e4117724d510951fb28fec644d9c5c49b))
+* **signs:** Draw Gregorio's parenthesized accidentals and bars ([5310da0](https://github.com/bbloomf/exsurge/commit/5310da0820848344604a44e250af98c991b93667))
+
+
+### BREAKING CHANGES
+
+* puncta inclinata now lean as Gregorio's do, as their gabc
+says (G0, G1, G2) or as their line goes, and leaning inclinata are spaced
+further apart along their leaning.  This changes the glyphs and spacing of
+every punctum inclinatum, and can move line breaks.  Set
+ctxt.inclinatumLeaning = false to draw every inclinatum upright, as before.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ## [2.1.1](https://github.com/bbloomf/exsurge/compare/v2.1.0...v2.1.1) (2026-10-22)
 
 

@@ -1011,8 +1011,16 @@ export class ChantLine extends ChantLayoutElement {
         textOnlyStartIndex = i;
       }
 
-      if (curr.hasLyrics() && curr.lyrics[0].needsLayout) {
-        curr.lyrics[0].recalculateMetrics(ctxt);
+      // lyrics that an earlier layout of the lines wrapped (in setMaxWidth()) or
+      // moved (in centerDividers()) go back to where the notation's layout put them
+      if (curr.hasLyrics() && curr.lyrics.some((lyric) => lyric.needsLayout)) {
+        for (let lyric of curr.lyrics) {
+          if (lyric.needsLayout) {
+            lyric.recalculateMetrics(ctxt);
+            lyric.needsLayout = false;
+          }
+        }
+        curr.alignLyrics(ctxt);
       }
 
       // try to fit the curr element on this line.
@@ -1505,7 +1513,26 @@ export class ChantLine extends ChantLayoutElement {
             }
             leftPoint = prev ? prev.bounds.right() : 0;
           }
-          if (leftPoint) {
+          if (next instanceof TextOnly) {
+            // a TextOnly's lyric is under the staff, and can start under the bar (as
+            // Ant. does in "(::) Ant.() (f+)"), so the bar is centered before the next
+            // notation on the staff, if the text doesn't push that along (as it does a
+            // neume with lyrics, or a bar, which is centered in its turn).  Otherwise
+            // it's centered before the text if that starts after it, or left where it is.
+            let next,
+              end = this.notationsStartIndex + this.numNotationsOnLine;
+            for (let k = i + 1; k < end; k++) {
+              let notation = this.score.notations[k];
+              if (!(notation instanceof TextOnly) && !(notation instanceof ChantLineBreak)) {
+                next = notation;
+                break;
+              }
+            }
+            next = next || this.custos;
+            if (next && !next.isDivider && !next.hasLyrics()) rightPoint = next.bounds.x;
+            else if (rightPoint < curr.bounds.right()) rightPoint = 0;
+          }
+          if (leftPoint && rightPoint) {
             curr.bounds.x = (leftPoint + rightPoint - barWidth) / 2;
           }
           if (curr.hasLyrics()) {
