@@ -1405,23 +1405,7 @@ export class Gabc {
                 note.sourceIndex += sourceIndexDiff;
                 if (note.choralSign) note.choralSign.sourceIndex! += sourceIndexDiff;
                 note.pitch = ctxt.activeClef.staffPositionToPitch(note.staffPosition);
-                if (note.braceEnd && note.braceEnd.automatic)
-                  delete note.braceEnd;
-                if (this.needToEndBrace && !note.braceStart && !note.braceEnd) {
-                  note.braceEnd = new Markings.BracePoint(
-                    note,
-                    this.needToEndBrace.isAbove,
-                    this.needToEndBrace.shape,
-                    this.needToEndBrace.attachment ===
-                    Markings.BraceAttachment.Left
-                      ? Markings.BraceAttachment.Right
-                      : Markings.BraceAttachment.Left
-                  );
-                  note.braceEnd.automatic = true;
-                  delete this.needToEndBrace;
-                } else if (note.braceStart && note.braceStart.automatic) {
-                  this.needToEndBrace = note.braceStart;
-                }
+                this.endAutomaticBrace(note);
               }
             }
             if (curNotation.translationText) {
@@ -1766,7 +1750,9 @@ export class Gabc {
       }
 
       if (items.length === 0) continue;
-      this.setAutomaticLeanings(([] as Note[]).concat(...items.map((item) => item.notes || [])));
+      var itemNotes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
+      this.setAutomaticLeanings(itemNotes);
+      for (let note of itemNotes) this.endAutomaticBrace(note);
       // (and the areas that the word before left for its next syllable)
       setAreaBoundaries(items, this.marksForNext.areas);
       this.marksForNext = { ...this.marksForNext, areas: {} };
@@ -3771,24 +3757,6 @@ export class Gabc {
       }
     }
 
-    if (
-      this.needToEndBrace &&
-      !note.braceStart &&
-      !note.braceEnd &&
-      !/[xXyY#]/.test(c!)
-    ) {
-      note.braceEnd = new Markings.BracePoint(
-        note,
-        this.needToEndBrace.isAbove,
-        this.needToEndBrace.shape,
-        this.needToEndBrace.attachment === Markings.BraceAttachment.Left
-          ? Markings.BraceAttachment.Right
-          : Markings.BraceAttachment.Left
-      );
-      note.braceEnd.automatic = true;
-      delete this.needToEndBrace;
-    }
-
     notes.push(note);
   }
 
@@ -3886,10 +3854,35 @@ export class Gabc {
         attachmentPoint
       );
 
-    // just have the next note end a brace that uses length;
+    // just have the next note end a brace that uses length (see endAutomaticBrace())
     if (results[5]) {
       note.braceStart!.automatic = true;
       note.braceStart!.length = texLengthToStaffIntervals(results[5]);
+    }
+  }
+
+  /**
+   * Has the note end the brace that a brace given a length (gabc
+   * [ob:1;6mm] and the like) left open before it, as the next note does
+   * unless it has a brace of its own, or leaves the note's own such brace
+   * open for the notes after it.  Each note of the notations is passed in
+   * order, when they're parsed and again when they're kept by
+   * updateMappingsFromSource(), which first takes away the end it gave.
+   */
+  static endAutomaticBrace(note: Note) {
+    if (note.braceEnd && note.braceEnd.automatic) delete note.braceEnd;
+    if (this.needToEndBrace && !note.braceStart && !note.braceEnd) {
+      note.braceEnd = new Markings.BracePoint(
+        note,
+        this.needToEndBrace.isAbove,
+        this.needToEndBrace.shape,
+        this.needToEndBrace.attachment === Markings.BraceAttachment.Left
+          ? Markings.BraceAttachment.Right
+          : Markings.BraceAttachment.Left
+      );
+      note.braceEnd.automatic = true;
+      delete this.needToEndBrace;
+    } else if (note.braceStart && note.braceStart.automatic) {
       this.needToEndBrace = note.braceStart;
     }
   }

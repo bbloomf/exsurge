@@ -75,7 +75,9 @@ function serializeMappings(mappings: ChantMapping[]): any[] {
         (notation.notes || []).map(function(note: any) {
           return [
             note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape, note.bracketStart,
-            note.choralSign && note.choralSign.sourceIndex
+            note.choralSign && note.choralSign.sourceIndex,
+            note.braceStart && [note.braceStart.automatic, note.braceStart.length],
+            note.braceEnd && [note.braceEnd.automatic, note.braceEnd.attachment]
           ];
         }),
         (notation.lyrics || []).map(function(lyric: any) {
@@ -159,7 +161,8 @@ var edits = [
   ['edits the word before a closing tag', kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> '), kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(ghf)</nlba> ')],
   ['edits a word after a newline and a space', kyrie.replace(' Lau(f)', '\n Lau(f)'), kyrie.replace(' Lau(f)', '\n Lau(g)')],
   ['edits a word after two spaces', kyrie.replace(' Lau(f)', '  Lau(f)'), kyrie.replace(' Lau(f)', '  Lau(f)').replace('Do(h)', 'Do(i)')],
-  ['inserts a word before a choral sign', kyrie.replace('om(f)', 'om(f[cs:t])'), kyrie.replace('om(f)', 'no(g) om(f[cs:t])')]
+  ['inserts a word before a choral sign', kyrie.replace('om(f)', 'om(f[cs:t])'), kyrie.replace('om(f)', 'no(g) om(f[cs:t])')],
+  ['adds a brace given a length before kept repeated notes', kyrie.replace('om(f)', 'om(fss)'), kyrie.replace('om(f)', 'om(fss)').replace('num(f)', 'num(f[ob:1;4mm])')]
 ];
 
 describe('Gabc diff', function() {
@@ -213,7 +216,7 @@ describe('Gabc diff', function() {
   it('updates mappings to match a fresh parse for random edits with repeated words', function() {
     var vocabulary = ['(,)', '*(:)', '(;)', '(::)', 'Ky(f)', 'ri(gh)', 'e(h.)', 'a(fg)', 'b(gx)', 'c(h)', '(c3)', 'e(i;)', '<i>Ps.</i>(::)',
       '(f3)', '(cb3)', 'a(ix)', 'd(ixi)', '(ixhi)', 'e(hy)', 'o(i#i)', 'f(e0f9)', 'q(f[ub:0;4mm])', 'r(gh[ob:1;6mm])',
-      'u(g[cs:t]f)'];
+      's(hss)', 't(gvv)', 'u(g[cs:t]f)'];
     // a small seeded generator (mulberry32), so that failures are reproducible
     var seed = 12345;
     function random(n: number) {
