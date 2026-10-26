@@ -1309,6 +1309,11 @@ export declare class Lyric extends TextElement {
     recalculateMetrics(ctxt: ChantContext, resetNewLines?: boolean): void;
     generateDropCap(ctxt: ChantContext): DropCap | null;
     /**
+     * Gives the lyric back the letter that its drop cap took (see
+     * generateDropCap()), without the first word's styles.
+     */
+    removeDropCap(ctxt: ChantContext): void;
+    /**
      * Gives the lyric the styles of the score's first word (part "word"), or of
      * its first syllable ("syllable", which also styles the first letter after
      * any drop cap), from ChantContext.firstWordStyle and so on, or takes them

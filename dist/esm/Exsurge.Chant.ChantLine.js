@@ -1042,10 +1042,13 @@ export class ChantLine extends ChantLayoutElement {
                     (this.custos || this.wantsEolCustos(ctxt))) {
                     this.toJustify.push(this.custos);
                 }
-                if (j >= 1 &&
+                // (only where the custos is on this line too, and not the end of the line before)
+                if (j - 1 >= this.notationsStartIndex &&
                     notations[j].isDivider &&
                     notations[j - 1].constructor === Custos) {
                     // reverse the order: put the divider first, and end the line with the custos.
+                    // (a custos that starts the line puts the divider after the clef)
+                    let prevOnLine = j - 2 >= this.notationsStartIndex ? notations[j - 2] : this.startingClef;
                     prevLyrics = [];
                     for (i = j - 2; i >= this.notationsStartIndex; i--) {
                         if (notations[i].hasLyrics()) {
@@ -1053,10 +1056,13 @@ export class ChantLine extends ChantLayoutElement {
                             break;
                         }
                     }
+                    // (the lyrics a line can start with are on its clef)
+                    if (i < this.notationsStartIndex && this.startingClef.hasLyrics())
+                        LyricArray.mergeIn(prevLyrics, this.startingClef.lyrics);
                     // remove the custos and divider from the condensable spaces list, before adding the divider back, when repositioning it.
                     condensableSpaces.sum -= condensableSpaces.pop().condensable;
                     condensableSpaces.sum -= condensableSpaces.pop().condensable;
-                    this.positionNotationElement(ctxt, prevLyrics, notations[j - 2], notations[j], this.staffRight, condensableSpaces);
+                    this.positionNotationElement(ctxt, prevLyrics, prevOnLine, notations[j], this.staffRight, condensableSpaces);
                     this.custos = notations[j - 1];
                     this.custos.bounds.x =
                         this.staffRight -
@@ -1207,7 +1213,7 @@ export class ChantLine extends ChantLayoutElement {
                 var prev = i > this.notationsStartIndex ? this.score.notations[i - 1] : this.startingClef;
                 var next = i + 1 === lastIndex ? this.custos : this.score.notations[i + 1];
                 if (prev === next && next === this.custos) {
-                    prev = this.score.notations[i - 2];
+                    prev = i - 2 >= this.notationsStartIndex ? this.score.notations[i - 2] : this.startingClef;
                     // force custos to right edge in this case, since it is a custos that exists
                     // regardless of line break, and would normally be before the double bar, but in this case it ends the line:
                     next.bounds.x = this.staffRight - next.bounds.width;

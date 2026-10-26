@@ -1,3 +1,17 @@
+## [2.3.1](https://github.com/bbloomf/exsurge/compare/v2.3.0...v2.3.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **custos:** Put an automatic custos with no neume after it where a new one goes ([062a545](https://github.com/bbloomf/exsurge/commit/062a5454e7b270dccf50673a6caa5425516704de))
+* **drop-cap:** Give its letter back to a lyric that's no longer the first ([22b418d](https://github.com/bbloomf/exsurge/commit/22b418d905083dbba44f8e948a3ea9ebebd78e7c))
+* **gabc:** End a brace given a length at the next note, the first of repeated notes ([af8931c](https://github.com/bbloomf/exsurge/commit/af8931c11398236b1d74eec165ea5c3759283f84))
+* **gabc:** Give a word after more than one space the source indices of its text ([3024c1d](https://github.com/bbloomf/exsurge/commit/3024c1d243effa0f1a825d1355e1fbfd80af929e))
+* **gabc:** Move choral signs' and drop caps' source indices with an edit ([47358b9](https://github.com/bbloomf/exsurge/commit/47358b9e316bee88b633d7f2861e027a039a7e7b))
+* **header:** Give the header's language to the lyrics of an edit ([16762a2](https://github.com/bbloomf/exsurge/commit/16762a212ca4de13816662898797e00a573e2085))
+* **layout:** Lay a notation out under the clef before it when that clef isn't laid out ([913de7c](https://github.com/bbloomf/exsurge/commit/913de7ca22eaaaec7cd8db33da59c4e9f548d228))
+* **layout:** Put a bar after the clef where a custos before it starts the line ([0201a54](https://github.com/bbloomf/exsurge/commit/0201a54a36a8e4b3956b1e108690db4bc8e6333c))
+
 # [2.3.0](https://github.com/bbloomf/exsurge/compare/v2.2.1...v2.3.0) (2026-10-26)
 
 

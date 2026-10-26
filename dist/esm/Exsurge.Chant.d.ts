@@ -6,6 +6,7 @@ import { type LedgerLineStates } from "./ledgerLines.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
 import type { Accent, BracePoint, CustomLedgerLine, EpisemaTuning, HorizontalEpisema, Ictus, Mora, SlurMark } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import type { Language } from "./Exsurge.Text.js";
 import type { AboveLinesText, Annotations, AreaBoundary, ChantContext, ChoralSign, DropCap, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
 export declare const LiquescentType: {
     readonly None: 0;
@@ -352,6 +353,13 @@ export declare class ChantScore {
      */
     keptInAreas?: boolean[] | null;
     staffLineCount: number;
+    /**
+     * the language of the score's lyrics, which Gabc.applyHeader() sets from
+     * the header and updateNotations() gives the lyrics it doesn't have yet
+     * (such as those of an edit), or null for each lyric's own (by default
+     * ctxt.defaultLanguage)
+     */
+    language: Language | null;
     titles?: Titles;
     startingClef: Clef;
     useDropCap: boolean | undefined;
@@ -391,6 +399,11 @@ export declare class ChantScore {
     copyLines(startLine: number, endLine: number): ChantScore;
     updateSelection(selection?: Selection): void;
     updateNotations(ctxt: ChantContext): void;
+    /**
+     * Gives the notation's lyrics the score's language, if it has one, and has
+     * the notation laid out again if that changes them.
+     */
+    updateLanguage(notation: ChantNotationElement): void;
     recreateDropCap(ctxt: ChantContext): void;
     private updateBrackets;
     /**

@@ -426,6 +426,7 @@ export class ChantScore {
         this.lines = [];
         this.notes = [];
         this.staffLineCount = 4;
+        this.language = null;
         if (ctxt)
             this.titles = new Titles(ctxt, this);
         // set by updateNotations()
@@ -548,6 +549,7 @@ export class ChantScore {
                 notation.notationIndex = this.notations.push(notation) - 1;
                 if (!this.hasLyrics && notation.hasLyrics())
                     this.hasLyrics = true;
+                this.updateLanguage(notation);
                 if (!this.hasAboveLinesText && notation.alText)
                     this.hasAboveLinesText = true;
                 if (!this.hasTranslations && notation.translationText)
@@ -572,44 +574,57 @@ export class ChantScore {
         if (!this.startingClef)
             this.startingClef = Clef.default();
         this.startingClef.elementIndex = -1;
-        // update drop cap
-        if (this.useDropCap)
+        // update drop cap (giving its letter back if it's no longer wanted)
+        if (this.useDropCap || this.dropCap)
             this.recreateDropCap(ctxt);
-        else
-            this.dropCap = null;
         this.updateFirstWordStyles(ctxt);
         this.needsLayout = true;
+    }
+    /**
+     * Gives the notation's lyrics the score's language, if it has one, and has
+     * the notation laid out again if that changes them.
+     */
+    updateLanguage(notation) {
+        if (!this.language)
+            return;
+        for (let lyric of notation.lyrics) {
+            if (lyric && lyric.language !== this.language) {
+                lyric.language = this.language;
+                notation.needsLayout = true;
+            }
+        }
     }
     recreateDropCap(ctxt) {
         this.dropCap = null;
         // (ctxt.dropCapLines 0 leaves the drop cap out too)
         var useDropCap = this.useDropCap && dropCapLineCount(ctxt) !== 0;
         // find the first notation with lyrics to use
-        for (var i = 0; i < this.notations.length; i++) {
-            if (this.notations[i].hasLyrics() &&
-                this.notations[i].lyrics[0] !== null &&
-                this.notations[i].lyrics[0].spans &&
-                this.notations[i].lyrics[0].spans.length) {
-                let notation = this.notations[i], lyrics = notation.lyrics[0];
+        var first = this.notations.find((notation) => notation.hasLyrics() &&
+            notation.lyrics[0] !== null &&
+            notation.lyrics[0].spans &&
+            notation.lyrics[0].spans.length);
+        for (let notation of this.notations) {
+            let lyrics = notation.lyrics[0];
+            if (notation === first) {
                 // a new drop cap is taken from the lyric without the first word's styles
                 if (!useDropCap || !lyrics.dropCap)
                     lyrics.setFirstWordStyles(ctxt, null);
                 if (useDropCap) {
                     this.dropCap = lyrics.generateDropCap(ctxt);
                 }
-                else if (lyrics.dropCap) {
-                    // give the lyric back the letter that its drop cap took
-                    lyrics.sourceIndex -= lyrics.dropCap.sourceGabc.length;
-                    lyrics.sourceGabc = lyrics.dropCap.sourceGabc + lyrics.sourceGabc;
-                    lyrics.centerStartIndex++;
-                    lyrics.dropCap = null;
-                    lyrics.generateSpansFromText(ctxt, (ctxt.textStyles.lyric.prefix || "") + lyrics.originalText);
+                else {
+                    lyrics.removeDropCap(ctxt);
                 }
                 notation.needsLayout = true;
-                this.updateFirstWordStyles(ctxt);
-                return;
+            }
+            else if (lyrics && lyrics.dropCap) {
+                // the lyric that the drop cap was taken from before the score was
+                // edited, which isn't the first any longer
+                lyrics.removeDropCap(ctxt);
+                notation.needsLayout = true;
             }
         }
+        this.updateFirstWordStyles(ctxt);
     }
     // Gregorio's brackets (gabc [[ and ]]) go round the notes from a [[ to the
     // ]] that closes it, which can be in other notations.  This records the
@@ -707,6 +722,10 @@ export class ChantScore {
             if (force || notation.needsLayout) {
                 ctxt.currNotationIndex = i;
                 notation.performLayout(ctxt);
+            }
+            else if (notation.isClef) {
+                // what's laid out after it is under it, as if it had been laid out
+                ctxt.activeClef = notation;
             }
         }
         this.needsLayout = false;
@@ -830,6 +849,9 @@ export class ChantScore {
             if (notation.needsLayout) {
                 ctxt.currNotationIndex = index;
                 notation.performLayout(ctxt);
+            }
+            else if (notation.isClef) {
+                ctxt.activeClef = notation;
             }
             index++;
         } while (index < this.notations.length && new Date().getTime() < timeout);
