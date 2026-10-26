@@ -24,6 +24,7 @@
 //
 
 import { NoteShape, type Note } from "./Exsurge.Chant.js";
+import type { Rect } from "./Exsurge.Core.js";
 import { isOnOrBeyond, LedgerLineSpecificity, type LedgerLineItem } from "./ledgerLines.js";
 import {
   ChantLayoutElement,
@@ -129,6 +130,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
   /** whether the episema stops at its note, rather than joining the next one */
   terminating: boolean;
   alignment: HorizontalEpisemaAlignment;
+  /** where performLayout() put the episema, which each line that joins it to others starts from */
+  layoutBounds?: Rect;
 
   constructor(note: Note) {
     super();
@@ -263,6 +266,7 @@ export class HorizontalEpisema extends ChantLayoutElement {
     this.bounds.y = y - ctxt.episemaLineWeight / 2;
     this.bounds.width = width;
     this.bounds.height = ctxt.episemaLineWeight;
+    this.layoutBounds = this.bounds.clone();
 
     this.origin.x = 0;
     this.origin.y = 0;

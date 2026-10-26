@@ -20,7 +20,7 @@ import {
   copyBeginningLyrics,
   isHiddenAccidental,
   isTextOnlyBeforeDivider,
-  restoreLyrics
+  resetNotation
 } from "./Exsurge.Chant.ChantLine.js";
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
 import { Custos } from "./Exsurge.Chant.Signs.js";
@@ -467,25 +467,16 @@ export class LineBreaker {
           lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, stretch, penalty, false));
       }
 
+      // (as in buildFromChantNotationIndex(), from what the notation's own
+      // layout left, whatever lines it was laid out on before)
+      resetNotation(ctxt, curr);
+
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !line.isSoftAccidentalVisible(i));
       else if (curr.isNeume) line.spaceNeumeBeforeSoftAccidental(ctxt, i);
 
-      // (lyrics an earlier layout of the lines wrapped or moved go back, as in
-      // buildFromChantNotationIndex(), before any line is planned around them)
-      restoreLyrics(ctxt, curr);
-
       if (isHiddenAccidental(curr)) curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
-      else {
-        var textOnly = curr.constructor === TextOnly && (curr as TextOnly).hasLyrics() ? (curr as TextOnly).lyrics[0] : null,
-          resize = textOnly && textOnly.resize;
-        line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
-        // (text only that it shrank to fit the line, in setMaxWidth(), is
-        // measured again before it's laid out on another line, as text that
-        // it wrapped is, so that the line built starts from the same text
-        // as it would have without this one)
-        if (textOnly && textOnly.resize !== resize) textOnly.needsLayout = true;
-      }
+      else line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
 
       if (curr.hasLyrics()) LyricArray.mergeIn(line.lastLyrics, curr.lyrics);
 

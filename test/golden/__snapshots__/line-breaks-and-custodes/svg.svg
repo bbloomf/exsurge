@@ -276,7 +276,7 @@
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
 </use>
 </g>
-<g class="ChantNotationElement DoubleBar" transform="translate(307.99664999999993,0)" >
+<g class="ChantNotationElement DoubleBar" transform="translate(14.0625,0)" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="143" element-index="26" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="143" element-index="26" source="[object Object]" >
