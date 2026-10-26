@@ -69,6 +69,7 @@ import * as Markings from "./Exsurge.Chant.Markings.js";
 import * as Signs from "./Exsurge.Chant.Signs.js";
 import * as Neumes from "./Exsurge.Chant.Neumes.js";
 import { escapeChar, escapedCharSource, restoreEscapes } from "./gabcEscapes.js";
+import { texLengthToStaffIntervals } from "./texLengths.js";
 import type {
   AreaBoundary,
   ChantContext,
@@ -444,40 +445,6 @@ var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])
 //  4. { or } to indicate opening/closing (this group will be null if the metric version is used)
 //  5. the length of the brace, which Gregorio passes to TeX (as 6mm, 0.3in or 10pt)
 var __braceSpecRegex = /([ou])(b|cb|cba):([01])(?:([{}])|;([^\]]+))/;
-// a TeX length: a number (with TeX's . or , for the decimal point) and a unit
-// in either case, maybe with true before it (the same at TeX's usual
-// magnification), and any stretch and shrink after it (plus …, minus …)
-var __texLengthRegex = /^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:true\s*)?([a-z]{2})(?:\s*(?:plus|minus).*)?\s*$/i;
-// TeX's units in scaled points (with em and ex those of TeX's default font, cmr10)
-var __texUnits: { [unit: string]: number } = {
-  sp: 1,
-  pt: 65536,
-  bp: (65536 * 72.27) / 72,
-  pc: 65536 * 12,
-  in: 65536 * 72.27,
-  cm: (65536 * 72.27) / 2.54,
-  mm: (65536 * 72.27) / 25.4,
-  dd: (65536 * 1238) / 1157,
-  cc: (65536 * 12 * 1238) / 1157,
-  em: 65536 * 10,
-  ex: 65536 * 4.30554
-};
-// a staff interval (from a line to the next space) in scaled points at
-// Gregorio's default staff size, \gre@factor 17: half the distance between
-// lines, (\gre@dimen@interstafflinedistancebase + \gre@dimen@stafflinethicknessbase) * 17
-var __gregorioStaffIntervalInSp = ((30000 + 1500) * 17) / 2;
-
-// a TeX length in staff intervals at Gregorio's default staff size, or
-// undefined if it isn't a length exsurge can read (TeX can take a macro)
-function texLengthToStaffIntervals(length: string) {
-  var results = length.match(__texLengthRegex);
-  var unit = results && results[2].toLowerCase();
-  if (!unit || !__texUnits.hasOwnProperty(unit)) return undefined;
-  return (
-    (Number(results![1].replace(",", ".")) * __texUnits[unit]) /
-    __gregorioStaffIntervalInSp
-  );
-}
 
 // Gregorio's slurs, inside [ and ] after a note: [oslur:s;w,h], or [oslur:s{]
 // and [oslur:s}] for one from note to note (and uslur under the notes).  The
@@ -963,16 +930,16 @@ export class Gabc {
    * turns: gabc, then the NABC of each line, then gabc again.  Returns the
    * notes with the NABC and the |s masked (keeping their length), but with a
    * / at a | between two parts of gabc, which Gregorio makes separate
-   * elements, and each part of gabc that has NABC, by where it starts in the
-   * notes, and where it put the /s.  The NABC of a part of gabc that's empty,
+   * elements, and each part of gabc that has NABC, by where it starts and ends
+   * in the notes, and where it put the /s.  The NABC of a part of gabc that's empty,
    * which Gregorio gives an element of its own, goes with the part before it,
    * after a / (a space in NABC).
    */
   static splitNabc(data: string, nabcLines: number) {
     let gabc = "";
     let cuts: number[] = [];
-    let parts: { index: number; nabc: string[] }[] = [];
-    let part: { index: number; nabc: string[] } | null = null;
+    let parts: { index: number; end: number; nabc: string[] }[] = [];
+    let part: { index: number; end: number; nabc: string[] } | null = null;
     let lastGabc = "";
     let index = 0;
     data.split("|").forEach((snippet, i) => {
@@ -982,7 +949,7 @@ export class Gabc {
           cuts.push(gabc.length);
           gabc += "/";
         } else if (i > 0) gabc += __commentMask;
-        if (snippet.trim() || !part) parts.push((part = { index, nabc: [] }));
+        if (snippet.trim() || !part) parts.push((part = { index, end: index + snippet.length, nabc: [] }));
         if (snippet.trim()) lastGabc = snippet;
         gabc += snippet;
       } else {
@@ -1757,13 +1724,25 @@ export class Gabc {
         insertionIndex
       );
       if (nabc) {
+        const sourceIndexOf = (item: ChantNotationElement) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex!);
+        // (a clef, which may become a line's starting clef, and a line break
+        // don't draw NABC)
+        const drawsNabc = (item?: ChantNotationElement) => !!item && !item.isClef && item.constructor !== ChantLineBreak;
         for (let part of nabc.parts) {
           // the first notation of the part, or the last one before it
           let partIndex = notationsSourceIndex + part.index;
-          let notation =
-            items.find((item) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex!) >= partIndex) ||
-            items[items.length - 1];
+          let notation = items.find((item) => sourceIndexOf(item) >= partIndex) || items[items.length - 1];
           if (!notation) continue;
+          if (!drawsNabc(notation)) {
+            // the next notation of the part, or else one of its own just
+            // after it, without notes (as Gregorio gives the NABC of a part of
+            // gabc that's empty an element of its own)
+            let index = items.indexOf(notation) + 1;
+            let next = items[index];
+            if (!drawsNabc(next) || sourceIndexOf(next) >= notationsSourceIndex + part.end)
+              items.splice(index, 0, (next = new TextOnly(partIndex, 0)));
+            notation = next;
+          }
           let notationNabc = (notation.nabc = notation.nabc || []);
           part.nabc.forEach((line, v) => (notationNabc[v] = joinNabc(notationNabc[v], line)));
         }

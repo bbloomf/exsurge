@@ -37,6 +37,8 @@ import type { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
 import type { BracePoint, LedgerLineStart, SlurStart } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
+import { layoutNabc, type NabcFont, type NabcItem, type NabcLayout, parseNabc } from "./Exsurge.Nabc.js";
+import { texLengthToStaffIntervals } from "./texLengths.js";
 import type { Titles } from "./Exsurge.Titles.js";
 
 /** the css properties of text that choose which face of a font it is in */
@@ -374,6 +376,35 @@ const __textTypeEntries = () =>
 export type TrailingSpace = number | TrailingSpaceFunction;
 export type TrailingSpaceFunction = ((ctxt: ChantContext) => number) & {
   isDefault?: boolean;
+};
+
+// a TeX length, in staff intervals at Gregorio's default staff size
+const __texLength = (length: string) => texLengthToStaffIntervals(length)!;
+
+/**
+ * GregorioTeX's dimensions for NABC (tex/gregoriotex-gsp-default.tex), in
+ * staff intervals at its default staff size
+ */
+export const NabcDimensions = {
+  /** a point */
+  pointsPerStaffInterval: 1 / __texLength("1pt"),
+  /** the room that / makes between neumes (nabcinterelementspace), and // (nabclargerspace) */
+  interElementSpace: __texLength("0.06927cm"),
+  largerSpace: __texLength("0.10938cm"),
+  /** from the top line to the baseline of the NABC above the staff (abovelinesnabcraise) */
+  aboveLinesRaise: __texLength("0.17351cm"),
+  /** the room that the NABC above the staff takes, above its baseline (abovelinesnabcheight) */
+  aboveLinesHeight: __texLength("0.3cm"),
+  /** from the bottom line to the baseline of the NABC below the staff (belowlinesnabcheight) */
+  belowLinesHeight: __texLength("0.6cm"),
+  /**
+   * how many staff intervals above the top line notes can go before they
+   * push the NABC above the staff up (additionaltopspacenabcthreshold), and
+   * below the bottom line before they push the NABC below it down
+   * (additionalbottomspacenabcthreshold, 2, which GregorioTeX counts from a)
+   */
+  aboveThreshold: 4,
+  belowThreshold: 1
 };
 
 export const DefaultTrailingSpace: TrailingSpaceFunction = (ctxt: ChantContext) =>
@@ -1018,6 +1049,34 @@ export class ChantContext {
    * inclinatum.
    */
   nabcLines: number;
+  /**
+   * The fonts to draw Gregorio's NABC with: nabcFonts[0] for its first line,
+   * above the staff, and nabcFonts[1] for its second, below the staff, or
+   * nabcFonts[0] for both, as with Gregorio's \gresetnabcfont.  exsurge has
+   * none of its own, since Gregorio's are under the SIL Open Font License:
+   * import gregall from exsurge-ts/nabc-gregall, or gresgmodern or grelaon
+   * (Laon) likewise (see NabcFont).  With none, NABC isn't drawn.  Defaults
+   * to [].
+   */
+  nabcFonts: NabcFont[];
+  /**
+   * The size of the NABC fonts' em, in staff intervals.  Defaults to 8pt at
+   * Gregorio's default staff size, \gresetnabcfont's default.
+   */
+  nabcSize: number;
+  /**
+   * Where each NABC neume starts, as with Gregorio's \gresetnabcalignment:
+   * "full", the default, with its significative letters, or "neume" with
+   * the neume, its letters on the left hanging back (and the notes moving
+   * over to make room for them).
+   */
+  nabcAlignment: "full" | "neume";
+  /**
+   * Whether each line of NABC is drawn, as with Gregorio's \gresetnabc:
+   * "visible", the default, "invisible", taking no room, or "phantom",
+   * taking its room.
+   */
+  nabcVisibility: ClefVisibility[];
 
   minLedgerSeparation: number;
   minSpaceAboveStaff: number;
@@ -1466,6 +1525,10 @@ export class ChantContext {
     this.noteIdPrefix = 'note-';
     this.defIdPrefix = '';
     this.nabcLines = 0;
+    this.nabcFonts = [];
+    this.nabcSize = 8 / NabcDimensions.pointsPerStaffInterval;
+    this.nabcAlignment = "full";
+    this.nabcVisibility = ["visible", "visible"];
 
     this.insertFontsInDoc();
     this.setMergeAnnotationWithTextLeft(true);
@@ -2348,7 +2411,8 @@ export class GlyphVisualizer extends ChantLayoutElement {
   /** the glyph's size, relative to the other glyphs (set it before setGlyph()) */
   scale: number;
 
-  constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null) {
+  /** (glyph is one that isn't in Glyphs, such as a NABC font's, whose def's id is glyphCode) */
+  constructor(ctxt: ChantContext, glyphCode?: GlyphCode | null, glyph?: Glyph) {
     super();
 
     this.scale = 1;
@@ -2356,10 +2420,10 @@ export class GlyphVisualizer extends ChantLayoutElement {
     // setGlyph() sets the glyph just below
     this.glyph = null as unknown as Glyph;
 
-    this.setGlyph(ctxt, glyphCode);
+    this.setGlyph(ctxt, glyphCode, glyph);
   }
 
-  setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | "") {
+  setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | "", ownGlyph?: Glyph) {
     if (typeof glyphCode === "undefined" || glyphCode === null || glyphCode === "")
       glyphCode = GlyphCode.None;
     const swash = /^Porrectus([\d.]+)(Cavum)?$/.exec(glyphCode);
@@ -2371,9 +2435,9 @@ export class GlyphVisualizer extends ChantLayoutElement {
       this.glyphCode = glyphCode;
       this.glyphId = glyphId;
 
-      let glyph = (this.glyph = swash
-        ? porrectusGlyph(glyphId, Number(swash[1]), ctxt.glyphMultiplier, !!swash[2])
-        : Glyphs[glyphCode]);
+      let glyph = (this.glyph =
+        ownGlyph ||
+        (swash ? porrectusGlyph(glyphId, Number(swash[1]), ctxt.glyphMultiplier, !!swash[2]) : Glyphs[glyphCode]));
       this.porrectusNoteDiff = swash ? Number(swash[1]) : 0;
 
       // if this glyph hasn't been used yet, then load it up in the defs section for sharing
@@ -2538,6 +2602,151 @@ export class GlyphVisualizer extends ChantLayoutElement {
 
   createSvgFragment(ctxt: ChantContext, source?: GlyphSource) {
     return QuickSvg.createFragment("use", this.getSvgAttributes(ctxt, source));
+  }
+}
+
+// each NABC font that's been drawn: the name in its glyphs' defs' ids (its
+// own, or with a number after it for another font of that name, such as one
+// converted from another version of Gregorio), and the Glyph of each glyph
+// of it that's been drawn, by its name
+const __nabcFonts = new WeakMap<NabcFont, { id: string; glyphs: { [name: string]: Glyph } }>();
+const __nabcFontNames = new Map<string, number>();
+
+function nabcFont(font: NabcFont) {
+  let drawn = __nabcFonts.get(font);
+  if (!drawn) {
+    let count = (__nabcFontNames.get(font.name) || 0) + 1;
+    __nabcFontNames.set(font.name, count);
+    __nabcFonts.set(font, (drawn = { id: count > 1 ? `${font.name}-${count}` : font.name, glyphs: {} }));
+  }
+  return drawn;
+}
+
+/** a NABC font's glyph as a Glyph, which GlyphVisualizer can draw */
+function nabcGlyph(font: NabcFont, name: string) {
+  let glyphs = nabcFont(font).glyphs;
+  if (!Object.prototype.hasOwnProperty.call(glyphs, name)) {
+    let [width, height, depth, data] = font.glyphs[name];
+    glyphs[name] = {
+      paths: [{ type: "positive", data }],
+      bounds: { x: 0, y: -height, width, height: height + depth },
+      origin: { x: 0, y: height }
+    };
+  }
+  return glyphs[name];
+}
+
+/**
+ * A line of Gregorio's NABC on a notation (ChantNotationElement.nabcNeumes):
+ * its neumes, laid out with layoutNabc() and drawn with a NabcFont's
+ * glyphs.  It starts at the left of the notation, as Gregorio's starts at
+ * the left of its first glyph, and takes no room among the notes, and
+ * ChantLine.performLayout() puts its baseline above or below the staff.
+ */
+export class NabcNeumes extends ChantLayoutElement {
+  /** which line of NABC it is: 0, above the staff, or 1, below it */
+  voice: number;
+  layout: NabcLayout;
+  /** the size of the font's units, in the units of the score */
+  unit: number;
+  /** whether it takes its room without being drawn (ChantContext.nabcVisibility "phantom") */
+  phantom: boolean;
+  glyphs: GlyphVisualizer[];
+  /** where its baseline is on the line */
+  baseline!: number;
+  /** the size of ERR, where the NABC is wrong, in the font's ems */
+  static errorSize = 0.6;
+
+  constructor(ctxt: ChantContext, items: NabcItem[], voice: number, font: NabcFont, phantom = false) {
+    super();
+    this.voice = voice;
+    this.phantom = phantom;
+    let unit = (this.unit = (ctxt.nabcSize * ctxt.staffInterval) / font.unitsPerEm);
+    let layout = (this.layout = layoutNabc(items, font, {
+      interElementSpace: (NabcDimensions.interElementSpace * ctxt.staffInterval) / unit,
+      largerSpace: (NabcDimensions.largerSpace * ctxt.staffInterval) / unit,
+      alignment: ctxt.nabcAlignment,
+      // (about as wide as ERR is, which is drawn so that it can be seen)
+      errorWidth: font.unitsPerEm * NabcNeumes.errorSize * 2
+    }));
+    // (none for a phantom, which isn't drawn)
+    this.glyphs = (phantom ? [] : layout.glyphs).map((placed) => {
+      // (whose def's id is the font's name and the glyph's, as the font names
+      // it, with B, N, E and T for >, -, ! and ~)
+      let id = `Nabc-${nabcFont(font).id}-${placed.name.replace(/[>\-!~]/g, (char) => "BNET"[">-!~".indexOf(char)])}`;
+      let glyph = nabcGlyph(font, placed.name);
+      let visualizer = new GlyphVisualizer(ctxt, id as GlyphCode, glyph);
+      visualizer.scale = unit / ctxt.glyphScaling;
+      visualizer.setGlyph(ctxt, id as GlyphCode, glyph);
+      visualizer.bounds.x = placed.x * unit;
+      return visualizer;
+    });
+    // (as wide as the NABC's box, or its glyphs, where letters stick out of it)
+    let right = Math.max(layout.width, ...layout.glyphs.map((placed) => placed.x + font.glyphs[placed.name][0]));
+    this.bounds.x = layout.left * unit;
+    this.bounds.width = (right - layout.left) * unit;
+    this.bounds.height = (layout.height + layout.depth) * unit;
+    this.setBaseline(0);
+  }
+
+  setBaseline(baseline: number) {
+    this.baseline = baseline;
+    this.bounds.y = baseline - this.layout.height * this.unit;
+    this.glyphs.forEach((visualizer, i) => {
+      visualizer.bounds.y = baseline - this.layout.glyphs[i].y * this.unit - visualizer.origin.y;
+    });
+  }
+
+  // Gregorio's ERR, where the NABC is wrong, in the lyrics' font and the
+  // neumes' color, as the canvas draws it
+  errorAttributes(ctxt: ChantContext, x: number): SvgAttributes {
+    return {
+      class: "nabcError",
+      x: x * this.unit,
+      y: this.baseline,
+      // (with the font's names in ', which mean the same as " in css, since
+      // the attribute is in ")
+      "font-family": ctxt.textStyles.lyric.font.replace(/"/g, "'"),
+      "font-size": NabcNeumes.errorSize * ctxt.nabcSize * ctxt.staffInterval,
+      fill: ctxt.neumeLineColor
+    };
+  }
+
+  draw(ctxt: ChantContext) {
+    if (this.phantom) return;
+    for (let glyph of this.glyphs) glyph.draw(ctxt);
+    let canvasCtxt = ctxt.canvasCtxt!;
+    for (let x of this.layout.errors) {
+      canvasCtxt.font = NabcNeumes.errorSize * ctxt.nabcSize * ctxt.staffInterval + "px " + ctxt.textStyles.lyric.font;
+      canvasCtxt.fillStyle = ctxt.neumeLineColor;
+      canvasCtxt.fillText("ERR", x * this.unit, this.baseline);
+    }
+  }
+
+  getSvgAttributes(): SvgAttributes {
+    return { class: "nabc nabc-" + (this.voice + 1) };
+  }
+
+  createSvgNode(ctxt: ChantContext) {
+    return QuickSvg.createNode("g", this.getSvgAttributes(), [
+      ...this.glyphs.map((glyph) => glyph.createSvgNode(ctxt)),
+      ...this.layout.errors.map((x) => QuickSvg.createNode("text", this.errorAttributes(ctxt, x), "ERR"))
+    ]);
+  }
+
+  createSvgTree(ctxt: ChantContext) {
+    return QuickSvg.createSvgTree(
+      "g",
+      this.getSvgAttributes(),
+      ...this.glyphs.map((glyph) => glyph.createSvgTree(ctxt)),
+      ...this.layout.errors.map((x) => QuickSvg.createSvgTree("text", this.errorAttributes(ctxt, x), "ERR"))
+    );
+  }
+
+  createSvgFragment(ctxt: ChantContext) {
+    let inner = this.glyphs.map((glyph) => glyph.createSvgFragment(ctxt)).join("");
+    for (let x of this.layout.errors) inner += QuickSvg.createFragment("text", this.errorAttributes(ctxt, x), "ERR");
+    return QuickSvg.createFragment("g", this.getSvgAttributes(), inner);
   }
 }
 
@@ -5108,10 +5317,24 @@ export class ChantNotationElement extends ChantLayoutElement {
   euouae?: AreaBoundary;
   /**
    * Gregorio's NABC for the gabc that starts with this notation, a string
-   * for each line (nabc[0] above the staff, nabc[1] below it), which isn't
-   * drawn yet
+   * for each line (nabc[0] above the staff, nabc[1] below it), which is
+   * drawn when there's a NabcFont to draw it with (see nabcNeumes)
    */
   nabc?: string[];
+  // nabc, and the NABC read from it, so that it's read again only when it changes
+  private readNabc?: { nabc: string; items: NabcItem[][] };
+  /** the NABC of each line, read with parseNabc(): its neumes, spaces and errors */
+  get parsedNabc(): NabcItem[][] | undefined {
+    if (!this.nabc) return undefined;
+    let nabc = JSON.stringify(this.nabc);
+    if (!this.readNabc || this.readNabc.nabc !== nabc) this.readNabc = { nabc, items: this.nabc.map(parseNabc) };
+    return this.readNabc.items;
+  }
+  /**
+   * the NABC of each line that's drawn, laid out (when there's a NabcFont to
+   * draw it with), or undefined if none is
+   */
+  nabcNeumes?: Array<NabcNeumes | undefined>;
   /**
    * whether a Gregorio no-line-break area (<nlba>…</nlba>, in the lyrics or
    * in the notes) starts or ends at this notation
@@ -5223,6 +5446,19 @@ export class ChantNotationElement extends ChantLayoutElement {
     if (this.translationText)
       for (i = 0; i < this.translationText.length; i++)
         this.translationText[i].recalculateMetrics(ctxt);
+
+    // (only two lines of NABC are drawn, as in Gregorio)
+    let parsedNabc = this.parsedNabc;
+    this.nabcNeumes =
+      parsedNabc && ctxt.nabcFonts.length
+        ? parsedNabc.slice(0, 2).map((items, voice) => {
+            let visibility = ctxt.nabcVisibility[voice] || "visible";
+            if (!items.length || visibility === "invisible") return undefined;
+            let font = ctxt.nabcFonts[voice] || ctxt.nabcFonts[0];
+            return new NabcNeumes(ctxt, items, voice, font, visibility === "phantom");
+          })
+        : undefined;
+    if (this.nabcNeumes && !this.nabcNeumes.some((nabc) => nabc)) this.nabcNeumes = undefined;
   }
 
   // some subclasses have internal dependencies on other notations (for example,
@@ -5273,6 +5509,8 @@ export class ChantNotationElement extends ChantLayoutElement {
     if (this.alText)
       for (i = 0; i < this.alText.length; i++) this.alText[i].draw(ctxt);
 
+    if (this.nabcNeumes) for (let nabc of this.nabcNeumes) if (nabc) nabc.draw(ctxt);
+
     canvasCtxt.translate(-this.bounds.x, 0);
   }
 
@@ -5292,6 +5530,9 @@ export class ChantNotationElement extends ChantLayoutElement {
     if (this.alText)
       for (i = 0; i < this.alText.length; i++)
         inner.push(this.alText[i][functionName](ctxt));
+
+    if (this.nabcNeumes)
+      for (let nabc of this.nabcNeumes) if (nabc && !nabc.phantom) inner.push(nabc[functionName](ctxt));
 
     if (this.visualizers.length) {
       // (only annotations make more than one svg node)
@@ -5348,6 +5589,9 @@ export class ChantNotationElement extends ChantLayoutElement {
     if (this.alText)
       for (i = 0; i < this.alText.length; i++)
         inner += this.alText[i].createSvgFragment(ctxt);
+
+    if (this.nabcNeumes)
+      for (let nabc of this.nabcNeumes) if (nabc && !nabc.phantom) inner += nabc.createSvgFragment(ctxt);
 
     for (var i = 0; i < this.visualizers.length; i++)
       inner += this.visualizers[i].createSvgFragment(ctxt, this);

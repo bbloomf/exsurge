@@ -1,0 +1,465 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="102.75268087543468" viewBox="0 0 600 102.75268087543468" >
+<g >
+<defs >
+<g id="Mora" class="glyph" transform="scale(0.0625)" >
+<path d="M47.478-24c6.957 0 12.793 2.288 17.49 6.883C69.662-12.52 72-6.904 72-.267c0 6.64-2.337 12.352-7.033 17.118C60.27 21.618 54.435 24 47.477 24c-6.26 0-11.748-2.383-16.444-7.15C26.337 12.086 24 6.374 24-.265c0-6.638 2.337-12.255 7.033-16.85C35.73-21.713 41.217-24 47.478-24z" >
+</path>
+</g>
+<g id="VerticalEpisemaAbove" class="glyph" transform="scale(0.0625)" >
+<path d="M-8-4c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z" >
+</path>
+</g>
+<g id="Nabc-grelaon-clG" class="glyph" transform="scale(0.0625)" >
+<path d="m47 883c164-262 164-262 194-301 77-97 77-97 89-19 8 60 8 60 34 61 38 2 38 2 71-43 22-10 22-10 6 9-80 96-80 96-98 101-44 12-44 12-59-7-13-16-13-16-45-7-32 12-32 12-43 30-28 54-28 54-135 169-21 17-21 17-14 7zm20-961c74-157 74-157 202-392 28-52 28-52 78-38 38 10 38 10 72-8 23-13 23-13 90-134 38-69 38-69 12 16-27 84-27 84-112 184-58 69-58 69-96 62-34-6-34-6-50 4-16 8-16 8-26 24-149 258-149 258-152 270-24 27-24 27-18 12z" >
+</path>
+</g>
+<g id="Nabc-grelaon-taB" class="glyph" transform="scale(0.0625)" >
+<path d="m129-44c-85-49-85-49-52-156 47-151 47-151 204-334 36-42 36-42 86-4 76 58 76 58 34 101-45 46-45 46-58 23-8-14-8-14-60-16-46-3-46-3-54 16-78 156-78 156-72 190 12 50 12 50 52 64 81 28 81 28 162-16 26-14 26-14 36-46 76-266 76-266 170-476 142-314 142-314 354-416 89-41 89-41 44 16-225 164-225 164-256 224-101 205-101 205-134 328-24 85-24 85-154 418-20 52-20 52-100 74-148 41-148 41-202 10z" >
+</path>
+</g>
+<g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="BeginningAscLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-50 43.688V-61c4.167 7.292 12.76 10.938 25.78 10.938 9.376 0 20.053-1.563 32.032-4.688C31.773-60.48 45.833-71.677 50-88.344v117.97C43.75 42.645 32.812 51.5 17.187 56.186-.52 61.398-15.886 64-28.906 64-42.97 64-50 57.23-50 43.687z" >
+</path>
+</g>
+<g id="TerminatingAscLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-9.375 40.22c0-11.98-4.948-17.97-14.844-17.97-10.936 0-19.53 3.646-25.78 10.938v-53.126c0-6.77 2.604-12.76 7.813-17.968 5.208-5.21 10.677-8.594 16.406-10.157 2.603-.52 5.207-.78 7.81-.78 3.647 0 7.032.78 10.157 2.343C-2.603-43.896 0-39.73 0-34V73.03h-9.375V40.22z" >
+</path>
+</g>
+<g id="Nabc-grelaon-un1" class="glyph" transform="scale(0.0625)" >
+<path d="m91-44c-26-14-26-14-2-68 109-243 109-243 196-364 53-74 53-74 68-4 12 59 12 59 38 56 80-10 80-10 210-302 117-258 117-258 30 2-75 209-75 209-226 378-61 68-61 68-124 12-25-22-25-22-66 26-24 28-24 28-74 224-14 59-14 59-50 40z" >
+</path>
+</g>
+<g id="Nabc-grelaon-pu" class="glyph" transform="scale(0.0625)" >
+<path d="m119-64c-59-45-59-45-6-106 53-61 53-61 112-16 65 49 65 49 12 110-53 61-53 61-118 12z" >
+</path>
+</g>
+<g id="Nabc-grelaon-un1lst8" class="glyph" transform="scale(0.0625)" >
+<path d="m613 14c37-1 37-1 4 26-52 42-52 42-86 40-55-3-55-3-64-48-10-47-10-47 18-92 9-14 9-14-18-30-5-3-5-3-94 28-76 25-76 25-10-24 116-86 116-86 158-86 41-2 41-2 188 28 29 6 29 6 74 0 45-5 45-5 4 16-80 41-80 41-134 50-27 5-27 5-62-2-21-4-21-4-34 30-11 30-11 30 14 50 21 16 21 16 42 14zm-498-114c-48-15-48-15-2-50 90-67 90-67 314-330 62-71 62-71 90-4 12 29 12 29 2 86-11 51-11 51 68 18 44-19 44-19 118-114 154-199 154-199 20 12-101 163-101 163-244 204-50 14-50 14-64-68-4-20-4-20-36-4-15 7-15 7-204 220-36 38-36 38-62 30z" >
+</path>
+</g>
+<g id="Nabc-grelaon-to" class="glyph" transform="scale(0.0625)" >
+<path d="m103-64c-63 9-63 9-40-58 24-61 24-61 84-56 162 7 162 7 244 16 11 1 11 1 38-12 16-8 16-8 12-36-2-16-2-16 24-238 8-65 8-65 42-158 133-360 133-360 180-444 49-88 49-88 76-12 60 169 60 169 88 474 48 516 48 516-84 588 36-92 36-92 26-134-8-36-8-36-46-502-14-184-14-184-12-200 1-14 1-14-28-18-25-3-25-3-34 10-27 23-27 23-56 152-78 211-78 211-84 244-4 24-4 24-20 224-10 113-10 113-62 144-8 5-8 5-72 6-242 6-242 6-276 10z" >
+</path>
+</g>
+<g id="Nabc-grelaon-clGlsa5" class="glyph" transform="scale(0.0625)" >
+<path d="m33 966c24-37 24-37 62-77 104-109 104-109 137-131 54-37 54-37 72-10 30 45 30 45 48 43 31-3 31-3 49-32 36-59 36-59 32 13-2 45-2 45-75 97-41 29-41 29-99 28-40-1-40-1-49-26-8-18-8-18-38-10-24 6-24 6-52 30-27 20-27 20-72 71l-15 4zm310-599c-67 47-67 47-122 60-117 27-117 27-171 7-44-16-44-16-8-72 46-71 46-71 138-131 46-30 46-30 100-23 16 2 16 2 15-27 1-19 1-19-9-26-19-14-19-14-33-5-10 7-10 7-38 11-11 3-11 3 3-18 39-43 39-43 61-52 48-20 48-20 64 0 32 43 32 43 32 68-1 57-1 57 51 57 27 0 27 0 77-45 62-55 62-55 47-4-19 63-19 63-107 120-37 24-37 24-98 22-50-1-50-1-70-31-23-30-23-30-27-33-12-8-12-8-32-5-21 3-21 3-29 13-21 27-21 27-19 48 4 37 4 37 29 42 48 11 48 11 95 2 26-4 26-4 48 1 23 5 23 5 3 21zm-285-436c-5-8-5-8 5-25 152-248 152-248 181-278 70-68 70-68 98-31 31 41 31 41 65 31 18-5 18-5 84-145 39-40 39-40 29-9-28 79-28 79-94 205-20 36-20 36-115 55-21 4-21 4-41-20-6-9-6-9-37 3-5-4-5-4-26 22-69 85-69 85-135 184l-14 8z" >
+</path>
+</g>
+<g id="Nabc-grelaon-vi" class="glyph" transform="scale(0.0625)" >
+<path d="m103-116c-13-38-13-38 6-84 14-33 14-33 46-42 47-12 47-12 52 16 8 42 8 42 28 42 10 0 10 0 24-20 42-58 42-58 134-220 33-56 33-56 98-92 48-26 48-26 54 8 11 57 11 57-28 130-7 13-7 13-48 14-14-4-14-4-24-12-8-6-8-6-34 20-34 34-34 34-148 230-48 81-48 81-100 84-34 2-34 2-60-74z" >
+</path>
+</g>
+<g id="Porrectus1" class="glyph" transform="scale(0.0625)" >
+<path d="M-50 -52.75C101.027 75.5 185.549 66 212.544 66C221.044 66 244.244 65.5 252.344 36.3L252.344 151.9C252.344 162.7 239.544 162.9 233.644 162.9C165.791 162.9 59.452 159.024 -50 66z" >
+</path>
+</g>
+<g id="None" class="glyph" transform="scale(0.0625)" >
+<g >
+</g>
+</g>
+<g id="PodatusUpperShort" class="glyph" transform="scale(0.0625)" >
+<path d="M-46.094-63.78c13.542 0 24.61 2.473 33.203 7.42C-4.298-51.41 0-43.99 0-34.093V62h-9.375c0-10.938-2.604-19.14-7.812-24.61-5.21-5.468-14.844-8.203-28.907-8.202-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
+</path>
+</g>
+<g id="Nabc-grelaon-bvlsa2" class="glyph" transform="scale(0.0625)" >
+<path d="m714-784c-19 36-19 36-134 57-61 9-61 9-28-69 27-64 27-64 136-108 50-20 50-20 55-35 13-39 13-39-20-29-20 6-20 6-42 2-12-2-12-2 44-54 75-66 75-66 116 19 44 92 44 92 94 104 78 18 78 18 126-12 87-46 87-46 24 12-76 68-76 68-149 94-46 15-46 15-125-21-58-26-58-26-64-65-3-19-3-19-28-9-25 10-25 10-34 24-29 44-29 44-3 57 40 21 40 21 32 33zm-9 667c-6-12-6-12 4-28 146-230 146-230 185-270 43-44 43-44 75 5 45 73 45 73 104 63 18-3 18-3 65-66 28-8 28-8 16 7-108 134-108 134-146 146-78 26-78 26-116-15-27-30-27-30-53-5-33 31-33 31-118 157-11 15-11 15-16 6zm-684 93c-18 2-18 2 7-36 115-163 115-163 272-312 56-52 56-52 91-1 56 78 56 78 105 57 61-26 61-26 97-69 109-122 109-122 30-11-117 168-117 168-184 181-95 18-95 18-121-40-13-30-13-30-66-8-66 45-66 45-210 221-13 16-13 16-21 18z" >
+</path>
+</g>
+<g id="Nabc-grelaon-un" class="glyph" transform="scale(0.0625)" >
+<path d="m83-34c-23-26-23-26 0-80 79-183 79-183 148-262 67-77 67-77 90-12 22 65 22 65 74 36 27-15 27-15 54-60 38-64 38-64 16 2-38 106-38 106-92 144-58 41-58 41-116 2-16-10-16-10-38 12-22 22-22 22-82 198-20 57-20 57-54 20z" >
+</path>
+</g>
+<g id="Nabc-grelaon-un1ppn1ppq1sun2" class="glyph" transform="scale(0.0625)" >
+<path d="m1417-342c-14-7-14-7 4-42 129-271 129-271 278-374 43-31 43-31 46 6 4 61 4 61 32 70 51 15 51 15 98-90 55-125 55-125-3 39-62 174-62 174-145 197-61 17-61 17-74-38-8-28-8-28-20-26-10 2-10 2-42 30-55 47-55 47-132 204-18 35-18 35-42 24zm8-782c-17-9-17-9 2-40 162-265 162-265 236-348 57-65 57-65 52 22-11 90-11 90 10 98 38 15 38 15 58-46 26-74 26-74 26 14 4 118 4 118-102 170-77 38-77 38-74-72-21-33-21-33-46-6-28 31-28 31-126 186-20 30-20 30-36 22zm-14-624c-29-8-29-8-2-54 111-186 111-186 194-308 46-66 46-66 66-10 21 59 21 59 48 54 83-14 83-14 186-244 141-315 141-315 30 8-64 190-64 190-222 348-70 70-70 70-106-20-9-22-9-22-36 4-37 35-37 35-102 184-21 48-21 48-56 38zm-522 864c-30 29-30 29-94 14-20-5-20-5-30-78-2-21-2-21-80 6-5-42-5-42 68-110 39-37 39-37 56-6 30 58 30 58 40 64 24 16 24 16 36 14 19-1 19-1 28-36 12-48 12-48 58-200 51-164 51-164 142-288 48-66 48-66 72-4 28 74 28 74-6 178-6 20-6 20-50-6-12-7-12-7-18-34-10-21-10-21-38 18-14 20-14 20-86 298-27 102-27 102-98 170zm-120 90c67-52 67-52 26 24-45 83-45 83-88 90-111 18-111 18-86-62 29-94 29-94 68-150 30 35 30 35 24 52-5 14-5 14-4 48 0 20 0 20 32 11 14-4 14-4 28-13zm-660 720c-33-20-33-20-8-56 127-176 127-176 248-320 60-64 60-64 62-4-8 51-8 51 16 58 41 12 41 12 102-40 112-91 112-91 26 22-76 99-76 99-148 138-51 28-51 28-68-22-8-24-8-24-26-6-48 43-48 43-152 210-24 37-24 37-52 20z" >
+</path>
+</g>
+<g id="Nabc-grelaon-qlEpo" class="glyph" transform="scale(0.0625)" >
+<path d="m459-220c-67 37-67 37-100 8-62-54-62-54-68-84-8-34-8-34-98-10 42-54 42-54 130-144 37-34 37-34 70 8 36 46 36 46 68 76 22 24 22 24 44 6 8-7 8-7 26-54 26-70 26-70 248-636 32-79 32-79 134-138 61-35 61-35 106 0 86 68 86 68 96 160 20 192 20 192 18 338-1 37-1 37 26 40 30 3 30 3 46-32 12-28 12-28 226-426 31-56 31-56 90-26 65 33 65 33 54 100-6 36-6 36-82 78-31 17-31 17-62 2-22-11-22-11-38 24-70 150-70 150-194 356-36 62-36 62-104 88-72 28-72 28-70-20 10-256 10-256-6-414-3-27-3-27-100-110-19-16-19-16-38-8-40 18-40 18-60 52-22 38-22 38-144 412-48 145-48 145-110 246-45 73-45 73-108 108zm-204 0c53-13 53-13 18 52-53 99-53 99-112 122-42 16-42 16-86-44-37-50-37-50-14-92 33-62 33-62 118-102-8 50-8 50 6 66 12 14 12 14 70-2z" >
+</path>
+</g>
+<g id="Quilisma" class="glyph" transform="scale(0.0625)" >
+<path d="M-50 34.938V-51c5.73 20.833 13.02 31.25 21.875 31.25 7.813 0 12.5-15.625 14.063-46.875 3.645 12.5 6.9 21.224 9.765 26.172s6.9 7.422 12.11 7.422c5.208 0 9.374-14.324 12.5-42.97 5.73 22.917 10.677 34.375 14.843 34.375 5.73 0 10.677-15.885 14.844-47.656v100c0 17.707-3.125 26.56-9.375 26.56-4.688 0-9.115-5.988-13.28-17.968-2.085 21.875-8.074 32.813-17.97 32.813-7.813 0-16.146-7.292-25-21.875-4.688 20.312-10.677 30.47-17.97 30.47-5.207 0-9.244-2.605-12.108-7.814C-48.568 47.698-50 41.708-50 34.938z" >
+</path>
+</g>
+<g id="PunctumInclinatumDescendens" class="glyph" transform="scale(0.0625)" >
+<path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z" >
+</path>
+</g>
+<g id="VerticalEpisemaBelow" class="glyph" transform="scale(0.0625)" >
+<path d="M-8 56c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z" >
+</path>
+</g>
+<g id="PodatusUpper" class="glyph" transform="scale(0.0625)" >
+<path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
+</path>
+</g>
+<g id="Nabc-grelaon-lsa" class="glyph" transform="scale(0.0625)" >
+<path d="m193-98c43-23 43-23 8 24-41 57-41 57-88 48-81-16-81-16-40-74 133-186 133-186 226-186 12 0 12 0 11-18-2-21-2-21-15-20-29 5-29 5 60-58 47-32 47-32 32 176-10 80-10 80 124 52 54-16 54-16-4 38-60 58-60 58-98 58-126-4-126-4-126-130 0-26 0-26-36-16-61 15-61 15-100 76-12 19-12 19 10 36 10 8 10 8 36-6z" >
+</path>
+</g>
+<g id="Nabc-grelaon-viB" class="glyph" transform="scale(0.0625)" >
+<path d="m305-206c66-13 66-13 64 26-6 97-6 97-120 64-180-52-180-52-80-188 77-103 77-103 262-172 86-32 86-32 128 72 63 164 63 164-94 432-74 127-74 127-322 278-41 25-41 25-88-28-32-36-32-36 18-52 40-17 40-17 90 4 14 6 14 6 94-66 201-183 201-183 224-302 15-76 15-76-22-170-21-53-21-53-104-36-55 11-55 11-100 34-42 21-42 21 0 84 18 26 18 26 50 20z" >
+</path>
+</g>
+<g id="BeginningDesLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-50-56.03c0-13.022 7.03-19.532 21.094-19.532 13.02 0 28.385 2.604 46.093 7.812C32.813-63.583 43.75-54.73 50-41.187V76C45.833 59.854 31.77 48.656 7.812 42.406c-11.98-3.125-22.656-4.687-32.03-4.687-13.022 0-21.615 3.905-25.782 11.718v-105.47z" >
+</path>
+</g>
+<g id="TerminatingDesLiquescent" class="glyph" transform="scale(0.0625)" >
+<path d="M-9.375-48.156V-80.97H0V26.845c0 5.73-2.604 9.896-7.813 12.5-3.125 1.562-6.51 2.343-10.156 2.343-2.603 0-5.207-.26-7.81-.78-5.73-1.563-11.2-4.95-16.407-10.157C-47.398 25.542-50 19.292-50 12v-52.344c6.25 7.292 14.844 10.938 25.78 10.938 9.897 0 14.845-6.25 14.845-18.75z" >
+</path>
+</g>
+<g id="Nabc-grelaon-toB" class="glyph" transform="scale(0.0625)" >
+<path d="m119-106c-66-6-66-6-62-42 5-45 5-45 74-70 38-14 38-14 156-14 50 0 50 0 44-28-2-12-2-12 4-64 47-353 47-353 64-408 48-150 48-150 144-246 58-58 58-58 116-14 249 186 249 186 310 332 88 212 88 212 56 408-29 166-29 166-246 230-129 38-129 38-86-132 24-92 24-92 116-142 65-34 65-34 40 6-21 15-21 15-76 70-39 37-39 37-14 96 0 24 0 24 90 18 36-2 36-2 82-58 25-30 25-30 20-148 11-141 11-141-88-274-112-152-112-152-268-272-39-31-39-31-60-22-17 7-17 7-26 40-28 98-28 98-104 610-12 80-12 80-76 108-68 30-68 30-210 16z" >
+</path>
+</g>
+<g id="Nabc-grelaon-ltsr" class="glyph" transform="scale(0.0625)" >
+<path d="m179-110c-59 21-59 21-97-16-26-26-26-26 8-72 47-64 47-64 178-180 15-13 15-13 28-3 11 9 11 9-3 22-90 73-90 73-100 89-26 42-26 42-18 69 6 18 6 18 44 17 35-1 35-1 135-54 50-25 50-25 80-2 16 12 16 12 0 64-36 123-36 123-110 174-67 49-67 49-176 100-16 7-16 7-21-7-5-13-5-13 10-22 179-98 179-98 199-119 21-24 21-24 24-70 1-23 1-23-35-32-18-5-18-5-146 42z" >
+</path>
+</g>
+<g id="FaClef" class="glyph" transform="scale(0.0625)" >
+<path d="M85.156-32v193.75c0 9.375-1.562 14.323-4.687 14.844-1.564 0-2.605-.52-3.126-1.563-.52-1.04-.782-2.603-.78-4.686V56.28c-8.335-8.332-19.793-12.5-34.376-12.5-17.71 0-31.77 3.907-42.188 11.72V-32c0-18.23 14.193-27.344 42.578-27.344 28.385 0 42.578 9.115 42.578 27.344zM98.438 93V-92.156c0-19.27 5.73-34.896 17.187-46.875 11.458-11.98 26.562-17.97 45.313-17.97 10.937 0 19.14 2.865 24.61 8.594 5.467 5.73 8.202 13.542 8.202 23.437v103.126l-5.47-4.687c-3.645-3.647-9.374-7.293-17.186-10.94-7.813-3.645-15.886-5.467-24.22-5.468-11.978 0-22.004 4.167-30.077 12.5-8.073 8.334-12.11 18.36-12.11 30.08 0 11.717 4.037 22.004 12.11 30.858s18.1 13.28 30.078 13.28c8.333 0 16.406-1.822 24.22-5.468 7.81-3.645 13.54-7.03 17.186-10.156l5.47-5.468V125.81c0 9.896-2.865 17.84-8.594 23.83-5.73 5.988-13.802 8.983-24.22 8.983-18.75 0-33.853-6.12-45.31-18.36-11.46-12.24-17.19-27.994-17.19-47.265z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,76.75443087543468)" element-index="0" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<g class="ChantNotationElement FaClef" transform="translate(0,0)" >
+<use xlink:href="#FaClef" class="" source-index="1" element-index="-1" x="0.0000625" y="-31.25" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(19.922,0)" >
+<text source-index="5" x="0.6482000000000001" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >OM</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-clG" class="" x="0" y="-298.5416959170845" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-grelaon-taB" class="" x="41" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<rect x="0" y="-18.75" width="0.8" height="22.256761363636365" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="8" element-index="0" id="note-1" x="3.125" y="-18.75" >
+</use>
+<rect x="5.45" y="-18.75" width="0.8" height="18.75" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="10" element-index="1" id="note-2" x="8.575" y="0" >
+</use>
+<rect x="0" y="-26.6220625" width="6.25" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(34.747,0)" >
+<use xlink:href="#BeginningAscLiquescent" class=" note" source-index="12" element-index="2" id="note-3" x="3.125" y="-12.5" >
+</use>
+<use xlink:href="#TerminatingAscLiquescent" class=" note" source-index="13" element-index="3" id="note-4" x="6.25" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(49.5308802054155,0)" >
+<text source-index="25" x="-8.539" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >nes</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-un1" class="" x="0" y="-287.60419591708444" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="29" element-index="4" id="note-5" x="3.125" y="-18.75" >
+</use>
+<use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
+</use>
+</g>
+<g class="ChantNotationElement QuarterBar" transform="translate(76.0747802054155,0)" >
+<text source-index="39" x="-10.15649999999999" y="20.670249999999996" class="directive lyric" text-anchor="start" style="fill: #d00;" >
+<tspan source-index="0" style="" >*</tspan>
+</text>
+<rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="41" element-index="5" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(92.5436802054155,0)" >
+<text source-index="44" x="-12.210999999999999" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >qui</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-pu" class="" x="0" y="-254.79169591708447" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="48" element-index="6" id="note-6" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(109.7311802054155,0)" >
+<text source-index="56" x="-0.23019999999999996" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >in</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-pu" class="" x="0" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="59" element-index="7" id="note-7" x="3.125" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(147.0415802054155,0)" >
+<text source-index="65" x="-16.473399999999998" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >Chris</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-un1lst8" class="" x="0" y="-265.7291959170845" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-grelaon-to" class="" x="42.47716873769685" y="-309.4791959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="71" element-index="8" id="note-8" x="3.125" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(156.4165802054155,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="73" element-index="9" id="note-9" x="3.125" y="-25" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="74" element-index="10" id="note-10" x="9.375" y="-31.249999999999996" >
+</use>
+<rect x="11.7" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="75" element-index="11" id="note-11" x="14.825" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Porrectus" transform="translate(182.1790802054155,0)" >
+<text source-index="92" x="-5.3278" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >to</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-clGlsa5" class="" x="0" y="-287.60419591708444" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-grelaon-vi" class="" x="42.5" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<rect x="0" y="-18.75" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="95" element-index="12" id="note-12" x="3.125" y="-18.75" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="97" element-index="13" id="note-13" x="18.8965" y="-12.5" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="98" element-index="14" id="note-14" x="18.8965" y="-18.75" >
+</use>
+<rect x="0" y="-26.3671875" width="6.25" height="1" fill="#000" class="horizontalEpisema" >
+</rect>
+<use xlink:href="#Mora" class="" x="19.0215" y="-23.4375" >
+</use>
+</g>
+<g class="ChantNotationElement QuarterBar" transform="translate(212.7630802054155,0)" >
+<rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="115" element-index="15" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(220.6255802054155,0)" >
+<text source-index="118" x="-10.1518" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >bap</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-pu" class="" x="0" y="-254.79169591708447" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="122" element-index="16" id="note-15" x="3.125" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Distropha" transform="translate(239.1439802054155,0)" >
+<text source-index="129" x="-6.753399999999999" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ti</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-bvlsa2" class="" x="0" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="132" element-index="17" id="note-16" x="3.125" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="133" element-index="18" id="note-17" x="12.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(262.5970045751634,0)" >
+<text source-index="142" x="-8.6542" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >zá</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-un" class="" x="0" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="145" element-index="19" id="note-18" x="3.125" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(279.5170045751634,0)" >
+<text source-index="150" x="-6.753399999999999" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ti</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-un" class="" x="0" y="-254.79169591708447" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<rect x="0" y="-18.75" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="153" element-index="20" id="note-19" x="3.125" y="-18.75" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="154" element-index="21" id="note-20" x="9.375" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(302.9545045751634,0)" >
+<text source-index="162" x="0.8353999999999999" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >es</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-un1ppn1ppq1sun2" class="" x="0" y="-232.91669591708447" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-grelaon-qlEpo" class="" x="130.625" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="165" element-index="22" id="note-21" x="3.125" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Podatus" transform="translate(309.2045045751634,0)" >
+<use xlink:href="#Quilisma" class=" note" source-index="167" element-index="23" id="note-22" x="3.125" y="-25" >
+</use>
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="169" element-index="24" id="note-23" x="6.25" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Climacus" transform="translate(315.4545045751634,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="171" element-index="25" id="note-24" x="3.125" y="-37.5" >
+</use>
+<rect x="5.45" y="-37.5" width="0.8" height="11.25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="173" element-index="26" id="note-25" x="11.7" y="-31.25" >
+</use>
+<use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="174" element-index="27" id="note-26" x="16.88701998281125" y="-25" >
+</use>
+<use xlink:href="#VerticalEpisemaBelow" class="" x="16.88701998281125" y="-16.875" >
+</use>
+</g>
+<g class="ChantNotationElement TorculusResupinus" transform="translate(338.59152455797465,0)" >
+<use xlink:href="#Quilisma" class=" note" source-index="177" element-index="28" id="note-27" x="3.125" y="-31.250000000000004" >
+</use>
+<use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="179" element-index="29" id="note-28" x="9.375" y="-37.5" >
+</use>
+<use xlink:href="#None" class=" note porrectus porrectus-end" source-index="180" element-index="30" id="note-29" x="25.1465" y="-31.25" >
+</use>
+<use xlink:href="#PodatusUpper" class=" note" source-index="181" element-index="31" id="note-30" x="25.1465" y="-37.5" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(371.55052455797465,0)" >
+<text source-index="206" x="-6.753399999999999" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >tis,</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-clG" class="" x="0" y="-287.60419591708444" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<rect x="0" y="-37.5" width="0.8" height="28.506761363636365" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="211" element-index="32" id="note-31" x="3.125" y="-37.5" >
+</use>
+<rect x="5.45" y="-37.5" width="0.8" height="25" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="212" element-index="33" id="note-32" x="8.575" y="-12.5" >
+</use>
+<use xlink:href="#Mora" class="" x="11.825" y="-37.5" >
+</use>
+<use xlink:href="#Mora" class="" x="11.825" y="-12.5" >
+</use>
+</g>
+<g class="ChantNotationElement HalfBar" transform="translate(394.9380245579747,0)" >
+<rect x="0" y="-37.5" width="0.8" height="25" fill="#000" class="dividerLine" source-index="224" element-index="34" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Apostropha" transform="translate(402.80052455797465,0)" >
+<text source-index="227" x="-1.1230000000000002" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >al</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-un" class="" x="0.375" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-grelaon-lsa" class="" x="0" y="-305.4166959170845" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-grelaon-viB" class="" x="23.16466873769685" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="230" element-index="35" id="note-33" x="3.125" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Clivis" transform="translate(412.0948674151175,0)" >
+<rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#BeginningDesLiquescent" class=" note" source-index="231" element-index="36" id="note-34" x="3.125" y="-31.25" >
+</use>
+<rect x="5.45" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
+</rect>
+<use xlink:href="#TerminatingDesLiquescent" class=" note" source-index="232" element-index="37" id="note-35" x="6.25" y="-18.75" >
+</use>
+</g>
+<g class="ChantNotationElement Distropha" transform="translate(425.9557245579747,0)" >
+<text source-index="246" x="-7.4734" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >le</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-bvlsa2" class="" x="0" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="249" element-index="38" id="note-36" x="3.125" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="250" element-index="39" id="note-37" x="12.5" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Torculus" transform="translate(449.40874892772257,0)" >
+<text source-index="259" x="-7.855" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >lú</tspan>
+<tspan source-index="0" style="" >-</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-toB" class="" x="0" y="-276.6666959170845" transform="scale(0.19581251167133518)" >
+</use>
+<use xlink:href="#Nabc-grelaon-ltsr" class="" x="73" y="-293.29169591708455" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="262" element-index="40" id="note-38" x="3.125" y="-31.249999999999996" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="263" element-index="41" id="note-39" x="9.375" y="-37.5" >
+</use>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="264" element-index="42" id="note-40" x="15.625" y="-31.249999999999996" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(477.43889075778793,0)" >
+<text source-index="275" x="-7.833400000000001" y="20.670249999999996" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >ia.</tspan>
+</text>
+<g class="nabc nabc-1" >
+<use xlink:href="#Nabc-grelaon-un" class="" x="0" y="-254.79169591708447" transform="scale(0.19581251167133518)" >
+</use>
+</g>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="279" element-index="43" id="note-41" x="3.125" y="-18.75" >
+</use>
+<use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(494.62639075778793,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="289" element-index="44" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="289" element-index="44" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>

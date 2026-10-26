@@ -3,6 +3,9 @@
 // change how it lays them out.
 
 import type { OutputName, RenderOptions } from "./harness";
+import { nabcFonts } from "./nabcFonts";
+
+const { gregall, gresgmodern, grelaon } = nabcFonts;
 
 export interface GoldenCase extends RenderOptions {
   name: string;
@@ -948,6 +951,91 @@ export const featureCases: GoldenCase[] = [
       ctxt.dropCapLines = 2;
       ctxt.translationCentering = "center";
     }
+  },
+
+  // Gregorio: Phase 10
+  {
+    // the example that Gregorio's NABC reference starts with, drawn with
+    // gregall above the staff, each neume at the left of its notes
+    name: "nabc-st-gall-basic",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) AL(ef~|ta>)le(fg/hggf|peclhgpi)lú(ef~|ta>)ia.(f.|ta-) (,) " +
+      "(ii//|bv-|gh!ivHG//|vi-hhppu2su1sut1|fhg/|to|eef.|pt) (;)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // the second line of NABC below the staff, with the lyrics below it,
+    // and NABC wider than its notes pushing the next syllable over.  On the
+    // second line of the score, a neume pitched low (hb) pushes the first
+    // line of NABC up, and a note two below the staff pushes the second down.
+    name: "nabc-two-voices",
+    gabc:
+      "nabc-lines: 2;\n%%\n(c4) A(f|vi|ta)ve(gh|pe|pe-) Ma(hg|cl|cllst2)rí(gf/ef|po|po)a(e.|ta-|pu) (;) " +
+      "gra(f|vihh|vi)ti(f|pe|pe)a(f|vi|vi) (z) ple(h|vihb|vi)na(b|cl|cl) Dó(c|tolsc3ppt1|tolsc3ppt1)mi(d|vi|vi)nus(d|pu|pu) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // significative letters: at each position, in glyphs with the neume
+    // (vilsc3) and around it, several at one position, and with puncta
+    // before and after the neume
+    name: "nabc-significative-letters",
+    gabc:
+      "nabc-lines: 1;\n%%\n(c3) FAc(e|talsi8)tus(ei|pe) est(i|vilsc3) re(i|vihhlsl2lsc2)pén(i|vilst1lsc4lsx7)te(e.|tahglsi9) (,) " +
+      "de(e|pfhhlsl2lsc2) cæ(e|cllsc3lse7)lo(e|tolst2lss9lsc7) so(e|vippt1lsc2)nus,(dc..|clppt2lsc6lst8) (;)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // NABC on syllables without notes, which takes its own room
+    name: "nabc-only",
+    gabc: "nabc-lines: 1;\n%%\n(c4) a(|vi) b(|pe) c(|cllsc3) d(f|ta) e(|/to) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // NABC that Gregorio can't draw, where ERR goes: a neume that isn't
+    // one, glyphs too far apart in pitch, a letter that GregorioTeX doesn't
+    // know, and a neume (pv) that gregall has no glyph for
+    name: "nabc-errors",
+    gabc: "nabc-lines: 1;\n%%\n(c4) a(f|vixx) b(g|viha!puhp/pe) c(h|vilspulcre2) d(g|pv) e(f|ta) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gregall])
+  },
+  {
+    // with nabcAlignment "neume", the letters on the left hang back, and
+    // the notes move over to make room for them
+    name: "nabc-neume-alignment",
+    gabc: "nabc-lines: 1;\n%%\n(c4) a(f|vilst4lsc1) b(g|pelsx7) c(h|tolse4lsc6) (::)",
+    setupContext: (ctxt) => {
+      ctxt.nabcFonts = [gregall];
+      ctxt.nabcAlignment = "neume";
+    }
+  },
+  {
+    // the first line of NABC as a phantom, taking its room, and the second
+    // invisible, taking none
+    name: "nabc-visibility",
+    gabc: "nabc-lines: 2;\n%%\n(c4) A(f|vi|ta)ve(gh|pe|pe-) Ma(hg|cl|cllst2)ri(gf|cl|cl)a(e.|ta-|pu) (::)",
+    setupContext: (ctxt) => {
+      ctxt.nabcFonts = [gregall];
+      ctxt.nabcVisibility = ["phantom", "invisible"];
+    }
+  },
+  {
+    // the Laon neumes of the score that Gregorio's NABC reference prints
+    // (doc/omnes.gabc), drawn with grelaon: un and oc, letters inside the
+    // neume (lsa5), and a Tironian note (ltsr6)
+    name: "nabc-laon",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) OM(f_c/ef~|clGhhta>)nes(f.|un1hg) *(,) qui(e|puhd) in(f|pu) Chris(f/ghf|un1helst8`tohi)to(f_ef.|clGhglsa5vi) (,) " +
+      "bap(f|puhd)ti(hh|bvlsa2)zá(h|un)ti(fe|unhd) es(e!gwh!ivHG'/hwihi|un1hbppn1ppq1sun2ql!po)tis,(ie..|clGhg) (;) " +
+      "al(hhf~|unlsa2`vi>)le(hh|bvlsa2)lú(hih|to>ltsr6)ia.(f.|unhd) (::)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [grelaon])
+  },
+  {
+    // nabc-st-gall-basic, drawn with gresgmodern
+    name: "nabc-gresgmodern",
+    gabc:
+      "nabc-lines: 1;\n%%\n(f3) AL(ef~|ta>)le(fg/hggf|peclhgpi)lú(ef~|ta>)ia.(f.|ta-) (,) " +
+      "(ii//|bv-|gh!ivHG//|vi-hhppu2su1sut1|fhg/|to|eef.|pt) (;)",
+    setupContext: (ctxt) => (ctxt.nabcFonts = [gresgmodern])
   }
 ];
 
