@@ -24,7 +24,7 @@
         <line key="-5" x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-3" x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-1" x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine">
-      <line x1="175" y1="-56.25" x2="187.5" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
+      <line x1="171.776875" y1="-56.25" x2="190.723125" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine">
       <path d="M 14.06 -50.00 C 17.19 -59.38 29.69 -59.38 32.81 -50.00" stroke="#000" stroke-width="0.8px" fill="none" class="brace">
       <path d="M 43.75 0.00 C 45.83 9.38 54.17 9.38 56.25 0.00" stroke="#000" stroke-width="0.8px" fill="none" class="brace">
       <path d="M 67.19 -50.00 Q 67.19 -51.88 70.31 -51.25 T 73.44 -53.13 M 79.69 -50.00 Q 79.69 -51.88 76.56 -51.25 T 73.44 -53.13" stroke="#000" stroke-width="0.8px" fill="none" class="brace">

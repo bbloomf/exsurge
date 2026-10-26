@@ -1,0 +1,368 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="310.4594375" viewBox="0 0 600 310.4594375" >
+<g >
+<defs >
+<g id="Flat" class="glyph" transform="scale(0.0625)" >
+<path d="M7.813-204.406c4.166 0 6.25 5.208 6.25 15.625L12.5-10.657C33.854 13.302 54.167 25.28 73.438 25.28c9.374 0 14.062-4.686 14.062-14.06 0-6.25-1.042-11.72-3.125-16.407-2.083-4.688-7.03-9.766-14.844-15.235-7.81-5.47-13.02-8.984-15.624-10.547L27.344-45.81V-80.97c17.187 0 33.073 4.82 47.656 14.454C89.583-56.88 96.875-47.376 96.875-38c0 67.708-.26 101.562-.78 101.563-38.543 0-69.532-12.24-92.97-36.72C0-52.322-1.042-123.936 0-188c0-10.937 2.604-16.406 7.813-16.406z" >
+</path>
+</g>
+<g id="PunctumQuadratum" class="glyph" transform="scale(0.0625)" >
+<path d="M0-60.906c33.333 0 50 9.635 50 28.906v94.53C39.062 51.595 22.396 46.126 0 46.126s-39.063 5.47-50 16.406V-32c0-19.27 16.667-28.906 50-28.906z" >
+</path>
+</g>
+<g id="Sharp" class="glyph" transform="scale(0.0625)" >
+<path d="m41.725,-73.773c-5.421,-0.241-10.878,5.856-6.549,12.357L67.061,-20.473 61.264,-12.5 13.436,-71.199c-5.634,-5.934-16.988,1.032-11.232,9.783L50.756,0.182 2.203,61.416c-6.745,7.984 3.442,17.859 11.232,9.783L61.264,12.5l5.797,7.973-31.885,40.943c-5.578,6.844 5.588,16.005 11.594,9.783L77.568,33.154 108.367,71.199c4.894,6.717 17.343,-1.575 11.232,-9.783L87.715,20.473 93.873,12.5 141.34,71.199c6.725,7.67 17.509,-2.248 11.596,-9.783L104.02,0.182 152.936,-61.416c5.52,-7.02-5.541,-16.309-11.596,-9.783L93.873,-12.5l-6.158,-7.973 31.884766,-40.943c5.407,-7.045-5.505,-15.924-11.232,-9.783L77.568,-33.154 46.77,-71.199c-1.435,-1.708-3.238,-2.494-5.044922,-2.574zM77.568,-8.516 84.09,0.182 77.568,8.516 70.684,0.182Z" >
+</path>
+</g>
+<g id="Natural" class="glyph" transform="scale(0.0625)" >
+<path d="M7.906-166.563c-2.864 0-5.614.52-8.218 1.563v13.28l.78 56.25.782 78.907v85.157c.52 3.646 2.604 5.73 6.25 6.25l23.438-3.906 23.437-3.907v29.69c0 42.186-.26 63.54-.78 64.06l6.25 2.345c1.04.52 2.082.78 3.124.78 2.603 0 4.947-1.3 7.03-3.905L67.656-71.25c-.52-2.604-2.083-3.906-4.687-3.906-7.814 0-17.19 1.04-28.126 3.125l-19.53 3.124.78-38.28V-165c-2.604-1.042-5.323-1.562-8.188-1.563zM55.938-40v71.875l-41.407 7.03c0-48.436.262-72.655.783-72.655L55.938-40z" >
+</path>
+</g>
+<g id="OpenParenthesis" class="glyph" transform="scale(0.0625)" >
+<path d="M40-150C16-118 0-62 0 0s16 118 40 150c3 .5 6.5-1.5 7-4C29 112 17 60 17 0s12-112 30-146c-.5-2.5-4-4.5-7-4z" >
+</path>
+</g>
+<g id="CloseParenthesis" class="glyph" transform="scale(0.0625)" >
+<path d="M7-150c24 32 40 88 40 150S31 118 7 150c-3 .5-6.5-1.5-7-4C18 112 30 60 30 0S18-112 0-146c.5-2.5 4-4.5 7-4z" >
+</path>
+</g>
+<g id="Virgula" class="glyph" transform="scale(0.0625)" >
+<path d="M8.178-55.66c0-22.137 12.092-33.2 36.287-33.2 11.835 0 23.53 5.66 35.108 16.98C91.15-60.547 96.94-41.766 96.94-15.534c0 53.515-31.646 87.487-94.937 101.895-2.048-2.06-3.077-5.146-3.077-9.273 0-1.03.247-1.8.76-2.316 42.71-19.027 64.075-41.678 64.075-67.92 0-11.322-2.325-20.326-6.945-27.016-4.62-6.69-9.52-11.052-14.676-13.11-5.147-2.048-11.836-3.85-20.07-5.403C12.81-39.707 8.18-45.37 8.18-55.66z" >
+</path>
+</g>
+<g id="CustosDescLong" class="glyph" transform="scale(0.0625)" >
+<path d="M39.063 273.472c5.73.52 7.29-6.25 4.687-20.312V-65.59c-13.542 2.083-24.22 5.468-32.03 10.156C3.905-50.226 0-43.714 0-35.904V71.91c5.73-5.21 10.677-8.594 14.844-10.157 5.73-1.562 12.24-2.343 19.53-2.343v196.875c0 11.458 1.563 17.187 4.688 17.187" >
+</path>
+</g>
+<g id="CustosLong" class="glyph" transform="scale(0.0625)" >
+<path d="M39.063-269.562c5.73-.52 7.29 6.25 4.687 20.312V69.5c-13.542-2.083-24.22-5.47-32.03-10.156C3.905 54.134 0 47.624 0 39.812V-68c5.73 5.208 10.677 8.594 14.844 10.156 5.73 1.563 12.24 2.344 19.53 2.344v-196.875c0-11.458 1.563-17.187 4.688-17.187z" >
+</path>
+</g>
+<g id="CustosDescShort" class="glyph" transform="scale(0.0625)" >
+<path d="M34.375 191.923c0 8.333 1.563 12.24 4.688 11.72 3.125-.522 4.687-7.033 4.687-19.533v-250c-13.542 2.084-24.22 5.47-32.03 10.157C3.905-50.525 0-44.015 0-36.203V71.61c5.73-5.208 10.677-8.593 14.844-10.156 5.73-1.562 12.24-2.344 19.53-2.344v132.813z" >
+</path>
+</g>
+<g id="CustosShort" class="glyph" transform="scale(0.0625)" >
+<path d="M34.375-188.125c0-8.333 1.563-12.24 4.688-11.72 3.125.522 4.687 7.033 4.687 19.532v250c-13.542-2.083-24.22-5.468-32.03-10.156C3.905 54.324 0 47.813 0 40V-67.813c5.73 5.21 10.677 8.594 14.844 10.157 5.73 1.562 12.24 2.344 19.53 2.343v-132.812z" >
+</path>
+</g>
+<g id="DoClef" class="glyph" transform="scale(0.0625)" >
+<path d="M0 98.406V-97.688C0-118 5.99-134.275 17.97-146.516c11.978-12.24 27.603-18.36 46.874-18.36 10.937 0 19.53 3.126 25.78 9.376s9.376 14.583 9.376 25v107.813l-6.25-5.47c-4.167-3.645-10.287-7.42-18.36-11.327-8.072-3.907-16.796-5.86-26.17-5.86-11.46 0-21.486 4.427-30.08 13.282-8.593 8.854-12.89 19.53-12.89 32.03s4.297 23.308 12.89 32.423c8.594 9.115 18.62 13.672 30.08 13.672 9.374 0 18.098-1.822 26.17-5.468 8.073-3.646 14.193-7.292 18.36-10.938l6.25-6.25V132c0 9.896-3.125 18.1-9.375 24.61-6.25 6.51-14.844 9.765-25.78 9.765-19.272 0-34.897-6.25-46.876-18.75C5.99 135.125 0 118.72 0 98.405z" >
+</path>
+</g>
+<style>svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}</style>
+</defs>
+<g class="Titles" >
+</g>
+<g class="chantLine" transform="translate(0,69.025375)" element-index="0" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<line x1="7.7143749999999995" y1="6.25" x2="39.030437500000005" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="40.57594136775362" y1="-56.25" x2="71.89200386775362" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="73.43750773550725" y1="6.25" x2="108.29913273550724" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="109.84463660326088" y1="-56.25" x2="139.43532410326088" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="140.98082797101446" y1="6.25" x2="172.29689047101448" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="186.21220683876808" y1="6.25" x2="214.5334568387681" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="216.0789607065217" y1="6.25" x2="234.89502320652173" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="248.9405270742753" y1="6.25" x2="287.0668158242753" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="309.1661360597826" y1="-56.25" x2="327.98826105978253" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="353.0884562952899" y1="-56.25" x2="366.5847062952899" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="388.62196403079713" y1="-56.25" x2="402.1182140307971" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="421.0925342663044" y1="-56.25" x2="444.90857051630434" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="470.5747476268116" y1="-56.25" x2="489.5501642934782" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="513.9686720289856" y1="-56.25" x2="524.7994845289854" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="529.5449883967392" y1="6.25" x2="540.3758008967391" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="545.1213047644928" y1="-56.25" x2="555.7894297644928" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="560.5349336322464" y1="6.25" x2="571.2030586322463" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="593.1360625000001" y1="-56.25" x2="600" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(14.0625,0)" >
+<use xlink:href="#Flat" class="" source-index="7" element-index="0" x="0.065125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(26.432312500000002,0)" >
+<text source-index="5" x="-1.1230000000000002" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >a</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="9" element-index="1" id="note-1" x="3.125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(46.924066367753625,0)" >
+<use xlink:href="#Flat" class="" source-index="14" element-index="2" x="0.065125" y="-56.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(59.29387886775363,0)" >
+<text source-index="12" x="-1.3894000000000002" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >b</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="16" element-index="3" id="note-2" x="3.125" y="-56.25" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(79.78563273550725,0)" >
+<use xlink:href="#Sharp" class="" source-index="21" element-index="4" x="0" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(95.70100773550725,0)" >
+<text source-index="19" x="-1.6558000000000002" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >c</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="23" element-index="5" id="note-3" x="3.125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(116.19276160326088,0)" >
+<use xlink:href="#Natural" class="" source-index="28" element-index="6" x="0.0195" y="-56.25000000000001" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(126.83719910326087,0)" >
+<text source-index="26" x="1.1018" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >d</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="30" element-index="7" id="note-4" x="3.125" y="-56.25" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(147.32895297101447,0)" >
+<use xlink:href="#Flat" class="" source-index="35" element-index="8" x="0.065125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(159.69876547101447,0)" >
+<text source-index="33" x="0.8353999999999999" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >e</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="37" element-index="9" id="note-5" x="3.125" y="0" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(180.1905193387681,0)" >
+<use xlink:href="#Flat" class="" source-index="42" element-index="10" x="0.065125" y="0" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(192.5603318387681,0)" >
+<text source-index="40" x="0.569" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >f</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="44" element-index="11" id="note-6" x="3.125" y="0" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(201.9353318387681,0)" >
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="47" element-index="12" id="note-7" x="3.125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(222.42708570652172,0)" >
+<use xlink:href="#Flat" class="" source-index="52" element-index="13" x="0.065125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(234.79689820652172,0)" >
+<text source-index="50" x="0.3026" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >g</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="55" element-index="14" id="note-8" x="3.125" y="0" >
+</use>
+</g>
+<g class="ChantNotationElement Accidental" transform="translate(255.28865207427532,0)" >
+<use xlink:href="#OpenParenthesis" class="" source-index="60" element-index="15" x="0" y="2.0696307222104044" transform="scale(0.89323)" >
+</use>
+<use xlink:href="#Flat" class="" source-index="60" element-index="15" x="3.470238125" y="6.25" >
+</use>
+<use xlink:href="#CloseParenthesis" class="" source-index="60" element-index="15" x="11.538098390112289" y="2.0696307222104044" transform="scale(0.89323)" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(274.4686908242753,0)" >
+<text source-index="58" x="0.03620000000000001" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >h</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="63" element-index="16" id="note-9" x="3.125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(298.08544469202894,0)" >
+<text source-index="66" x="-0.23019999999999996" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >i</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="68" element-index="17" id="note-10" x="3.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Virgula" transform="translate(318.5771985597826,0)" >
+<use xlink:href="#Virgula" class="" source-index="72" element-index="18" x="-2.9958125" y="-56.25" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(338.9448274275362,0)" >
+<text source-index="76" x="-0.49659999999999993" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >j</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="78" element-index="19" id="note-11" x="3.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement QuarterBar" transform="translate(359.4365812952899,0)" >
+<rect x="0" y="-62.5" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="82" element-index="20" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(374.4783351630435,0)" >
+<text source-index="86" x="-0.7629999999999999" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >k</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="88" element-index="21" id="note-12" x="3.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement DivisioMinimis" transform="translate(394.9700890307971,0)" >
+<rect x="0" y="-65.625" width="0.8" height="6.25" fill="#000" class="dividerLine" source-index="92" element-index="22" source="[object Object]" >
+</rect>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(410.01184289855075,0)" >
+<text source-index="96" x="-1.0293999999999999" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >l</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="98" element-index="23" id="note-13" x="3.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Virgula" transform="translate(430.5035967663044,0)" >
+<use xlink:href="#OpenParenthesis" class="" source-index="102" element-index="24" x="-5.244127416234355" y="-96.44065565771227" transform="scale(0.58407)" >
+</use>
+<use xlink:href="#Virgula" class="" source-index="102" element-index="24" x="-0.498856875" y="-56.25" >
+</use>
+<use xlink:href="#CloseParenthesis" class="" source-index="102" element-index="24" x="10.85682045816426" y="-96.44065565771227" transform="scale(0.58407)" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(456.431118759058,0)" >
+<text source-index="107" x="-1.2957999999999998" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >m</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="109" element-index="25" id="note-14" x="3.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement QuarterBar" transform="translate(476.92287262681157,0)" >
+<use xlink:href="#OpenParenthesis" class="" source-index="113" element-index="26" x="0" y="-84.375" transform="scale(0.6666666666666666)" >
+</use>
+<rect x="2.739583333333333" y="-62.5" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="113" element-index="26" source="[object Object]" >
+</rect>
+<use xlink:href="#CloseParenthesis" class="" source-index="113" element-index="26" x="6.481249999999999" y="-84.375" transform="scale(0.6666666666666666)" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(497.4437931612319,0)" >
+<text source-index="118" x="-1.5621999999999998" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >n</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="120" element-index="27" id="note-15" x="3.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement Custos" transform="translate(517.9355470289855,0)" >
+<use xlink:href="#CustosDescLong" class="" source-index="124" element-index="28" x="0" y="-56.25" >
+</use>
+</g>
+<g class="ChantNotationElement Custos" transform="translate(533.5118633967392,0)" >
+<use xlink:href="#CustosLong" class="" source-index="129" element-index="29" x="0" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement Custos" transform="translate(549.0881797644928,0)" >
+<use xlink:href="#CustosDescShort" class="" source-index="134" element-index="30" x="0" y="-62.50000000000001" >
+</use>
+</g>
+<g class="ChantNotationElement Custos" transform="translate(564.5018086322464,0)" >
+<use xlink:href="#CustosShort" class="" source-index="139" element-index="31" x="0" y="12.5" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(583.0404375,0)" >
+<text source-index="143" x="1.1954" y="33.617437499999994" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >o</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="145" element-index="32" id="note-16" x="3.125" y="-25" >
+</use>
+</g>
+<g class="ChantNotationElement ChantLineBreak" transform="translate(597.1029375,0)" >
+</g>
+<g class="ChantNotationElement Custos" transform="translate(597.1029375,0)" >
+<use xlink:href="#CustosDescLong" class="" x="0" y="-56.25" >
+</use>
+</g>
+</g>
+<g class="chantLine" transform="translate(0,177.4024375)" element-index="1" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<line x1="7.7143749999999995" y1="-56.25" x2="26.660625" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<line x1="593.1360625000001" y1="6.25" x2="600" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
+<text source-index="152" x="0.9290000000000003" y="24.33175" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >p</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="154" element-index="34" id="note-17" x="3.125" y="-56.25" >
+</use>
+</g>
+<g class="ChantNotationElement ChantLineBreak" transform="translate(28.125,0)" >
+</g>
+<g class="ChantNotationElement Custos" transform="translate(597.1029375,0)" >
+<use xlink:href="#CustosLong" class="" x="0" y="6.25" >
+</use>
+</g>
+</g>
+<g class="chantLine" transform="translate(0,278.2111875)" element-index="2" >
+<g class="staffLines" >
+<line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+<line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
+</line>
+</g>
+<line x1="7.7143749999999995" y1="6.25" x2="26.660625" y2="6.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+</line>
+<g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
+</use>
+</g>
+<g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
+<text source-index="161" x="0.6625999999999999" y="23.896249999999995" class="lyric" text-anchor="start" style="" >
+<tspan source-index="0" style="" >q</tspan>
+</text>
+<use xlink:href="#PunctumQuadratum" class=" note" source-index="163" element-index="36" id="note-18" x="3.125" y="6.25" >
+</use>
+</g>
+<g class="ChantNotationElement DoubleBar" transform="translate(28.125,0)" >
+<rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="167" element-index="37" source="[object Object]" >
+</rect>
+<rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="167" element-index="37" source="[object Object]" >
+</rect>
+</g>
+</g>
+</g>
+</svg>

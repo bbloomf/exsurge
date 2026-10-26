@@ -44,7 +44,7 @@
 <line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
 </g>
-<line x1="175" y1="-56.25" x2="187.5" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="171.776875" y1="-56.25" x2="190.723125" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
 <path d="M 14.06 -50.00 C 17.19 -59.38 29.69 -59.38 32.81 -50.00" stroke="#000" stroke-width="0.8px" fill="none" class="brace" >
 </path>

@@ -386,7 +386,7 @@ export const QuickSvg = {
         node.textContent = str;
         return node;
     },
-    // nodeRef should be the id of the object in defs (without the #)
+    // nodeRef should be the id of the object in defs (with its ChantContext.defIdPrefix, without the #)
     use: function (nodeRef) {
         var node = document.createElementNS(this.ns, "use");
         node.setAttributeNS(this.xlink, "xlink:href", "#" + nodeRef);
@@ -719,6 +719,7 @@ export class ChantContext {
         this.autoColor = true;
         this.useExtraTextOnly = true;
         this.noteIdPrefix = 'note-';
+        this.defIdPrefix = '';
         this.nabcLines = 0;
         this.insertFontsInDoc();
         this.setMergeAnnotationWithTextLeft(true);
@@ -1375,7 +1376,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
             if (!ctxt.defs.hasOwnProperty(glyphId)) {
                 var getDefProps = () => {
                     var options = {
-                        id: glyphId,
+                        id: ctxt.defIdPrefix + glyphId,
                         class: "glyph"
                     };
                     if (ctxt.scaleDefs === true) {
@@ -1451,7 +1452,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
             className = isSelected ? "selected" : "";
         }
         var result = {
-            "xlink:href": "#" + this.glyphId,
+            "xlink:href": "#" + ctxt.defIdPrefix + this.glyphId,
             class: className
         };
         if (source) {
@@ -3285,6 +3286,11 @@ export class ChantNotationElement extends ChantLayoutElement {
     // a helper function for subclasses to call after they are done performing layout...
     finishLayout(ctxt) {
         this.bounds.x = 0;
+        this.alignLyrics(ctxt);
+        this.needsLayout = false;
+    }
+    // lines the lyrics up with the notation, once they and the notation have been measured
+    alignLyrics(ctxt) {
         let language = (this.lyrics[0] && this.lyrics[0].language) || ctxt.defaultLanguage;
         // center the neume itself over the syllable, or just the first punctum
         // if the neume is wider than the syllable + the width of a punctum, we always revert to centering just over the punctum
@@ -3295,7 +3301,6 @@ export class ChantNotationElement extends ChantLayoutElement {
                     : this.origin.x - lyric.origin.x)
             : (lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
         this.lyrics.forEach(calculateLyricX);
-        this.needsLayout = false;
     }
     draw(ctxt) {
         var canvasCtxt = ctxt.canvasCtxt;

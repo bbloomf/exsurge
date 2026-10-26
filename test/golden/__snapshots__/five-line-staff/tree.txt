@@ -29,8 +29,7 @@
         <line key=-5 x1=0 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-3 x1=0 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-1 x1=0 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
-      <line x1=126.6 y1=6.25 x2=139.3685625 y2=6.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
-      <line x1=139.3685625 y1=6.25 x2=154.725 y2=6.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
+      <line x1=123.376875 y1=6.25 x2=157.948125 y2=6.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
       <g transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">

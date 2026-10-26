@@ -80,13 +80,9 @@
 <line x1="0" y1="-6.25" x2="600" y2="-6.25" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
 </g>
-<line x1="10.9375" y1="-56.25" x2="56.3085" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="7.7143749999999995" y1="-56.25" x2="62.656625000000005" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
-<line x1="56.3085" y1="-56.25" x2="59.433499999999995" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
-</line>
-<line x1="114.75650000000002" y1="-56.25" x2="157.4615" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
-</line>
-<line x1="157.4615" y1="-56.25" x2="172.28650000000002" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
+<line x1="111.53337500000002" y1="-56.25" x2="169.25962500000003" y2="-56.25" stroke="#000" stroke-width="0.8" class="ledgerLine" >
 </line>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >

@@ -41,7 +41,7 @@
             "e"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="17" element-index="2" id="note-3" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=17 elementIndex=2 noteIndex=2>>
-      <g class="ChantNotationElement QuarterBar" transform="translate(49.45490000000002,0)" source=<QuarterBar sourceIndex=21 elementIndex=3>>
+      <g class="ChantNotationElement QuarterBar" transform="translate(55.593900000000005,0)" source=<QuarterBar sourceIndex=21 elementIndex=3>>
         <g class="Notations">
           <rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="21" element-index="3" source=<QuarterBar sourceIndex=21 elementIndex=3>>
       <g class="ChantNotationElement TextOnly" transform="translate(290.12160000000006,0)" source=<TextOnly sourceIndex=89 elementIndex=4>>

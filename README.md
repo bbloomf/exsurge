@@ -43,6 +43,19 @@ score.performLayout(ctxt, function() {
 });
 ```
 
+### St. Gall neumes (NABC)
+
+exsurge draws Gregorio's NABC, the St. Gall or Laon neumes that gabc with a `nabc-lines` header has after `|`s in its notes, above the staff (and a second line of it below the staff), given a font to draw it with.  The fonts are converted from Gregorio's: gregall and gresgmodern for St. Gall neumes, traced from the manuscripts and drawn anew, and grelaon for Laon neumes.  They're under the SIL Open Font License (see below), so they aren't in exsurge's bundle: import them from `exsurge-ts/nabc-gregall`, `exsurge-ts/nabc-gresgmodern` or `exsurge-ts/nabc-grelaon`, or load `dist/nabc-gregall.min.js` (and so on) after exsurge, which defines `exsurgeNabcGregall` (and so on).
+
+```javascript
+import { gregall } from "exsurge-ts/nabc-gregall";
+
+ctxt.nabcFonts = [gregall];
+var gabc = "nabc-lines: 1;\n%%\n(f3) AL(ef~|ta>)le(fg/hggf|peclhgpi)lú(ef~|ta>)ia.(f.|ta-) (,)";
+```
+
+`ctxt.nabcSize`, `ctxt.nabcAlignment` and `ctxt.nabcVisibility` change its size, how it lines up with the notes and whether each line of it is drawn, as Gregorio's `\gresetnabcfont`, `\gresetnabcalignment` and `\gresetnabc` do.
+
 ## Motivation
 
 Very few good chant layout software exist for developers. exsurge allows web developers to insert beautiful chant into their workflow with the simplicity of a little JavaScript.
@@ -60,6 +73,9 @@ This makes:
 
 - `dist/esm/`: ES modules with their typings, which the package's `module` and `types` point to
 - `dist/exsurge.min.js`: a minified UMD bundle, which the package's `main` points to (and `dist/exsurge.js`, the same unminified)
+- `dist/nabc-gregall.min.js`, `dist/nabc-gresgmodern.min.js` and `dist/nabc-grelaon.min.js` (and `dist/esm/nabc/`): the glyphs that exsurge draws Gregorio's NABC (St. Gall and Laon neumes) with, which aren't in exsurge's bundle, and which the package's `exsurge-ts/nabc-gregall`, `exsurge-ts/nabc-gresgmodern` and `exsurge-ts/nabc-grelaon` entry points point to (see the license, below)
+
+`src/nabc/` is converted from the fonts of [Gregorio](https://github.com/gregorio-project/gregorio) by `tools/convert-nabc-font.mjs`.
 
 Alternatively, you can run `npm run dev` which will watch and rebuild the UMD bundle after each saved change.  `test/index.html` is a page to try exsurge in a browser, once it's built; serve the repository and open it.
 
@@ -84,3 +100,5 @@ Under construction...
 ## License
 
 MIT License: http://adampritchard.mit-license.org/ or see [the `LICENSE` file](https://github.com/bbloomf/exsurge/blob/master/LICENSE).
+
+The glyphs for NABC in `src/nabc/` (and what's built from them: `dist/esm/nabc/`, the `dist/nabc-*.min.js` bundles and the `exsurge-ts/nabc-*` entry points) are converted from Gregorio's gregall, gresgmodern and grelaon fonts, copyright © 2014–2026 Jakub Jelinek and © 2011 Association Saint-Benoît, Notre-Dame de Bellaigue, and are under the SIL Open Font License 1.1, not the MIT License: see [the `LICENSE-OFL.txt` file](https://github.com/bbloomf/exsurge/blob/master/LICENSE-OFL.txt).

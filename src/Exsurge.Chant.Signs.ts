@@ -32,12 +32,14 @@ import {
   type ChantLayoutElement
 } from "./Exsurge.Drawing.js";
 import type { BracePoint } from "./Exsurge.Chant.Markings.js";
+import type { LedgerLineStates } from "./ledgerLines.js";
 
 // adds a sign to a notation between parentheses (Gregorio's parenthesized
 // accidentals and bars): an open one at the sign's left, which moves right
 // to make room for it, and a close one at its right, each as tall as the
 // sign (or a staff interval and a half, if that's taller) and centred on it.
-// drawnOffset is how far right of its bounds the sign is drawn.
+// drawnOffset is how far right of its bounds the sign is drawn.  Returns
+// how far the sign and its parentheses go, from left to right.
 function addInParentheses(
   ctxt: ChantContext,
   notation: ChantNotationElement,
@@ -60,6 +62,17 @@ function addInParentheses(
   notation.addVisualizer(open);
   notation.addVisualizer(sign);
   notation.addVisualizer(close);
+  return { x1: open.bounds.x, x2: close.bounds.right() };
+}
+
+// a high bar (see Divider.high) and its parentheses, if it has them, as
+// addInParentheses() adds them, and where its ledger line goes (see
+// Divider.ledgerLineExtent)
+function addHighBar(ctxt: ChantContext, divider: Divider, sign: ChantLayoutElement, drawnOffset = 0) {
+  var extent = { x1: sign.bounds.x + drawnOffset, x2: sign.bounds.right() + drawnOffset };
+  if (divider.parenthesized) extent = addInParentheses(ctxt, divider, sign, drawnOffset);
+  else divider.addVisualizer(sign);
+  if (divider.high) divider.ledgerLineExtent = extent;
 }
 
 /*
@@ -148,6 +161,12 @@ export class Divider extends ChantNotationElement {
   high: boolean;
   /** Gregorio's parenthesized bar (gabc `?, `0?, ,? or ,0?), drawn between parentheses */
   parenthesized?: boolean;
+  /**
+   * where a high virgula, divisio minima or divisio minimis (and its
+   * parentheses) goes, from left to right, which has a ledger line under it
+   * as in Gregorio (see ChantLine.finishLayout())
+   */
+  ledgerLineExtent?: { x1: number; x2: number };
 
   constructor(withCarryover = false, high = false) {
     super();
@@ -161,6 +180,7 @@ export class Divider extends ChantNotationElement {
 
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
+    delete this.ledgerLineExtent;
     if (this.hasCarryover) {
       // (above a high divider too)
       const top = ctxt.staffLineCount * 2 + (this.high ? 2 : 0);
@@ -193,9 +213,7 @@ export class QuarterBar extends Divider {
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
     const top = ctxt.staffLineCount * 2 + (this.high ? 2 : 0);
-    const line = new DividerLineVisualizer(ctxt, top - 2, top, this);
-    if (this.parenthesized) addInParentheses(ctxt, this, line);
-    else this.addVisualizer(line);
+    addHighBar(ctxt, this, new DividerLineVisualizer(ctxt, top - 2, top, this));
     this.origin.x = this.bounds.width / 2;
 
     this.finishLayout(ctxt);
@@ -210,7 +228,7 @@ export class DivisioMinimis extends Divider {
     super.performLayout(ctxt);
     // (the top line, or the ledger line above it)
     const line = ctxt.staffLineCount * 2 - 1 + (this.high ? 2 : 0);
-    this.addVisualizer(new DividerLineVisualizer(ctxt, line + 0.5, line + 1.5, this));
+    addHighBar(ctxt, this, new DividerLineVisualizer(ctxt, line + 0.5, line + 1.5, this));
     this.origin.x = this.bounds.width / 2;
 
     this.finishLayout(ctxt);
@@ -355,6 +373,8 @@ export class Accidental extends ChantNotationElement {
   /** Gregorio's parenthesized accidental (gabc x?, y? or #?), drawn between parentheses */
   parenthesized?: boolean;
   pitch?: Pitch;
+  /** whether it has a ledger line above the staff and below it, as a note can (see determineLedgerLines()) */
+  ledgerLineState?: LedgerLineStates;
 
   constructor(staffPosition: number, accidentalType: AccidentalType, soft = false) {
     super();
@@ -473,13 +493,14 @@ export class Virgula extends Divider {
 
   performLayout(ctxt: ChantContext) {
     super.performLayout(ctxt);
+    // (a high virgula is on the ledger line, whatever the number of staff lines)
+    if (this.high) this.staffPosition = ctxt.staffLineCount * 2 + 1;
 
     var glyph = new GlyphVisualizer(ctxt, GlyphCode.Virgula);
     glyph.setStaffPosition(ctxt, this.staffPosition);
 
     // (the virgula is drawn centred on the left of its bounds)
-    if (this.parenthesized) addInParentheses(ctxt, this, glyph, -glyph.bounds.width / 2);
-    else this.addVisualizer(glyph);
+    addHighBar(ctxt, this, glyph, -glyph.bounds.width / 2);
 
     this.origin.x = this.bounds.width / 2;
 

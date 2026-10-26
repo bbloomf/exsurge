@@ -247,10 +247,8 @@
         <line key=-5 x1=0 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-3 x1=0 y1=-18.75 x2=600 y2=-18.75 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-1 x1=0 y1=-6.25 x2=600 y2=-6.25 stroke="#000" className="staffLine" strokeWidth=0.8>
-      <line x1=424.71099999999996 y1=6.25 x2=436.41099999999994 y2=6.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
-      <line x1=436.41099999999994 y1=6.25 x2=450.45474999999993 y2=6.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
-      <line x1=450.45474999999993 y1=-56.25 x2=464.4984999999999 y2=-56.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
-      <line x1=464.4984999999999 y1=-56.25 x2=476.1984999999999 y2=-56.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
+      <line x1=421.487875 y1=6.25 x2=451.3341249999999 y2=6.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
+      <line x1=449.57537499999995 y1=-56.25 x2=479.4216249999999 y2=-56.25 stroke="#000" className="ledgerLine" strokeWidth=0.8>
       <g transform="translate(0,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">

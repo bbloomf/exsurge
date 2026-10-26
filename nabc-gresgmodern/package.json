@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "description": "The glyphs of the modern St. Gall neumes of Gregorio's gresgmodern font for exsurge's NABC, under the SIL Open Font License (see ../LICENSE-OFL.txt)",
+  "main": "../dist/nabc-gresgmodern.min.js",
+  "module": "../dist/esm/nabc/gresgmodern.js",
+  "types": "../dist/esm/nabc/gresgmodern.d.ts",
+  "sideEffects": false
+}
