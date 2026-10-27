@@ -3312,6 +3312,9 @@ interface TextLine {
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
 
+// a tag (in markupRegexSource's match) that starts or ends with a capital in its name
+const __capitalTagRegex = /^<\/?[a-z]*[A-Z]|<\/[a-z]*[A-Z][a-z]*>$/;
+
 // Gregorio's commands for the symbols in its greextra font (from its
 // gregoriotex-symbols.tex), by their names in lower case
 const __greextraCommands: { [command: string]: string } = {
@@ -3490,6 +3493,14 @@ export class TextElement extends ChantLayoutElement {
         escaped
       ] = match;
       specialChar = specialChar || specialChar2 || specialChar3;
+      // tag names are in lower case, as in Gregorio, which prints <B> as it
+      // is (the regex ignores case for the rest, e.g. <sp>OE</sp> and V/.),
+      // so a tag with a capital in its name is text, and the text inside it
+      // is read again
+      if (__capitalTagRegex.test(match[0])) {
+        markupRegex.lastIndex = match.index + 1;
+        continue;
+      }
       // non-matching symbols first
       if (newLine) {
         // close the current span, if any:

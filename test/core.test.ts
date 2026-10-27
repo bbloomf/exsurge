@@ -249,6 +249,16 @@ describe("Gregorio special characters", function() {
     assert.strictEqual(text(ctxt, "De<sp>ut</sp>us <sp>new</sp> ex<sp>-</sp>cel"), "De_us N ex-cel");
   });
 
+  it("reads tag names only in lower case, as Gregorio does", function() {
+    const ctxt = new Exsurge.ChantContext();
+    assert.strictEqual(text(ctxt, "<B>x</B> <b>y</b>"), "<B>x</B> y");
+    // (the text inside a tag that isn't one is still read)
+    assert.strictEqual(text(ctxt, "<I>a<i>b</i></I>"), "<I>ab</I>");
+    assert.strictEqual(text(ctxt, "<SP>+</SP><Sc>z</Sc>"), "<SP>+</SP><Sc>z</Sc>");
+    // but case is still ignored in the specials exsurge draws itself
+    assert.strictEqual(text(ctxt, "<sp>OE</sp>"), "Œ");
+  });
+
   it("keeps a parenthesis in <alt> or <sp> from ending the syllable", function() {
     // (Gregorio: "Ant. (T.P.)" above Al(f), and the lyric "(x" under x(f))
     const notations = parseNotations("(c4) <alt>Ant. (T.P.)</alt>Al(f) <sp>(</sp>x(f) a(g)<alt>T. (P.) x</alt>b(h)");
