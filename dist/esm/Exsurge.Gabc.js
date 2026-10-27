@@ -309,7 +309,7 @@ var __verseNumberRegex = /^(\s*)((?:<[a-z]+>)*)<verseNum(?:\s*\/>|>([\s\S]*?)<\/
 // those controls at the start of a lyric
 var __leadingControlsRegex = new RegExp("^(?:" + [__lyricAreaTagRegex, __lyricClearRegex, __lyricProtrusionRegex].map((regex) => regex.source).join("|") + ")*");
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\[[^\[\]]*\]|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\[[^\[\]]*\]|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-npA-NP](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or
@@ -1319,7 +1319,7 @@ export class Gabc {
             // but we need to also make sure that there _is_ a word and that it has notes associated with it.
             if (currSyllable === 0 &&
                 /[a-z]/i.test(printedText) &&
-                /[a-n]/i.test(notationData)) {
+                /[a-np]/i.test(notationData)) {
                 ctxt.activeClef.resetAccidentals();
                 resetAccidentals = true;
             }
@@ -3414,11 +3414,14 @@ export class Gabc {
     }
     /**
      *
-     * @param {*} gabcHeight gabc letter a through m
+     * @param {*} gabcHeight gabc letter a through n, or p
      * @returns pitch
      */
     static gabcHeightToExsurgeHeight(gabcHeight) {
-        return gabcHeight.toLowerCase().charCodeAt(0) - "c".charCodeAt(0);
+        let letter = gabcHeight.toLowerCase();
+        // Gregorio's p is just above n: there's no o, which is the oriscus
+        // (pitch_letter_to_height() in src/gabc/gabc-notes-determination.l)
+        return letter.charCodeAt(0) - "c".charCodeAt(0) - (letter === "p" ? 1 : 0);
     }
     /**
      *
@@ -3437,7 +3440,7 @@ export class Gabc {
     /**
      *
      * @param {*} note to set staffPosition and staffPositionOffset on
-     * @param {*} gabcAtom gabc letter from a to m with modifiers
+     * @param {*} gabcAtom gabc letter from a to n, or p, with modifiers
      * @param {*} clef the clef the note is under: only under a Chi-Rho clef do 0 and 9 nudge it
      */
     static setStaffPositionAndOffset(note, gabcAtom, clef) {
@@ -3445,7 +3448,7 @@ export class Gabc {
         note.staffPositionOffset = 0;
         if (clef instanceof ChiRhoClef) {
             // a 0 after a punctum inclinatum (a capital) is Gregorio's leaning rather than a nudge down
-            const isLeaning = note instanceof Note && /[A-N]/.test(gabcAtom[0]) && gabcAtom[1] === "0";
+            const isLeaning = note instanceof Note && /[A-NP]/.test(gabcAtom[0]) && gabcAtom[1] === "0";
             let zeroOrNine = isLeaning ? undefined : gabcAtom[1];
             // the middle of a space is never used: a note on a space without a 9 is at the
             // bottom of the space, as if it had a 0

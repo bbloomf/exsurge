@@ -3038,9 +3038,13 @@ export class Lyric extends TextElement {
     leftOffset() {
         return this.bounds.x + (this.shownVerseNumber ? Math.min(0, this.verseNumberX) : 0);
     }
-    /** the verse number drawn before the lyric, if any */
+    /**
+     * the verse number drawn before the lyric, if any (the drop cap takes the
+     * place of the verse number of the lyric it was taken from, which is still
+     * repeated on the later lines)
+     */
     get shownVerseNumber() {
-        return this.verseNumber || this.repeatedVerseNumber;
+        return (this.dropCap ? undefined : this.verseNumber) || this.repeatedVerseNumber;
     }
     /** a copy of the verse number in effect, to repeat before the lyric (made once) */
     getRepeatedVerseNumber(ctxt) {
@@ -3209,9 +3213,6 @@ export class Lyric extends TextElement {
     generateDropCap(ctxt) {
         if (this.dropCap)
             return this.dropCap;
-        // (a verse number goes before the first letter)
-        if (this.verseNumber)
-            return null;
         // (the letter is taken from the spans as they were before any wrapping)
         this.unwrap();
         // disallow special characters:

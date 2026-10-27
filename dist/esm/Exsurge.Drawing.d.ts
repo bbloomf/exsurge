@@ -1367,7 +1367,11 @@ export declare class Lyric extends TextElement {
     getLeft(): number;
     /** the left of the lyric, or of its verse number, from its notation's x */
     leftOffset(): number;
-    /** the verse number drawn before the lyric, if any */
+    /**
+     * the verse number drawn before the lyric, if any (the drop cap takes the
+     * place of the verse number of the lyric it was taken from, which is still
+     * repeated on the later lines)
+     */
     get shownVerseNumber(): VerseNumber | undefined;
     /** a copy of the verse number in effect, to repeat before the lyric (made once) */
     getRepeatedVerseNumber(ctxt: ChantContext): VerseNumber | undefined;

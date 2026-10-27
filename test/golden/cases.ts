@@ -276,6 +276,18 @@ export const featureCases: GoldenCase[] = [
       "<verseNum></verseNum>A|<verseNum/>A|<verseNum></verseNum>A(g)men.|men. |men. (gh) (::)"
   },
   {
+    // the drop cap takes the place of the first verse number on the first
+    // line, which is repeated on the second line with the others
+    name: "verse-numbers-drop-cap",
+    width: 300,
+    useDropCap: true,
+    gabc:
+      "(c4) <verseNum>1.</verseNum> Ve|<verseNum>2.</verseNum> Qui |<verseNum>10.</verseNum> Tu (g)ni,|dí|sep(gf) " +
+      "Cre|ce|ti(g)á|ris, |fór(h)tor|Pa|mis (h) " +
+      "Spí|rá|mú(ih)ri|cli|ne(g)tus,|tus, |re, (gh) (,) Men|Do|Dí(g)tes|num |gi(f)tu|De|tus (g)" +
+      "o|i |pa(h)rum|al|tér(g)tu|tís|næ (f)ó|si|déx(gh)rum|mi, |te(g) (,) vi|fons |ræ (h)ta,|vi|di(g) (::)"
+  },
+  {
     name: "directives",
     gabc: "(c4) Ky(f)ri(g)e(h) *(;) ij.(:) e(g)lé(f)i(e)son.(f) iij.(::) 1.(f) 23(g) **(h) †(::)"
   },

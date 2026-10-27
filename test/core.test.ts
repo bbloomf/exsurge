@@ -388,6 +388,31 @@ describe("Gregorio note tokens", function() {
     assert.ok(notes[notes.length - 1].accent instanceof Exsurge.MusicaFicta);
     assert.deepStrictEqual(notes.slice(-2).map((note) => note.accent!.glyphCode), ["Flat", "Sharp"]);
   });
+
+  it("reads p as the pitch above n, as Gregorio does, with o after a pitch still the oriscus", function() {
+    const notations = parseNotations("(c4) a(n) b(p) c(P) d(po) e(no) f(P0) g(pxp) h(gp+)");
+    const notes = notesOf(notations);
+    assert.deepStrictEqual(
+      notes.map((note) => [note.sourceGabc, note.staffPosition, note.shape]),
+      [
+        ["n", 11, Exsurge.NoteShape.Default],
+        ["p", 12, Exsurge.NoteShape.Default],
+        ["P", 12, Exsurge.NoteShape.Inclinatum],
+        ["po", 12, Exsurge.NoteShape.Oriscus],
+        ["no", 11, Exsurge.NoteShape.Oriscus],
+        ["P0", 12, Exsurge.NoteShape.Inclinatum],
+        ["p", 12, Exsurge.NoteShape.Default],
+        ["g", 4, Exsurge.NoteShape.Default]
+      ]
+    );
+    // a step above n, which is Sol under a c4 clef
+    assert.strictEqual(notes[1].pitch!.toInt() - notes[0].pitch!.toInt(), 2);
+    assert.strictEqual(notes[5].leaning, "descending");
+    const accidental = notations.find((notation) => notation.isAccidental) as Exsurge.Accidental;
+    assert.strictEqual(accidental.staffPosition, 12);
+    const custos = notations.find((notation) => notation instanceof Exsurge.Custos) as Exsurge.Custos;
+    assert.strictEqual(custos.staffPosition, 12);
+  });
 });
 
 describe("Gregorio comments", function() {
@@ -607,6 +632,17 @@ describe("Gregorio inclinatum digits", function() {
     // as is a custos
     const custos = parseNotations("(xp3) a(h0+)").find((notation) => notation instanceof Exsurge.Custos) as Exsurge.Custos;
     assert.strictEqual(custos.staffPositionOffset, -2 / 3);
+    // and Gregorio's p, on a space, as g is (at the bottom of the space)
+    const spaces = parseNotations("(xp3) a(G0) b(P0) c(g) d(p)").flatMap((notation) => notation.notes || []);
+    assert.deepStrictEqual(
+      spaces.map((note) => [note.sourceGabc, note.leaning, note.staffPositionOffset]),
+      [
+        ["G0", "descending", -1 / 3],
+        ["P0", "descending", -1 / 3],
+        ["g", undefined, -1 / 3],
+        ["p", undefined, -1 / 3]
+      ]
+    );
   });
 });
 
@@ -1030,6 +1066,20 @@ describe("Gregorio ledger lines", function() {
     assert.deepStrictEqual(drawn("(c4) a(klk) b(j/!m) c(m/!j/!k) d(c/!b/!c/!d/!c) e(b/c)"), [
       "k", "l^", "k", "j^", "m^", "m^", "j^", "k^", "c_", "b_", "c_", "d_", "c", "b_", "c"
     ]);
+  });
+
+  it("draws the ledger line under Gregorio's p, on four lines and on five", function() {
+    assert.deepStrictEqual(drawn("(c4) a(p) b(P) c(po) d(lp) e(pl)"), ["p^", "P^", "p^", "l^", "p^", "p^", "l^"]);
+    const ctxt = new Exsurge.ChantContext();
+    const score = new Exsurge.ChantScore(ctxt, Exsurge.Gabc.createMappingsFromSource(ctxt, "(c4) a(p) b(m) (::)"), false);
+    score.staffLineCount = 5;
+    score.performLayout(ctxt);
+    const neumes = score.notations.filter((notation) => notation.isNeume) as Exsurge.Neume[];
+    // (above the fifth line, the ledger line is at n, under p; m is in the staff)
+    assert.deepStrictEqual(
+      neumes.map((neume) => neume.ledgerLines.map((line) => line.staffPosition)),
+      [[11], []]
+    );
   });
 
   it("keeps a ledger line in Gregorio's element", function() {

@@ -1,3 +1,16 @@
+# [2.6.0](https://github.com/bbloomf/exsurge/compare/v2.5.0...v2.6.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **lyrics:** Repeat the first verse number on the lines after the drop cap ([5cc030a](https://github.com/bbloomf/exsurge/commit/5cc030a9e7c91b5bdb98d45914bf0c1206fd75b6))
+
+
+### Features
+
+* **gabc:** Accept Gregorio's pitch letter p ([e83c0d0](https://github.com/bbloomf/exsurge/commit/e83c0d0e3cd9b236192aae557b022327fb677b89))
+* **lyrics:** Let a drop cap take the place of the first verse number ([2b06a08](https://github.com/bbloomf/exsurge/commit/2b06a08709b5fbe4240b1bdfff5982080ff502ef))
+
 # [2.5.0](https://github.com/bbloomf/exsurge/compare/v2.4.0...v2.5.0) (2026-10-27)
 
 
