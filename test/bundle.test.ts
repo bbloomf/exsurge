@@ -61,9 +61,10 @@ async function loadEsmBuild() {
 }
 
 describe("the published builds", () => {
+  // a whole tsc run, which on Node 22 alongside the other test files can take longer than vitest's 5s
   it("has typings that fit how exsurge is used (test/types.ts)", () => {
     execFileSync(process.execPath, [tsc, "-p", "test/tsconfig.dist.json"], { cwd: root, stdio: "pipe" });
-  });
+  }, 60000);
 
   describeGoldenTables("minified bundle tables", loadMinifiedBundle);
   describeNabcFontTables("minified NABC font tables", async (font) => {
