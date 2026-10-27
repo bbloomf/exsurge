@@ -1,6 +1,6 @@
 import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
 import { Custos } from "./Exsurge.Chant.Signs.js";
-import type { ChantScore } from "./Exsurge.Chant.js";
+import type { ChantScore, Clef } from "./Exsurge.Chant.js";
 import type { ChantContext, ChantNotationElement, Lyric } from "./Exsurge.Drawing.js";
 /**
  * How ChantScore.layoutChantLines() breaks a score into lines: "greedy" (the
@@ -15,27 +15,6 @@ interface LineExtent {
     /** the space to the left of the drop cap */
     paddingLeft: number;
     staffRight: number;
-}
-/** a place where a line laid out from some notation could end */
-interface LineEnd {
-    /** the index of the notation the next line would start with (the number of notations, at the end of the score) */
-    end: number;
-    /** the space left at the right of the line, which is negative if it's too full */
-    space: number;
-    /** how much the line can be condensed */
-    shrink: number;
-    /** how much the line can be stretched, for a badness of 100 */
-    stretch: number;
-    /** Gregorio's penalty for breaking the line here */
-    penalty: number;
-    /** whether the line doesn't stretch to the end of the staff (the last line, or gabc Z) */
-    ragged: boolean;
-    /** the threshold that fitness and demerits were last worked out for (see fitLineEnd()) */
-    threshold?: number;
-    /** the line's fitness class, or null if it's too loose or too tight for threshold */
-    fitness?: number | null;
-    /** the line's demerits, but for adjDemerits */
-    demerits?: number;
 }
 /**
  * how far a line laid out so far stretches, for a badness of 100: the sum of
@@ -54,6 +33,59 @@ interface Stretch {
     custos: Custos | null;
     /** sum without the space before custos */
     sumWithoutCustos: number;
+}
+/** a line laid out from some notation (see LineBreaker.layOutLineFrom()) */
+interface TrialLine {
+    /** where its staff starts (where it ends is up to the layout that uses it) */
+    staffLeft: number;
+    paddingLeft: number;
+    /** the clef in effect at its start, and that clef's layoutId */
+    clef: Clef;
+    clefLayoutId?: number;
+    /** the notations that it read (see readFrom()), and their layoutIds */
+    read: ChantNotationElement[];
+    layoutIds: Array<number | undefined>;
+    /** whether the notations it read went on to the end of the score */
+    toEnd: boolean;
+    /**
+     * each notation with a translation that it laid out, followed by the end
+     * neume of its translation, which an edit can change without laying the
+     * notation out again (see Gabc.updateMappingsFromSource())
+     */
+    translationEnds: Array<ChantNotationElement | undefined>;
+    /**
+     * the widths it serves: from how far right it was laid out to, or with no
+     * limit if it ended of its own accord, down to any narrower width, unless
+     * it laid out text only syllables, which are fitted to the staff
+     * (positionNotationElement() calls Lyric.setMaxWidth())
+     */
+    widest: number;
+    narrowest: number;
+    /**
+     * each place it could end (see lineEndSize), in order, from where it
+     * starts, so that they move with it if notations before it are added or
+     * taken away
+     */
+    ends: number[];
+}
+/** the lines laid out from each notation by the last layouts of a score, by the notation */
+interface TrialLines {
+    /** the settings they were laid out with (see LineBreaker.getSettings()) */
+    settings: string;
+    lines: Map<ChantNotationElement, TrialLine[]>;
+    /** the last layouts' plans (see LineBreaker.planAgain()) */
+    plans: Plan[];
+}
+/** where a layout planned each line to end (see LineBreaker.planAgain()) */
+interface Plan {
+    /** the width, the staff beside the drop cap and how many lines are beside it, and extraLines */
+    key: string;
+    startingClef: Clef;
+    notations: ChantNotationElement[];
+    layoutIds: Array<number | undefined>;
+    /** the end neume of each notation's translation (see TrialLine.translationEnds) */
+    translationEnds: Array<ChantNotationElement | undefined>;
+    plannedEnds: Map<string, number>;
 }
 /** a way to break the score into lines up to some notation, as TeX's active nodes are */
 interface BreakNode {
@@ -83,11 +115,20 @@ export declare class LineBreaker {
     extraLines: number;
     /** where each line was planned to end, by its index and the notation it starts with */
     plannedEnds: Map<string, number>;
-    /** the ends of the lines that could start at each notation, by its index, for each place a line's staff can be */
+    /** the ends of the lines that could start at each notation, by its index, for each place a line's staff can start */
     lineEnds: Array<{
         extent: LineExtent;
-        ends: Array<LineEnd[] | undefined>;
+        ends: Array<number[] | undefined>;
     }>;
+    /** the lines laid out from each notation by this layout and the last ones (see getTrialLine()) */
+    trialLines?: TrialLines;
+    /** a line for keepsInArea() to ask */
+    areaLine?: ChantLine;
+    /** (see getAfter()) */
+    after?: {
+        blocked: Uint8Array;
+        custos: Uint8Array;
+    };
     /** (see getNoteCounts()) */
     noteCounts?: {
         notesInSyllable: number[];
@@ -95,6 +136,8 @@ export declare class LineBreaker {
         syllablesFrom: number[];
         notesFrom: number[];
     };
+    /** the clef in effect just before each notation (see clefBefore()) */
+    clefs?: Clef[];
     constructor(score: ChantScore, ctxt: ChantContext, width: number);
     /**
      * The index of the notation after the last one to go on the line with the
@@ -103,6 +146,12 @@ export declare class LineBreaker {
      * score couldn't be broken into lines that fit).
      */
     plannedEnd(lineIndex: number, start: number): number | undefined;
+    /**
+     * whether an earlier layout planned the lines of the same notations, laid
+     * out as they are now, at the same width, as this layout would (and it
+     * then uses its plan); or else keeps this layout's plan for later ones
+     */
+    planAgain(): boolean;
     /** breaks the rest of the score into lines, from the line with the index lineIndex, which starts at start */
     plan(lineIndex: number, start: number): void;
     /**
@@ -118,33 +167,55 @@ export declare class LineBreaker {
         farthest: BreakNode;
     };
     /**
-     * the badness and the fitness class of a line, as TeX works them out, or
-     * null if the line is too loose or too tight for the threshold (as a line
-     * that has to break where it does, at gabc z, can be too: there is then
-     * another way to break the lines before it, or else the last pass, with no
-     * threshold, sets it however loose it is)
+     * the badness and the fitness class of the line that ends at the end at k
+     * in ends, as TeX works them out, or null if the line is too loose or too
+     * tight for the threshold (as a line that has to break where it does, at
+     * gabc z, can be too: there is then another way to break the lines before
+     * it, or else the last pass, with no threshold, sets it however loose it is)
      */
-    fit(lineEnd: LineEnd, threshold: number): {
+    fit(ends: number[], k: number, hasCustos: boolean, threshold: number): {
         badness: number;
         fitness: number;
     } | null;
     /**
-     * works out the fitness class of the line that ends at lineEnd and its
-     * demerits, as TeX does, but for adjDemerits (see fit()), for threshold,
-     * unless they have been already
+     * the lines that start at start and end at one of ends (see TrialLine.ends)
+     * that fit for threshold (see fit()), up to the first that is too full even
+     * when condensed: for each, the index of the notation the next line starts
+     * with, its fitness class and its demerits, as TeX works them out but for
+     * adjDemerits
      */
-    fitLineEnd(lineEnd: LineEnd, threshold: number): void;
+    fitLineEnds(start: number, ends: number[], threshold: number): number[];
     /** where the line with the index lineIndex has its staff, if it starts at start */
     getLineExtent(lineIndex: number, start: number): LineExtent;
     /** the ends of the lines that could start at start, as the line with the index lineIndex */
-    getLineEnds(lineIndex: number, start: number): LineEnd[];
+    getLineEnds(lineIndex: number, start: number): number[];
+    /**
+     * the line laid out from the notation at start on a staff at extent: as an
+     * earlier layout laid it out, if laying it out again would give the same,
+     * or else laid out now (and kept for the next layouts)
+     */
+    getTrialLine(start: number, extent: LineExtent): TrialLine;
+    /** whether laying out the line from start again would give the same as line */
+    isUpToDate(line: TrialLine, start: number): boolean;
+    /**
+     * the lines laid out by the last layouts of the score, unless the settings
+     * have changed since, without those from notations no longer in it
+     */
+    getTrialLines(): TrialLines;
+    /**
+     * what lines laid out from the score depend on besides its notations: the
+     * context's settings, and whether the score has a drop cap (but for the
+     * settings that are objects, such as the text styles, which the notations
+     * are laid out again for: see ChantScore.performLayout())
+     */
+    getSettings(): string;
     /**
      * Lays out notations from start, as buildFromChantNotationIndex() would lay
      * them out on a line that ends where it was planned to, until the line is
      * too full to fit even when condensed, and gives each place the line could
-     * end.
+     * end, with what it read (see TrialLine).
      */
-    layOutLineFrom(start: number, extent: LineExtent): LineEnd[];
+    layOutLineFrom(start: number, extent: LineExtent): TrialLine;
     /**
      * adds the space that justifying the line could stretch before the
      * notation at index, which has just been laid out on it, to stretch, as
@@ -153,6 +224,10 @@ export declare class LineBreaker {
     addToStretch(line: ChantLine, stretch: Stretch, index: number): void;
     /** how far the space before a notation stretches, for a badness of 100 */
     getStretchBefore(notation: ChantNotationElement): number;
+    /** the clef in effect at the start of a line that starts at index: the one there, or else the one before it */
+    clefAt(index: number): Clef;
+    /** the clef in effect just before the notation at index */
+    clefBefore(index: number): Clef;
     /**
      * whether the clef at index goes at the start of the next line, along with
      * the line break just after it, as buildFromChantNotationIndex() puts it
@@ -160,10 +235,22 @@ export declare class LineBreaker {
     isClefLineBreak(index: number): boolean;
     /**
      * Gregorio's penalty for breaking the line just before the notation at
-     * index, or infinitePenalty where the line can't break; translationStart is
+     * index, or infinitePenalty where the line can't break, as far as the
+     * line's own notations say (isBlocked() says the rest); translationStart is
      * the notation with a translation that is still going on there
      */
-    getPenalty(line: ChantLine, index: number, translationStart: ChantNotationElement | null): number;
+    getPenalty(index: number, translationStart: ChantNotationElement | null): number;
+    /**
+     * whether a line can't break just before the notation at index after all,
+     * whichever line it ends, for what comes after it or the rest of the score
+     * (getPenalty() works out the rest): before text only notations that come
+     * just before a divider, where too little would be left for the last line,
+     * in a no-line-break or euouae area (gabc <nlba> or <eu>), or within a
+     * syllable too short to break in
+     */
+    isBlocked(index: number): boolean;
+    /** (see ChantLine.keepsInArea()) */
+    keepsInArea(index: number): boolean;
     /** whether the notation at index starts a word */
     startsWord(index: number): boolean;
     /**
@@ -183,15 +270,36 @@ export declare class LineBreaker {
         syllablesFrom: number[];
         notesFrom: number[];
     };
-    /** what the line laid out so far would be like if it ended just before the notation at end */
-    getLineEnd(line: ChantLine, end: number, shrink: number, stretchable: Stretch, penalty: number, ragged: boolean): LineEnd;
     /**
-     * how far a line that ends just before the notation at end stretches, for a
-     * badness of 100, when justifyElements() justifies it: the space before
-     * each notation in findNeumesToJustify() is stretched by the same amount
-     * (as added up in stretchable by addToStretch())
+     * adds to ends (see TrialLine.ends) what the line laid out so far from
+     * start would be like if it ended just before the notation at end, where
+     * the notations laid out reach right as far as reach
      */
-    getStretch(line: ChantLine, end: number, custos: boolean, stretchable: Stretch): number;
+    addLineEnd(ends: number[], start: number, line: ChantLine, end: number, shrink: number, reach: number, stretchable: Stretch, penalty: number, ragged: boolean): void;
+    /**
+     * how far a line stretches, for a badness of 100, when justifyElements()
+     * justifies it: the space before each notation in findNeumesToJustify() is
+     * stretched by the same amount (as added up in stretchable by
+     * addToStretch()), but for the space before a custos at its end
+     */
+    getStretch(line: ChantLine, stretchable: Stretch): number;
+    /**
+     * what the notations after a line that ends just before each notation, and
+     * the rest of the score, say about it in this layout, worked out once for
+     * each place (see isBlockedAt() and hasCustos())
+     */
+    getAfter(): {
+        blocked: Uint8Array;
+        custos: Uint8Array;
+    };
+    /** whether a line can't end just before the notation at end after all (see isBlocked()) */
+    isBlockedAt(end: number): boolean;
+    /**
+     * whether a line that ends just before the notation at end has a custos at
+     * its end, where custos is the index in custosKinds of what its own
+     * notations say, for what the notations after it say (see allowsCustosBefore())
+     */
+    hasCustos(custos: number, end: number): boolean;
 }
 export {};
 //# sourceMappingURL=Exsurge.Chant.LineBreaking.d.ts.map

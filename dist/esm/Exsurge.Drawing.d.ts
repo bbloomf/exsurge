@@ -707,6 +707,13 @@ export declare class ChantContext {
      * breaks of the whole score together, as Gregorio does (see LineBreaker)
      */
     lineBreaking: LineBreaking;
+    /**
+     * with optimal line breaking, the demerits added to a way of breaking the
+     * score whose last line starts within a word, as TeX's \finalhyphendemerits
+     * are: 0 (the default, as Gregorio sets it) to let it, more to make it less
+     * likely, so that a word such as "A-men" isn't split before the last line
+     */
+    finalHyphenDemerits: number;
     autoColor: boolean;
     /** gives each svg text element a font-size attribute in createSvg() */
     setFontFamilyAttributes?: boolean;
@@ -1493,6 +1500,12 @@ export declare class ChantNotationElement extends ChantLayoutElement {
     notationIndex?: number;
     /** this notation's index in its score's notes (if it isn't a neume) */
     elementIndex?: number;
+    /**
+     * a number that each layout of the notation gives it, unlike any before
+     * it, so that a line laid out from it can be used again until it's laid out
+     * again (see LineBreaker)
+     */
+    layoutId?: number;
     visualizers: ChantLayoutElement[];
     sourceIndex?: number;
     sourceLength?: number;

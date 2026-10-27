@@ -11,6 +11,12 @@ export declare const isHiddenAccidental: (notation: ChantNotationElement) => boo
 /** whether only text-only notations come between the notation at index, which is one, and the next divider */
 export declare function isTextOnlyBeforeDivider(notations: ChantNotationElement[], index: number): boolean;
 /**
+ * whether the notations from index on allow the line that ends just before
+ * them an automatic custos: Gregorio leaves it out just before a euouae area
+ * (gabc <eu>), and after a [nocustos] before the next note
+ */
+export declare function allowsCustosBefore(notations: ChantNotationElement[], index: number): boolean;
+/**
  * copies of the lyrics of the double bar that ends a line, which go at the
  * start of the next line, the first at x = 0; or null, if it has none to go there
  */
@@ -163,12 +169,18 @@ export declare class ChantLine extends ChantLayoutElement {
      */
     keepsInArea(index: number): boolean;
     /**
-     * whether the line, ending where it does now, gets an automatic custos: as
-     * the line break that ends it says (gabc z+ or z-), or else unless a
-     * euouae area (gabc <eu>) starts the next line, a [nocustos] is on the last
-     * note before the end of the line or ctxt.eolCustos is "manual"
+     * whether the line, ending where it does now, gets an automatic custos (see
+     * eolCustos())
      */
     wantsEolCustos(ctxt: ChantContext): boolean;
+    /**
+     * whether the line, ending where it does now, gets an automatic custos:
+     * "always" or "never" as the line break that ends it says (gabc z+ or z-);
+     * or else "never" if a [nocustos] is on the last note before the end of the
+     * line or ctxt.eolCustos is "manual"; or else "allowed", if the notations
+     * after the line allow it (see allowsCustosBefore())
+     */
+    eolCustos(ctxt: ChantContext): "always" | "never" | "allowed";
     justifyElements(ctxt: ChantContext, doJustify: boolean | undefined, condensableSpaces: CondensableSpaces): void;
     handleEndBrace(ctxt: ChantContext, note: BraceNote & {
         braceEnd?: BracePoint;

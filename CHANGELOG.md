@@ -1,3 +1,23 @@
+# [2.4.0](https://github.com/bbloomf/exsurge/compare/v2.3.1...v2.4.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **layout:** Read the line's end from fits for \finalhyphendemerits ([4820590](https://github.com/bbloomf/exsurge/commit/48205902e0b2ffcef7a6211e4e0a804f98cd201c)), closes [#48](https://github.com/bbloomf/exsurge/issues/48) [#49](https://github.com/bbloomf/exsurge/issues/49)
+
+
+### Features
+
+* **layout:** Add ctxt.finalHyphenDemerits for optimal line breaking ([3ec2d6d](https://github.com/bbloomf/exsurge/commit/3ec2d6d80ffb19198495a34d3813bbb1b5afbd2f))
+
+
+### Performance Improvements
+
+* **layout:** Find the clef before each trial line once for each layout ([76f731c](https://github.com/bbloomf/exsurge/commit/76f731cc6629abefe30ff7e9a4a3b05613c89677))
+* **layout:** Keep the ends of reused trial lines as numbers ([9788e70](https://github.com/bbloomf/exsurge/commit/9788e70e96f105a20e386850c6b410703b6cae8d))
+* **layout:** Use a plan again for the same notations at the same width ([f9da5ab](https://github.com/bbloomf/exsurge/commit/f9da5abd2cfeeee96ce94efec06902dad6a467ef))
+* **layout:** Use the lines that earlier layouts tried again, at any narrower width ([e958135](https://github.com/bbloomf/exsurge/commit/e958135e0d0a6a3ea4f3e0279ee6cdb817eebe22))
+
 ## [2.3.1](https://github.com/bbloomf/exsurge/compare/v2.3.0...v2.3.1) (2026-10-26)
 
 

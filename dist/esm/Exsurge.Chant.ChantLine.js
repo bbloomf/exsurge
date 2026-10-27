@@ -46,6 +46,26 @@ export function isTextOnlyBeforeDivider(notations, index) {
     return false;
 }
 /**
+ * whether the notations from index on allow the line that ends just before
+ * them an automatic custos: Gregorio leaves it out just before a euouae area
+ * (gabc <eu>), and after a [nocustos] before the next note
+ */
+export function allowsCustosBefore(notations, index) {
+    for (let k = index; k < notations.length; k++) {
+        let next = notations[k];
+        if (next.isClef || next.constructor === ChantLineBreak)
+            continue;
+        if (next.euouae && next.euouae.start)
+            return false;
+        break;
+    }
+    for (let k = index; k < notations.length; k++) {
+        if (notations[k].isNeume)
+            return !notations[k].notes[0].noCustosBefore;
+    }
+    return true;
+}
+/**
  * copies of the lyrics of the double bar that ends a line, which go at the
  * start of the next line, the first at x = 0; or null, if it has none to go there
  */
@@ -1474,47 +1494,41 @@ export class ChantLine extends ChantLayoutElement {
         return score.keptInAreas[index];
     }
     /**
-     * whether the line, ending where it does now, gets an automatic custos: as
-     * the line break that ends it says (gabc z+ or z-), or else unless a
-     * euouae area (gabc <eu>) starts the next line, a [nocustos] is on the last
-     * note before the end of the line or ctxt.eolCustos is "manual"
+     * whether the line, ending where it does now, gets an automatic custos (see
+     * eolCustos())
      */
     wantsEolCustos(ctxt) {
+        var custos = this.eolCustos(ctxt);
+        return (custos === "always" ||
+            (custos === "allowed" &&
+                allowsCustosBefore(this.score.notations, this.notationsStartIndex + this.numNotationsOnLine)));
+    }
+    /**
+     * whether the line, ending where it does now, gets an automatic custos:
+     * "always" or "never" as the line break that ends it says (gabc z+ or z-);
+     * or else "never" if a [nocustos] is on the last note before the end of the
+     * line or ctxt.eolCustos is "manual"; or else "allowed", if the notations
+     * after the line allow it (see allowsCustosBefore())
+     */
+    eolCustos(ctxt) {
         var notations = this.score.notations;
         var lastIndex = this.notationsStartIndex + this.numNotationsOnLine - 1;
         var last = this.clefLineBreak || notations[lastIndex];
         if (last && last.constructor === ChantLineBreak) {
             if (last.custos === "force")
-                return true;
+                return "always";
             if (last.custos === "none")
-                return false;
-        }
-        // Gregorio leaves out the custos just before a euouae area (gabc <eu>)
-        for (var k = lastIndex + 1; k < notations.length; k++) {
-            var next = notations[k];
-            if (next.isClef || next.constructor === ChantLineBreak)
-                continue;
-            if (next.euouae && next.euouae.start)
-                return false;
-            break;
-        }
-        // and after a [nocustos] before the next note
-        for (k = lastIndex + 1; k < notations.length; k++) {
-            if (notations[k].isNeume) {
-                if (notations[k].notes[0].noCustosBefore)
-                    return false;
-                break;
-            }
+                return "never";
         }
         for (var i = lastIndex; i >= this.notationsStartIndex; i--) {
             if (notations[i].isNeume) {
                 var notes = notations[i].notes;
                 if (notes[notes.length - 1].noCustos)
-                    return false;
+                    return "never";
                 break;
             }
         }
-        return ctxt.eolCustos !== "manual";
+        return ctxt.eolCustos === "manual" ? "never" : "allowed";
     }
     justifyElements(ctxt, doJustify, condensableSpaces) {
         var i;

@@ -749,6 +749,7 @@ export class ChantContext {
         this.condensingTolerance = 0.3;
         this.eolCustos = "auto";
         this.lineBreaking = "greedy";
+        this.finalHyphenDemerits = 0;
         // if auto color is true, then exsurge tries to automatically colorize
         // some elements of the chant (directives become rubric color, etc.)
         this.autoColor = true;
@@ -3497,6 +3498,8 @@ export class Annotations extends ChantLayoutElement {
         return result;
     }
 }
+// the last ChantNotationElement.layoutId given
+let __lastLayoutId = 0;
 /**
  * A notation in a score: a neume, clef, divider, accidental, custos, line
  * break or text with no notes.  The layout tells them apart by the flags
@@ -3578,6 +3581,7 @@ export class ChantNotationElement extends ChantLayoutElement {
     // on completion, exsurge presumes that the bounds, the origin, and the fragment objects are
     // all valid and prepared for higher level layout.
     performLayout(ctxt) {
+        this.layoutId = ++__lastLayoutId;
         if (typeof this.trailingSpace === "function")
             this.calculatedTrailingSpace = this.trailingSpace(ctxt);
         else
