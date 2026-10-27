@@ -1037,10 +1037,10 @@ export class ChantScore {
     if (!this.startingClef) this.startingClef = Clef.default();
     this.startingClef.elementIndex = -1;
 
-    this.updateVerseNumbers();
-
     // update drop cap (giving its letter back if it's no longer wanted)
     if (this.useDropCap || this.dropCap) this.recreateDropCap(ctxt);
+    // (which updates the verse numbers, since the drop cap hides its lyric's)
+    else this.updateVerseNumbers();
     this.updateFirstWordStyles(ctxt);
 
     this.needsLayout = true;
@@ -1049,13 +1049,14 @@ export class ChantScore {
   /**
    * Gives each lyric the verse number in effect on its line of lyrics, from
    * the last syllable before it with one, unless an empty one came after it
-   * (see ChantLine.repeatVerseNumbers())
+   * (see ChantLine.repeatVerseNumbers()).  The verse number of the lyric that
+   * the drop cap was taken from isn't drawn, so it isn't repeated either.
    */
   updateVerseNumbers() {
     var inEffect: Array<VerseNumber | undefined> = [];
     for (let notation of this.notations)
       notation.lyrics.forEach((lyric, lyricIndex) => {
-        if (lyric.verseNumber || lyric.endsVerseNumbers) inEffect[lyricIndex] = lyric.verseNumber;
+        if (lyric.verseNumber || lyric.endsVerseNumbers) inEffect[lyricIndex] = lyric.ownShownVerseNumber;
         else if (lyric.verseNumberInEffect !== inEffect[lyricIndex]) {
           lyric.verseNumberInEffect = inEffect[lyricIndex];
           delete lyric.verseNumberCopy;
@@ -1109,6 +1110,8 @@ export class ChantScore {
         notation.needsLayout = true;
       }
     }
+    // (the drop cap hides the verse number of its lyric)
+    this.updateVerseNumbers();
     this.updateFirstWordStyles(ctxt);
   }
 

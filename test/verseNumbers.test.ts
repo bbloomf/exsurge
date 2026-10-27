@@ -6,12 +6,17 @@ import { DoubleBar } from "../src/Exsurge.Chant.Signs.js";
 import { Gabc } from "../src/Exsurge.Gabc.js";
 import { fakeFont } from "./helpers/fonts";
 
-function scoreOf(gabc: string, width?: number, setupContext?: (ctxt: Drawing.ChantContext) => void) {
+function scoreOf(
+  gabc: string,
+  width?: number,
+  setupContext?: (ctxt: Drawing.ChantContext) => void,
+  useDropCap = false
+) {
   var ctxt = new Drawing.ChantContext();
   // every character is half an em wide
   ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
   if (setupContext) setupContext(ctxt);
-  var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), false);
+  var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), useDropCap);
   score.performLayout(ctxt);
   if (width) score.layoutChantLines(ctxt, width);
   return { ctxt, score };
@@ -215,5 +220,59 @@ describe('Verse numbers', function() {
     assert(before.length > 1 && after.length > 0);
     for (let notation of before) assert(notation!.lyrics.every((lyric) => lyric.shownVerseNumber || lyric.endsVerseNumbers));
     for (let notation of after) assert(notation!.lyrics.every((lyric) => !lyric.shownVerseNumber));
+  });
+
+  describe('with a drop cap', function() {
+    const svgVerseNumbers = (svg: string) =>
+      Array.from(svg.matchAll(/<text[^>]*class="verseNumber lyric"[^>]*><tspan[^>]*>([^<]*)</g), (m) => m[1]);
+    const shownNumbers = (notation: Drawing.ChantNotationElement) =>
+      notation.lyrics.map((lyric) => lyric.shownVerseNumber && lyric.shownVerseNumber.text);
+
+    it('takes the drop cap from the first syllable, and leaves out its verse number', function() {
+      var { ctxt, score } = scoreOf(`(c4) ${one} Ve|${two} Qui (g)ni(h) (::)`, 400, undefined, true);
+      assert.equal(score.dropCap!.spans.map((span) => span.text).join(''), 'V');
+      var lyrics = score.notations[0].lyrics;
+      assert.deepEqual(lyrics.map((lyric) => lyric.text), ['e', 'Qui']);
+      // (the lyric keeps it, but doesn't show it)
+      assert.equal(lyrics[0].verseNumber!.text, '1.');
+      assert.deepEqual(shownNumbers(score.notations[0]), [undefined, '2.']);
+      assert.deepEqual(svgVerseNumbers(score.createSvg(ctxt)), ['2.']);
+    });
+
+    it("doesn't repeat the first verse number, but repeats the others", function() {
+      var { score } = scoreOf(hymn, 200, undefined, true);
+      assert(score.dropCap);
+      var starts = lineStarts(score);
+      assert(starts.length > 2);
+      for (let notation of starts) assert.deepEqual(shownNumbers(notation!), [undefined, '2.', '10.']);
+    });
+
+    it('repeats a later verse number on the first line of lyrics', function() {
+      var [four] = verseNums('4.');
+      var gabc =
+        `(c4) ${one} Ve|${two} Qui |${ten} Tu (g)` + stanza + `${four} Ve|Qui |Tu (g)` + stanza.repeat(2) + '(::)';
+      var { score } = scoreOf(gabc, 200, undefined, true);
+      var starts = lineStarts(score);
+      assert.deepEqual(shownNumbers(starts[starts.length - 1]!), ['4.', '2.', '10.']);
+    });
+
+    it('shows the first verse number again when the score stops using the drop cap, and hides it when it starts again', function() {
+      var { ctxt, score } = scoreOf(hymn, 200, undefined, true);
+      var relayout = (useDropCap: boolean) => {
+        score.useDropCap = useDropCap;
+        score.updateNotations(ctxt);
+        score.performLayout(ctxt);
+        score.layoutChantLines(ctxt, 200);
+      };
+      relayout(false);
+      assert.equal(score.dropCap, null);
+      var fresh = scoreOf(hymn, 200);
+      assert.equal(score.createSvg(ctxt), fresh.score.createSvg(fresh.ctxt));
+      for (let notation of lineStarts(score)) assert.deepEqual(shownNumbers(notation!), ['1.', '2.', '10.']);
+
+      relayout(true);
+      fresh = scoreOf(hymn, 200, undefined, true);
+      assert.equal(score.createSvg(ctxt), fresh.score.createSvg(fresh.ctxt));
+    });
   });
 });

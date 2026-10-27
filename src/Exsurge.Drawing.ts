@@ -4681,9 +4681,17 @@ export class Lyric extends TextElement {
     return this.bounds.x + (this.shownVerseNumber ? Math.min(0, this.verseNumberX) : 0);
   }
 
+  /**
+   * the lyric's own verse number, unless the lyric gave its first letter to
+   * the drop cap, which takes the place of the verse number
+   */
+  get ownShownVerseNumber() {
+    return this.dropCap ? undefined : this.verseNumber;
+  }
+
   /** the verse number drawn before the lyric, if any */
   get shownVerseNumber() {
-    return this.verseNumber || this.repeatedVerseNumber;
+    return this.ownShownVerseNumber || this.repeatedVerseNumber;
   }
 
   /** a copy of the verse number in effect, to repeat before the lyric (made once) */
@@ -4882,8 +4890,6 @@ export class Lyric extends TextElement {
 
   generateDropCap(ctxt: ChantContext): DropCap | null {
     if (this.dropCap) return this.dropCap;
-    // (a verse number goes before the first letter)
-    if (this.verseNumber) return null;
     // (the letter is taken from the spans as they were before any wrapping)
     this.unwrap();
     // disallow special characters:
