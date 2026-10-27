@@ -191,7 +191,7 @@ export declare class Gabc {
     };
     /**
      *
-     * @param {*} gabcHeight gabc letter a through m
+     * @param {*} gabcHeight gabc letter a through n, or p
      * @returns pitch
      */
     static gabcHeightToExsurgeHeight(gabcHeight: string): number;
@@ -205,7 +205,7 @@ export declare class Gabc {
     /**
      *
      * @param {*} note to set staffPosition and staffPositionOffset on
-     * @param {*} gabcAtom gabc letter from a to m with modifiers
+     * @param {*} gabcAtom gabc letter from a to n, or p, with modifiers
      * @param {*} clef the clef the note is under: only under a Chi-Rho clef do 0 and 9 nudge it
      */
     static setStaffPositionAndOffset(note: Note | Signs.Custos, gabcAtom: string, clef: Clef): void;
