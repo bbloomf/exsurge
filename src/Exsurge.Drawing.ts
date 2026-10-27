@@ -1303,6 +1303,13 @@ export class ChantContext {
    * breaks of the whole score together, as Gregorio does (see LineBreaker)
    */
   lineBreaking: LineBreaking;
+  /**
+   * with optimal line breaking, the demerits added to a way of breaking the
+   * score whose last line starts within a word, as TeX's \finalhyphendemerits
+   * are: 0 (the default, as Gregorio sets it) to let it, more to make it less
+   * likely, so that a word such as "A-men" isn't split before the last line
+   */
+  finalHyphenDemerits: number;
 
   autoColor: boolean;
 
@@ -1541,6 +1548,7 @@ export class ChantContext {
     this.eolCustos = "auto";
 
     this.lineBreaking = "greedy";
+    this.finalHyphenDemerits = 0;
 
     // if auto color is true, then exsurge tries to automatically colorize
     // some elements of the chant (directives become rubric color, etc.)

@@ -59,7 +59,8 @@ const tolerance = 9000;
 const looseness = -1;
 const linePenalty = 10;
 const adjDemerits = 10000;
-// (Gregorio sets \doublehyphendemerits and \finalhyphendemerits to 0)
+// (Gregorio sets \doublehyphendemerits and \finalhyphendemerits to 0;
+// ctxt.finalHyphenDemerits sets the latter)
 
 // TeX's badness of a line too loose or too tight to be set
 const infiniteBadness = 10000;
@@ -292,6 +293,9 @@ export class LineBreaker {
           if (fitness === null || fitness === undefined) continue;
           var demerits = lineEnd.demerits!;
           if (Math.abs(fitness - node.fitness) > 1) demerits += adjDemerits;
+          // (and \finalhyphendemerits, if the last line starts within a word)
+          if (lineEnd.end === notations.length && position > 0 && !this.startsWord(position))
+            demerits += this.ctxt.finalHyphenDemerits;
           demerits = node.demerits + demerits;
 
           var line = node.line + 1;

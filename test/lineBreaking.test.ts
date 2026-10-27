@@ -163,6 +163,35 @@ describe("optimal line breaking", () => {
     assert(lineStarts(optimal.score).includes(gloria));
   });
 
+  it("starts the last line within a word only as TeX's \\finalhyphendemerits let it", async () => {
+    assert.strictEqual(new E.ChantContext().finalHyphenDemerits, 0);
+    /** whether the last line of a score starts within a word (each gabc word has a mapping of its own) */
+    const lastLineStartsWithinWord = (score: any) => {
+      const start = lineStarts(score).pop()!;
+      return score.notations[start].mapping === score.notations[start - 1].mapping;
+    };
+    // TeX's default of 5000 is enough to move the break before the last line
+    // to the end of a word here, with as many lines
+    for (const [gabc, width] of [
+      [puer, 340],
+      [adTeLevavi, 330]
+    ] as const) {
+      const gregorio = await layOut(gabc, { width });
+      const tex = await layOut(gabc, { width, setupContext: (ctxt) => (ctxt.finalHyphenDemerits = 5000) });
+      assert(lastLineStartsWithinWord(gregorio.score), `${width}`);
+      assert(!lastLineStartsWithinWord(tex.score), `${width}`);
+      assert.strictEqual(tex.score.lines.length, gregorio.score.lines.length);
+    }
+    // and enough of them keep "A-men" together, though the line before it is loose
+    const amen =
+      "(c3)No(h)ctem(h) qui(h)é(h)tam(h) et(h) fi(h)nem(g) per(f)fé(h)ctum(h.) (;) con(h)cé(h)dat(h) no(h)bis(h) Dó(h)mi(h)nus(h) om(h)ní(h)po(d)tens.(d.) (::) A(g.)men.(h.) (::)";
+    const split = await layOut(amen, { width: 450, setupContext: (ctxt) => (ctxt.finalHyphenDemerits = 5000) });
+    const together = await layOut(amen, { width: 450, setupContext: (ctxt) => (ctxt.finalHyphenDemerits = 1e9) });
+    assert(lastLineStartsWithinWord(split.score));
+    assert(!lastLineStartsWithinWord(together.score));
+    assert.strictEqual(together.score.lines.length, 2);
+  });
+
   it("sets a line as loose as it has to be, rather than break where Gregorio wouldn't", async () => {
     // the 14 notes of "a" fill most of a line, and the 9 of "b" can't be split
     const { score } = await layOut("(c4) a(f/g/h/g/f/g/h/g/f/g/h/g/f/g) b(f/g/h/g/f/g/h/g/f) c(g) d(h) e(g) (::)", {
