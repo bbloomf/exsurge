@@ -5382,6 +5382,9 @@ export interface LyricProtrusion {
   textIndex: number;
 }
 
+// the last ChantNotationElement.layoutId given
+let __lastLayoutId = 0;
+
 /**
  * A notation in a score: a neume, clef, divider, accidental, custos, line
  * break or text with no notes.  The layout tells them apart by the flags
@@ -5416,6 +5419,12 @@ export class ChantNotationElement extends ChantLayoutElement {
   notationIndex?: number;
   /** this notation's index in its score's notes (if it isn't a neume) */
   elementIndex?: number;
+  /**
+   * a number that each layout of the notation gives it, unlike any before
+   * it, so that a line laid out from it can be used again until it's laid out
+   * again (see LineBreaker)
+   */
+  layoutId?: number;
 
   visualizers: ChantLayoutElement[];
 
@@ -5556,6 +5565,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   // on completion, exsurge presumes that the bounds, the origin, and the fragment objects are
   // all valid and prepared for higher level layout.
   performLayout(ctxt: ChantContext) {
+    this.layoutId = ++__lastLayoutId;
     if (typeof this.trailingSpace === "function")
       this.calculatedTrailingSpace = this.trailingSpace(ctxt);
     else this.calculatedTrailingSpace = this.trailingSpace;

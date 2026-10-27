@@ -6,6 +6,7 @@ import assert from "node:assert";
 import * as E from "../src/index.js";
 import { featureCases, settingCases } from "./golden/cases";
 import { render, type RenderOptions } from "./golden/harness";
+import { createRandom, randomGabc } from "./reference/gabcFuzzer";
 
 const puer = featureCases.find((c) => c.name === "puer-natus-est")!.gabc;
 const adTeLevavi = featureCases.find((c) => c.name === "ad-te-levavi")!.gabc;
@@ -45,6 +46,9 @@ function plannedEnds(score: any, ctxt: any, width: number, extraLines: number) {
   }
   return ends;
 }
+
+/** the score's svg, but for its defs, which keep the glyphs that earlier layouts used */
+const output = (score: any, ctxt: any): string => score.createSvg(ctxt).replace(/<defs[\s\S]*?<\/defs>/, "");
 
 /** the notations on each line, as the gabc of their notes or the text of their lyrics */
 function lineContents(score: any) {
@@ -274,6 +278,131 @@ describe("optimal line breaking", () => {
         }
       });
     }
+  });
+
+  describe("using the lines that earlier layouts laid out again", () => {
+    /** how many lines the line breakers lay out from a notation while run() runs (see LineBreaker.layOutLineFrom()) */
+    async function linesLaidOut(run: () => unknown) {
+      const LineBreaker = E.LineBreaker.prototype as any;
+      const layOutLineFrom = LineBreaker.layOutLineFrom;
+      let count = 0;
+      LineBreaker.layOutLineFrom = function (...args: unknown[]) {
+        count++;
+        return layOutLineFrom.apply(this, args);
+      };
+      try {
+        await run();
+      } finally {
+        LineBreaker.layOutLineFrom = layOutLineFrom;
+      }
+      return count;
+    }
+
+    it("lays out no line again at a width that the score was laid out at before", async () => {
+      let laidOut: Awaited<ReturnType<typeof layOut>>;
+      assert((await linesLaidOut(async () => (laidOut = await layOut(puer, { useDropCap: true, width: 760 })))) > 0);
+      const { score, ctxt } = laidOut!;
+      const counts = [];
+      for (const width of [760, 330, 760, 330]) counts.push(await linesLaidOut(() => score.layoutChantLines(ctxt, width)));
+      assert.strictEqual(counts[0], 0);
+      assert(counts[1] > 0);
+      assert.deepStrictEqual(counts.slice(2), [0, 0]);
+    });
+
+    it("lays out again only the lines that read what an edit changed", async () => {
+      // (in the middle of a longer score)
+      const gabc = [adTeLevavi, adTeLevavi, adTeLevavi].join(" ");
+      const at = gabc.indexOf("me(f)i:(f.)", gabc.length / 3);
+      let laidOut: Awaited<ReturnType<typeof layOut>>;
+      const all = await linesLaidOut(async () => (laidOut = await layOut(gabc, { width: 330 })));
+      const { score, ctxt } = laidOut!;
+      E.Gabc.updateMappingsFromSource(ctxt, score.mappings, gabc.slice(0, at) + "me(fg)i:(f.)" + gabc.slice(at + 11));
+      score.updateNotations(ctxt);
+      score.performLayout(ctxt);
+      const again = await linesLaidOut(() => score.layoutChantLines(ctxt, 330));
+      assert(again > 0 && again < all / 3, `${again} of ${all}`);
+    });
+
+    it("plans the lines again only where the notations have changed since a layout at the same width", async () => {
+      const LineBreaker = E.LineBreaker.prototype as any;
+      const plan = LineBreaker.plan;
+      let plans = 0;
+      LineBreaker.plan = function (...args: unknown[]) {
+        plans++;
+        return plan.apply(this, args);
+      };
+      try {
+        const { score, ctxt } = await layOut(puer, { useDropCap: true, width: 760 });
+        const plansAt = (width: number) => {
+          plans = 0;
+          score.layoutChantLines(ctxt, width);
+          return plans;
+        };
+        assert(plansAt(330) > 0);
+        assert.deepStrictEqual([plansAt(760), plansAt(330), plansAt(330)], [0, 0, 0]);
+        E.Gabc.updateMappingsFromSource(ctxt, score.mappings, puer.replace("na(iji)tus(h)", "na(ijiji)tus(h)"));
+        score.updateNotations(ctxt);
+        score.performLayout(ctxt);
+        assert(plansAt(330) > 0);
+        assert(plansAt(760) > 0);
+      } finally {
+        LineBreaker.plan = plan;
+      }
+    });
+
+    it("lays scores out as laying each line out again would, through edits and changes of width", async () => {
+      // (the golden cases with what lines read beyond their notations, and
+      // random scores, with what changes in them edited)
+      const scores = [...featureCases, ...settingCases]
+        .filter((c) => /puer|levavi|translation|text-only|resized|nlba|euouae|custos|accidental|clef|break|brace|drop-cap/.test(c.name))
+        .map((c) => ({ ...c, lineBreaking: "optimal" as const }));
+      for (let seed = 1; seed <= 12; seed++) {
+        const random = createRandom(seed);
+        scores.push({ name: `random-${seed}`, gabc: randomGabc(random, 10 + random.int(60)), useDropCap: seed % 2 === 0 } as any);
+      }
+      const LineBreaker = E.LineBreaker.prototype as any;
+      const { getTrialLine, planAgain } = LineBreaker;
+      for (const { name, gabc, strategy, useDropCap, setupContext, setupScore } of scores) {
+        const words = gabc.split(" ");
+        const edits = [
+          // a word added in the middle, and taken out again, and one near the end taken out
+          [...words.slice(0, words.length >> 1), "no(gh)vum(g)", ...words.slice(words.length >> 1)].join(" "),
+          gabc,
+          [...words.slice(0, -3), ...words.slice(-2)].join(" ")
+        ];
+        const outputs: string[][] = [];
+        for (const reuse of [true, false]) {
+          if (!reuse) {
+            LineBreaker.getTrialLine = function (start: number, extent: unknown) {
+              return this.layOutLineFrom(start, extent);
+            };
+            LineBreaker.planAgain = () => false;
+          }
+          try {
+            const { score, ctxt } = await layOut(gabc, { strategy, useDropCap, setupContext, setupScore, width: 330 });
+            const o: string[] = [];
+            const step = () => o.push(JSON.stringify(lineStarts(score)) + output(score, ctxt));
+            for (const width of [520, 190, 330, 760, 360, 760]) {
+              score.layoutChantLines(ctxt, width);
+              step();
+            }
+            for (const edit of edits) {
+              E.Gabc.updateMappingsFromSource(ctxt, score.mappings, edit);
+              score.updateNotations(ctxt);
+              score.performLayout(ctxt);
+              score.layoutChantLines(ctxt, 330);
+              step();
+              score.layoutChantLines(ctxt, 190);
+              step();
+            }
+            outputs.push(o);
+          } finally {
+            Object.assign(LineBreaker, { getTrialLine, planAgain });
+          }
+        }
+        assert.deepStrictEqual(outputs[0], outputs[1], name);
+      }
+    }, 60000);
   });
 
   it("leaves the context's clef as it found it", async () => {
