@@ -598,3 +598,43 @@ describe("NABC in gabc", function() {
     );
   });
 });
+
+describe("NABC choral signs", function() {
+  const notesOf = (score: any) => score.notations.flatMap((notation: ChantNotationElement) => notation.notes || []) as Exsurge.Note[];
+
+  it("reads [cn:] after a note, and draws it where a choral sign goes, in the first line's font", async function() {
+    // (Gregorio's \GreHighChoralSign{…}{\GreNABCChar{vi}}, as for [cs:t])
+    const gabc = "(c4) a(g[cn:vi]) b(g[cs:t]) (::)";
+    const { score, outputs } = await render(Exsurge as any, gabc, { setupContext: (ctxt) => (ctxt.nabcFonts = [gregall]) }, ["svg"]);
+    const [note, other] = notesOf(score);
+    const choralNabc = note.choralNabc!;
+    assert.strictEqual(choralNabc.nabc, "vi");
+    assert.strictEqual(choralNabc.sourceIndex, gabc.indexOf("cn:"));
+    assert.ok(choralNabc.neumes);
+    assert.strictEqual(choralNabc.neumes!.voice, 0);
+    // on the same baseline as a choral sign's text on the same pitch, above the note
+    const choralSign = other.choralSign!;
+    assert.strictEqual(choralNabc.neumes!.baseline, choralSign.bounds.y - choralSign.origin.y);
+    assert.ok(choralNabc.bounds.y + choralNabc.bounds.height <= note.bounds.y + 1e-9);
+    // and in the neume's svg
+    assert.match(outputs.svg!, /<g class="nabc nabc-1" >\s*<use [^>]*xlink:href="#Nabc-[^"]*vi"/);
+  });
+
+  it("is kept, but not drawn, without a NABC font", async function() {
+    const { score, outputs } = await render(Exsurge as any, "(c4) a(g[cn:vi]) (::)", {}, ["svg"]);
+    const note = notesOf(score)[0];
+    assert.strictEqual(note.choralNabc!.nabc, "vi");
+    assert.strictEqual(note.choralNabc!.neumes, undefined);
+    assert.doesNotMatch(outputs.svg!, /nabc/);
+  });
+
+  it("replaces a choral sign before it on the note, as Gregorio does, and is replaced by one after it", function() {
+    const notes = Gabc.createMappingsFromSource(new ChantContext(), "(c4) a(g[cs:t][cn:vi]) b(g[cn:vi][cs:t])")
+      .flatMap((mapping) => mapping.notations)
+      .flatMap((notation) => notation.notes || []);
+    assert.deepStrictEqual(notes.map((note) => [note.choralSign?.text, note.choralNabc?.nabc]), [
+      [undefined, "vi"],
+      ["t", undefined]
+    ]);
+  });
+});

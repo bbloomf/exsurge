@@ -39,6 +39,7 @@ import {
   LyricArray,
   AboveLinesText,
   ChoralSign,
+  NabcChoralSign,
   TranslationText,
   DefaultTrailingSpace,
   GlyphCode,
@@ -1455,6 +1456,7 @@ export class Gabc {
                 let note = curNotation.notes[l];
                 note.sourceIndex += sourceIndexDiff;
                 if (note.choralSign) note.choralSign.sourceIndex! += sourceIndexDiff;
+                if (note.choralNabc) note.choralNabc.sourceIndex += sourceIndexDiff;
                 note.pitch = ctxt.activeClef.staffPositionToPitch(note.staffPosition);
                 this.endAutomaticBrace(note);
               }
@@ -3910,6 +3912,7 @@ export class Gabc {
     var cmd = results[1];
     var data = results[2];
     switch (cmd) {
+      // a choral sign, as text or (cn) as NABC, of which the last on the note counts
       case "cs":
         note.choralSign = new ChoralSign(
           ctxt,
@@ -3917,6 +3920,11 @@ export class Gabc {
           note,
           note.sourceIndex + sourceIndexOffset
         );
+        delete note.choralNabc;
+        return;
+      case "cn":
+        note.choralNabc = new NabcChoralSign(data, note, note.sourceIndex + sourceIndexOffset);
+        delete note.choralSign;
         return;
       case "alt":
         note.alText = new AboveLinesText(

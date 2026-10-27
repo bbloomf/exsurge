@@ -58,6 +58,7 @@ import type {
   AreaBoundary,
   ChantContext,
   ChoralSign,
+  NabcChoralSign,
   DropCap,
   SvgElementWithSource,
   SvgTreeNode
@@ -139,6 +140,8 @@ export class Note extends ChantLayoutElement {
   braceStart?: BracePoint;
   braceEnd?: BracePoint;
   choralSign?: ChoralSign;
+  /** Gregorio's NABC choral sign ([cn:…]), drawn where a choral sign goes */
+  choralNabc?: NabcChoralSign;
   /** text above the note, which goes to its neume's alText */
   alText?: AboveLinesText;
   /** the number of stems of a punctum inclinatum (gabc |) */

@@ -2753,6 +2753,8 @@ export class NabcNeumes extends ChantLayoutElement {
   glyphs: GlyphVisualizer[];
   /** where its baseline is on the line */
   baseline!: number;
+  /** how far moveBy() has moved it */
+  xOffset = 0;
   /** the size of ERR, where the NABC is wrong, in the font's ems */
   static errorSize = 0.6;
 
@@ -2788,6 +2790,13 @@ export class NabcNeumes extends ChantLayoutElement {
     this.setBaseline(0);
   }
 
+  /** moves it dx to the right */
+  moveBy(dx: number) {
+    this.xOffset += dx;
+    this.bounds.x += dx;
+    for (let glyph of this.glyphs) glyph.bounds.x += dx;
+  }
+
   setBaseline(baseline: number) {
     this.baseline = baseline;
     this.bounds.y = baseline - this.layout.height * this.unit;
@@ -2801,7 +2810,7 @@ export class NabcNeumes extends ChantLayoutElement {
   errorAttributes(ctxt: ChantContext, x: number): SvgAttributes {
     return {
       class: "nabcError",
-      x: x * this.unit,
+      x: this.xOffset + x * this.unit,
       y: this.baseline,
       // (with the font's names in ', which mean the same as " in css, since
       // the attribute is in ")
@@ -2818,7 +2827,7 @@ export class NabcNeumes extends ChantLayoutElement {
     for (let x of this.layout.errors) {
       canvasCtxt.font = NabcNeumes.errorSize * ctxt.nabcSize * ctxt.staffInterval + "px " + ctxt.textStyles.lyric.font;
       canvasCtxt.fillStyle = ctxt.neumeLineColor;
-      canvasCtxt.fillText("ERR", x * this.unit, this.baseline);
+      canvasCtxt.fillText("ERR", this.xOffset + x * this.unit, this.baseline);
     }
   }
 
@@ -5122,19 +5131,77 @@ export class ChoralSign extends TextElement {
       this.note.bounds.x +
       Math.max(0, (ctxt.staffInterval - this.bounds.width) / 2); // center on the note itself
 
-    let offset: number, staffPosition: number;
-    if (this.positionHint === MarkingPositionHint.Below) {
-      offset = -1;
-      staffPosition = this.note.staffPosition + 2 * offset;
-      staffPosition += staffPosition % 2 === 0 ? 0.3 : 1;
-    } else {
-      offset = 1;
-      staffPosition = this.note.staffPosition + 2 * offset;
-      staffPosition += staffPosition % 2 === 0 ? 0.3 : -0.4;
-    }
-    // if (staffPosition % 2 === 0) staffPosition += offset;
     this.bounds.y =
-      ctxt.calculateHeightFromStaffPosition(staffPosition) + this.origin.y;
+      ctxt.calculateHeightFromStaffPosition(choralSignStaffPosition(this.note, this.positionHint)) + this.origin.y;
+  }
+}
+
+// the staff position of the baseline of a choral sign on note, above it or below it
+function choralSignStaffPosition(note: Note, positionHint: MarkingPositionHint) {
+  let offset: number, staffPosition: number;
+  if (positionHint === MarkingPositionHint.Below) {
+    offset = -1;
+    staffPosition = note.staffPosition + 2 * offset;
+    staffPosition += staffPosition % 2 === 0 ? 0.3 : 1;
+  } else {
+    offset = 1;
+    staffPosition = note.staffPosition + 2 * offset;
+    staffPosition += staffPosition % 2 === 0 ? 0.3 : -0.4;
+  }
+  // if (staffPosition % 2 === 0) staffPosition += offset;
+  return staffPosition;
+}
+
+/**
+ * Gregorio's NABC choral sign ([cn:…] after a note): NABC drawn where a
+ * choral sign goes, in the font of the first line of NABC (as Gregorio's
+ * \GreNABCChar draws it).  Without a NABC font (ChantContext.nabcFonts),
+ * it isn't drawn, as NABC isn't.
+ */
+export class NabcChoralSign extends ChantLayoutElement {
+  /** the NABC, as in the gabc */
+  nabc: string;
+  note: Note;
+  positionHint: MarkingPositionHint;
+  sourceIndex: number;
+  /** the NABC as it's drawn, if there's a font to draw it with (see performLayout()) */
+  neumes?: NabcNeumes;
+
+  constructor(nabc: string, note: Note, sourceIndex: number) {
+    super();
+    this.nabc = nabc;
+    this.note = note;
+    this.sourceIndex = sourceIndex;
+    this.positionHint = MarkingPositionHint.Default;
+  }
+
+  performLayout(ctxt: ChantContext) {
+    let font = ctxt.nabcFonts[0];
+    let neumes = (this.neumes = font ? new NabcNeumes(ctxt, parseNabc(this.nabc), 0, font) : undefined);
+    if (!neumes) {
+      this.bounds = new Rect();
+      return;
+    }
+    // centered on the note, as a choral sign is
+    neumes.moveBy(this.note.bounds.x + Math.max(0, (ctxt.staffInterval - neumes.bounds.width) / 2) - neumes.bounds.x);
+    neumes.setBaseline(ctxt.calculateHeightFromStaffPosition(choralSignStaffPosition(this.note, this.positionHint)));
+    this.bounds = neumes.bounds.clone();
+  }
+
+  draw(ctxt: ChantContext) {
+    if (this.neumes) this.neumes.draw(ctxt);
+  }
+
+  createSvgNode(ctxt: ChantContext) {
+    return this.neumes ? this.neumes.createSvgNode(ctxt) : QuickSvg.createNode("g", {});
+  }
+
+  createSvgTree(ctxt: ChantContext) {
+    return this.neumes ? this.neumes.createSvgTree(ctxt) : QuickSvg.createSvgTree("g", {});
+  }
+
+  createSvgFragment(ctxt: ChantContext) {
+    return this.neumes ? this.neumes.createSvgFragment(ctxt) : "";
   }
 }
 

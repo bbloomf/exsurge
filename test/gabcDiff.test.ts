@@ -76,6 +76,7 @@ function serializeMappings(mappings: ChantMapping[]): any[] {
           return [
             note.pitch && note.pitch.toInt(), note.sourceIndex, note.shape, note.bracketStart,
             note.choralSign && note.choralSign.sourceIndex,
+            note.choralNabc && note.choralNabc.sourceIndex,
             note.braceStart && [note.braceStart.automatic, note.braceStart.length],
             note.braceEnd && [note.braceEnd.automatic, note.braceEnd.attachment]
           ];
@@ -165,6 +166,7 @@ var edits = [
   ['closes a style after a word\'s last notes', kyrie.replace('Chri(h)', '<i>Chri(h)'), kyrie.replace('Chri(h)ste(gf) ', '<i>Chri(h)ste(gf)</i> ')],
   ['edits a word in a style left open', kyrie.replace('Chri(h)', '<i>Chri(h)'), kyrie.replace('Chri(h)', '<i>Chri(h)').replace('Lau(f)', 'Lau(g)')],
   ['inserts a word before a choral sign', kyrie.replace('om(f)', 'om(f[cs:t])'), kyrie.replace('om(f)', 'no(g) om(f[cs:t])')],
+  ['inserts a word before a NABC choral sign', kyrie.replace('om(f)', 'om(f[cn:vi])'), kyrie.replace('om(f)', 'no(g) om(f[cn:vi])')],
   ['adds a brace given a length before kept repeated notes', kyrie.replace('om(f)', 'om(fss)'), kyrie.replace('om(f)', 'om(fss)').replace('num(f)', 'num(f[ob:1;4mm])')]
 ];
 
