@@ -500,12 +500,14 @@ const TrailingSpaceMultiple = (multiplier: number) => (ctxt: ChantContext) =>
 const NeumeSpace = (code: NeumeSpaceCode, factor = 1) => (ctxt: ChantContext) =>
   ctxt.intraNeumeSpacing * ctxt.neumeSpaceMultipliers[code] * factor;
 
-// the line that ends the header: two or more %s, as Gregorio allows, and the
-// blank lines after it, which Gregorio also takes
-const regexHeaderEnd = /(?:^|\n)(%%+)[ \t\r]*(\n|$)(?:[ \t\r]*\n)*/g;
-const regexHeaderEndLine = /^%%+\s*$/;
-// the start of a header: a field, after any blank lines and comments
-const regexHeaderStart = /^(?:[ \t\r]*(?:[%#][^\n]*)?\n)*[\w-_.]+:/;
+// the line that ends the header: two or more %s, as Gregorio allows (after
+// any spaces, which it warns about), and the blank lines after it, which
+// Gregorio also takes
+const regexHeaderEnd = /(?:^\uFEFF?|\n)[ \t]*(%%+)[ \t\r]*(\n|$)(?:[ \t\r]*\n)*/g;
+const regexHeaderEndLine = /^\s*%%+\s*$/;
+// the start of a header: a field, after any byte-order mark, blank lines and
+// comments
+const regexHeaderStart = /^\uFEFF?(?:[ \t\r]*(?:[%#][^\n]*)?\n)*[ \t]*[\w-_.]+[ \t]*:/;
 
 // the end of gabc's header, if it has one.  gabc without a header can have
 // comment lines of %s in it, so only a line of just %% ends a header unless
@@ -519,16 +521,18 @@ const findHeaderEnd = (gabc: string) => {
   regexHeaderEnd.lastIndex = 0;
   return match;
 };
-// a header line, "name: value;".  The value ends at a ; or ;; with nothing
-// but spaces after it.  A line without that ending is a value on its own (as
-// it always was in exsurge), unless the lines after it end the value, as
-// Gregorio's multi-line values do ("name: first line⏎second line;;")
-const regexHeaderLine = /^([\w-_.]+):\s*(.*?)(;;?[ \t]*)?$/i;
+// a header line, "name: value;", where Gregorio allows (but warns about)
+// spaces before the name and the colon.  The value ends at a ; or ;; with
+// nothing but spaces after it, or a comment.  A line without that ending is a
+// value on its own (as it always was in exsurge), unless the lines after it
+// end the value, as Gregorio's multi-line values do ("name: first
+// line⏎second line;;")
+const regexHeaderLine = /^[ \t]*([\w-_.]+)[ \t]*:\s*(.*?)(;;?[ \t]*(?:%.*)?)?$/i;
 // a line that ends a multi-line value
-const regexHeaderValueEnd = /^(.*?);;?[ \t]*$/;
+const regexHeaderValueEnd = /^(.*?);;?[ \t]*(?:%.*)?$/;
 // lines that can't be part of a multi-line value: another header, a comment
 // or the end of the header
-const regexHeaderNotValue = /^(?:[\w-_.]+:|[%#])/i;
+const regexHeaderNotValue = /^[ \t]*(?:[\w-_.]+[ \t]*:|[%#])/i;
 const regexHeaderComment = /^%.*/;
 
 // the lines of a value that goes on over the lines after lines[start], and
@@ -600,7 +604,8 @@ const GabcHeaderClass = class GabcHeader {
         0,
         match.index! + match[0].length
       ));
-      var lines = txtHeader.split(/\r?\n/g);
+      // (without a byte-order mark, which Gregorio skips)
+      var lines = txtHeader.replace(/^\uFEFF/, "").split(/\r?\n/g);
       for (var i = 0; i < lines.length; ++i) {
         let line = lines[i],
           match = regexHeaderLine.exec(line);
