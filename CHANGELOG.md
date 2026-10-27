@@ -1,3 +1,15 @@
+# [2.5.0](https://github.com/bbloomf/exsurge/compare/v2.4.0...v2.5.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **drawing:** Scope each context's text styles with its defIdPrefix ([ea45d50](https://github.com/bbloomf/exsurge/commit/ea45d50fc4fe6d5869446eff1a371f3f0212ed37))
+
+
+### Features
+
+* **lyrics:** Right-align hymn verse numbers and repeat them on every line ([65aaf0f](https://github.com/bbloomf/exsurge/commit/65aaf0f1327cb15efeb85c7c8733be95f9143100))
+
 # [2.4.0](https://github.com/bbloomf/exsurge/compare/v2.3.1...v2.4.0) (2026-10-27)
 
 

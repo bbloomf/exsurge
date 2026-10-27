@@ -400,6 +400,12 @@ export declare class ChantScore {
     updateSelection(selection?: Selection): void;
     updateNotations(ctxt: ChantContext): void;
     /**
+     * Gives each lyric the verse number in effect on its line of lyrics, from
+     * the last syllable before it with one, unless an empty one came after it
+     * (see ChantLine.repeatVerseNumbers())
+     */
+    updateVerseNumbers(): void;
+    /**
      * Gives the notation's lyrics the score's language, if it has one, and has
      * the notation laid out again if that changes them.
      */

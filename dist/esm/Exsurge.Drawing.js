@@ -175,6 +175,12 @@ Object.entries(TextTypes).forEach(([key, entry]) => {
 });
 /** the TextTypes, as code that goes through each of them sees them */
 const __textTypeEntries = () => Object.entries(TextTypes);
+// s as a css identifier, as CSS.escape() (which Node doesn't have) gives it:
+// a control character or a digit at the start as a hex escape, and other
+// ascii that isn't a letter, digit, _ or - after a backslash
+const __cssIdentifier = (s) => s
+    .replace(/[^\w\-\u0080-\uffff]/g, (c) => c < " " || c === "\x7f" ? "\\" + c.charCodeAt(0).toString(16) + " " : "\\" + c)
+    .replace(/^(-?)(\d)/, (_, dash, digit) => dash + "\\3" + digit + " ");
 // a TeX length, in staff intervals at Gregorio's default staff size
 const __texLength = (length) => texLengthToStaffIntervals(length);
 /**
@@ -682,6 +688,7 @@ export class ChantContext {
         this.lyricCentering = "vowel";
         this.italicMeansElision = true;
         this.lyricTie = "space";
+        this.repeatVerseNumbers = true;
         this.firstWordStyle = {};
         this.firstSyllableStyle = {};
         this.firstSyllableInitialStyle = {};
@@ -697,8 +704,9 @@ export class ChantContext {
             this.svgTextMeasurer = QuickSvg.svg(0, 0);
             this.svgTextMeasurer.setAttribute("id", "TextMeasurer");
             // the classes of the svg that the score is drawn in, which the text
-            // styles (see createStyleCss()) are for
-            this.svgTextMeasurer.setAttribute("class", "Exsurge ChantScore");
+            // styles (see createStyleCss()) are for (and which recalculateMetrics()
+            // sets again, since defIdPrefix may be set after this)
+            this.svgTextMeasurer.setAttribute("class", this.getSvgClass());
             this.svgTextMeasurer.setAttribute("style", "position:absolute");
             document.body.insertBefore(this.svgTextMeasurer, document.body.firstChild);
         }
@@ -985,15 +993,24 @@ export class ChantContext {
             this.setGlyphScaling(this.glyphScaling);
         }
     }
+    /**
+     * the classes of each svg that a score is drawn in: Exsurge ChantScore, and
+     * defIdPrefix + "ChantScore" when there's a prefix, which the text styles
+     * are scoped to (see defIdPrefix)
+     */
+    getSvgClass() {
+        return "Exsurge ChantScore" + (this.defIdPrefix ? " " + this.defIdPrefix + "ChantScore" : "");
+    }
     createStyleCss() {
         var style = "";
+        var svgSelector = this.defIdPrefix ? "svg.Exsurge." + __cssIdentifier(this.defIdPrefix + "ChantScore") : "svg.Exsurge";
         for (let [key, textType] of __textTypeEntries()) {
             var cssClass = textType.cssClass, { color, font, size } = this.textStyles[key];
             // some text (e.g., choral signs) is measured at a size that follows the
             // staff rather than the text style, so draw it at that size too.
             if (textType.size)
                 size = textType.size(this);
-            style += `svg.Exsurge .${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
+            style += `${svgSelector} .${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
         }
         return style;
     }
@@ -2473,6 +2490,7 @@ export class TextElement extends ChantLayoutElement {
         if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
             while (ctxt.svgTextMeasurer.firstChild)
                 ctxt.svgTextMeasurer.removeChild(ctxt.svgTextMeasurer.firstChild);
+            ctxt.svgTextMeasurer.setAttribute("class", ctxt.getSvgClass());
             ctxt.svgTextMeasurer.appendChild(this.createSvgNode(ctxt));
             ctxt.svgTextMeasurer.appendChild(ctxt.createStyleNode());
             // (the loop above leaves TypeScript thinking that firstChild is null)
@@ -2843,7 +2861,7 @@ export const LyricArray = {
         var x = Number.MAX_VALUE;
         for (var i = 0; i < lyricArray.length; i++) {
             if (lyricArray[i])
-                x = Math.min(x, lyricArray[i].notation.bounds.x + lyricArray[i].bounds.x);
+                x = Math.min(x, lyricArray[i].getLeft());
         }
         return x;
     },
@@ -2885,6 +2903,20 @@ export const LyricArray = {
             this.mergeIn(lyricArray, notations[i].lyrics);
         }
     },
+    /**
+     * right aligns the verse numbers of the lyrics (of one notation), a word
+     * space before the leftmost of the lyrics, so that the lyrics stay where
+     * they are
+     */
+    alignVerseNumbers: function (ctxt, lyricArray) {
+        var numbered = lyricArray.filter((lyric) => lyric.shownVerseNumber);
+        if (!numbered.length)
+            return;
+        var right = Math.min(...lyricArray.filter((lyric) => lyric.text || lyric.shownVerseNumber).map((lyric) => lyric.bounds.x)) -
+            ctxt.minLyricWordSpacing;
+        for (let lyric of numbered)
+            lyric.verseNumberX = right - lyric.shownVerseNumber.bounds.width - lyric.bounds.x;
+    },
     setNotation: function (lyricArray, notation) {
         notation.lyrics = lyricArray;
         for (var i = 0; i < lyricArray.length; ++i) {
@@ -2895,6 +2927,8 @@ export const LyricArray = {
 export class Lyric extends TextElement {
     constructor(ctxt, text, lyricType, notation, notations, sourceIndex) {
         super(ctxt, (ctxt.textStyles.lyric.prefix || "") + text, (ctxt) => ctxt.textStyles.lyric.font, (ctxt) => ctxt.textStyles.lyric.size, "start", sourceIndex, text, TextTypes.lyric);
+        /** where the verse number starts, from the lyric's x (see alignVerseNumbers()) */
+        this.verseNumberX = 0;
         // save the original text in case we need to later use the lyric
         // in a dropcap...
         this.originalText = text;
@@ -2996,8 +3030,32 @@ export class Lyric extends TextElement {
     getConnectorWidth() {
         return this.connectorWidth || this.defaultConnectorWidth;
     }
+    /** the left of the lyric, or of its verse number */
     getLeft() {
-        return this.notation.bounds.x + this.bounds.x;
+        return this.notation.bounds.x + this.leftOffset();
+    }
+    /** the left of the lyric, or of its verse number, from its notation's x */
+    leftOffset() {
+        return this.bounds.x + (this.shownVerseNumber ? Math.min(0, this.verseNumberX) : 0);
+    }
+    /** the verse number drawn before the lyric, if any */
+    get shownVerseNumber() {
+        return this.verseNumber || this.repeatedVerseNumber;
+    }
+    /** a copy of the verse number in effect, to repeat before the lyric (made once) */
+    getRepeatedVerseNumber(ctxt) {
+        if (this.verseNumberInEffect && !this.verseNumberCopy)
+            this.verseNumberCopy = this.verseNumberInEffect.copy(ctxt);
+        return this.verseNumberCopy;
+    }
+    /** the verse number drawn before the lyric, if any, placed where it's drawn */
+    placeVerseNumber() {
+        var verseNumber = this.shownVerseNumber;
+        if (verseNumber) {
+            verseNumber.bounds.x = this.bounds.x + this.verseNumberX;
+            verseNumber.bounds.y = this.bounds.y;
+        }
+        return verseNumber;
     }
     getRight() {
         return this.notation.bounds.x + this.bounds.x + this.bounds.width;
@@ -3005,6 +3063,11 @@ export class Lyric extends TextElement {
     recalculateMetrics(ctxt, resetNewLines = true) {
         this.setNeedsConnector();
         super.recalculateMetrics(ctxt, resetNewLines);
+        // (a lyric is measured before it has a verse number)
+        if (this.verseNumber)
+            this.verseNumber.recalculateMetrics(ctxt);
+        if (this.verseNumberCopy)
+            this.verseNumberCopy.recalculateMetrics(ctxt);
         this.widthWithoutConnector = this.bounds.width;
         this.clearConnectorWidth();
         this.defaultConnectorWidth = ctxt.hyphenWidth;
@@ -3146,6 +3209,9 @@ export class Lyric extends TextElement {
     generateDropCap(ctxt) {
         if (this.dropCap)
             return this.dropCap;
+        // (a verse number goes before the first letter)
+        if (this.verseNumber)
+            return null;
         // (the letter is taken from the spans as they were before any wrapping)
         this.unwrap();
         // disallow special characters:
@@ -3268,6 +3334,24 @@ export class Lyric extends TextElement {
         if (this.lyricType === LyricType.Directive && ctxt.autoColor === true)
             props = Object.assign({}, props, { fill: ctxt.rubricColor });
         return props;
+    }
+}
+/**
+ * The verse number before a lyric ("<verseNum>1.</verseNum> Ve"), drawn in the lyrics'
+ * style.  A notation's verse numbers are right aligned, a word space before
+ * the leftmost of its lyrics (see LyricArray.alignVerseNumbers()).
+ */
+export class VerseNumber extends TextElement {
+    constructor(ctxt, text, sourceIndex) {
+        super(ctxt, (ctxt.textStyles.lyric.prefix || "") + text, (ctxt) => ctxt.textStyles.lyric.font, (ctxt) => ctxt.textStyles.lyric.size, "start", sourceIndex, text, TextTypes.lyric);
+        this.gabcText = text;
+    }
+    /** a copy, to draw before another lyric */
+    copy(ctxt, sourceIndex) {
+        return new VerseNumber(ctxt, this.gabcText, sourceIndex);
+    }
+    getCssClasses() {
+        return "verseNumber " + super.getCssClasses();
     }
 }
 export class ChoralSign extends TextElement {
@@ -3542,7 +3626,7 @@ export class ChantNotationElement extends ChantLayoutElement {
         var x = Number.MAX_VALUE;
         for (var i = 0; i < this.lyrics.length; i++) {
             if (this.lyrics[i])
-                x = Math.min(x, this.lyrics[i].bounds.x);
+                x = Math.min(x, this.lyrics[i].leftOffset());
         }
         return this.bounds.x + x;
     }
@@ -3637,14 +3721,19 @@ export class ChantNotationElement extends ChantLayoutElement {
                     : this.origin.x - lyric.origin.x)
             : (lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
         this.lyrics.forEach(calculateLyricX);
+        LyricArray.alignVerseNumbers(ctxt, this.lyrics);
     }
     draw(ctxt) {
         var canvasCtxt = ctxt.canvasCtxt;
         canvasCtxt.translate(this.bounds.x, 0);
         for (var i = 0; i < this.visualizers.length; i++)
             this.visualizers[i].draw(ctxt);
-        for (i = 0; i < this.lyrics.length; i++)
+        for (i = 0; i < this.lyrics.length; i++) {
+            let verseNumber = this.lyrics[i].placeVerseNumber();
+            if (verseNumber)
+                verseNumber.draw(ctxt);
             this.lyrics[i].draw(ctxt);
+        }
         if (this.translationText)
             for (i = 0; i < this.translationText.length; i++)
                 this.translationText[i].draw(ctxt);
@@ -3659,8 +3748,12 @@ export class ChantNotationElement extends ChantLayoutElement {
     }
     getInnerSvgNodes(ctxt, functionName = "createSvgNode") {
         var inner = [];
-        for (i = 0; i < this.lyrics.length; i++)
+        for (i = 0; i < this.lyrics.length; i++) {
+            let verseNumber = this.lyrics[i].placeVerseNumber();
+            if (verseNumber)
+                inner.push(verseNumber[functionName](ctxt));
             inner.push(this.lyrics[i][functionName](ctxt));
+        }
         if (this.translationText)
             for (i = 0; i < this.translationText.length; i++)
                 inner.push(this.translationText[i][functionName](ctxt));
@@ -3706,8 +3799,12 @@ export class ChantNotationElement extends ChantLayoutElement {
     }
     createSvgFragment(ctxt) {
         var inner = "";
-        for (i = 0; i < this.lyrics.length; i++)
+        for (i = 0; i < this.lyrics.length; i++) {
+            let verseNumber = this.lyrics[i].placeVerseNumber();
+            if (verseNumber)
+                inner += verseNumber.createSvgFragment(ctxt);
             inner += this.lyrics[i].createSvgFragment(ctxt);
+        }
         if (this.translationText)
             for (i = 0; i < this.translationText.length; i++)
                 inner += this.translationText[i].createSvgFragment(ctxt);

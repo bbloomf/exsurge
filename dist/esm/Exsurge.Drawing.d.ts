@@ -466,6 +466,15 @@ export declare class ChantContext {
      * or negativeFillColors are inline in one page, give each context its own
      * prefix, or the later svgs draw the first one's glyphs.  Set it before
      * the first layout: the defs are made then (and remade by setStaffHeight()).
+     *
+     * The text styles in each svg's <style> (see createStyleCss()) apply to
+     * the whole page too, so the last svg's sizes, fonts and colors would win.
+     * With a prefix, each svg (and the svg text measurer) also has the class
+     * defIdPrefix + "ChantScore", e.g. "score2-ChantScore", and its rules
+     * apply only to svgs with that class: svg.Exsurge.score2-ChantScore .lyric
+     * rather than svg.Exsurge .lyric.  (So css that overrides a text style for
+     * such an svg has to be that specific too.)  Like an id, it can't have
+     * whitespace.
      */
     defIdPrefix: string;
     /**
@@ -640,6 +649,16 @@ export declare class ChantContext {
      * the lyrics, it's read when the gabc is parsed.
      */
     lyricTie: LyricTie;
+    /**
+     * Whether every line starts with the verse number of each line of lyrics
+     * on it, as a hymn's first line does.  A verse number is marked in the
+     * gabc at the start of a syllable ("<verseNum>1.</verseNum> Ve"), and is
+     * in effect until the next one on the same line of lyrics, or an empty one
+     * ("<verseNum></verseNum>A", e.g. before an Amen or a refrain).  The verse
+     * numbers on a syllable are right aligned whether or not they're repeated.
+     * Defaults to true.
+     */
+    repeatVerseNumbers: boolean;
     /**
      * Gregorio's firstword, firstsyllable and firstsyllableinitial styles: the
      * styles of the lyrics of the score's first word, of its first syllable
@@ -824,6 +843,12 @@ export declare class ChantContext {
     measureOpenTypeText(font: OpenTypeFont, text: string, x: number, y: number, fontSize: number, smallCaps: boolean): OpenTypeMetrics;
     setMergeAnnotationWithTextLeft(merge: boolean): void;
     setScaleDefs(scaleDefs: boolean): void;
+    /**
+     * the classes of each svg that a score is drawn in: Exsurge ChantScore, and
+     * defIdPrefix + "ChantScore" when there's a prefix, which the text styles
+     * are scoped to (see defIdPrefix)
+     */
+    getSvgClass(): string;
     createStyleCss(): string;
     createStyleNode(): SVGStyleElement;
     createStyleTree(): {
@@ -1255,6 +1280,12 @@ export declare const LyricArray: {
     indexOfLyric: (lyricArray: Lyric[]) => number;
     mergeIn: (lyricArray: Lyric[], newLyrics: Lyric[]) => void;
     mergeInArray: (lyricArray: Lyric[], notations: ChantNotationElement[]) => void;
+    /**
+     * right aligns the verse numbers of the lyrics (of one notation), a word
+     * space before the leftmost of the lyrics, so that the lyrics stay where
+     * they are
+     */
+    alignVerseNumbers: (ctxt: ChantContext, lyricArray: Lyric[]) => void;
     setNotation: (lyricArray: Lyric[], notation: ChantNotationElement) => void;
 };
 export declare class Lyric extends TextElement {
@@ -1292,6 +1323,27 @@ export declare class Lyric extends TextElement {
     lyricIndex?: number;
     /** the right edge of a line of text-only syllables that starts with this lyric */
     lineWidth?: number;
+    /** the verse number before the lyric in the gabc ("<verseNum>1.</verseNum> Ve") */
+    verseNumber?: VerseNumber;
+    /**
+     * whether an empty verse number ("<verseNum></verseNum>") ends the verse
+     * number in effect on the lyric's line of lyrics, so that it isn't repeated
+     */
+    endsVerseNumbers?: boolean;
+    /**
+     * the verse number in effect on the lyric's line of lyrics, from an earlier
+     * syllable (set by ChantScore.updateVerseNumbers())
+     */
+    verseNumberInEffect?: VerseNumber;
+    /** the copy of verseNumberInEffect that's repeated (see getRepeatedVerseNumber()) */
+    verseNumberCopy?: VerseNumber;
+    /**
+     * the verse number in effect, repeated before the lyric when it's the first
+     * text of its line of lyrics on a line (see ChantContext.repeatVerseNumbers)
+     */
+    repeatedVerseNumber?: VerseNumber;
+    /** where the verse number starts, from the lyric's x (see alignVerseNumbers()) */
+    verseNumberX: number;
     /**
      * the styles that setFirstWordStyles() gave the lyric: the first word's and
      * first syllable's, then the first letter's
@@ -1311,7 +1363,16 @@ export declare class Lyric extends TextElement {
      */
     resetConnector(): void;
     getConnectorWidth(): number;
+    /** the left of the lyric, or of its verse number */
     getLeft(): number;
+    /** the left of the lyric, or of its verse number, from its notation's x */
+    leftOffset(): number;
+    /** the verse number drawn before the lyric, if any */
+    get shownVerseNumber(): VerseNumber | undefined;
+    /** a copy of the verse number in effect, to repeat before the lyric (made once) */
+    getRepeatedVerseNumber(ctxt: ChantContext): VerseNumber | undefined;
+    /** the verse number drawn before the lyric, if any, placed where it's drawn */
+    placeVerseNumber(): VerseNumber | undefined;
     getRight(): number;
     recalculateMetrics(ctxt: ChantContext, resetNewLines?: boolean): void;
     generateDropCap(ctxt: ChantContext): DropCap | null;
@@ -1329,6 +1390,20 @@ export declare class Lyric extends TextElement {
     setFirstWordStyles(ctxt: ChantContext, part: "syllable" | "word" | null): boolean;
     getCssClasses(): string;
     getExtraStyleProperties(ctxt: ChantContext): CssProperties;
+}
+/**
+ * The verse number before a lyric ("<verseNum>1.</verseNum> Ve"), drawn in the lyrics'
+ * style.  A notation's verse numbers are right aligned, a word space before
+ * the leftmost of its lyrics (see LyricArray.alignVerseNumbers()).
+ */
+export declare class VerseNumber extends TextElement {
+    textType: TextTypes["lyric"];
+    /** the text as the gabc parser gave it (with its escapes), to copy it from */
+    gabcText: string;
+    constructor(ctxt: ChantContext, text: string, sourceIndex?: number);
+    /** a copy, to draw before another lyric */
+    copy(ctxt: ChantContext, sourceIndex?: number): VerseNumber;
+    getCssClasses(): string;
 }
 export declare class ChoralSign extends TextElement {
     textType: TextTypes["choralSign"];

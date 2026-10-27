@@ -574,11 +574,29 @@ export class ChantScore {
         if (!this.startingClef)
             this.startingClef = Clef.default();
         this.startingClef.elementIndex = -1;
+        this.updateVerseNumbers();
         // update drop cap (giving its letter back if it's no longer wanted)
         if (this.useDropCap || this.dropCap)
             this.recreateDropCap(ctxt);
         this.updateFirstWordStyles(ctxt);
         this.needsLayout = true;
+    }
+    /**
+     * Gives each lyric the verse number in effect on its line of lyrics, from
+     * the last syllable before it with one, unless an empty one came after it
+     * (see ChantLine.repeatVerseNumbers())
+     */
+    updateVerseNumbers() {
+        var inEffect = [];
+        for (let notation of this.notations)
+            notation.lyrics.forEach((lyric, lyricIndex) => {
+                if (lyric.verseNumber || lyric.endsVerseNumbers)
+                    inEffect[lyricIndex] = lyric.verseNumber;
+                else if (lyric.verseNumberInEffect !== inEffect[lyricIndex]) {
+                    lyric.verseNumberInEffect = inEffect[lyricIndex];
+                    delete lyric.verseNumberCopy;
+                }
+            });
     }
     /**
      * Gives the notation's lyrics the score's language, if it has one, and has
@@ -1119,7 +1137,7 @@ export class ChantScore {
             xmlns: QuickSvg.ns,
             "xmlns:xlink": QuickSvg.xlink,
             version: "1.1",
-            class: "Exsurge ChantScore" + (ctxt.editable ? " EditableChantScore" : ""),
+            class: ctxt.getSvgClass() + (ctxt.editable ? " EditableChantScore" : ""),
             width,
             height,
             viewBox: [0, 0, this.bounds.width, this.bounds.height].join(" ")
@@ -1200,7 +1218,7 @@ export class ChantScore {
             lineFragment = QuickSvg.createNode("svg", {
                 xmlns: QuickSvg.ns,
                 version: "1.1",
-                class: "Exsurge ChantScore",
+                class: ctxt.getSvgClass(),
                 width: this.bounds.width,
                 height: height,
                 viewBox: [0, 0, this.bounds.width, height].join(" ")
@@ -1230,7 +1248,7 @@ export class ChantScore {
                 xmlns: QuickSvg.ns,
                 version: "1.1",
                 "xmlns:xlink": QuickSvg.xlink,
-                class: "Exsurge ChantScore",
+                class: ctxt.getSvgClass(),
                 width: this.bounds.width,
                 height: height
             }, lineFragment);

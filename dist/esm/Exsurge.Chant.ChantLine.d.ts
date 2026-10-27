@@ -194,6 +194,12 @@ export declare class ChantLine extends ChantLayoutElement {
     handleSlurs(ctxt: ChantContext, note: Note): void;
     positionNotationElement(ctxt: ChantContext, prevLyrics: Lyric[], prev: ChantNotationElement, curr: ChantNotationElement, rightNotationBoundary: number, condensableSpaces?: CondensableSpaces): boolean;
     /**
+     * Gives the lyrics of the notation at index that are the first text of
+     * their lines of lyrics on the line the verse numbers in effect on them
+     * (with ChantContext.repeatVerseNumbers), before it's positioned.
+     */
+    repeatVerseNumbers(ctxt: ChantContext, index: number): void;
+    /**
      * Find the notation closest to x without going past it
      * @param {number} x
      */
