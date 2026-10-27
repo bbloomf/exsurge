@@ -722,6 +722,7 @@ export class LineBreaker {
       // (as in buildFromChantNotationIndex(), from what the notation's own
       // layout left, whatever lines it was laid out on before)
       resetNotation(ctxt, curr);
+      line.repeatVerseNumbers(ctxt, i);
 
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !line.isSoftAccidentalVisible(i));

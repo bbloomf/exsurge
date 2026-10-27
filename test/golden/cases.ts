@@ -264,6 +264,18 @@ export const featureCases: GoldenCase[] = [
       "(c4) Ky|Chri|Ky(f)ri|ste|ri(g)e|e |e(h) e|e|e(g)lé|lé|lé(f)i|i|i(e)son.|son.|son.(f) (::)"
   },
   {
+    // verse numbers right aligned before the stanzas, repeated at the start
+    // of each line, until the empty tags before the Amen on the last line
+    name: "verse-numbers",
+    width: 300,
+    gabc:
+      "(c4) <verseNum>1.</verseNum> Ve|<verseNum>2.</verseNum> Qui |<verseNum>10.</verseNum> Tu (g)ni,|dí|sep(gf) " +
+      "Cre|ce|ti(g)á|ris, |fór(h)tor|Pa|mis (h) " +
+      "Spí|rá|mú(ih)ri|cli|ne(g)tus,|tus, |re, (gh) (,) Men|Do|Dí(g)tes|num |gi(f)tu|De|tus (g)" +
+      "o|i |pa(h)rum|al|tér(g)tu|tís|næ (f)ó|si|déx(gh)rum|mi, |te(g) (,) vi|fons |ræ (h)ta,|vi|di(g) (:) (z) " +
+      "<verseNum></verseNum>A|<verseNum/>A|<verseNum></verseNum>A(g)men.|men. |men. (gh) (::)"
+  },
+  {
     name: "directives",
     gabc: "(c4) Ky(f)ri(g)e(h) *(;) ij.(:) e(g)lé(f)i(e)son.(f) iij.(::) 1.(f) 23(g) **(h) †(::)"
   },

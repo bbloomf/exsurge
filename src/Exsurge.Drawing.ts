@@ -1243,6 +1243,16 @@ export class ChantContext {
    */
   lyricTie: LyricTie;
   /**
+   * Whether every line starts with the verse number of each line of lyrics
+   * on it, as a hymn's first line does.  A verse number is marked in the
+   * gabc at the start of a syllable ("<verseNum>1.</verseNum> Ve"), and is
+   * in effect until the next one on the same line of lyrics, or an empty one
+   * ("<verseNum></verseNum>A", e.g. before an Amen or a refrain).  The verse
+   * numbers on a syllable are right aligned whether or not they're repeated.
+   * Defaults to true.
+   */
+  repeatVerseNumbers: boolean;
+  /**
    * Gregorio's firstword, firstsyllable and firstsyllableinitial styles: the
    * styles of the lyrics of the score's first word, of its first syllable
    * (after any drop cap), and of that syllable's first letter.  Markup in the
@@ -1481,6 +1491,7 @@ export class ChantContext {
     this.lyricCentering = "vowel";
     this.italicMeansElision = true;
     this.lyricTie = "space";
+    this.repeatVerseNumbers = true;
     this.firstWordStyle = {};
     this.firstSyllableStyle = {};
     this.firstSyllableInitialStyle = {};
@@ -4387,11 +4398,7 @@ export const LyricArray = {
 
     var x = Number.MAX_VALUE;
     for (var i = 0; i < lyricArray.length; i++) {
-      if (lyricArray[i])
-        x = Math.min(
-          x,
-          lyricArray[i].notation.bounds.x + lyricArray[i].bounds.x
-        );
+      if (lyricArray[i]) x = Math.min(x, lyricArray[i].getLeft());
     }
 
     return x;
@@ -4444,6 +4451,21 @@ export const LyricArray = {
     }
   },
 
+  /**
+   * right aligns the verse numbers of the lyrics (of one notation), a word
+   * space before the leftmost of the lyrics, so that the lyrics stay where
+   * they are
+   */
+  alignVerseNumbers: function (ctxt: ChantContext, lyricArray: Lyric[]) {
+    var numbered = lyricArray.filter((lyric) => lyric.shownVerseNumber);
+    if (!numbered.length) return;
+    var right =
+      Math.min(...lyricArray.filter((lyric) => lyric.text || lyric.shownVerseNumber).map((lyric) => lyric.bounds.x)) -
+      ctxt.minLyricWordSpacing;
+    for (let lyric of numbered)
+      lyric.verseNumberX = right - lyric.shownVerseNumber!.bounds.width - lyric.bounds.x;
+  },
+
   setNotation: function (lyricArray: Lyric[], notation: ChantNotationElement) {
     notation.lyrics = lyricArray;
     for (var i = 0; i < lyricArray.length; ++i) {
@@ -4487,6 +4509,27 @@ export class Lyric extends TextElement {
   lyricIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
   lineWidth?: number;
+  /** the verse number before the lyric in the gabc ("<verseNum>1.</verseNum> Ve") */
+  verseNumber?: VerseNumber;
+  /**
+   * whether an empty verse number ("<verseNum></verseNum>") ends the verse
+   * number in effect on the lyric's line of lyrics, so that it isn't repeated
+   */
+  endsVerseNumbers?: boolean;
+  /**
+   * the verse number in effect on the lyric's line of lyrics, from an earlier
+   * syllable (set by ChantScore.updateVerseNumbers())
+   */
+  verseNumberInEffect?: VerseNumber;
+  /** the copy of verseNumberInEffect that's repeated (see getRepeatedVerseNumber()) */
+  verseNumberCopy?: VerseNumber;
+  /**
+   * the verse number in effect, repeated before the lyric when it's the first
+   * text of its line of lyrics on a line (see ChantContext.repeatVerseNumbers)
+   */
+  repeatedVerseNumber?: VerseNumber;
+  /** where the verse number starts, from the lyric's x (see alignVerseNumbers()) */
+  verseNumberX = 0;
   /**
    * the styles that setFirstWordStyles() gave the lyric: the first word's and
    * first syllable's, then the first letter's
@@ -4628,8 +4671,35 @@ export class Lyric extends TextElement {
     return this.connectorWidth || this.defaultConnectorWidth;
   }
 
+  /** the left of the lyric, or of its verse number */
   getLeft() {
-    return this.notation.bounds.x + this.bounds.x;
+    return this.notation.bounds.x + this.leftOffset();
+  }
+
+  /** the left of the lyric, or of its verse number, from its notation's x */
+  leftOffset() {
+    return this.bounds.x + (this.shownVerseNumber ? Math.min(0, this.verseNumberX) : 0);
+  }
+
+  /** the verse number drawn before the lyric, if any */
+  get shownVerseNumber() {
+    return this.verseNumber || this.repeatedVerseNumber;
+  }
+
+  /** a copy of the verse number in effect, to repeat before the lyric (made once) */
+  getRepeatedVerseNumber(ctxt: ChantContext) {
+    if (this.verseNumberInEffect && !this.verseNumberCopy) this.verseNumberCopy = this.verseNumberInEffect.copy(ctxt);
+    return this.verseNumberCopy;
+  }
+
+  /** the verse number drawn before the lyric, if any, placed where it's drawn */
+  placeVerseNumber() {
+    var verseNumber = this.shownVerseNumber;
+    if (verseNumber) {
+      verseNumber.bounds.x = this.bounds.x + this.verseNumberX;
+      verseNumber.bounds.y = this.bounds.y;
+    }
+    return verseNumber;
   }
 
   getRight() {
@@ -4640,6 +4710,10 @@ export class Lyric extends TextElement {
     this.setNeedsConnector();
 
     super.recalculateMetrics(ctxt, resetNewLines);
+
+    // (a lyric is measured before it has a verse number)
+    if (this.verseNumber) this.verseNumber.recalculateMetrics(ctxt);
+    if (this.verseNumberCopy) this.verseNumberCopy.recalculateMetrics(ctxt);
 
     this.widthWithoutConnector = this.bounds.width;
 
@@ -4808,6 +4882,8 @@ export class Lyric extends TextElement {
 
   generateDropCap(ctxt: ChantContext): DropCap | null {
     if (this.dropCap) return this.dropCap;
+    // (a verse number goes before the first letter)
+    if (this.verseNumber) return null;
     // (the letter is taken from the spans as they were before any wrapping)
     this.unwrap();
     // disallow special characters:
@@ -4944,6 +5020,40 @@ export class Lyric extends TextElement {
       props = Object.assign({}, props, { fill: ctxt.rubricColor });
 
     return props;
+  }
+}
+
+/**
+ * The verse number before a lyric ("<verseNum>1.</verseNum> Ve"), drawn in the lyrics'
+ * style.  A notation's verse numbers are right aligned, a word space before
+ * the leftmost of its lyrics (see LyricArray.alignVerseNumbers()).
+ */
+export class VerseNumber extends TextElement {
+  declare textType: TextTypes["lyric"];
+  /** the text as the gabc parser gave it (with its escapes), to copy it from */
+  gabcText: string;
+
+  constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
+    super(
+      ctxt,
+      (ctxt.textStyles.lyric.prefix || "") + text,
+      (ctxt) => ctxt.textStyles.lyric.font,
+      (ctxt) => ctxt.textStyles.lyric.size,
+      "start",
+      sourceIndex,
+      text,
+      TextTypes.lyric
+    );
+    this.gabcText = text;
+  }
+
+  /** a copy, to draw before another lyric */
+  copy(ctxt: ChantContext, sourceIndex?: number) {
+    return new VerseNumber(ctxt, this.gabcText, sourceIndex);
+  }
+
+  getCssClasses() {
+    return "verseNumber " + super.getCssClasses();
   }
 }
 
@@ -5552,7 +5662,7 @@ export class ChantNotationElement extends ChantLayoutElement {
 
     var x = Number.MAX_VALUE;
     for (var i = 0; i < this.lyrics.length; i++) {
-      if (this.lyrics[i]) x = Math.min(x, this.lyrics[i].bounds.x);
+      if (this.lyrics[i]) x = Math.min(x, this.lyrics[i].leftOffset());
     }
 
     return this.bounds.x + x;
@@ -5661,6 +5771,7 @@ export class ChantNotationElement extends ChantLayoutElement {
               : this.origin.x - lyric.origin.x)
       : (lyric: Lyric) => (lyric.bounds.x = this.origin.x - lyric.origin.x);
     this.lyrics.forEach(calculateLyricX);
+    LyricArray.alignVerseNumbers(ctxt, this.lyrics);
   }
 
   draw(ctxt: ChantContext) {
@@ -5670,7 +5781,11 @@ export class ChantNotationElement extends ChantLayoutElement {
     for (var i = 0; i < this.visualizers.length; i++)
       this.visualizers[i].draw(ctxt);
 
-    for (i = 0; i < this.lyrics.length; i++) this.lyrics[i].draw(ctxt);
+    for (i = 0; i < this.lyrics.length; i++) {
+      let verseNumber = this.lyrics[i].placeVerseNumber();
+      if (verseNumber) verseNumber.draw(ctxt);
+      this.lyrics[i].draw(ctxt);
+    }
 
     if (this.translationText)
       for (i = 0; i < this.translationText.length; i++)
@@ -5690,8 +5805,11 @@ export class ChantNotationElement extends ChantLayoutElement {
   ) {
     var inner: Array<SvgElementWithSource | SvgTreeNode> = [];
 
-    for (i = 0; i < this.lyrics.length; i++)
+    for (i = 0; i < this.lyrics.length; i++) {
+      let verseNumber = this.lyrics[i].placeVerseNumber();
+      if (verseNumber) inner.push(verseNumber[functionName](ctxt));
       inner.push(this.lyrics[i][functionName](ctxt));
+    }
 
     if (this.translationText)
       for (i = 0; i < this.translationText.length; i++)
@@ -5749,8 +5867,11 @@ export class ChantNotationElement extends ChantLayoutElement {
   createSvgFragment(ctxt: ChantContext) {
     var inner = "";
 
-    for (i = 0; i < this.lyrics.length; i++)
+    for (i = 0; i < this.lyrics.length; i++) {
+      let verseNumber = this.lyrics[i].placeVerseNumber();
+      if (verseNumber) inner += verseNumber.createSvgFragment(ctxt);
       inner += this.lyrics[i].createSvgFragment(ctxt);
+    }
 
     if (this.translationText)
       for (i = 0; i < this.translationText.length; i++)
