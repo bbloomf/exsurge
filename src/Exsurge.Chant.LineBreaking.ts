@@ -16,10 +16,10 @@
 // score use them again (see LineBreaker.getTrialLine()) while the notations
 // that a line read are the same ones, not laid out again since, and the
 // settings are the same.  A line laid out to some width gives each place it
-// could end without the width (see LineEnd), so it serves any narrower width
-// as well.  What the notations after a line and the rest of the score say
-// about where it can end, and about its custos, is worked out for each
-// layout instead (see LineBreaker.resolve()).
+// could end without the width (see TrialLine.ends), so it serves any narrower
+// width as well.  What the notations after a line and the rest of the score
+// say about where it can end, and about its custos, is worked out for each
+// layout instead (see LineBreaker.fitLineEnds()).
 //
 // It is used when ctxt.lineBreaking is "optimal" (see ChantScore.layoutChantLines).
 //
@@ -109,54 +109,41 @@ interface LineExtent {
   staffRight: number;
 }
 
-/**
- * a place where a line laid out from some notation could end, as it is
- * whatever the width (see LineBreaker.layOutLineFrom()); and for the layout
- * that last used it, as it is at that width (see LineBreaker.resolve())
- */
-interface LineEnd {
-  /** the index of the notation the next line would start with (the number of notations, at the end of the score) */
-  end: number;
-  /**
-   * how far right the line goes, as getWhitespaceOnRight() measures it: its
-   * last notation or lyric, or its own custos if it has one (see custos)
-   */
-  right: number;
-  /** how far right it goes with an automatic custos at its end */
-  rightWithCustos: number;
-  /** what the line's own notations say about an automatic custos at its end (see ChantLine.eolCustos()), or "own" if it has a custos of its own */
-  custos: "always" | "never" | "allowed" | "own";
-  /**
-   * how far right the notations before this end go, condensed as far as they
-   * can be: the line can end here on a staff that ends there or further right
-   */
-  reach: number;
-  /** how much the line can be condensed */
-  shrink: number;
-  /** how much the line can be stretched, for a badness of 100 (see fit()) */
-  stretch: number;
-  /** whether the next line starts a word, so that the space before a custos at the end of this one stretches too */
-  nextStartsWord: boolean;
-  /**
-   * Gregorio's penalty for breaking the line here, as far as the line's own
-   * notations say (see LineBreaker.isBlocked() for the rest)
-   */
-  penalty: number;
-  /** whether the line doesn't stretch to the end of the staff (the last line, or gabc Z) */
-  ragged: boolean;
-  /** the LineBreaker.id of the layout that hasCustos and blocked were worked out for (see LineBreaker.resolve()) */
-  layout: number;
-  /** whether the line has a custos at its end */
-  hasCustos: boolean;
-  /** whether the line can't end here after all, for what comes after it (see LineBreaker.isBlocked()) */
-  blocked: boolean;
-  /** the threshold that fitness and demerits were last worked out for (see fitLineEnd()) */
-  threshold?: number;
-  /** the line's fitness class, or null if it's too loose or too tight for threshold */
-  fitness?: number | null;
-  /** the line's demerits, but for adjDemerits */
-  demerits?: number;
-}
+// Each place where a line laid out from some notation could end, as it is
+// whatever the width (see LineBreaker.layOutLineFrom()), is kept as
+// lineEndSize numbers in a row in TrialLine.ends, at these offsets (which
+// takes a quarter of the memory that an object for each would)
+const lineEndSize = 8;
+// the index of the notation the next line would start with (the number of
+// notations, at the end of the score), less the index of the one the line
+// starts with
+const endAt = 0;
+// how far right the line goes, as getWhitespaceOnRight() measures it: its
+// last notation or lyric, or its own custos if it has one (see custosKinds)
+const rightAt = 1;
+// how far right it goes with an automatic custos at its end
+const rightWithCustosAt = 2;
+// how far right the notations before this end go, condensed as far as they
+// can be: the line can end here on a staff that ends there or further right
+const reachAt = 3;
+// how much the line can be condensed
+const shrinkAt = 4;
+// how much the line can be stretched, for a badness of 100 (see fit())
+const stretchAt = 5;
+// Gregorio's penalty for breaking the line here, as far as the line's own
+// notations say (see LineBreaker.isBlocked() for the rest)
+const penaltyAt = 6;
+// the index in custosKinds of what the line's own notations say about an
+// automatic custos at its end (see ChantLine.eolCustos()), or "own" if it has
+// a custos of its own, with the flags below
+const flagsAt = 7;
+const custosKinds = ["never", "allowed", "always", "own"] as const;
+const custosMask = 3;
+// whether the next line starts a word, so that the space before a custos at
+// the end of this one stretches too
+const nextStartsWordFlag = 4;
+// whether the line doesn't stretch to the end of the staff (the last line, or gabc Z)
+const raggedFlag = 8;
 
 /**
  * how far a line laid out so far stretches, for a badness of 100: the sum of
@@ -192,8 +179,6 @@ interface TrialLine {
   /** where its staff starts (where it ends is up to the layout that uses it) */
   staffLeft: number;
   paddingLeft: number;
-  /** the index of the notation it starts with, when it was laid out or last used */
-  start: number;
   /** the clef in effect at its start, and that clef's layoutId */
   clef: Clef;
   clefLayoutId?: number;
@@ -216,7 +201,12 @@ interface TrialLine {
    */
   widest: number;
   narrowest: number;
-  ends: LineEnd[];
+  /**
+   * each place it could end (see lineEndSize), in order, from where it
+   * starts, so that they move with it if notations before it are added or
+   * taken away
+   */
+  ends: number[];
 }
 
 /** the lines laid out from each notation by the last layouts of a score, by the notation */
@@ -245,9 +235,6 @@ const trialLines = new WeakMap<ChantScore, TrialLines>();
 // settings (and minLyricWordSpacingRatio, which only gives minLyricWordSpacing)
 const contextState = ["currNotationIndex", "textMetricsCacheSize", "minLyricWordSpacingRatio"];
 
-// the last LineBreaker.id given
-var lastLineBreakerId = 0;
-
 /** a way to break the score into lines up to some notation, as TeX's active nodes are */
 interface BreakNode {
   /** the index of the notation that the next line starts with */
@@ -267,8 +254,6 @@ export class LineBreaker {
   score: ChantScore;
   ctxt: ChantContext;
   width: number;
-  /** a number for each layout of the lines, as the LineEnds it uses know it (see resolve()) */
-  id = ++lastLineBreakerId;
   /**
    * how many lines more than the fewest it can be done in, or than the way
    * with the fewest demerits for each fitness class, that the ways of
@@ -280,12 +265,12 @@ export class LineBreaker {
   /** where each line was planned to end, by its index and the notation it starts with */
   plannedEnds = new Map<string, number>();
   /** the ends of the lines that could start at each notation, by its index, for each place a line's staff can start */
-  lineEnds: Array<{ extent: LineExtent; ends: Array<LineEnd[] | undefined> }> = [];
+  lineEnds: Array<{ extent: LineExtent; ends: Array<number[] | undefined> }> = [];
   /** the lines laid out from each notation by this layout and the last ones (see getTrialLine()) */
   trialLines?: TrialLines;
   /** a line for keepsInArea() to ask */
   areaLine?: ChantLine;
-  /** (see resolve()) */
+  /** (see getAfter()) */
   after?: { blocked: Uint8Array; custos: Uint8Array };
   /** (see getNoteCounts()) */
   noteCounts?: {
@@ -430,6 +415,9 @@ export class LineBreaker {
       // are nearly always enough for \looseness to choose from.)
       var fewestLines = Infinity,
         leastDemerits: BreakNode[] = [];
+      // (the lines that start here that fit, and the ends they're for: see fitLineEnds())
+      var fits: number[] = [],
+        fitted: number[] | null = null;
       for (var node of here) {
         if (node.line < besideDropCap) continue;
         fewestLines = Math.min(fewestLines, node.line);
@@ -445,22 +433,24 @@ export class LineBreaker {
           continue;
         if (node.position > farthest.position || (node.position === farthest.position && node.demerits < farthest.demerits))
           farthest = node;
-        for (var lineEnd of this.getLineEnds(node.line, position)) {
-          // (the line can't go on once it's too full even when condensed)
-          if (lineEnd.reach > this.width) break;
-          this.fitLineEnd(lineEnd, threshold);
-          var fitness = lineEnd.fitness;
-          if (fitness === null || fitness === undefined) continue;
-          var demerits = lineEnd.demerits!;
+        var lineEnds = this.getLineEnds(node.line, position);
+        if (lineEnds !== fitted) {
+          fitted = lineEnds;
+          fits = this.fitLineEnds(position, lineEnds, threshold);
+        }
+        for (var f = 0; f < fits.length; f += 3) {
+          var end = fits[f],
+            fitness = fits[f + 1],
+            demerits = fits[f + 2];
           if (Math.abs(fitness - node.fitness) > 1) demerits += adjDemerits;
           demerits = node.demerits + demerits;
 
           var line = node.line + 1;
-          var there = nodes[lineEnd.end] || (nodes[lineEnd.end] = []);
+          var there = nodes[end] || (nodes[end] = []);
           var k = 0;
           while (k < there.length && (there[k].line !== line || there[k].fitness !== fitness)) k++;
           if (k < there.length && !(demerits < there[k].demerits)) continue;
-          there[k] = { position: lineEnd.end, line, fitness, demerits, previous: node };
+          there[k] = { position: end, line, fitness, demerits, previous: node };
         }
       }
     }
@@ -477,30 +467,32 @@ export class LineBreaker {
   }
 
   /**
-   * the badness and the fitness class of a line, as TeX works them out, or
-   * null if the line is too loose or too tight for the threshold (as a line
-   * that has to break where it does, at gabc z, can be too: there is then
-   * another way to break the lines before it, or else the last pass, with no
-   * threshold, sets it however loose it is)
+   * the badness and the fitness class of the line that ends at the end at k
+   * in ends, as TeX works them out, or null if the line is too loose or too
+   * tight for the threshold (as a line that has to break where it does, at
+   * gabc z, can be too: there is then another way to break the lines before
+   * it, or else the last pass, with no threshold, sets it however loose it is)
    */
-  fit(lineEnd: LineEnd, threshold: number) {
+  fit(ends: number[], k: number, hasCustos: boolean, threshold: number) {
     var badness: number,
-      fitness: number;
+      fitness: number,
+      flags = ends[k + flagsAt];
     // the space left at the right of the line, which is negative if it's too
     // full (justifyElements() leaves the line alone when it's this close to full)
-    var space = this.width - (lineEnd.hasCustos ? lineEnd.rightWithCustos : lineEnd.right);
+    var space = this.width - ends[k + (hasCustos ? rightWithCustosAt : rightAt)];
     if (Math.abs(space) < 0.5) space = 0;
     if (space >= 0) {
-      var stretch = lineEnd.stretch;
-      if (lineEnd.hasCustos && lineEnd.nextStartsWord) stretch += wordStretch * this.ctxt.staffInterval;
-      if (lineEnd.ragged || space === 0) badness = 0;
+      var stretch = ends[k + stretchAt];
+      if (hasCustos && flags & nextStartsWordFlag) stretch += wordStretch * this.ctxt.staffInterval;
+      if (flags & raggedFlag || space === 0) badness = 0;
       else if (stretch <= 0) badness = infiniteBadness;
       else badness = Math.min(infiniteBadness, 100 * Math.pow(space / stretch, 3));
       fitness = badness > 99 ? veryLoose : badness > 12 ? loose : decent;
     } else {
       // an overfull line
-      if (-space > lineEnd.shrink) return null;
-      badness = 100 * Math.pow(-space / lineEnd.shrink, 3);
+      var shrink = ends[k + shrinkAt];
+      if (-space > shrink) return null;
+      badness = 100 * Math.pow(-space / shrink, 3);
       fitness = badness > 12 ? tight : decent;
     }
     if (badness > threshold) return null;
@@ -508,25 +500,28 @@ export class LineBreaker {
   }
 
   /**
-   * works out the fitness class of the line that ends at lineEnd and its
-   * demerits, as TeX does, but for adjDemerits (see fit()), for threshold,
-   * unless they have been already in this layout
+   * the lines that start at start and end at one of ends (see TrialLine.ends)
+   * that fit for threshold (see fit()), up to the first that is too full even
+   * when condensed: for each, the index of the notation the next line starts
+   * with, its fitness class and its demerits, as TeX works them out but for
+   * adjDemerits
    */
-  fitLineEnd(lineEnd: LineEnd, threshold: number) {
-    if (lineEnd.layout !== this.id) this.resolve(lineEnd);
-    else if (lineEnd.threshold === threshold) return;
-    lineEnd.threshold = threshold;
-    var fit = lineEnd.blocked ? null : this.fit(lineEnd, threshold);
-    if (!fit) {
-      lineEnd.fitness = null;
-      return;
+  fitLineEnds(start: number, ends: number[], threshold: number) {
+    var fits: number[] = [];
+    // (the line can't go on once it's too full even when condensed)
+    for (var k = 0; k < ends.length && !(ends[k + reachAt] > this.width); k += lineEndSize) {
+      var end = start + ends[k + endAt],
+        penalty = ends[k + penaltyAt];
+      if (penalty > -infinitePenalty && this.isBlockedAt(end)) continue;
+      var fit = this.fit(ends, k, this.hasCustos(ends[k + flagsAt] & custosMask, end), threshold);
+      if (!fit) continue;
+      var demerits = linePenalty + fit.badness;
+      demerits = demerits >= 10000 ? 100000000 : demerits * demerits;
+      if (penalty > 0) demerits += penalty * penalty;
+      else if (penalty > -infinitePenalty) demerits -= penalty * penalty;
+      fits.push(end, fit.fitness, demerits);
     }
-    var demerits = linePenalty + fit.badness;
-    demerits = demerits >= 10000 ? 100000000 : demerits * demerits;
-    if (lineEnd.penalty > 0) demerits += lineEnd.penalty * lineEnd.penalty;
-    else if (lineEnd.penalty > -infinitePenalty) demerits -= lineEnd.penalty * lineEnd.penalty;
-    lineEnd.fitness = fit.fitness;
-    lineEnd.demerits = demerits;
+    return fits;
   }
 
   /** where the line with the index lineIndex has its staff, if it starts at start */
@@ -575,12 +570,8 @@ export class LineBreaker {
         line.narrowest <= this.width &&
         this.width <= line.widest &&
         this.isUpToDate(line, start)
-      ) {
-        // (and its ends move with it, if notations before it were added or taken away)
-        if (line.start !== start) for (var lineEnd of line.ends) lineEnd.end += start - line.start;
-        line.start = start;
+      )
         return line;
-      }
     }
     var laidOut = this.layOutLineFrom(start, extent);
     // (in place of those it serves for, but keeping a few on staffs that
@@ -659,7 +650,7 @@ export class LineBreaker {
     var ctxt = this.ctxt,
       score = this.score,
       notations = score.notations,
-      lineEnds: LineEnd[] = [];
+      ends: number[] = [];
     var line = new ChantLine(score);
     line.notationsStartIndex = start;
     line.staffLeft = extent.staffLeft;
@@ -697,7 +688,7 @@ export class LineBreaker {
     var prevNeume: ChantNotationElement = curr;
     // a translation that the line can't break within, until its end neume
     var translationStart: ChantNotationElement | null = null;
-    // how far right the notations laid out go, condensed (see LineEnd.reach);
+    // how far right the notations laid out go, condensed (see reachAt);
     // the last of them; how wide a staff the line serves (see TrialLine); and
     // whether it fitted a text only syllable to its staff
     var reach = -Infinity,
@@ -705,6 +696,9 @@ export class LineBreaker {
       widest = Infinity,
       fitted = false,
       translationEnds: Array<ChantNotationElement | undefined> = [];
+    // (a place where the line could end, just before the notation at end)
+    var addLineEnd = (end: number, penalty: number, ragged: boolean) =>
+      this.addLineEnd(ends, start, line, end, condensableSpaces.sum, reach, stretch, penalty, ragged);
 
     for (; i < notations.length; i++) {
       if (!isHiddenAccidental(curr) && curr.constructor !== TextOnly) prevNeume = curr;
@@ -714,14 +708,11 @@ export class LineBreaker {
         // a clef just before a line break goes at the start of the next line
         if (this.isClefLineBreak(i)) {
           line.clefLineBreak = notations[i + 1] as ChantLineBreak;
-          lineEnds.push(
-            this.getLineEnd(line, i, condensableSpaces.sum, reach, stretch, -infinitePenalty, !line.clefLineBreak.justify)
-          );
+          addLineEnd(i, -infinitePenalty, !line.clefLineBreak.justify);
           break;
         }
         var penalty = this.getPenalty(i, translationStart);
-        if (penalty < infinitePenalty)
-          lineEnds.push(this.getLineEnd(line, i, condensableSpaces.sum, reach, stretch, penalty, false));
+        if (penalty < infinitePenalty) addLineEnd(i, penalty, false);
       }
 
       // (as in buildFromChantNotationIndex(), from what the notation's own
@@ -750,17 +741,7 @@ export class LineBreaker {
       if (curr.isClef) ctxt.activeClef = curr as Clef;
 
       if (curr.constructor === ChantLineBreak) {
-        lineEnds.push(
-          this.getLineEnd(
-            line,
-            i + 1,
-            condensableSpaces.sum,
-            reach,
-            stretch,
-            -infinitePenalty,
-            !(curr as ChantLineBreak).justify
-          )
-        );
+        addLineEnd(i + 1, -infinitePenalty, !(curr as ChantLineBreak).justify);
         break;
       }
 
@@ -777,8 +758,7 @@ export class LineBreaker {
       }
     }
 
-    if (i === notations.length)
-      lineEnds.push(this.getLineEnd(line, notations.length, condensableSpaces.sum, reach, stretch, -infinitePenalty, true));
+    if (i === notations.length) addLineEnd(notations.length, -infinitePenalty, true);
 
     var from = readFrom(start),
       to = readTo(laidOut, notations.length),
@@ -786,7 +766,6 @@ export class LineBreaker {
     return {
       staffLeft: extent.staffLeft,
       paddingLeft: extent.paddingLeft,
-      start,
       clef,
       clefLayoutId: clef.layoutId,
       read,
@@ -795,7 +774,8 @@ export class LineBreaker {
       translationEnds,
       widest: fitted ? extent.staffRight : widest,
       narrowest: fitted ? extent.staffRight : 0,
-      ends: lineEnds
+      // (without the room left to add more)
+      ends: ends.slice()
     };
   }
 
@@ -1011,11 +991,13 @@ export class LineBreaker {
   }
 
   /**
-   * what the line laid out so far would be like if it ended just before the
-   * notation at end (see LineEnd), where the notations laid out reach right
-   * as far as reach
+   * adds to ends (see TrialLine.ends) what the line laid out so far from
+   * start would be like if it ended just before the notation at end, where
+   * the notations laid out reach right as far as reach
    */
-  getLineEnd(
+  addLineEnd(
+    ends: number[],
+    start: number,
     line: ChantLine,
     end: number,
     shrink: number,
@@ -1023,7 +1005,7 @@ export class LineBreaker {
     stretchable: Stretch,
     penalty: number,
     ragged: boolean
-  ): LineEnd {
+  ) {
     var ctxt = this.ctxt,
       notations = this.score.notations;
     // as getWhitespaceOnRight() works it out once the line is built, with a
@@ -1032,7 +1014,7 @@ export class LineBreaker {
     var last = notations[end - 1];
     var neumeRight = last.bounds.right() + last.calculatedTrailingSpace;
     var lyricRight = line.lastLyrics.length ? LyricArray.getRight(line.lastLyrics, true, true) : 0;
-    var custos: LineEnd["custos"] = "never";
+    var custos: (typeof custosKinds)[number] = "never";
     if (line.custos) {
       custos = "own";
       neumeRight += line.custos.bounds.width + line.custos.leadingSpace;
@@ -1041,31 +1023,22 @@ export class LineBreaker {
     var right = Math.max(lyricRight, neumeRight);
 
     var next = notations[end];
-    return {
-      end,
+    var nextStartsWord =
+      !!next &&
+      next.hasLyrics() &&
+      (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
+        next.lyrics[0].lyricType === LyricType.SingleSyllable);
+    ends.push(
+      end - start,
       right,
-      rightWithCustos:
-        custos === "own" ? right : Math.max(lyricRight, neumeRight + Glyphs.CustosLong.bounds.width * ctxt.glyphScaling),
-      custos,
+      custos === "own" ? right : Math.max(lyricRight, neumeRight + Glyphs.CustosLong.bounds.width * ctxt.glyphScaling),
       reach,
       shrink,
       // (which only matters for a line that isn't full and isn't ragged)
-      stretch: this.getStretch(line, stretchable),
-      nextStartsWord:
-        !!next &&
-        next.hasLyrics() &&
-        (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-          next.lyrics[0].lyricType === LyricType.SingleSyllable),
+      this.getStretch(line, stretchable),
       penalty,
-      ragged,
-      // (see resolve())
-      layout: 0,
-      hasCustos: false,
-      blocked: false,
-      threshold: undefined,
-      fitness: undefined,
-      demerits: undefined
-    };
+      custosKinds.indexOf(custos) | (nextStartsWord ? nextStartsWordFlag : 0) | (ragged ? raggedFlag : 0)
+    );
   }
 
   /**
@@ -1086,31 +1059,38 @@ export class LineBreaker {
   }
 
   /**
-   * works out what the notations after the line that ends at lineEnd, and the
-   * rest of the score, say about it in this layout: whether it can end there
-   * after all (see isBlocked()), and whether it has a custos at its end (see
-   * allowsCustosBefore())
+   * what the notations after a line that ends just before each notation, and
+   * the rest of the score, say about it in this layout, worked out once for
+   * each place (see isBlockedAt() and hasCustos())
    */
-  resolve(lineEnd: LineEnd) {
-    var notations = this.score.notations,
-      end = lineEnd.end,
-      // (worked out once for each place in each layout)
-      after = this.after || (this.after = { blocked: new Uint8Array(notations.length), custos: new Uint8Array(notations.length) });
-    lineEnd.layout = this.id;
-    lineEnd.hasCustos = lineEnd.custos === "own";
-    if (lineEnd.custos === "always" || lineEnd.custos === "allowed") {
-      // (1 if no neume comes after the line, 2 if one does, 3 if the notations after it allow a custos too)
-      if (!after.custos[end]) {
-        var neume = false;
-        for (var k = end; k < notations.length && !neume; k++) neume = !!notations[k].isNeume;
-        after.custos[end] = !neume ? 1 : allowsCustosBefore(notations, end) ? 3 : 2;
-      }
-      lineEnd.hasCustos = lineEnd.custos === "always" ? after.custos[end] > 1 : after.custos[end] === 3;
+  getAfter() {
+    var notations = this.score.notations;
+    return this.after || (this.after = { blocked: new Uint8Array(notations.length), custos: new Uint8Array(notations.length) });
+  }
+
+  /** whether a line can't end just before the notation at end after all (see isBlocked()) */
+  isBlockedAt(end: number) {
+    var after = this.getAfter();
+    if (!after.blocked[end]) after.blocked[end] = this.isBlocked(end) ? 2 : 1;
+    return after.blocked[end] === 2;
+  }
+
+  /**
+   * whether a line that ends just before the notation at end has a custos at
+   * its end, where custos is the index in custosKinds of what its own
+   * notations say, for what the notations after it say (see allowsCustosBefore())
+   */
+  hasCustos(custos: number, end: number) {
+    var kind = custosKinds[custos];
+    if (kind === "own" || kind === "never") return kind === "own";
+    var after = this.getAfter(),
+      notations = this.score.notations;
+    // (1 if no neume comes after the line, 2 if one does, 3 if the notations after it allow a custos too)
+    if (!after.custos[end]) {
+      var neume = false;
+      for (var k = end; k < notations.length && !neume; k++) neume = !!notations[k].isNeume;
+      after.custos[end] = !neume ? 1 : allowsCustosBefore(notations, end) ? 3 : 2;
     }
-    lineEnd.blocked = false;
-    if (lineEnd.penalty > -infinitePenalty) {
-      if (!after.blocked[end]) after.blocked[end] = this.isBlocked(end) ? 2 : 1;
-      lineEnd.blocked = after.blocked[end] === 2;
-    }
+    return kind === "always" ? after.custos[end] > 1 : after.custos[end] === 3;
   }
 }
