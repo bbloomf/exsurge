@@ -330,6 +330,39 @@ describe("Gregorio note tokens", function() {
     assert.ok((notations[notations.length - 1] as Exsurge.Clef).secondClef instanceof Exsurge.DoClef);
   });
 
+  it("reads the note's signs after a [ ] attribute", function() {
+    // (Gregorio keeps them all, as it does before the attribute)
+    const notes = notesOf(parseNotations("(c4) a(g[cs:x]') b(gv[ll:1]>) c(g[ll:1]_) d(g[cs:x].h) e(g[nv:x]~)"));
+    assert.deepStrictEqual(sources(parseNotations("(c4) d(g[cs:x].h)")), ["g[cs:x].h"]);
+    assert.ok(notes[0].ictus);
+    assert.ok(notes[0].choralSign);
+    assert.strictEqual(notes[1].liquescent, Exsurge.LiquescentType.Descending);
+    assert.strictEqual(notes[1].lowLedgerLine, true);
+    assert.strictEqual(notes[2].episemata.length, 1);
+    assert.strictEqual(notes[2].lowLedgerLine, true);
+    assert.strictEqual(notes[3].morae.length, 1);
+    assert.ok(notes[3].choralSign);
+    assert.strictEqual(notes[4].sourceGabc, "h");
+    assert.strictEqual(notes[5].liquescent, Exsurge.LiquescentType.Small);
+  });
+
+  it("puts [alt:] before a note above that note", function() {
+    // (Gregorio makes it an element of its own, just before the note)
+    const notations = parseNotations("(c4) a([alt:foo]g) b(f[alt:bar]g)");
+    const notes = notesOf(notations);
+    assert.strictEqual(notes[0].alText!.text, "foo");
+    assert.strictEqual(notes[0].alText!.sourceIndex, "(c4) a([alt:foo]g)".indexOf("alt:"));
+    assert.strictEqual(notes[1].alText!.text, "bar");
+    assert.strictEqual(notes[2].alText, undefined);
+  });
+
+  it("doesn't read g1 to g5 as a clef", function() {
+    // (Gregorio has no g clef; exsurge never drew one)
+    const notations = parseNotations("(c4) a(g2)");
+    assert.ok(!notations.some((notation) => notation.isClef));
+    assert.strictEqual(notesOf(notations)[0].sourceGabc, "g2");
+  });
+
   it("records =, q, W and parenthesized accidentals, and r6 to r8 aren't cavum", function() {
     const notations = parseNotations("(c4) a(g=) b(fqg) c(gWh) d(fx?g) e(fyg) f(gr6) g(gr8)");
     const notes = notesOf(notations);
@@ -598,6 +631,24 @@ describe("Gregorio bars, line breaks and spacing codes", function() {
       ]
     );
     assert.strictEqual((dividers[2] as Exsurge.Virgula).staffPosition, 9);
+  });
+
+  it("reads the parenthesized bars with the 0 before or after the ?", function() {
+    // (Gregorio reads ,0? and ,?0 alike, and `0? and `?0)
+    const dividers = parseNotations("(c4) a(f) (,?0) (,0?) (`?0) (`0?) (,?) (`?)").filter(
+      (notation) => notation.isDivider
+    ) as Exsurge.Divider[];
+    assert.deepStrictEqual(
+      dividers.map((divider) => [divider.constructor.name, divider.high, divider.parenthesized]),
+      [
+        ["QuarterBar", true, true],
+        ["QuarterBar", true, true],
+        ["Virgula", true, true],
+        ["Virgula", true, true],
+        ["QuarterBar", false, true],
+        ["Virgula", false, true]
+      ]
+    );
   });
 
   it("reads z+, z-, Z+ and Z- as line breaks that force or leave out the custos", function() {

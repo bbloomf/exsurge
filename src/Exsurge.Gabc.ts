@@ -434,7 +434,7 @@ var __leadingControlsRegex = new RegExp(
 );
 
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
-var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`]0?\?|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cfg]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\[[^\[\]]*\]|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>))*(?:\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
+var __notationsRegex = /z0|z[+-]?|Z[+-]?|((?:::|:\?|[,`](?:0\?|\?0?)|\^0?|`0?|,0|[,;][1-8]?|:)['_]*)|(?:[cf]|[cf]b|treble-?|xp-?)[1-5](?:@[cf]b?[1-5])?|\[nocustos\]|\/[0!]|\/\[-?(?:\.\d+|\d+(?:\.\d*)?)\]|\/+| |\!|\[\[|\[[^\[\]]*\]|\]\]?|<\/?nlba>|@\[|(?:-|@(?![cf]b?[1-5]))?[a-nA-N](?:[oOwWvVrRsxXyY#~\+>_\.'0-9|=q?]|<(?!\/?nlba>)|\[(?!\[)[^\]]*\]?)*|\{([^}]+)\}?/g;
 var __notationsRegex_group_bar = 1;
 var __notationsRegex_group_insideBraces = 2;
 // Gregorio's marks between notes, which are recorded on the notes after or
@@ -449,7 +449,7 @@ var __bracketedCommandRegex = /^([a-z]+):(.*)/;
 //  2. c or f, the second clef's type
 //  3. b if the second clef has a flat
 //  4. the line of the second clef
-var __secondClefRegex = /^((?:[cfg]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])$/;
+var __secondClefRegex = /^((?:[cf]|[cf]b|treble-?|xp-?)[1-5])@([cf])(b?)([1-5])$/;
 
 // for the brace string inside of [ and ] in notation data
 // the capturing groups are:
@@ -2310,12 +2310,15 @@ export class Gabc {
         case "^0":
           addNotation(new Signs.DivisioMinimis(barWithCarryover, atom === "^0"));
           break;
-        // Gregorio's parenthesized bars (`0? and ,0? high, as `0 and ,0 are)
+        // Gregorio's parenthesized bars (`0? and ,0?, or `?0 and ,?0, high,
+        // as `0 and ,0 are)
         case ",?":
         case ",0?":
+        case ",?0":
         case "`?":
-        case "`0?": {
-          let high = atom[1] === "0";
+        case "`0?":
+        case "`?0": {
+          let high = atom.includes("0");
           let parenthesizedBar =
             atom[0] === "," ? new Signs.QuarterBar(barWithCarryover, high) : new Signs.Virgula(barWithCarryover, high);
           parenthesizedBar.parenthesized = true;
@@ -2350,7 +2353,6 @@ export class Gabc {
         case "::":
           addNotation(new Signs.DoubleBar());
           break;
-        // the parenthesized bars (`? ,? and ,0?) are not supported yet
 
         case "c1":
         case "c2":
@@ -2504,12 +2506,18 @@ export class Gabc {
             );
           } else if (atom[0] === "[") {
             // Gregorio's instructions that aren't after a note: the start or
-            // end of a block of episema tuning, and a custom ledger line,
-            // which is introduced just before the next note
+            // end of a block of episema tuning, and a custom ledger line or
+            // text above the lines, which are introduced just before the
+            // next note
             let instruction = atom.slice(1, -1);
+            let command = instruction.match(__bracketedCommandRegex);
             let results = instruction.match(__ledgerLineRegex);
             let line = results && !results[2] && this.customLedgerLine(results);
-            if (line) {
+            if (command && command[1] === "alt") {
+              let text = command[2];
+              let alIndex = sourceIndex + 1;
+              nextNoteMarks.push((note) => (note.alText = new AboveLinesText(ctxt, text, note, alIndex)));
+            } else if (line) {
               let lineBefore = { ...line, before: true };
               nextNoteMarks.push((note) => (note.customLedgerLines = (note.customLedgerLines || []).concat(lineBefore)));
             } else this.processEpisemaTuning(instruction, null);
