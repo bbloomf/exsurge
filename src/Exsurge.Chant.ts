@@ -707,6 +707,11 @@ export interface MarksForNext {
   areas: { euouae?: AreaBoundary; noLineBreak?: AreaBoundary };
   /** the tunings of Gregorio's blocks of episemata ([oh:…{] … [oh}]) that the next notes are in */
   episemaBlocks?: { above?: EpisemaTuning; below?: EpisemaTuning };
+  /**
+   * the names of Gregorio's styles left open (e.g. "i" for <i>), which go on
+   * into the next syllables, for each line of lyrics (see Gabc.createSyllableLyrics())
+   */
+  openStyles?: string[][];
 }
 
 /** the lowest and highest staff positions of the notes in Gregorio's brackets (gabc [[ and ]]) */

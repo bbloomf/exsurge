@@ -4546,6 +4546,12 @@ export class Lyric extends TextElement {
    * first syllable's, then the first letter's
    */
   firstWordStyles?: SpanPropertyDict[];
+  /**
+   * the tags of Gregorio's styles that a syllable before the lyric left open
+   * (e.g. "<i>"), which the lyric is styled with until it closes them, as
+   * Gregorio carries them on; they aren't in its source
+   */
+  openStyles?: string;
 
   constructor(
     ctxt: ChantContext,
@@ -4553,11 +4559,13 @@ export class Lyric extends TextElement {
     lyricType?: LyricType | null | "",
     notation?: ChantNotationElement,
     notations?: ChantNotationElement[],
-    sourceIndex?: number
+    sourceIndex?: number,
+    /** the tags of the styles left open before the lyric, e.g. "<i>" (see openStyles) */
+    openStyles = ""
   ) {
     super(
       ctxt,
-      (ctxt.textStyles.lyric.prefix || "") + text,
+      (ctxt.textStyles.lyric.prefix || "") + openStyles + text,
       (ctxt) => ctxt.textStyles.lyric.font,
       (ctxt) => ctxt.textStyles.lyric.size,
       "start",
@@ -4569,6 +4577,10 @@ export class Lyric extends TextElement {
     // save the original text in case we need to later use the lyric
     // in a dropcap...
     this.originalText = text;
+    if (openStyles) {
+      this.openStyles = openStyles;
+      this.shiftSpansPastOpenStyles();
+    }
 
     // (only the lyrics of a score have a notation, rather than e.g. a hyphen being measured)
     this.notation = notation!;
@@ -4937,7 +4949,22 @@ export class Lyric extends TextElement {
     this.sourceGabc = this.dropCap.sourceGabc + this.sourceGabc!;
     this.centerStartIndex++;
     this.dropCap = null;
-    this.generateSpansFromText(ctxt, (ctxt.textStyles.lyric.prefix || "") + this.originalText);
+    this.generateLyricSpans(ctxt);
+  }
+
+  /** makes the lyric's spans again from its text, as the constructor did */
+  generateLyricSpans(ctxt: ChantContext) {
+    this.generateSpansFromText(
+      ctxt,
+      (ctxt.textStyles.lyric.prefix || "") + (this.openStyles || "") + this.originalText
+    );
+    this.shiftSpansPastOpenStyles();
+  }
+
+  // the spans' indices in the lyric's own text, after its open styles
+  private shiftSpansPastOpenStyles() {
+    let length = (this.openStyles || "").length;
+    if (length) for (let span of this.spans) span.index = Math.max(0, span.index - length);
   }
 
   /**
@@ -4974,10 +5001,7 @@ export class Lyric extends TextElement {
       // was before it had a drop cap, so without its empty spans
       const dropCap = this.dropCap;
       this.dropCap = null;
-      this.generateSpansFromText(
-        ctxt,
-        (ctxt.textStyles.lyric.prefix || "") + this.originalText
-      );
+      this.generateLyricSpans(ctxt);
       this.dropCap = dropCap;
       if (this.dropCap) {
         this.spans[0].text = this.spans[0].text.slice(1);

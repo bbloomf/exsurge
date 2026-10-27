@@ -81,7 +81,7 @@ function serializeMappings(mappings: ChantMapping[]): any[] {
           ];
         }),
         (notation.lyrics || []).map(function(lyric: any) {
-          return [lyric.text, lyric.sourceIndex, lyric.lyricType];
+          return [lyric.text, lyric.sourceIndex, lyric.lyricType, lyric.openStyles];
         }),
         notation.noLineBreak,
         notation.euouae
@@ -161,6 +161,9 @@ var edits = [
   ['edits the word before a closing tag', kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</nlba> '), kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(ghf)</nlba> ')],
   ['edits a word after a newline and a space', kyrie.replace(' Lau(f)', '\n Lau(f)'), kyrie.replace(' Lau(f)', '\n Lau(g)')],
   ['edits a word after two spaces', kyrie.replace(' Lau(f)', '  Lau(f)'), kyrie.replace(' Lau(f)', '  Lau(f)').replace('Do(h)', 'Do(i)')],
+  ['opens a style that goes on into the next words', kyrie, kyrie.replace('Chri(h)', '<i>Chri(h)')],
+  ['closes a style after a word\'s last notes', kyrie.replace('Chri(h)', '<i>Chri(h)'), kyrie.replace('Chri(h)ste(gf) ', '<i>Chri(h)ste(gf)</i> ')],
+  ['edits a word in a style left open', kyrie.replace('Chri(h)', '<i>Chri(h)'), kyrie.replace('Chri(h)', '<i>Chri(h)').replace('Lau(f)', 'Lau(g)')],
   ['inserts a word before a choral sign', kyrie.replace('om(f)', 'om(f[cs:t])'), kyrie.replace('om(f)', 'no(g) om(f[cs:t])')],
   ['adds a brace given a length before kept repeated notes', kyrie.replace('om(f)', 'om(fss)'), kyrie.replace('om(f)', 'om(fss)').replace('num(f)', 'num(f[ob:1;4mm])')]
 ];

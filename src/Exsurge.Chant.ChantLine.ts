@@ -106,7 +106,8 @@ export function copyBeginningLyrics(ctxt: ChantContext, notation: ChantNotationE
       lyric.lyricType,
       lyric.notation,
       lyric.notations,
-      lyric.sourceIndex
+      lyric.sourceIndex,
+      lyric.openStyles
     );
     newLyric.elidesToNext = lyric.elidesToNext;
     if (lyric.verseNumber) newLyric.verseNumber = lyric.verseNumber.copy(ctxt, lyric.verseNumber.sourceIndex);

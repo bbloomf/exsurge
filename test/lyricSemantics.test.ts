@@ -311,6 +311,44 @@ describe('A lone hyphen', function() {
   });
 });
 
+describe('Styles over several syllables', function() {
+  const tags = (lyric: Drawing.Lyric) => lyric.spans.map((span) => span.text + ':' + span.activeTags.join('+'));
+
+  it('carries a style left open into the next syllables and words, as Gregorio does', function() {
+    // (Gregorio: all italic, then <i>a</i> <i>b</i> c)
+    assert.deepEqual(lyricsOf('(c4) <i>Ky(f)ri(g)e</i>(h) a(g)').map(tags), [['Ky:i'], ['ri:i'], ['e:i'], ['a:']]);
+    var lyrics = lyricsOf('(c4) <i>a(f) b(g)</i> c(h)');
+    assert.deepEqual(lyrics.map(tags), [['a:i'], ['b:i'], ['c:']]);
+    // the closing tag after the notes stays with the word before it
+    assert.deepEqual(lyrics.map((lyric) => lyric.lyricType), [
+      Drawing.LyricType.SingleSyllable,
+      Drawing.LyricType.SingleSyllable,
+      Drawing.LyricType.SingleSyllable
+    ]);
+    // and isn't a syllable of its own at the end
+    assert.deepEqual(lyricsOf('(c4) a(f)<i>b(g)</i>').map(tags), [['a:'], ['b:i']]);
+  });
+
+  it('opens the styles again in the order Gregorio does, and keeps each line of lyrics apart', function() {
+    assert.deepEqual(lyricsOf('(c4) <b><i>x(f)y</i>(g) z</b>(h) w(g)').map(tags), [['x:b+i'], ['y:i+b'], ['z:b'], ['w:']]);
+    var ctxt = new Drawing.ChantContext();
+    var notations = Gabc.createMappingsFromSource(ctxt, '(c4) <i>a|<b>b(f) c|d(g)</i> e|f</b>(h)').flatMap((mapping) => mapping.notations);
+    assert.deepEqual(
+      notations.filter((notation) => notation.hasLyrics()).map((notation) => notation.lyrics.map(tags)),
+      [[['a:i'], ['b:b']], [['c:i'], ['d:b']], [['e:'], ['f:b']]]
+    );
+  });
+
+  it("keeps a lyric's source indices where they were", function() {
+    var source = '(c4) <i>Ky(f)ri{e}(g)';
+    var lyric = lyricsOf(source)[1];
+    assert.equal(lyric.openStyles, '<i>');
+    assert.equal(lyric.sourceIndex, source.indexOf('ri'));
+    assert.equal(lyric.spans[0].index, 0);
+    assert.deepEqual([lyric.centerStartIndex, lyric.centerLength], [2, 1]);
+  });
+});
+
 describe('Clear', function() {
   function layout(gabc: string, fontSize = 16) {
     var ctxt = new Drawing.ChantContext();

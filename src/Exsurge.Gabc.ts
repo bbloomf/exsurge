@@ -832,7 +832,38 @@ var noMarksForNext: MarksForNext = { noteMarks: [], areas: {} };
 var hasMarks = (marks: MarksForNext) =>
   marks.noteMarks.length > 0 ||
   hasAreas(marks.areas) ||
-  !!(marks.episemaBlocks && (marks.episemaBlocks.above || marks.episemaBlocks.below));
+  !!(marks.episemaBlocks && (marks.episemaBlocks.above || marks.episemaBlocks.below)) ||
+  !!(marks.openStyles && marks.openStyles.some((styles) => styles.length > 0));
+
+// Gregorio's styles, which go on into the next syllables until they're
+// closed, in the order it opens them again there (maybe_insert_open_styles())
+var __carriedStyles = ["i", "b", "tt", "sc", "ul", "c"];
+// a style's tag in a lyric, outside <v> and <sp>
+var __styleTagRegex = new RegExp(`<v>[\\s\\S]*?<\\/v>|<sp>[^<]*?<\\/sp>|<(\\/)?(${__carriedStyles.join("|")})>`, "g");
+
+// the styles left open after text, of those open before it
+var openStylesAfter = (openStyles: string[], text: string) => {
+  let open = new Set(openStyles);
+  let match: RegExpExecArray | null;
+  __styleTagRegex.lastIndex = 0;
+  while ((match = __styleTagRegex.exec(text))) {
+    if (!match[2]) continue;
+    if (match[1]) open.delete(match[2]);
+    else open.add(match[2]);
+  }
+  return __carriedStyles.filter((style) => open.has(style));
+};
+// the styles left open after each line of lyrics (as the lines of a syllable
+// split at |), of those open before them
+var openStylesAfterLines = (openStyles: string[][] = [], lines: string[]) =>
+  Array.from({ length: Math.max(lines.length, openStyles.length) }, (_, i) =>
+    i < lines.length ? openStylesAfter(openStyles[i] || [], lines[i]) : openStyles[i]
+  );
+// the tags that open styles again, in a lyric that they were left open before
+var openingTags = (openStyles: string[]) => openStyles.map((style) => `<${style}>`).join("");
+// a run of closing tags of Gregorio's styles (with any controls), which the
+// last syllable of a word can be, after its notes
+var __closingStyleTagsRegex = new RegExp(`<\\/(?:${__carriedStyles.join("|")})>`, "g");
 
 // the areas that Gregorio's closing tags after the last word's notes end, which end at its last notation
 var endTrailingAreas = (mappings: ChantMapping[], areas: SyllableAreas) => {
@@ -1660,6 +1691,8 @@ export class Gabc {
         ...this.marksForNext,
         areas: mergeAreas(this.marksForNext.areas, trailingAreas)
       };
+      if (closingStyleTags)
+        this.marksForNext.openStyles = openStylesAfterLines(this.marksForNext.openStyles, closingStyleTags.split("|"));
       let mapping = new ChantMapping(word, notations, sourceIndex);
       if (hasMarks(this.marksForNext)) mapping.marksForNext = this.marksForNext;
       if (followsMarks) mapping.followsMarks = true;
@@ -1672,16 +1705,21 @@ export class Gabc {
     // Gregorio's controls after the word's last notes, with no notes of their
     // own, like the closing tags that splitWords() leaves with the word before
     // them ("son.(f)</nlba> Chri(f)"), go on the next syllable, as in
-    // Gregorio, where they're its text
+    // Gregorio, where they're its text;
+    // them; and so do the closing tags of styles there ("b(g)</i> c(h)"),
+    // which close them before the next syllable
     var trailingAreas: SyllableAreas = {};
+    var closingStyleTags = "";
     var lastMatch = matches[matches.length - 1];
+    var trailingText = lastMatch && lastMatch[1].replace(__commentMaskRegex, "");
     if (
       lastMatch &&
       lastMatch[2] === undefined &&
-      readSyllableControls(lastMatch[1].replace(__commentMaskRegex, ""), trailingAreas) === ""
-    )
+      readSyllableControls(trailingText.replace(__closingStyleTagsRegex, ""), trailingAreas) === ""
+    ) {
       matches.pop();
-    else trailingAreas = {};
+      if (trailingText.search(__closingStyleTagsRegex) >= 0) closingStyleTags = trailingText;
+    } else trailingAreas = {};
 
     for (var j = 0; j < matches.length; j++) {
       var match = matches[j];
@@ -1902,6 +1940,10 @@ export class Gabc {
 
     // an extension to gabc: multiple lyrics per syllable can be separated by a |
     var lyricTexts = text.split("|");
+    // Gregorio's styles that the syllables before left open on each line,
+    // which go on into this one, and those that it leaves open
+    var openStyles = this.marksForNext.openStyles || [];
+    this.marksForNext = { ...this.marksForNext, openStyles: openStylesAfterLines(openStyles, lyricTexts) };
 
     for (var i = 0; i < lyricTexts.length; i++) {
       var lyricText = lyricTexts[i];
@@ -2046,7 +2088,8 @@ export class Gabc {
         proposedLyricType,
         notation,
         notations,
-        lyricSourceIndex
+        lyricSourceIndex,
+        openingTags(openStyles[i] || [])
       );
 
       if (centerStartIndex >= 0) {
@@ -2106,7 +2149,8 @@ export class Gabc {
     lyricType: LyricType,
     notation: ChantNotationElement,
     notations: ChantNotationElement[],
-    sourceIndex: number
+    sourceIndex: number,
+    openStyles = ""
   ) {
     var elides = false;
     var forceConnector = false;
@@ -2151,7 +2195,8 @@ export class Gabc {
       lyricType,
       notation,
       notations,
-      sourceIndex
+      sourceIndex,
+      openStyles
     );
     lyric.elidesToNext = elides;
     if (forceConnector) lyric.setForceConnector(true);

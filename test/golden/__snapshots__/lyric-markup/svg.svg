@@ -133,15 +133,15 @@
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="230" element-index="14" id="note-14" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
-<g class="ChantNotationElement Punctum" transform="translate(375.55872000000005,0)" >
-<text source-index="233" x="1.1738" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
-<tspan source-index="3" style="font-weight: bold;" >a</tspan>
+<g class="ChantNotationElement Punctum" transform="translate(377.01312,0)" >
+<text source-index="233" x="-0.28059999999999974" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
+<tspan source-index="3" style="font-style: italic;font-weight: bold;" >a</tspan>
 <tspan source-index="8" style="font-weight: bold;" >b</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="247" element-index="15" id="note-15" x="3.125" y="-25" >
 </use>
 </g>
-<g class="ChantNotationElement DoubleBar" transform="translate(389.62122000000005,0)" >
+<g class="ChantNotationElement DoubleBar" transform="translate(391.07562,0)" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="251" element-index="16" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="251" element-index="16" source="[object Object]" >
