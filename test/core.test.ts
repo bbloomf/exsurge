@@ -249,6 +249,20 @@ describe("Gregorio special characters", function() {
     assert.strictEqual(text(ctxt, "De<sp>ut</sp>us <sp>new</sp> ex<sp>-</sp>cel"), "De_us N ex-cel");
   });
 
+  it("keeps a parenthesis in <alt> or <sp> from ending the syllable", function() {
+    // (Gregorio: "Ant. (T.P.)" above Al(f), and the lyric "(x" under x(f))
+    const notations = parseNotations("(c4) <alt>Ant. (T.P.)</alt>Al(f) <sp>(</sp>x(f) a(g)<alt>T. (P.) x</alt>b(h)");
+    assert.deepStrictEqual(lyricTexts(notations), ["Al", "(x", "a", "b"]);
+    assert.strictEqual(notations[0].alText![0].text, "Ant. (T.P.)");
+    assert.strictEqual(notations[3].alText![0].text, "T. (P.) x");
+    assert.deepStrictEqual(
+      notations.map((notation) => notation.notes!.length),
+      [1, 1, 1, 1]
+    );
+    // nor does a % in <alt> start a comment
+    assert.deepStrictEqual(lyricTexts(parseNotations("(c4) <alt>50% x</alt>a(f) b(g)")), ["a", "b"]);
+  });
+
   it("styles <tt> in monospace", function() {
     const lyric = new Exsurge.Lyric(new Exsurge.ChantContext(), "a<tt>b</tt>c");
     assert.strictEqual(lyric.text, "abc");
@@ -350,13 +364,50 @@ describe("Gregorio comments", function() {
     );
   });
 
-  it("starts a comment only at the start of a line, or after a space or notes", function() {
-    const notations = parseNotations("(c4) a(f%g) b(h) %TODO: 100% sure?\nc(g) 50%(f) d(g)");
-    assert.deepStrictEqual(lyricTexts(notations), ["a", "b", "c", "50", "d"]);
-    // a % in the notes isn't a comment, as in Gregorio
-    assert.strictEqual(notations[0].notes!.length, 2);
-    // nor is one after a letter
+  it("starts a comment anywhere, as Gregorio does", function() {
+    const notations = parseNotations("(c4) a(f) b(h) %TODO: 100% sure?\nc(g) 50%(f) d(g)\ne(f)");
+    assert.deepStrictEqual(lyricTexts(notations), ["a", "b", "c", "50e"]);
+    // (after a letter, the comment takes the notes after it, and the line break)
     assert.strictEqual(notations[3].notes![0].sourceGabc, "f");
+  });
+
+  it("ends a comment in the notes at the end of its line or of the notes", function() {
+    // (Gregorio: a(f) and b(f g))
+    const notations = parseNotations("(c4) a(f%c g) b(f % note\ng)");
+    assert.deepStrictEqual(lyricTexts(notations), ["a", "b"]);
+    assert.deepStrictEqual(notations.map((notation) => notation.notes!.map((note) => note.sourceGabc.trim())), [
+      ["f"],
+      ["f"],
+      ["g"]
+    ]);
+  });
+
+  it("takes a comment in the middle of a lyric out of it", function() {
+    // (Gregorio: A(f) b(g))
+    const notations = parseNotations("(c4) A%comment\n(f) b(g)");
+    assert.deepStrictEqual(lyricTexts(notations), ["A", "b"]);
+    assert.strictEqual(notations[0].notes!.length, 1);
+  });
+
+  it("keeps the closing % of exsurge's small caps from starting a comment", function() {
+    const notations = parseNotations("(c4) %small%(g) x(f)");
+    assert.deepStrictEqual(lyricTexts(notations), ["small", "x"]);
+    assert.deepStrictEqual(notations[0].lyrics[0].spans[0].activeTags, ["sc"]);
+  });
+
+  it("lets notes go on over a line break, which Gregorio ignores in them", function() {
+    // (Gregorio: a(fg)b(h), and a(f)b(h))
+    for (const gabc of ["(c4) a(f\ng)b(h)", "(c4) a(f % comment\ng)b(h)", "(c4) a(f\r\ng)b(h)", "(c4) a(f\n)b(h)"]) {
+      const notations = parseNotations(gabc);
+      assert.deepStrictEqual(lyricTexts(notations), ["a", "b"], JSON.stringify(gabc));
+      assert.deepStrictEqual(
+        notations.flatMap((notation) => notation.notes!.map((note) => note.sourceGabc.trim())),
+        gabc.includes("g") ? ["f", "g", "h"] : ["f", "h"],
+        JSON.stringify(gabc)
+      );
+    }
+    // the notes over the line break make one neume
+    assert.ok(parseNotations("(c4) a(f\ng)b(h)")[0] instanceof Exsurge.Podatus);
   });
 
   it("keeps the source indices of what comes after a comment", function() {

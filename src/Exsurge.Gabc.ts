@@ -389,26 +389,35 @@ var setFinalTrailingSpace = (
 var __commentMask = "\uFDD0";
 
 // reusable reg exps
-// (a syllable starts after any spaces or masked comments)
-var __syllablesRegex = /(?=[^\s\uFDD0])((?:<v>[\s\S]*?<\/v>|[^(])*)(?:\(?([^)]*)\)?)?/g
+// (a syllable starts after any spaces or masked comments, and the text in
+// <v>, <alt> and <sp> doesn't end it)
+var __syllablesRegex = /(?=[^\s\uFDD0])((?:<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|<sp>[^<]*?<\/sp>|[^(])*)(?:\(?([^)]*)\)?)?/g
 var __altTranslationRegex = /<alt>(.*?)<\/alt>|\[(alt:)?(.*?)\]/g;
 // a $ escape (see gabcEscapes.ts)
 var __escapeSource = "\\$(" + escapedCharSource + ")";
 var __escapeRegex = new RegExp(__escapeSource, "g");
-// a comment: a % to the end of its line, unless it starts exsurge's %small
-// caps%, which another % closes later on the line, before notes on the line
-var __commentSource = "%(?![^%\\s][^%\\n]*%[^\\n%(]*\\()[^\\n]*\\n?";
+// exsurge's %small caps% markup: a % that another % closes later on its line,
+// before notes on the line, when no space follows it
+var __smallCapsSource = "%[^%\\s][^%\\n]*%(?=[^\\n%(]*\\()";
+// a comment: a % to the end of its line
+var __commentSource = "%[^\\n]*\\n?";
 // Gregorio's comments and $ escapes in the notation section (see maskGabc()
-// below): the text in <sp> and <v>, where they're neither, a $ escape, notes
-// (where Gregorio has no comments) and the comment right after them, and a
-// comment at the start of a line or after a space
+// below): the text in <sp> and <v>, where they're neither, exsurge's %small
+// caps%, a $ escape, the text in <alt> (where there are only escapes), notes
+// (where a comment ends at the end of its line or at the notes' end), and a
+// comment anywhere else, or a byte-order mark
 var __commentRegex = new RegExp(
   "<sp>[^<]*?<\\/sp>|<v>[\\s\\S]*?<\\/v>|" +
-    __escapeSource +
-    "|(\\((?:\\$[\\s\\S]|[^)$])*\\)?)(" + __commentSource + ")?" +
-    "|(^|[ \\t\\r\\n])(" + __commentSource + ")",
-  "gm"
+    __smallCapsSource +
+    "|" + __escapeSource +
+    "|(<alt>[\\s\\S]*?<\\/alt>)" +
+    "|(\\((?:\\$[\\s\\S]|[^)$])*\\)?)" +
+    "|(" + __commentSource + "|\\uFEFF)",
+  "g"
 );
+// in notes: a $ escape, a comment (to the end of its line, or to the notes'
+// end) and a line break, which Gregorio ignores there
+var __notesMaskRegex = new RegExp(__escapeSource + "|(%(?:\\$[^\\n]|[^\\n)$])*|\\n)", "g");
 var __commentMaskRegex = /\uFDD0/g;
 // Gregorio's syllable controls, which aren't printed: the euouae and
 // no-line-break areas, <clear> and <pr> (with spaces where Gregorio allows them)
@@ -678,11 +687,13 @@ export const GabcHeader = GabcHeaderClass as unknown as GabcHeaderConstructor;
  * line, which also takes the line break away.  Each character becomes a
  * noncharacter (U+FDD0), so that the source keeps its length (and the source
  * indices stay where they were), and the parser skips it as it does a space
- * between syllables, though without ending a word or a neume.  A comment
- * starts at the start of a line, or after a space or the notes.  A % that
- * another % closes later on its line, before notes, is exsurge's %small caps%
- * markup instead (when no space follows it), and a % elsewhere, in the notes,
- * in <sp>…</sp> or <v>…</v>, or escaped as $%, isn't a comment.
+ * between syllables, though without ending a word or a neume.  A comment can
+ * start anywhere, as in Gregorio; in the notes, it ends at the end of its
+ * line or at the end of the notes, and the line breaks in the notes, which
+ * Gregorio ignores, are masked too.  A % that another % closes later on its
+ * line, before notes, is exsurge's %small caps% markup instead (when no
+ * space follows it), and a % in <sp>…</sp>, <v>…</v> or <alt>…</alt>, or
+ * escaped as $%, isn't a comment.
  *
  * Also replaces Gregorio's $ escapes outside <sp> and <v> with characters
  * that mean nothing to the parser (see gabcEscapes.ts), also keeping the
@@ -691,14 +702,17 @@ export const GabcHeader = GabcHeaderClass as unknown as GabcHeaderConstructor;
 var maskGabc = (gabc: string) =>
   gabc.replace(
     __commentRegex,
-    (match, escaped, notes, notesComment = "", before, comment) =>
+    (match, escaped, alt, notes, comment) =>
       escaped
         ? escapeChar(escaped)
+        : alt
+        ? alt.replace(__escapeRegex, (escape: string, char: string) => escapeChar(char))
         : notes
-        ? notes.replace(__escapeRegex, (escape: string, char: string) => escapeChar(char)) +
-          __commentMask.repeat(notesComment.length)
+        ? notes.replace(__notesMaskRegex, (masked: string, char: string) =>
+            char ? escapeChar(char) : __commentMask.repeat(masked.length)
+          )
         : comment
-        ? before + __commentMask.repeat(comment.length)
+        ? __commentMask.repeat(comment.length)
         : match
   );
 
@@ -4018,14 +4032,17 @@ export class Gabc {
     // immediately follows a set of parentheses. Prior to doing that, we replace
     // all whitespace with spaces, which prevents tabs and newlines from ending
     // up in the notation data.
-    // Gregorio's closing </eu> and </nlba> tags can come between the
-    // parentheses and the space, and stay with the word before them.
+    // Closing tags, such as Gregorio's </eu> and </nlba> or the end of a
+    // style, can come between the parentheses and the space, and stay with
+    // the word before them.  (The line breaks in the notes are masked, and
+    // the text in <v>, <alt> and <sp> doesn't end a word.)
     var words: string[] = [];
     var start = 0;
     maskGabc(gabcNotations)
-      // .trim()
-      // .replace(/\s/g, " ")
-      .replace(/\)((?:<\/(?:eu|nlba)>)*)\s(?=[^\)]*(?:\(|$))/g, ")$1\n")
+      .replace(
+        /(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|<sp>[^<]*?<\/sp>)|\)((?:<\/[a-z]+>)*)\s(?=[^\)]*(?:\(|$))/g,
+        (match, text, closingTags) => text || `)${closingTags}\n`
+      )
       .split(/\n/g)
       .forEach((maskedWord) => {
         words.push(gabcNotations.substr(start, maskedWord.length));
