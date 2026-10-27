@@ -269,6 +269,48 @@ describe('Above-lines text and translations', function() {
   });
 });
 
+describe('Translations without lyrics', function() {
+  it('keeps a translation on a syllable that has no text, and draws it', function() {
+    // (Gregorio's notes_without_word: translation OPENING_BRACKET notes)
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) [t](f) a(f) [x](g)'), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 600);
+    var translated = score.notations.filter((notation) => notation.translationText);
+    assert.deepEqual(translated.map((notation) => notation.translationText!.map((text) => text.text)), [['t'], ['x']]);
+    assert.deepEqual(translated.map((notation) => notation.hasLyrics()), [false, false]);
+    var svg = score.createSvg(ctxt);
+    assert.match(svg, />t</);
+    assert.match(svg, />x</);
+    assert.doesNotMatch(svg, /NaN/);
+  });
+});
+
+describe('Lyric centering braces', function() {
+  it("doesn't print the braces after the first pair, nor braces that don't pair", function() {
+    // (Gregorio: abcde, centered on b, and ab)
+    var lyrics = lyricsOf('(c4) a{b}c{d}e(f) a}b{(f) <v>{x}</v>{y}z(g) f{o}o{(g)');
+    assert.deepEqual(lyrics.map((lyric) => lyric.text), ['abcde', 'ab', 'xyz', 'foo']);
+    assert.deepEqual(lyrics.map((lyric) => [lyric.centerStartIndex, lyric.centerLength]), [[1, 1], [-1, 2], [1, 1], [1, 1]]);
+  });
+});
+
+describe('A lone hyphen', function() {
+  it('is a forced hyphen with no text', function() {
+    // (Gregorio's -(f))
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) a(f) -(g) b(h)'), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 600);
+    var lyric = score.notations.filter((notation) => notation.hasLyrics())[1].lyrics[0];
+    assert.equal(lyric.text, '');
+    assert.equal(lyric.needsConnector, true);
+    assert.doesNotMatch(score.createSvg(ctxt), /NaN/);
+  });
+});
+
 describe('Clear', function() {
   function layout(gabc: string, fontSize = 16) {
     var ctxt = new Drawing.ChantContext();

@@ -64,7 +64,7 @@
       <g class="ChantNotationElement Punctum" transform="translate(229.1636,0)" source=<Punctum>>
         <text source-index="87" x="-1.1230000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=87>>
           <tspan source-index="0" style="">
-            "ab{c"
+            "abc"
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="92" element-index="7" id="note-8" x="3.125" y="-25" source=<Note sourceIndex=92 elementIndex=7 noteIndex=7>>
       <g class="ChantNotationElement DoubleBar" transform="translate(243.2261,0)" source=<DoubleBar sourceIndex=96 elementIndex=8>>

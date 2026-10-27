@@ -1834,7 +1834,7 @@ export class Gabc {
       }
       // (Gregorio's controls alone aren't a lyric; createSyllableLyrics() takes them out of one)
       if (readSyllableControls(lyricText, {}) === "") lyricText = "";
-      if (lyricText === "" && alText.length === 0) continue;
+      if (lyricText === "" && alText.length === 0 && translationText.length === 0) continue;
 
       if (notationWithLyrics === null) return mappingOf();
 
@@ -2021,6 +2021,24 @@ export class Gabc {
             protrusion.textIndex -= protrusion.textIndex > indexClosingBracket ? 2 : 1;
         } else centerStartIndex = -1; // if there's no closing bracket, don't enable centering
       }
+      // as in Gregorio, any other braces outside <v> aren't printed either (it
+      // ignores a second center)
+      let centerEnd = centerStartIndex + centerLength;
+      let bracesBeforeStart = 0,
+        bracesBeforeEnd = 0,
+        bracesBeforeProtrusion = 0;
+      lyricText = lyricText.replace(/(<v>[\s\S]*?<\/v>)|[{}]/g, (brace, vTag, index) => {
+        if (vTag) return vTag;
+        if (index < centerStartIndex) bracesBeforeStart++;
+        if (index < centerEnd) bracesBeforeEnd++;
+        if (protrusion && index < protrusion.textIndex) bracesBeforeProtrusion++;
+        return "";
+      });
+      if (centerStartIndex >= 0) {
+        centerStartIndex -= bracesBeforeStart;
+        centerLength = centerEnd - bracesBeforeEnd - centerStartIndex;
+      }
+      if (protrusion) protrusion.textIndex -= bracesBeforeProtrusion;
 
       var lyric = this.makeLyric(
         ctxt,
@@ -2093,7 +2111,8 @@ export class Gabc {
     var elides = false;
     var forceConnector = false;
     var preventConnector = false;
-    if (text.length > 1) {
+    // (a lone - is Gregorio's forced hyphen, with no text)
+    if (text.length > 1 || text === "-") {
       const lastChar = text.slice(-1);
       if (lastChar === "-") {
         forceConnector = true;
