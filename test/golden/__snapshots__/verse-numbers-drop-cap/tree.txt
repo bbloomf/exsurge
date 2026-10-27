@@ -195,6 +195,9 @@
         <g className="Notations">
           <use source-index=1 element-index=-1 x=0 y=-43.75 source=<DoClef sourceIndex=1 elementIndex=-1> className="" xlinkHref="#DoClef" source-gabc="c4">
       <g transform="translate(33.9694,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=undefined x=-27.3886 y=13.012000000000008 style={} source=<VerseNumber> className="verseNumber lyric" textAnchor="start" source-gabc="1.">
+          <tspan source-index=0 style={} className=undefined>
+            "1."
         <text source-index=209 x=-5.687799999999999 y=13.012000000000008 style={} source=<Lyric sourceIndex=209> className="lyric" textAnchor="start" source-gabc="tes">
           <tspan source-index=0 style={} className=undefined>
             "tes"

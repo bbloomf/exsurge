@@ -239,21 +239,13 @@ describe('Verse numbers', function() {
       assert.deepEqual(svgVerseNumbers(score.createSvg(ctxt)), ['2.']);
     });
 
-    it("doesn't repeat the first verse number, but repeats the others", function() {
+    it('repeats the first verse number on the later lines, as it does the others', function() {
       var { score } = scoreOf(hymn, 200, undefined, true);
       assert(score.dropCap);
-      var starts = lineStarts(score);
-      assert(starts.length > 2);
-      for (let notation of starts) assert.deepEqual(shownNumbers(notation!), [undefined, '2.', '10.']);
-    });
-
-    it('repeats a later verse number on the first line of lyrics', function() {
-      var [four] = verseNums('4.');
-      var gabc =
-        `(c4) ${one} Ve|${two} Qui |${ten} Tu (g)` + stanza + `${four} Ve|Qui |Tu (g)` + stanza.repeat(2) + '(::)';
-      var { score } = scoreOf(gabc, 200, undefined, true);
-      var starts = lineStarts(score);
-      assert.deepEqual(shownNumbers(starts[starts.length - 1]!), ['4.', '2.', '10.']);
+      var [first, ...later] = lineStarts(score);
+      assert(later.length > 1);
+      assert.deepEqual(shownNumbers(first!), [undefined, '2.', '10.']);
+      for (let notation of later) assert.deepEqual(shownNumbers(notation!), ['1.', '2.', '10.']);
     });
 
     it('shows the first verse number again when the score stops using the drop cap, and hides it when it starts again', function() {
@@ -273,6 +265,7 @@ describe('Verse numbers', function() {
       relayout(true);
       fresh = scoreOf(hymn, 200, undefined, true);
       assert.equal(score.createSvg(ctxt), fresh.score.createSvg(fresh.ctxt));
+      assert.deepEqual(shownNumbers(lineStarts(score)[0]!), [undefined, '2.', '10.']);
     });
   });
 });

@@ -195,6 +195,9 @@
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" source=<DoClef sourceIndex=1 elementIndex=-1>>
       <g class="ChantNotationElement Punctum" transform="translate(33.9694,0)" source=<Punctum>>
+        <text x="-27.3886" y="13.012000000000008" class="verseNumber lyric" text-anchor="start" style="" source=<VerseNumber>>
+          <tspan source-index="0" style="">
+            "1."
         <text source-index="209" x="-5.687799999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=209>>
           <tspan source-index="0" style="">
             "tes"

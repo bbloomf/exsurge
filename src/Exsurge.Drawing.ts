@@ -4682,16 +4682,12 @@ export class Lyric extends TextElement {
   }
 
   /**
-   * the lyric's own verse number, unless the lyric gave its first letter to
-   * the drop cap, which takes the place of the verse number
+   * the verse number drawn before the lyric, if any (the drop cap takes the
+   * place of the verse number of the lyric it was taken from, which is still
+   * repeated on the later lines)
    */
-  get ownShownVerseNumber() {
-    return this.dropCap ? undefined : this.verseNumber;
-  }
-
-  /** the verse number drawn before the lyric, if any */
   get shownVerseNumber() {
-    return this.ownShownVerseNumber || this.repeatedVerseNumber;
+    return (this.dropCap ? undefined : this.verseNumber) || this.repeatedVerseNumber;
   }
 
   /** a copy of the verse number in effect, to repeat before the lyric (made once) */

@@ -276,8 +276,8 @@ export const featureCases: GoldenCase[] = [
       "<verseNum></verseNum>A|<verseNum/>A|<verseNum></verseNum>A(g)men.|men. |men. (gh) (::)"
   },
   {
-    // the drop cap takes the place of the first verse number, which isn't
-    // drawn or repeated; the other verses' numbers are
+    // the drop cap takes the place of the first verse number on the first
+    // line, which is repeated on the second line with the others
     name: "verse-numbers-drop-cap",
     width: 300,
     useDropCap: true,
