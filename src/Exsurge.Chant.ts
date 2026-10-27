@@ -1673,7 +1673,7 @@ export class ChantScore {
       xmlns: QuickSvg.ns,
       "xmlns:xlink": QuickSvg.xlink,
       version: "1.1",
-      class: "Exsurge ChantScore" + (ctxt.editable ? " EditableChantScore" : ""),
+      class: ctxt.getSvgClass() + (ctxt.editable ? " EditableChantScore" : ""),
       width,
       height,
       viewBox: [0, 0, this.bounds.width, this.bounds.height].join(" ")
@@ -1782,7 +1782,7 @@ export class ChantScore {
         {
           xmlns: QuickSvg.ns,
           version: "1.1",
-          class: "Exsurge ChantScore",
+          class: ctxt.getSvgClass(),
           width: this.bounds.width,
           height: height,
           viewBox: [0, 0, this.bounds.width, height].join(" ")
@@ -1824,7 +1824,7 @@ export class ChantScore {
           xmlns: QuickSvg.ns,
           version: "1.1",
           "xmlns:xlink": QuickSvg.xlink,
-          class: "Exsurge ChantScore",
+          class: ctxt.getSvgClass(),
           width: this.bounds.width,
           height: height
         },
