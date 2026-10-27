@@ -371,6 +371,16 @@ export const TextTypesByClass: { [cssClass: string]: TextTypes[keyof TextTypes] 
 const __textTypeEntries = () =>
   Object.entries(TextTypes) as [keyof TextTypes, AnyTextType][];
 
+// s as a css identifier, as CSS.escape() (which Node doesn't have) gives it:
+// a control character or a digit at the start as a hex escape, and other
+// ascii that isn't a letter, digit, _ or - after a backslash
+const __cssIdentifier = (s: string) =>
+  s
+    .replace(/[^\w\-\u0080-\uffff]/g, (c) =>
+      c < " " || c === "\x7f" ? "\\" + c.charCodeAt(0).toString(16) + " " : "\\" + c
+    )
+    .replace(/^(-?)(\d)/, (_, dash, digit) => dash + "\\3" + digit + " ");
+
 /**
  * how much space to leave after a notation: a width, or a function of the
  * context.  A function's isDefault is set if it is DefaultTrailingSpace.
@@ -1041,6 +1051,15 @@ export class ChantContext {
    * or negativeFillColors are inline in one page, give each context its own
    * prefix, or the later svgs draw the first one's glyphs.  Set it before
    * the first layout: the defs are made then (and remade by setStaffHeight()).
+   *
+   * The text styles in each svg's <style> (see createStyleCss()) apply to
+   * the whole page too, so the last svg's sizes, fonts and colors would win.
+   * With a prefix, each svg (and the svg text measurer) also has the class
+   * defIdPrefix + "ChantScore", e.g. "score2-ChantScore", and its rules
+   * apply only to svgs with that class: svg.Exsurge.score2-ChantScore .lyric
+   * rather than svg.Exsurge .lyric.  (So css that overrides a text style for
+   * such an svg has to be that specific too.)  Like an id, it can't have
+   * whitespace.
    */
   defIdPrefix: string;
   /**
@@ -1480,8 +1499,9 @@ export class ChantContext {
       this.svgTextMeasurer = QuickSvg.svg(0, 0);
       this.svgTextMeasurer.setAttribute("id", "TextMeasurer");
       // the classes of the svg that the score is drawn in, which the text
-      // styles (see createStyleCss()) are for
-      this.svgTextMeasurer.setAttribute("class", "Exsurge ChantScore");
+      // styles (see createStyleCss()) are for (and which recalculateMetrics()
+      // sets again, since defIdPrefix may be set after this)
+      this.svgTextMeasurer.setAttribute("class", this.getSvgClass());
       this.svgTextMeasurer.setAttribute("style", "position:absolute");
       document.body.insertBefore(
         this.svgTextMeasurer,
@@ -1824,15 +1844,25 @@ export class ChantContext {
     }
   }
 
+  /**
+   * the classes of each svg that a score is drawn in: Exsurge ChantScore, and
+   * defIdPrefix + "ChantScore" when there's a prefix, which the text styles
+   * are scoped to (see defIdPrefix)
+   */
+  getSvgClass() {
+    return "Exsurge ChantScore" + (this.defIdPrefix ? " " + this.defIdPrefix + "ChantScore" : "");
+  }
+
   createStyleCss() {
     var style = "";
+    var svgSelector = this.defIdPrefix ? "svg.Exsurge." + __cssIdentifier(this.defIdPrefix + "ChantScore") : "svg.Exsurge";
     for (let [key, textType] of __textTypeEntries()) {
       var cssClass = textType.cssClass,
         { color, font, size } = this.textStyles[key];
       // some text (e.g., choral signs) is measured at a size that follows the
       // staff rather than the text style, so draw it at that size too.
       if (textType.size) size = textType.size(this);
-      style += `svg.Exsurge .${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
+      style += `${svgSelector} .${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
     }
     return style;
   }
@@ -3895,6 +3925,7 @@ export class TextElement extends ChantLayoutElement {
     if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
       while (ctxt.svgTextMeasurer!.firstChild)
         ctxt.svgTextMeasurer!.removeChild(ctxt.svgTextMeasurer!.firstChild);
+      ctxt.svgTextMeasurer!.setAttribute("class", ctxt.getSvgClass());
       ctxt.svgTextMeasurer!.appendChild(this.createSvgNode(ctxt));
       ctxt.svgTextMeasurer!.appendChild(ctxt.createStyleNode());
 

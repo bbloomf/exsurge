@@ -522,7 +522,7 @@ The SVG is made to be scripted and styled:
 - Each note's element has an id (`note-1`, …, with the prefix set by `ctxt.noteIdPrefix`), and elements carry `source-index` and `element-index` attributes.
 - Each glyph's definition has its glyph code as its id (`PunctumQuadratum`, …), after the prefix set by `ctxt.defIdPrefix`, which is empty by default. A page looks up an id among all of its elements. So when SVGs with different staff heights, glyph multipliers or `negativeFillColor`s are in one HTML page, give each context its own prefix (for example `ctxt.defIdPrefix = "score2-"`, before the layout). If not, every SVG draws the first SVG's glyphs.
 - Elements have CSS classes, such as `note`, `neumeLine`, `neumeBeam`, `staffLine`, `lyric` and `rubric`.
-- The text styles are written as a `<style>` element. `ctxt.setFontFamilyAttributes = true` also gives each text element in `createSvg()` a `font-size` attribute.
+- The text styles are written as a `<style>` element. `ctxt.setFontFamilyAttributes = true` also gives each text element in `createSvg()` a `font-size` attribute. A `<style>` applies to the whole HTML page, so with a `ctxt.defIdPrefix` each SVG also has the class `<prefix>ChantScore` (`score2-ChantScore`), and its text styles apply only to SVGs with that class (`svg.Exsurge.score2-ChantScore .lyric`). Without one, the last SVG's text sizes, fonts and colors apply to every SVG in the page.
 
 **How to use it.**
 
