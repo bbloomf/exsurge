@@ -833,8 +833,15 @@ var noMarksForNext: MarksForNext = { noteMarks: [], areas: {} };
 var hasMarks = (marks: MarksForNext) =>
   marks.noteMarks.length > 0 ||
   hasAreas(marks.areas) ||
-  !!(marks.episemaBlocks && (marks.episemaBlocks.above || marks.episemaBlocks.below)) ||
-  !!(marks.openStyles && marks.openStyles.some((styles) => styles.length > 0));
+  !!(marks.episemaBlocks && (marks.episemaBlocks.above || marks.episemaBlocks.below));
+
+// the open styles (see MarksForNext.openStyles) as a string, which is the
+// same for the same styles, and empty for none
+var openStylesKey = (openStyles: string[][] = []) =>
+  openStyles
+    .map((styles) => styles.join(" "))
+    .join("|")
+    .replace(/\|+$/, "");
 
 // Gregorio's styles, which go on into the next syllables until they're
 // closed, in the order it opens them again there (maybe_insert_open_styles())
@@ -862,9 +869,18 @@ var openStylesAfterLines = (openStyles: string[][] = [], lines: string[]) =>
   );
 // the tags that open styles again, in a lyric that they were left open before
 var openingTags = (openStyles: string[]) => openStyles.map((style) => `<${style}>`).join("");
-// a run of closing tags of Gregorio's styles (with any controls), which the
-// last syllable of a word can be, after its notes
+// a closing tag of one of Gregorio's styles, which (with any controls) the
+// last syllable of a word can be made of, after its notes
 var __closingStyleTagsRegex = new RegExp(`<\\/(?:${__carriedStyles.join("|")})>`, "g");
+// in splitWords(): the text in <v>, <alt> and <sp>, which doesn't end a word,
+// or the end of a word's notes and the space after it, with any closing tags
+// of Gregorio's controls and styles between them, which stay with the word
+var __wordEndRegex = new RegExp(
+  `(<v>[\\s\\S]*?<\\/v>|<alt>[\\s\\S]*?<\\/alt>|<sp>[^<]*?<\\/sp>)|\\)((?:<\\/(?:eu|nlba|${__carriedStyles.join(
+    "|"
+  )})>)*)\\s(?=[^\\)]*(?:\\(|$))`,
+  "g"
+);
 
 // the areas that Gregorio's closing tags after the last word's notes end, which end at its last notation
 var endTrailingAreas = (mappings: ChantMapping[], areas: SyllableAreas) => {
@@ -1411,10 +1427,12 @@ export class Gabc {
             parsedUnderChiRho.get(mapping) !==
               ctxt.activeClef instanceof ChiRhoClef ||
             hasMarks(this.marksForNext) ||
-            mapping.followsMarks
+            mapping.followsMarks ||
+            openStylesKey(this.marksForNext.openStyles) !== openStylesKey(mapping.openStylesBefore)
           ) {
             // the kind of clef has changed, and with it whether 0 and 9 nudge the notes,
-            // or the word before leaves (or left) Gregorio's marks on this one's
+            // or the word before leaves (or left) Gregorio's marks on this one's,
+            // or other styles open on its lyrics
             mapping = this.createMappingFromWord(
               ctxt,
               resultValues[j],
@@ -1688,6 +1706,7 @@ export class Gabc {
     // first syllable, which parseNotations() and the syllables below take
     // from marksForNext, and leave the rest of for the next word
     var followsMarks = hasMarks(this.marksForNext);
+    var openStylesBefore = this.marksForNext.openStyles;
     var mappingOf = () => {
       this.marksForNext = {
         ...this.marksForNext,
@@ -1696,8 +1715,10 @@ export class Gabc {
       if (closingStyleTags)
         this.marksForNext.openStyles = openStylesAfterLines(this.marksForNext.openStyles, closingStyleTags.split("|"));
       let mapping = new ChantMapping(word, notations, sourceIndex);
-      if (hasMarks(this.marksForNext)) mapping.marksForNext = this.marksForNext;
+      if (hasMarks(this.marksForNext) || openStylesKey(this.marksForNext.openStyles))
+        mapping.marksForNext = this.marksForNext;
       if (followsMarks) mapping.followsMarks = true;
+      if (openStylesKey(openStylesBefore)) mapping.openStylesBefore = openStylesBefore;
       return mapping;
     };
 
@@ -1707,9 +1728,8 @@ export class Gabc {
     // Gregorio's controls after the word's last notes, with no notes of their
     // own, like the closing tags that splitWords() leaves with the word before
     // them ("son.(f)</nlba> Chri(f)"), go on the next syllable, as in
-    // Gregorio, where they're its text;
-    // them; and so do the closing tags of styles there ("b(g)</i> c(h)"),
-    // which close them before the next syllable
+    // Gregorio, where they're its text, and so do the closing tags of styles
+    // there ("b(g)</i> c(h)"), which close them before the next syllable
     var trailingAreas: SyllableAreas = {};
     var closingStyleTags = "";
     var lastMatch = matches[matches.length - 1];
@@ -2016,71 +2036,27 @@ export class Gabc {
       // look like "f{i}re" or "{fenced}" to center on the i or on the entire
       // word, respectively. Here we determine if the lyric should be spaced
       // manually with this method of using braces.
-      // however, we don't want to consider any braces inside of v tags, so we
-      // do a bit of text processing here:
-      var lyricTextWithoutVTags = lyricText;
-      const vtagRegex = /<v>[\s\S]*?<\/v>/;
-      let match;
-      // the lengths of the <v> tags taken out, by where they were
-      const vtags: number[] = [];
-      while ((match = vtagRegex.exec(lyricTextWithoutVTags))) {
-        let index = match.index;
-        let length = match[0].length;
-        vtags[index] = length;
-        lyricTextWithoutVTags = lyricTextWithoutVTags.slice(0, index) + lyricTextWithoutVTags.slice(index + length);
-      }
-      var centerStartIndex = lyricTextWithoutVTags.indexOf("{");
+      // however, we don't consider any braces inside of v tags.  The first {
+      // and the first } center the lyric (if the } is after the {), and, as in Gregorio (which
+      // ignores a second center), no brace is printed.  Each brace is taken
+      // out, keeping where it was and where it is without the braces before it:
+      var centerStartIndex = -1;
       var centerLength = 0;
-
-      if (centerStartIndex >= 0) {
-        let indexClosingBracket = lyricTextWithoutVTags.indexOf("}");
-
-        if (
-          indexClosingBracket >= 0 &&
-          indexClosingBracket > centerStartIndex
-        ) {
-          const getTrueIndex = (indexWithoutVTags: number) => {
-            // map indices back to the lyricText with the V tags:
-            let accum = 0;
-            // (index is a string, which compares with a number as the number it is)
-            for (let index in vtags) {
-              if (vtags.hasOwnProperty(index) && indexWithoutVTags >= (index as unknown as number)) {
-                accum += vtags[index as unknown as number];
-              } else {
-                break;
-              }
-            }
-            return indexWithoutVTags + accum;
-          }
-          centerStartIndex = getTrueIndex(centerStartIndex);
-          indexClosingBracket = getTrueIndex(indexClosingBracket);
-          centerLength = indexClosingBracket - centerStartIndex - 1;
-
-          // strip out the brackets:
-          lyricText =
-            lyricText.substring(0, centerStartIndex) +
-            lyricText.substring(centerStartIndex + 1, indexClosingBracket) +
-            lyricText.substring(indexClosingBracket + 1, lyricText.length);
-          if (protrusion && protrusion.textIndex > centerStartIndex)
-            protrusion.textIndex -= protrusion.textIndex > indexClosingBracket ? 2 : 1;
-        } else centerStartIndex = -1; // if there's no closing bracket, don't enable centering
-      }
-      // as in Gregorio, any other braces outside <v> aren't printed either (it
-      // ignores a second center)
-      let centerEnd = centerStartIndex + centerLength;
-      let bracesBeforeStart = 0,
-        bracesBeforeEnd = 0,
+      let braces: { [brace: string]: { index: number; at: number } } = {};
+      let bracesRemoved = 0,
         bracesBeforeProtrusion = 0;
       lyricText = lyricText.replace(/(<v>[\s\S]*?<\/v>)|[{}]/g, (brace, vTag, index) => {
         if (vTag) return vTag;
-        if (index < centerStartIndex) bracesBeforeStart++;
-        if (index < centerEnd) bracesBeforeEnd++;
+        braces[brace] = braces[brace] || { index, at: index - bracesRemoved };
+        bracesRemoved++;
         if (protrusion && index < protrusion.textIndex) bracesBeforeProtrusion++;
         return "";
       });
-      if (centerStartIndex >= 0) {
-        centerStartIndex -= bracesBeforeStart;
-        centerLength = centerEnd - bracesBeforeEnd - centerStartIndex;
+      let opening = braces["{"],
+        closing = braces["}"];
+      if (opening && closing && closing.index > opening.index) {
+        centerStartIndex = opening.at;
+        centerLength = closing.at - opening.at;
       }
       if (protrusion) protrusion.textIndex -= bracesBeforeProtrusion;
 
@@ -4124,10 +4100,7 @@ export class Gabc {
     var words: string[] = [];
     var start = 0;
     maskGabc(gabcNotations)
-      .replace(
-        /(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|<sp>[^<]*?<\/sp>)|\)((?:<\/[a-z]+>)*)\s(?=[^\)]*(?:\(|$))/g,
-        (match, text, closingTags) => text || `)${closingTags}\n`
-      )
+      .replace(__wordEndRegex, (match, text, closingTags) => text || `)${closingTags}\n`)
       .split(/\n/g)
       .forEach((maskedWord) => {
         words.push(gabcNotations.substr(start, maskedWord.length));

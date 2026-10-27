@@ -5163,6 +5163,8 @@ function choralSignStaffPosition(note: Note, positionHint: MarkingPositionHint) 
 export class NabcChoralSign extends ChantLayoutElement {
   /** the NABC, as in the gabc */
   nabc: string;
+  /** the NABC read with parseNabc() */
+  items: NabcItem[];
   note: Note;
   positionHint: MarkingPositionHint;
   sourceIndex: number;
@@ -5172,6 +5174,7 @@ export class NabcChoralSign extends ChantLayoutElement {
   constructor(nabc: string, note: Note, sourceIndex: number) {
     super();
     this.nabc = nabc;
+    this.items = parseNabc(nabc);
     this.note = note;
     this.sourceIndex = sourceIndex;
     this.positionHint = MarkingPositionHint.Default;
@@ -5179,7 +5182,7 @@ export class NabcChoralSign extends ChantLayoutElement {
 
   performLayout(ctxt: ChantContext) {
     let font = ctxt.nabcFonts[0];
-    let neumes = (this.neumes = font ? new NabcNeumes(ctxt, parseNabc(this.nabc), 0, font) : undefined);
+    let neumes = (this.neumes = font ? new NabcNeumes(ctxt, this.items, 0, font) : undefined);
     if (!neumes) {
       this.bounds = new Rect();
       return;

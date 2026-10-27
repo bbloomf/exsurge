@@ -165,6 +165,8 @@ var edits = [
   ['opens a style that goes on into the next words', kyrie, kyrie.replace('Chri(h)', '<i>Chri(h)')],
   ['closes a style after a word\'s last notes', kyrie.replace('Chri(h)', '<i>Chri(h)'), kyrie.replace('Chri(h)ste(gf) ', '<i>Chri(h)ste(gf)</i> ')],
   ['edits a word in a style left open', kyrie.replace('Chri(h)', '<i>Chri(h)'), kyrie.replace('Chri(h)', '<i>Chri(h)').replace('Lau(f)', 'Lau(g)')],
+  ['takes away a style left open', kyrie.replace('Chri(h)', '<i>Chri(h)'), kyrie],
+  ['adds a closing tag that isn\'t Gregorio\'s after a word', kyrie, kyrie.replace('Chri(h)ste(gf) ', 'Chri(h)ste(gf)</e> ')],
   ['inserts a word before a choral sign', kyrie.replace('om(f)', 'om(f[cs:t])'), kyrie.replace('om(f)', 'no(g) om(f[cs:t])')],
   ['inserts a word before a NABC choral sign', kyrie.replace('om(f)', 'om(f[cn:vi])'), kyrie.replace('om(f)', 'no(g) om(f[cn:vi])')],
   ['adds a brace given a length before kept repeated notes', kyrie.replace('om(f)', 'om(fss)'), kyrie.replace('om(f)', 'om(fss)').replace('num(f)', 'num(f[ob:1;4mm])')]
@@ -204,6 +206,16 @@ describe('Gabc diff', function() {
     assert.deepStrictEqual(updatedMappings(beforeSource, afterSource, Gabc.diffDescriptorsAndNewWords), parsedMappings(afterSource));
   });
 
+  it("doesn't parse the words after an edit again just because a style is left open", function() {
+    var ctxt = new Drawing.ChantContext();
+    var mappings = Gabc.createMappingsFromSource(ctxt, '(c4) <i>a(f) b(g) c(h) d(i) e(j)');
+    var [first, , , next] = mappings.slice(1);
+    Gabc.updateMappingsFromSource(ctxt, mappings, '(c4) <i>a(f) b(g) c(hg) d(i) e(j)');
+    assert.strictEqual(mappings[1], first);
+    assert.strictEqual(mappings[4], next);
+    assert.deepStrictEqual(serializeMappings(mappings), parsedMappings('(c4) <i>a(f) b(g) c(hg) d(i) e(j)'));
+  });
+
   it('leaves no empty mapping behind for trailing whitespace', function() {
     assert.deepStrictEqual(updatedMappings('(c4) a(f)', '(c4) a(f) b(g) ', Gabc.diffDescriptorsAndNewWords), parsedMappings('(c4) a(f) b(g) '));
   });
@@ -219,7 +231,7 @@ describe('Gabc diff', function() {
   });
 
   it('updates mappings to match a fresh parse for random edits with repeated words', function() {
-    var vocabulary = ['(,)', '*(:)', '(;)', '(::)', 'Ky(f)', 'ri(gh)', 'e(h.)', 'a(fg)', 'b(gx)', 'c(h)', '(c3)', 'e(i;)', '<i>Ps.</i>(::)',
+    var vocabulary = ['(,)', '*(:)', '(;)', '(::)', 'Ky(f)', 'ri(gh)', 'e(h.)', 'a(fg)', 'b(gx)', 'c(h)', '(c3)', 'e(i;)', '<i>Ps.</i>(::)', '<i>a(f)', 'b(g)</i>',
       '(f3)', '(cb3)', 'a(ix)', 'd(ixi)', '(ixhi)', 'e(hy)', 'o(i#i)', 'f(e0f9)', 'q(f[ub:0;4mm])', 'r(gh[ob:1;6mm])',
       's(hss)', 't(gvv)', 'u(g[cs:t]f)'];
     // a small seeded generator (mulberry32), so that failures are reproducible

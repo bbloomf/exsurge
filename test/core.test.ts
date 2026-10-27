@@ -515,6 +515,9 @@ describe("Gregorio $ escapes", function() {
 
   it("splits words and syllables at the unescaped characters, but keeps their source", function() {
     assert.deepStrictEqual(Exsurge.Gabc.splitWords("a$) b(f) c(g) %x)\n d(h)"), ["a$) b(f)", "c(g)", "%x)\n d(h)"]);
+    // (only the closing tags of Gregorio's controls and styles stay with the word before them)
+    assert.deepStrictEqual(Exsurge.Gabc.splitWords("a(f)</i></nlba> b(g)"), ["a(f)</i></nlba>", "b(g)"]);
+    assert.deepStrictEqual(Exsurge.Gabc.splitWords("a(f)</e> b(g)"), ["a(f)</e> b(g)"]);
     assert.deepStrictEqual(Exsurge.Gabc.parseWord("a$(b$)(f)c$$(g)"), Object.assign(
       [{ notations: "f", lyrics: ["a$(b$)"] }, { notations: "g", lyrics: ["c$$"] }],
       { wordLength: 15 }

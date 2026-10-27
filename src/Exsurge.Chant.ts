@@ -734,6 +734,8 @@ export class ChantMapping {
   marksForNext?: MarksForNext;
   /** whether the word before left marks on this one's notes or syllable */
   followsMarks?: boolean;
+  /** the styles that the words before left open on its lyrics, as it was parsed (see MarksForNext.openStyles) */
+  openStylesBefore?: string[][];
 
   // source can be any object type. in the case of gabc, source is a text
   // string that maps to a gabc word (e.g.: "no(g)bis(fg)").

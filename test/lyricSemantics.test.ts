@@ -294,6 +294,16 @@ describe('Lyric centering braces', function() {
     assert.deepEqual(lyrics.map((lyric) => lyric.text), ['abcde', 'ab', 'xyz', 'foo']);
     assert.deepEqual(lyrics.map((lyric) => [lyric.centerStartIndex, lyric.centerLength]), [[1, 1], [-1, 2], [1, 1], [1, 1]]);
   });
+
+  it('centers on the first { and the first } only when the } is after it, and keeps <pr> where it was in the text', function() {
+    var lyrics = lyricsOf('(c4) a}b{c}(f) {}ab(f) x{<v>}</v>y}z(g) a{b<pr>c}d(f) a{b}c<pr>d{e}(f) {a}<pr>b(f)');
+    assert.deepEqual(lyrics.map((lyric) => lyric.text), ['abc', 'ab', 'xyz', 'abcd', 'abcde', 'ab']);
+    assert.deepEqual(
+      lyrics.map((lyric) => [lyric.centerStartIndex, lyric.protrusion && lyric.protrusion.textIndex]),
+      [[-1, undefined], [0, undefined], [1, undefined], [1, 2], [1, 3], [0, 1]]
+    );
+    assert.deepEqual(lyrics.slice(1).map((lyric) => lyric.centerLength), [0, 1, 2, 1, 1]);
+  });
 });
 
 describe('A lone hyphen', function() {
