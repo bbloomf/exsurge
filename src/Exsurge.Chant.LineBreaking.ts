@@ -445,7 +445,7 @@ export class LineBreaker {
             demerits = fits[f + 2];
           if (Math.abs(fitness - node.fitness) > 1) demerits += adjDemerits;
           // (and \finalhyphendemerits, if the last line starts within a word)
-          if (lineEnd.end === notations.length && position > 0 && !this.startsWord(position))
+          if (end === notations.length && position > 0 && !this.startsWord(position))
             demerits += this.ctxt.finalHyphenDemerits;
           demerits = node.demerits + demerits;
 
