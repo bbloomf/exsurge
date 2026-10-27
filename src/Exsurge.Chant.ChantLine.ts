@@ -109,9 +109,12 @@ export function copyBeginningLyrics(ctxt: ChantContext, notation: ChantNotationE
       lyric.sourceIndex
     );
     newLyric.elidesToNext = lyric.elidesToNext;
+    if (lyric.verseNumber) newLyric.verseNumber = lyric.verseNumber.copy(ctxt, lyric.verseNumber.sourceIndex);
+    newLyric.endsVerseNumbers = lyric.endsVerseNumbers;
     return newLyric;
   });
-  var minX = lyrics.map((l) => l.bounds.x).reduce((a, b) => (a < b ? a : b));
+  LyricArray.alignVerseNumbers(ctxt, lyrics);
+  var minX = lyrics.map((l) => l.leftOffset()).reduce((a, b) => (a < b ? a : b));
   lyrics.forEach((l) => {
     l.bounds.x -= minX;
   });
@@ -135,6 +138,11 @@ export function resetNotation(ctxt: ChantContext, notation: ChantNotationElement
   if (!notation.hasLyrics()) return;
   let moved = false;
   for (let lyric of notation.lyrics) {
+    // (ChantLine.repeatVerseNumbers() gives them to the first text of each line of lyrics on a line)
+    if (lyric.repeatedVerseNumber) {
+      delete lyric.repeatedVerseNumber;
+      moved = true;
+    }
     if (lyric.needsLayout) {
       lyric.recalculateMetrics(ctxt);
       lyric.needsLayout = false;
@@ -1093,6 +1101,7 @@ export class ChantLine extends ChantLayoutElement {
       }
 
       resetNotation(ctxt, curr);
+      this.repeatVerseNumbers(ctxt, i);
 
       if (curr.isAccidental && (curr as Accidental).soft)
         (curr as Accidental).setHidden(ctxt, !this.isSoftAccidentalVisible(i));
@@ -2909,6 +2918,28 @@ export class ChantLine extends ChantLayoutElement {
 
     // if we made it this far, then the element won't fit on this line.
     return false;
+  }
+
+  /**
+   * Gives the lyrics of the notation at index that are the first text of
+   * their lines of lyrics on the line the verse numbers in effect on them
+   * (with ChantContext.repeatVerseNumbers), before it's positioned.
+   */
+  repeatVerseNumbers(ctxt: ChantContext, index: number) {
+    var notations = this.score.notations,
+      notation = notations[index];
+    if (!ctxt.repeatVerseNumbers || !notation.hasLyrics()) return;
+    var repeated = false;
+    notation.lyrics.forEach((lyric, lyricIndex) => {
+      if (!lyric.verseNumberInEffect || !lyric.originalText) return;
+      for (let i = this.notationsStartIndex; i < index; i++) {
+        let before = notations[i].lyrics[lyricIndex];
+        if (before && before.originalText) return;
+      }
+      lyric.repeatedVerseNumber = lyric.getRepeatedVerseNumber(ctxt);
+      repeated = true;
+    });
+    if (repeated) notation.alignLyrics(ctxt);
   }
 
   /**

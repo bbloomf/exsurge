@@ -44,7 +44,8 @@ import {
   GlyphCode,
   Annotation,
   Annotations,
-  LyricTieSpecials
+  LyricTieSpecials,
+  VerseNumber
 } from "./Exsurge.Drawing.js";
 import { language as languages, type Language } from "./Exsurge.Text.js";
 import {
@@ -414,6 +415,10 @@ var __commentMaskRegex = /\uFDD0/g;
 var __lyricAreaTagRegex = /<(\/)?(eu|nlba)>/g;
 var __lyricClearRegex = /<\s*clear\s*\/?\s*>/g;
 var __lyricProtrusionRegex = /<\s*pr\s*(?::\s*(\d*\.?\d+|\d+\.)\s*)?\/?\s*>/g;
+// a verse number at the start of a lyric ("<verseNum>1.</verseNum> Ve"), after
+// any space, and in any markup of its own ("<i><verseNum>1.</verseNum></i>"),
+// and the space after it; or an empty one (<verseNum></verseNum> or <verseNum/>)
+var __verseNumberRegex = /^(\s*)((?:<[a-z]+>)*)<verseNum(?:\s*\/>|>([\s\S]*?)<\/verseNum>)((?:<\/[a-z]+>)*)\s*/i;
 // those controls at the start of a lyric
 var __leadingControlsRegex = new RegExp(
   "^(?:" + [__lyricAreaTagRegex, __lyricClearRegex, __lyricProtrusionRegex].map((regex) => regex.source).join("|") + ")*"
@@ -1909,6 +1914,40 @@ export class Gabc {
           return "";
         });
 
+      // a verse number is drawn apart from the syllable, which is centered
+      // without it (see VerseNumber); an empty one ends the verse number in
+      // effect, which isn't repeated after it (e.g. before an Amen)
+      let verseNumber: VerseNumber | undefined;
+      let endsVerseNumbers = false;
+      var verseNumberMatch = __verseNumberRegex.exec(lyricText);
+      // (the markup around it must close just after it)
+      if (
+        verseNumberMatch &&
+        verseNumberMatch[4] !== (verseNumberMatch[2].match(/\w+/g) || []).reverse().map((tag) => `</${tag}>`).join("")
+      )
+        verseNumberMatch = null;
+      if (verseNumberMatch) {
+        let [all, space, open, number, close] = verseNumberMatch;
+        let length = all.length;
+        // (and a lyric tie after it, which isn't a space unless ctxt.lyricTie is "space")
+        let tieSpecial = LyricTieSpecials[ctxt.lyricTie];
+        let tie = tieSpecial && ctxt.specials[tieSpecial];
+        if (tie && lyricText.startsWith(tie, length))
+          length += tie.length + /^\s*/.exec(lyricText.slice(length + tie.length))![0].length;
+        let verseNumberText = (number || "").trim();
+        if (verseNumberText)
+          verseNumber = new VerseNumber(
+            ctxt,
+            open + verseNumberText + close,
+            // (from its markup, or else just after the tag)
+            lyricSourceIndex + (open ? space.length : all.indexOf(">") + 1)
+          );
+        else endsVerseNumbers = true;
+        lyricText = lyricText.slice(length);
+        lyricSourceIndex += length;
+        if (protrusion) protrusion.textIndex = Math.max(0, protrusion.textIndex - length);
+      }
+
       // gabc allows lyrics to indicate the centering part of the text by
       // using braces to indicate how to center the lyric. So a lyric can
       // look like "f{i}re" or "{fenced}" to center on the i or on the entire
@@ -2010,6 +2049,8 @@ export class Gabc {
       }
 
       if (clear) lyric.clear = true;
+      if (verseNumber) lyric.verseNumber = verseNumber;
+      if (endsVerseNumbers) lyric.endsVerseNumbers = true;
       if (protrusion) {
         protrusion.textIndex = lyricTextIndex(ctxt, lyric, lyricText, protrusion.textIndex);
         lyric.protrusion = protrusion;

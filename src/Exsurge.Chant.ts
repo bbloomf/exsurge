@@ -33,7 +33,8 @@ import {
   GlyphCode,
   GlyphVisualizer, Lyric, LyricType, QuickSvg, TextLeftRight,
   TextMeasuringStrategy,
-  TextSpan
+  TextSpan,
+  type VerseNumber
 } from "./Exsurge.Drawing.js";
 import { Gabc } from "./Exsurge.Gabc.js";
 import { Titles } from "./Exsurge.Titles.js";
@@ -1036,11 +1037,30 @@ export class ChantScore {
     if (!this.startingClef) this.startingClef = Clef.default();
     this.startingClef.elementIndex = -1;
 
+    this.updateVerseNumbers();
+
     // update drop cap (giving its letter back if it's no longer wanted)
     if (this.useDropCap || this.dropCap) this.recreateDropCap(ctxt);
     this.updateFirstWordStyles(ctxt);
 
     this.needsLayout = true;
+  }
+
+  /**
+   * Gives each lyric the verse number in effect on its line of lyrics, from
+   * the last syllable before it with one, unless an empty one came after it
+   * (see ChantLine.repeatVerseNumbers())
+   */
+  updateVerseNumbers() {
+    var inEffect: Array<VerseNumber | undefined> = [];
+    for (let notation of this.notations)
+      notation.lyrics.forEach((lyric, lyricIndex) => {
+        if (lyric.verseNumber || lyric.endsVerseNumbers) inEffect[lyricIndex] = lyric.verseNumber;
+        else if (lyric.verseNumberInEffect !== inEffect[lyricIndex]) {
+          lyric.verseNumberInEffect = inEffect[lyricIndex];
+          delete lyric.verseNumberCopy;
+        }
+      });
   }
 
   /**
