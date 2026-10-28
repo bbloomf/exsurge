@@ -524,7 +524,8 @@ const svg = score.createSvg(ctxt);
 | `score.draw(ctxt, scale)` | drawing on the canvas `ctxt.canvas` |
 | `score.createSvgForEachLine(ctxt)` | one SVG per system, all in one string |
 | `score.createSvgNodeForEachLine(ctxt)` | an array of SVG nodes, one per system |
-| `score.paginate(height)`, then `score.pages` | the score split into pages of at most `height`, each a `ChantScore` to render with the calls above (the titles go on the first page) |
+| `score.paginate(height)`, then `score.pages` | the score split into pages of at most `height`, each a `ChantScore` to render with the calls above (the titles go on the first page). It can be called again without a new layout |
+| `score.paginate(height, firstPageHeight)` | the same, with only `firstPageHeight` (the room left on a page that something else began) for the first page. When the titles and the first line (or the lines beside the drop cap) don't fit there, `score.firstPageEmpty` is true and `score.pages[0]` is the next page |
 | `score.performLayoutAsync(ctxt, done)` | layout that yields to the browser between notations, and waits for the lyric font to load, for at most `ctxt.fontLoadTimeout` milliseconds (3000 by default) |
 | `score.layoutChantLines(ctxt, width)` | the score laid out again at another width, without parsing the GABC again |
 

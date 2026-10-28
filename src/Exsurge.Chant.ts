@@ -926,6 +926,16 @@ export class ChantScore {
   forceLayout?: boolean;
   /** the score split into pages, by paginate() (or just this score) */
   pages!: ChantScore[];
+  /**
+   * whether paginate() left the page the score starts on empty, because its
+   * titles and first line (or the lines beside its drop cap) didn't fit in
+   * the firstPageHeight it was given.  pages[0] is then the score's first
+   * page after that one.
+   */
+  firstPageEmpty = false;
+  // the lines of the last layout and the y of each in it, which paginate()
+  // puts them back at before it moves them to their pages
+  private laidOutLines?: { lines: ChantLine[]; ys: number[] };
   selection?: Selection;
   /** the notation that the insertion cursor is after */
   insertionElement?: ChantNotationElement | null;
@@ -1724,6 +1734,8 @@ export class ChantScore {
     this.bounds.height = y - spaceBetweenSystems;
 
     this.pages = [this];
+    this.firstPageEmpty = false;
+    this.laidOutLines = { lines: this.lines, ys: this.lines.map((line) => line.bounds.y) };
 
     if (this.selection) {
       this.updateSelection(this.selection);
@@ -1880,22 +1892,42 @@ export class ChantScore {
       .join(";");
   }
 
-  paginate(height: number) {
+  /**
+   * Split the score into pages (this.pages) of at most height, keeping the
+   * lines beside the drop cap together on the first.  It can be called again,
+   * with another height, without laying the lines out again.
+   * @param height the height of a page
+   * @param firstPageHeight the room left on the page the score starts on
+   *   (when something else began it), at most height, which it is by default
+   *   or when it isn't a finite number.  The first page has only the lines
+   *   that fit there; when the titles and first line (or the lines beside the
+   *   drop cap) don't, it's left empty, which firstPageEmpty says, and the
+   *   score starts on the next page.  The pages after the first have height.
+   */
+  paginate(height: number, firstPageHeight = height) {
     if (!height) return;
+    // (the lines where their layout put them, if paginate() has moved them)
+    const laidOut = this.laidOutLines;
+    if (laidOut && laidOut.lines === this.lines) this.lines.forEach((line, i) => (line.bounds.y = laidOut.ys[i]));
     this.pages = [];
+    let pageHeight = Number.isFinite(firstPageHeight) ? Math.min(firstPageHeight, height) : height;
+    this.firstPageEmpty =
+      pageHeight < height && this.copyLines(0, this.lastLineBesideDropCap + 1).bounds.height > pageHeight;
+    if (this.firstPageEmpty) pageHeight = height;
     let pageHeightOffset = 0,
       startLineIndex = 0;
     for (let i = 1; i < this.lines.length; ++i) {
       let line = this.lines[i];
-      let pageHeight = line.bounds.bottom() - pageHeightOffset - line.origin.y;
+      let bottom = line.bounds.bottom() - pageHeightOffset - line.origin.y;
 
       // (the lines beside a drop cap stay on its page)
-      if (pageHeight > height && i > this.lastLineBesideDropCap) {
+      if (bottom > pageHeight && i > this.lastLineBesideDropCap) {
         // this line will be the first on the new page
         this.pages.push(this.copyLines(startLineIndex, i));
         startLineIndex = i;
         pageHeightOffset = line.bounds.y - line.origin.y;
         line.bounds.y = line.origin.y;
+        pageHeight = height;
       } else {
         // not a new page yet...update the bounds:
         line.bounds.y -= pageHeightOffset;
