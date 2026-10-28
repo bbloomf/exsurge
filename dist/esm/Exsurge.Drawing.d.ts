@@ -1030,9 +1030,13 @@ export declare class NabcNeumes extends ChantLayoutElement {
     glyphs: GlyphVisualizer[];
     /** where its baseline is on the line */
     baseline: number;
+    /** how far moveBy() has moved it */
+    xOffset: number;
     /** the size of ERR, where the NABC is wrong, in the font's ems */
     static errorSize: number;
     constructor(ctxt: ChantContext, items: NabcItem[], voice: number, font: NabcFont, phantom?: boolean);
+    /** moves it dx to the right */
+    moveBy(dx: number): void;
     setBaseline(baseline: number): void;
     errorAttributes(ctxt: ChantContext, x: number): SvgAttributes;
     draw(ctxt: ChantContext): void;
@@ -1349,7 +1353,15 @@ export declare class Lyric extends TextElement {
      * first syllable's, then the first letter's
      */
     firstWordStyles?: SpanPropertyDict[];
-    constructor(ctxt: ChantContext, text: string, lyricType?: LyricType | null | "", notation?: ChantNotationElement, notations?: ChantNotationElement[], sourceIndex?: number);
+    /**
+     * the tags of Gregorio's styles that a syllable before the lyric left open
+     * (e.g. "<i>"), which the lyric is styled with until it closes them, as
+     * Gregorio carries them on; they aren't in its source
+     */
+    openStyles?: string;
+    constructor(ctxt: ChantContext, text: string, lyricType?: LyricType | null | "", notation?: ChantNotationElement, notations?: ChantNotationElement[], sourceIndex?: number, 
+    /** the tags of the styles left open before the lyric, e.g. "<i>" (see openStyles) */
+    openStyles?: string);
     allowsConnector(): boolean;
     setForceConnector(force: boolean): void;
     setPreventConnector(prevent: boolean): void;
@@ -1385,6 +1397,9 @@ export declare class Lyric extends TextElement {
      * generateDropCap()), without the first word's styles.
      */
     removeDropCap(ctxt: ChantContext): void;
+    /** makes the lyric's spans again from its text, as the constructor did */
+    generateLyricSpans(ctxt: ChantContext): void;
+    private shiftSpansPastOpenStyles;
     /**
      * Gives the lyric the styles of the score's first word (part "word"), or of
      * its first syllable ("syllable", which also styles the first letter after
@@ -1416,6 +1431,29 @@ export declare class ChoralSign extends TextElement {
     constructor(ctxt: ChantContext, text: string, note: Note, sourceIndex?: number);
     recalculateMetrics(ctxt: ChantContext): void;
     performLayout(ctxt: ChantContext): void;
+}
+/**
+ * Gregorio's NABC choral sign ([cn:…] after a note): NABC drawn where a
+ * choral sign goes, in the font of the first line of NABC (as Gregorio's
+ * \GreNABCChar draws it).  Without a NABC font (ChantContext.nabcFonts),
+ * it isn't drawn, as NABC isn't.
+ */
+export declare class NabcChoralSign extends ChantLayoutElement {
+    /** the NABC, as in the gabc */
+    nabc: string;
+    /** the NABC read with parseNabc() */
+    items: NabcItem[];
+    note: Note;
+    positionHint: MarkingPositionHint;
+    sourceIndex: number;
+    /** the NABC as it's drawn, if there's a font to draw it with (see performLayout()) */
+    neumes?: NabcNeumes;
+    constructor(nabc: string, note: Note, sourceIndex: number);
+    performLayout(ctxt: ChantContext): void;
+    draw(ctxt: ChantContext): void;
+    createSvgNode(ctxt: ChantContext): SvgElementWithSource;
+    createSvgTree(ctxt: ChantContext): SvgTreeNode;
+    createSvgFragment(ctxt: ChantContext): string;
 }
 export declare class AboveLinesText extends TextElement {
     /**

@@ -1,3 +1,21 @@
+## [2.6.1](https://github.com/bbloomf/exsurge/compare/v2.6.0...v2.6.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **drawing:** Read markup tag names only in lower case, as Gregorio does ([53a9ba8](https://github.com/bbloomf/exsurge/commit/53a9ba8094be65d7c07c37e7129b13c4ecf5047f))
+* **gabc:** Apply code-review fixes to the Gregorio discrepancy fixes ([1252b3a](https://github.com/bbloomf/exsurge/commit/1252b3ac4926c1d695556777dc6ad206331fd17b))
+* **gabc:** Carry style tags left open into the next syllables and words ([46ff64b](https://github.com/bbloomf/exsurge/commit/46ff64b1fbdb5d3f1369acc753177802939871df))
+* **gabc:** Keep a translation without lyrics, drop extra braces and read a lone - as a hyphen ([50dea21](https://github.com/bbloomf/exsurge/commit/50dea21f57dd1351557cdb7fbb9fa31933696987))
+* **gabc:** Read a header with a byte-order mark, spaces or a trailing comment, as Gregorio does ([e317685](https://github.com/bbloomf/exsurge/commit/e317685fbd9dfd74e11e51467fa00e4139b75198))
+* **gabc:** Read comments and line breaks in notes, and parentheses in <alt> and <sp>, as Gregorio does ([9eb2d26](https://github.com/bbloomf/exsurge/commit/9eb2d26b9b4d9c7bb866fc67bae80bbccfd0800e))
+* **gabc:** Read signs after a note's [ ] attributes, ,?0 and `?0 bars and [alt:] before a note ([944eca9](https://github.com/bbloomf/exsurge/commit/944eca989e936be5a953cbe28be2d2d5bdd7a2ba))
+
+
+### Features
+
+* **nabc:** Read and draw Gregorio's NABC choral signs ([cn:…]) ([c4a7316](https://github.com/bbloomf/exsurge/commit/c4a731682da781c225f830d9de25551f2698966c))
+
 # [2.6.0](https://github.com/bbloomf/exsurge/compare/v2.5.0...v2.6.0) (2026-10-27)
 
 

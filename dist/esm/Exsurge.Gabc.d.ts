@@ -159,7 +159,7 @@ export declare class Gabc {
     static setAutomaticLeanings(notes: Note[]): void;
     static createMappingFromWord(ctxt: ChantContext, word: string, sourceIndex: number, lastTranslationNeumes: ChantNotationElement[], insertionIndex?: number): ChantMapping;
     static createSyllableLyrics(ctxt: ChantContext, text: string, proposedLyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric[];
-    static makeLyric(ctxt: ChantContext, text: string, lyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric;
+    static makeLyric(ctxt: ChantContext, text: string, lyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number, openStyles?: string): Lyric;
     static parseNotations(ctxt: ChantContext, data: string, sourceIndex: number, insertionIndex?: number): ChantNotationElement[];
     static createClef(type: string, line: number, flat: boolean): Clef;
     static joinElements(neumes: Neumes.Neume[], joinsPreviousElement: boolean): boolean;

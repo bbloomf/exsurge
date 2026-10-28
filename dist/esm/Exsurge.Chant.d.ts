@@ -7,7 +7,7 @@ import type { Accidental } from "./Exsurge.Chant.Signs.js";
 import type { Accent, BracePoint, CustomLedgerLine, EpisemaTuning, HorizontalEpisema, Ictus, Mora, SlurMark } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
 import type { Language } from "./Exsurge.Text.js";
-import type { AboveLinesText, Annotations, AreaBoundary, ChantContext, ChoralSign, DropCap, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
+import type { AboveLinesText, Annotations, AreaBoundary, ChantContext, ChoralSign, NabcChoralSign, DropCap, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
 export declare const LiquescentType: {
     readonly None: 0;
     readonly Large: number;
@@ -72,6 +72,8 @@ export declare class Note extends ChantLayoutElement {
     braceStart?: BracePoint;
     braceEnd?: BracePoint;
     choralSign?: ChoralSign;
+    /** Gregorio's NABC choral sign ([cn:…]), drawn where a choral sign goes */
+    choralNabc?: NabcChoralSign;
     /** text above the note, which goes to its neume's alText */
     alText?: AboveLinesText;
     /** the number of stems of a punctum inclinatum (gabc |) */
@@ -280,6 +282,11 @@ export interface MarksForNext {
         above?: EpisemaTuning;
         below?: EpisemaTuning;
     };
+    /**
+     * the names of Gregorio's styles left open (e.g. "i" for <i>), which go on
+     * into the next syllables, for each line of lyrics (see Gabc.createSyllableLyrics())
+     */
+    openStyles?: string[][];
 }
 /** the lowest and highest staff positions of the notes in Gregorio's brackets (gabc [[ and ]]) */
 export interface BracketRange {
@@ -294,6 +301,8 @@ export declare class ChantMapping {
     marksForNext?: MarksForNext;
     /** whether the word before left marks on this one's notes or syllable */
     followsMarks?: boolean;
+    /** the styles that the words before left open on its lyrics, as it was parsed (see MarksForNext.openStyles) */
+    openStylesBefore?: string[][];
     constructor(source: string, notations: ChantNotationElement[], sourceIndex: number);
 }
 export interface ElementSelection {

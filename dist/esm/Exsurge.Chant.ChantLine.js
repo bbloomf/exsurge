@@ -76,7 +76,7 @@ export function copyBeginningLyrics(ctxt, notation) {
     if (!bar.hasLyrics() || (bar.lyrics.length === 1 && bar.lyrics[0].text.match(/^(i\.?)+j\.?/)))
         return null;
     var lyrics = bar.lyrics.map((lyric) => {
-        var newLyric = new Lyric(ctxt, lyric.originalText, lyric.lyricType, lyric.notation, lyric.notations, lyric.sourceIndex);
+        var newLyric = new Lyric(ctxt, lyric.originalText, lyric.lyricType, lyric.notation, lyric.notations, lyric.sourceIndex, lyric.openStyles);
         newLyric.elidesToNext = lyric.elidesToNext;
         if (lyric.verseNumber)
             newLyric.verseNumber = lyric.verseNumber.copy(ctxt, lyric.verseNumber.sourceIndex);

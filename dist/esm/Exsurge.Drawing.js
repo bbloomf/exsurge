@@ -1642,6 +1642,8 @@ function nabcGlyph(font, name) {
 export class NabcNeumes extends ChantLayoutElement {
     constructor(ctxt, items, voice, font, phantom = false) {
         super();
+        /** how far moveBy() has moved it */
+        this.xOffset = 0;
         this.voice = voice;
         this.phantom = phantom;
         let unit = (this.unit = (ctxt.nabcSize * ctxt.staffInterval) / font.unitsPerEm);
@@ -1671,6 +1673,13 @@ export class NabcNeumes extends ChantLayoutElement {
         this.bounds.height = (layout.height + layout.depth) * unit;
         this.setBaseline(0);
     }
+    /** moves it dx to the right */
+    moveBy(dx) {
+        this.xOffset += dx;
+        this.bounds.x += dx;
+        for (let glyph of this.glyphs)
+            glyph.bounds.x += dx;
+    }
     setBaseline(baseline) {
         this.baseline = baseline;
         this.bounds.y = baseline - this.layout.height * this.unit;
@@ -1683,7 +1692,7 @@ export class NabcNeumes extends ChantLayoutElement {
     errorAttributes(ctxt, x) {
         return {
             class: "nabcError",
-            x: x * this.unit,
+            x: this.xOffset + x * this.unit,
             y: this.baseline,
             // (with the font's names in ', which mean the same as " in css, since
             // the attribute is in ")
@@ -1701,7 +1710,7 @@ export class NabcNeumes extends ChantLayoutElement {
         for (let x of this.layout.errors) {
             canvasCtxt.font = NabcNeumes.errorSize * ctxt.nabcSize * ctxt.staffInterval + "px " + ctxt.textStyles.lyric.font;
             canvasCtxt.fillStyle = ctxt.neumeLineColor;
-            canvasCtxt.fillText("ERR", x * this.unit, this.baseline);
+            canvasCtxt.fillText("ERR", this.xOffset + x * this.unit, this.baseline);
         }
     }
     getSvgAttributes() {
@@ -2017,6 +2026,8 @@ var __subsForTspans = {
 // the markup in a TextElement's text (see generateSpansFromText()), and the
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
+// a tag (in markupRegexSource's match) that starts or ends with a capital in its name
+const __capitalTagRegex = /^<\/?[a-z]*[A-Z]|<\/[a-z]*[A-Z][a-z]*>$/;
 // Gregorio's commands for the symbols in its greextra font (from its
 // gregoriotex-symbols.tex), by their names in lower case
 const __greextraCommands = {
@@ -2113,6 +2124,14 @@ export class TextElement extends ChantLayoutElement {
         while ((match = markupRegex.exec(text))) {
             var [, newLine, vTag, asterisk, plus, tilde, accent, vowelLigature, specialChar, specialChar2, specialChar3, markupSymbol, closingTag, tagName, family, fill, cssClass, enclosedText, special, escaped] = match;
             specialChar = specialChar || specialChar2 || specialChar3;
+            // tag names are in lower case, as in Gregorio, which prints <B> as it
+            // is (the regex ignores case for the rest, e.g. <sp>OE</sp> and V/.),
+            // so a tag with a capital in its name is text, and the text inside it
+            // is read again
+            if (__capitalTagRegex.test(match[0])) {
+                markupRegex.lastIndex = match.index + 1;
+                continue;
+            }
             // non-matching symbols first
             if (newLine) {
                 // close the current span, if any:
@@ -2925,13 +2944,19 @@ export const LyricArray = {
     }
 };
 export class Lyric extends TextElement {
-    constructor(ctxt, text, lyricType, notation, notations, sourceIndex) {
-        super(ctxt, (ctxt.textStyles.lyric.prefix || "") + text, (ctxt) => ctxt.textStyles.lyric.font, (ctxt) => ctxt.textStyles.lyric.size, "start", sourceIndex, text, TextTypes.lyric);
+    constructor(ctxt, text, lyricType, notation, notations, sourceIndex, 
+    /** the tags of the styles left open before the lyric, e.g. "<i>" (see openStyles) */
+    openStyles = "") {
+        super(ctxt, (ctxt.textStyles.lyric.prefix || "") + openStyles + text, (ctxt) => ctxt.textStyles.lyric.font, (ctxt) => ctxt.textStyles.lyric.size, "start", sourceIndex, text, TextTypes.lyric);
         /** where the verse number starts, from the lyric's x (see alignVerseNumbers()) */
         this.verseNumberX = 0;
         // save the original text in case we need to later use the lyric
         // in a dropcap...
         this.originalText = text;
+        if (openStyles) {
+            this.openStyles = openStyles;
+            this.shiftSpansPastOpenStyles();
+        }
         // (only the lyrics of a score have a notation, rather than e.g. a hyphen being measured)
         this.notation = notation;
         this.notations = notations;
@@ -3250,7 +3275,19 @@ export class Lyric extends TextElement {
         this.sourceGabc = this.dropCap.sourceGabc + this.sourceGabc;
         this.centerStartIndex++;
         this.dropCap = null;
-        this.generateSpansFromText(ctxt, (ctxt.textStyles.lyric.prefix || "") + this.originalText);
+        this.generateLyricSpans(ctxt);
+    }
+    /** makes the lyric's spans again from its text, as the constructor did */
+    generateLyricSpans(ctxt) {
+        this.generateSpansFromText(ctxt, (ctxt.textStyles.lyric.prefix || "") + (this.openStyles || "") + this.originalText);
+        this.shiftSpansPastOpenStyles();
+    }
+    // the spans' indices in the lyric's own text, after its open styles
+    shiftSpansPastOpenStyles() {
+        let length = (this.openStyles || "").length;
+        if (length)
+            for (let span of this.spans)
+                span.index = Math.max(0, span.index - length);
     }
     /**
      * Gives the lyric the styles of the score's first word (part "word"), or of
@@ -3283,7 +3320,7 @@ export class Lyric extends TextElement {
             // was before it had a drop cap, so without its empty spans
             const dropCap = this.dropCap;
             this.dropCap = null;
-            this.generateSpansFromText(ctxt, (ctxt.textStyles.lyric.prefix || "") + this.originalText);
+            this.generateLyricSpans(ctxt);
             this.dropCap = dropCap;
             if (this.dropCap) {
                 this.spans[0].text = this.spans[0].text.slice(1);
@@ -3369,20 +3406,65 @@ export class ChoralSign extends TextElement {
         this.bounds.x =
             this.note.bounds.x +
                 Math.max(0, (ctxt.staffInterval - this.bounds.width) / 2); // center on the note itself
-        let offset, staffPosition;
-        if (this.positionHint === MarkingPositionHint.Below) {
-            offset = -1;
-            staffPosition = this.note.staffPosition + 2 * offset;
-            staffPosition += staffPosition % 2 === 0 ? 0.3 : 1;
-        }
-        else {
-            offset = 1;
-            staffPosition = this.note.staffPosition + 2 * offset;
-            staffPosition += staffPosition % 2 === 0 ? 0.3 : -0.4;
-        }
-        // if (staffPosition % 2 === 0) staffPosition += offset;
         this.bounds.y =
-            ctxt.calculateHeightFromStaffPosition(staffPosition) + this.origin.y;
+            ctxt.calculateHeightFromStaffPosition(choralSignStaffPosition(this.note, this.positionHint)) + this.origin.y;
+    }
+}
+// the staff position of the baseline of a choral sign on note, above it or below it
+function choralSignStaffPosition(note, positionHint) {
+    let offset, staffPosition;
+    if (positionHint === MarkingPositionHint.Below) {
+        offset = -1;
+        staffPosition = note.staffPosition + 2 * offset;
+        staffPosition += staffPosition % 2 === 0 ? 0.3 : 1;
+    }
+    else {
+        offset = 1;
+        staffPosition = note.staffPosition + 2 * offset;
+        staffPosition += staffPosition % 2 === 0 ? 0.3 : -0.4;
+    }
+    // if (staffPosition % 2 === 0) staffPosition += offset;
+    return staffPosition;
+}
+/**
+ * Gregorio's NABC choral sign ([cn:…] after a note): NABC drawn where a
+ * choral sign goes, in the font of the first line of NABC (as Gregorio's
+ * \GreNABCChar draws it).  Without a NABC font (ChantContext.nabcFonts),
+ * it isn't drawn, as NABC isn't.
+ */
+export class NabcChoralSign extends ChantLayoutElement {
+    constructor(nabc, note, sourceIndex) {
+        super();
+        this.nabc = nabc;
+        this.items = parseNabc(nabc);
+        this.note = note;
+        this.sourceIndex = sourceIndex;
+        this.positionHint = MarkingPositionHint.Default;
+    }
+    performLayout(ctxt) {
+        let font = ctxt.nabcFonts[0];
+        let neumes = (this.neumes = font ? new NabcNeumes(ctxt, this.items, 0, font) : undefined);
+        if (!neumes) {
+            this.bounds = new Rect();
+            return;
+        }
+        // centered on the note, as a choral sign is
+        neumes.moveBy(this.note.bounds.x + Math.max(0, (ctxt.staffInterval - neumes.bounds.width) / 2) - neumes.bounds.x);
+        neumes.setBaseline(ctxt.calculateHeightFromStaffPosition(choralSignStaffPosition(this.note, this.positionHint)));
+        this.bounds = neumes.bounds.clone();
+    }
+    draw(ctxt) {
+        if (this.neumes)
+            this.neumes.draw(ctxt);
+    }
+    createSvgNode(ctxt) {
+        return this.neumes ? this.neumes.createSvgNode(ctxt) : QuickSvg.createNode("g", {});
+    }
+    createSvgTree(ctxt) {
+        return this.neumes ? this.neumes.createSvgTree(ctxt) : QuickSvg.createSvgTree("g", {});
+    }
+    createSvgFragment(ctxt) {
+        return this.neumes ? this.neumes.createSvgFragment(ctxt) : "";
     }
 }
 export class AboveLinesText extends TextElement {
