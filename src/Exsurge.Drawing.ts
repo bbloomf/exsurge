@@ -1071,6 +1071,13 @@ export class ChantContext {
    */
   nabcLines: number;
   /**
+   * The number of lines of lyrics that the gabc's lyric-line headers give,
+   * which Gabc.createMappingsFromSource() and updateMappingsFromSource() set.
+   * When it's more than 0, they take the place of the lines of lyrics after
+   * the first that a | adds to a syllable with notes.
+   */
+  lyricLines: number;
+  /**
    * The fonts to draw Gregorio's NABC with: nabcFonts[0] for its first line,
    * above the staff, and nabcFonts[1] for its second, below the staff, or
    * nabcFonts[0] for both, as with Gregorio's \gresetnabcfont.  exsurge has
@@ -1590,6 +1597,7 @@ export class ChantContext {
     this.noteIdPrefix = 'note-';
     this.defIdPrefix = '';
     this.nabcLines = 0;
+    this.lyricLines = 0;
     this.nabcFonts = [];
     this.nabcSize = 8 / NabcDimensions.pointsPerStaffInterval;
     this.nabcAlignment = "full";
@@ -4527,6 +4535,16 @@ export class Lyric extends TextElement {
   protrusionWidth?: number;
   /** which line of lyrics this is */
   lyricIndex?: number;
+  /**
+   * whether the lyric is from a lyric-line header (or makes room for one),
+   * and so has a source index that is the negative of its index in the gabc,
+   * header and all (see Gabc.applyLyricLines())
+   */
+  fromLyricLine?: boolean;
+  /** what the lyric was made from, to keep it while that stays the same (see Gabc.applyLyricLines()) */
+  lyricLineKey?: string;
+  /** the index in the gabc of the lyric-line syllable that the lyric was made from */
+  lyricLineIndex?: number;
   /** the right edge of a line of text-only syllables that starts with this lyric */
   lineWidth?: number;
   /** the verse number before the lyric in the gabc ("<verseNum>1.</verseNum> Ve") */

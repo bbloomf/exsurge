@@ -110,6 +110,18 @@ const cases: { name: string; gabc: string; edits: string[]; options?: RenderOpti
     name: "gives the lyrics after more than one space the source indices of their text",
     gabc: "(c4) a(f) b(g)\n c(h)  d(g) e(f) (::)",
     edits: ["(c4) a(f) b(g)\n c(h)  d(g) e(fe) (::)", "(c4) a(f) b(g)\n c(hg)  d(g) e(fe) (::)"]
+  },
+  {
+    // the lyric-line headers' syllables move on to the syllables after a
+    // word put in, and the lines that | adds come back without the headers
+    name: "gives the syllables with notes the lyric-line headers' syllables in turn",
+    gabc: "lyric-line: Chri+ste e+le+i+son;\n%%\n(c4) Ky(f)ri(g)e(h) (,) e(f)(g)le|x(h)i(h)son(f) (::)",
+    edits: [
+      "lyric-line: Chri+ste e+le+i+son;\n%%\n(c4) no(g) Ky(f)ri(g)e(h) (,) e(f)(g)le|x(h)i(h)son(f) (::)",
+      "lyric-line: Chri+ste e+le+_ son;\nlyric-line: <i>a+b</i> c;\n%%\n(c4) no(g) Ky(f)ri(g)e(h) (,) e(f)(g)le|x(h)i(h)son(f) (::)",
+      "lyric-line: <verseNum>2.</verseNum> Chri-ste e+le+_ son;\nlyric-line: <i>a+b</i> c;\n%%\n(c4) Ky(f)ri(g)e(h) (,) e(f)(g)le|x(h)i(h)son(f) (::)",
+      "name: Kyrie;\n%%\n(c4) Ky(f)ri(g)e(h) (,) e(f)(g)le|x(h)i(h)son(f) (::)"
+    ]
   }
 ];
 

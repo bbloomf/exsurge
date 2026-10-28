@@ -726,6 +726,12 @@ export interface BracketRange {
 // a chant mapping is a lightweight format independent way of
 // tracking how a chant language (e.g., gabc) has been
 // mapped to exsurge notations.
+/** a syllable with notes: the notation that takes its lyrics, and all of its notations */
+export interface LyricSlot {
+  notation: ChantNotationElement;
+  notations: ChantNotationElement[];
+}
+
 export class ChantMapping {
   source: string;
   notations: ChantNotationElement[];
@@ -736,6 +742,8 @@ export class ChantMapping {
   followsMarks?: boolean;
   /** the styles that the words before left open on its lyrics, as it was parsed (see MarksForNext.openStyles) */
   openStylesBefore?: string[][];
+  /** the word's syllables with notes, which take the lyrics of the lyric-line headers in turn */
+  lyricSlots?: LyricSlot[];
 
   // source can be any object type. in the case of gabc, source is a text
   // string that maps to a gabc word (e.g.: "no(g)bis(fg)").
