@@ -37,7 +37,11 @@ function extractReference(ref: string) {
   if (!existsSync(marker)) {
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
-    const archive = execFileSync("git", ["archive", "--format=tar", commit, "src"], { cwd: root });
+    // (the tar is larger than execFileSync()'s default buffer of 1MB)
+    const archive = execFileSync("git", ["archive", "--format=tar", commit, "src"], {
+      cwd: root,
+      maxBuffer: 256 * 1024 * 1024
+    });
     execFileSync("tar", ["-x", "-C", dir], { input: archive });
     mkdirSync(marker);
   }
