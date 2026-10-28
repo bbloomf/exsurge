@@ -110,7 +110,7 @@ interface NeumeState {
   /** the neume to make of the notes so far, when there are no more notes */
   neume(): Neumes.Neume;
   /** returns the next state, after making a neume if this note can't continue this one */
-  handle(currNote: Note, prevNote: Note, notesRemaining: number): NeumeState;
+  handle(currNote: Note, prevNote: Note, notesRemaining: number, builder: NeumeBuilder): NeumeState;
 }
 
 // a glyph or neume of Gregorio's neume fusion, in Gabc.createFusedNeumes()
@@ -744,7 +744,13 @@ export const GabcHeader = GabcHeaderClass as unknown as GabcHeaderConstructor;
  * that mean nothing to the parser (see gabcEscapes.ts), also keeping the
  * length.
  */
-var maskGabc = (gabc: string) =>
+var maskGabc = (gabc: string) => {
+  // (a word is masked to see whether it's empty and then again to be parsed)
+  if (gabc !== __lastMasked.gabc) __lastMasked = { gabc, masked: maskGabcNow(gabc) };
+  return __lastMasked.masked;
+};
+var __lastMasked = { gabc: "", masked: "" };
+var maskGabcNow = (gabc: string) =>
   gabc.replace(
     __commentRegex,
     (match, escaped, alt, notes, comment) =>
@@ -986,6 +992,443 @@ var lyricTextIndex = (ctxt: ChantContext, lyric: Lyric, text: string, index: num
     textIndex += span.text.length;
   }
   return textIndex;
+};
+
+// Gabc.createNeumesFromNotes() makes the neumes of the notes with a simple
+// finite state machine.  Each state has a neume() function and a handle()
+// function.  neume() makes the neume of the state in the event that we run
+// out of notes.  handle() gives the state an opportunity to examine the
+// currNote and determine what to do...either transition to a different
+// neume/state, or continue building the neume of that state.  handle()
+// returns the next state.  (The states are made once, rather than for each
+// call, and handle() is given the NeumeBuilder of the notes it's handling.)
+class NeumeBuilder {
+  neumes: Neumes.Neume[] = [];
+  firstNoteIndex = 0;
+  currNoteIndex = 0;
+
+  constructor(public notes: Note[]) {}
+
+  // makes a neume of the notes up to the current note and returns the next
+  // state after a neume is created (unknownState)
+  createNeume(
+    neume: Neumes.Neume,
+    includeCurrNote: boolean,
+    includePrevNote = true
+  ): NeumeState {
+    // add the notes to the neume
+    var lastNoteIndex;
+    if (includeCurrNote) lastNoteIndex = this.currNoteIndex;
+    else if (includePrevNote) lastNoteIndex = this.currNoteIndex - 1;
+    else lastNoteIndex = this.currNoteIndex - 2;
+
+    // (which leaves no state to go on to)
+    if (lastNoteIndex < 0) return undefined as unknown as NeumeState;
+
+    while (this.firstNoteIndex <= lastNoteIndex) {
+      let note = this.notes[this.firstNoteIndex++];
+      neume.addNote(note);
+      if (note.alText) {
+        if (!neume.alText) neume.alText = [];
+        neume.alText.push(note.alText);
+        note.alText.noteIndex = this.firstNoteIndex - 1;
+      }
+    }
+
+    this.neumes.push(neume);
+
+    if (includeCurrNote === false) {
+      this.currNoteIndex--;
+
+      if (includePrevNote === false) this.currNoteIndex--;
+
+      neume.keepWithNext = true;
+      if (this.notes[this.currNoteIndex + 1].shape === NoteShape.Quilisma)
+        neume.trailingSpace = 0;
+      else {
+        neume.trailingSpace = TrailingSpaceMultiple(1);
+        neume.allowLineBreakBeforeNext = true;
+      }
+    }
+
+    return unknownState;
+  }
+}
+
+var unknownState: NeumeState = {
+  neume: function() {
+    return new Neumes.Punctum();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    // a linea (gabc =) is a neume of its own, whatever its shape
+    if (currNote.linea) return builder.createNeume(new Neumes.Punctum(), true);
+    else if (currNote.shape === NoteShape.Virga) return virgaState;
+    else if (currNote.shape === NoteShape.Stropha) return apostrophaState;
+    else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
+    else if (currNote.shape === NoteShape.Inclinatum)
+      return punctaInclinataState;
+    // (a cavum goes into a neume like any other note, and is drawn hollow
+    // there, but a punctum cavum between lines, r0, stands alone)
+    else if (
+      currNote.shapeModifiers & NoteShapeModifiers.Cavum &&
+      currNote.shapeModifiers & NoteShapeModifiers.Linea
+    )
+      return builder.createNeume(new Neumes.Punctum(), true);
+    else return punctumState;
+  }
+};
+
+var punctumState: NeumeState = {
+  neume: function() {
+    return new Neumes.Punctum();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    // an oriscus scapus is joined to the lower punctum before it, as in
+    // Gregorio (unless either is liquescent)
+    if (
+      currNote.shape === NoteShape.Oriscus &&
+      currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
+      currNote.staffPosition > prevNote.staffPosition &&
+      prevNote.liquescent === LiquescentType.None &&
+      currNote.liquescent === LiquescentType.None
+    )
+      return pesOriscusState;
+
+    if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
+      var neume = new Neumes.Punctum();
+      var state = builder.createNeume(neume, false);
+      // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
+      // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
+      // Otherwise, we want no trailing space.
+      if (
+        currNote.staffPosition > prevNote.staffPosition &&
+        (currNote.staffPosition % 2 === 1 ||
+          prevNote.staffPosition !== currNote.staffPosition - 1 ||
+          !prevNote.morae ||
+          prevNote.morae.length === 0)
+      )
+        neume.trailingSpace = 0;
+      return state;
+    }
+
+    if (currNote.staffPosition > prevNote.staffPosition) {
+      if (currNote.ictus)
+        currNote.ictus.positionHint = MarkingPositionHint.Above;
+      // a pes quadratum (gabc q) has no more notes, as in Gregorio
+      if (prevNote.quadratum)
+        return builder.createNeume(new Neumes.PesQuadratum(), true);
+      return podatusState;
+    } else if (currNote.staffPosition < prevNote.staffPosition) {
+      if (prevNote.ictus)
+        prevNote.ictus.positionHint = MarkingPositionHint.Above;
+      // (TypeScript thinks the shape must be 0 by now, from the check above)
+      if ((currNote.shape as NoteShape) === NoteShape.Inclinatum) return climacusState;
+      else {
+        return clivisState;
+      }
+    } else if (!prevNote.morae || !prevNote.morae.length) {
+      return distrophaState;
+    }
+    return builder.createNeume(new Neumes.Punctum(), false);
+  }
+};
+
+var punctaInclinataState: NeumeState = {
+  neume: function() {
+    return new Neumes.PunctaInclinata();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (currNote.shape !== NoteShape.Inclinatum)
+      return builder.createNeume(new Neumes.PunctaInclinata(), false);
+    else return punctaInclinataState;
+  }
+};
+
+var oriscusState: NeumeState = {
+  neume: function() {
+    return new Neumes.Oriscus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    // (the oriscus points to the note after it, unless gabc designates its direction)
+    if (currNote.shape === NoteShape.Default) {
+      if (currNote.staffPosition > prevNote.staffPosition)
+        return builder.createNeume(new Neumes.PesQuassus(), true);
+      else if (currNote.staffPosition < prevNote.staffPosition)
+        return builder.createNeume(new Neumes.Clivis(), true);
+    }
+    // stand alone oriscus
+    var neume = new Neumes.Oriscus(),
+      state = builder.createNeume(neume, false);
+    // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
+    // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
+    // Otherwise, we want no trailing space.
+    if (
+      currNote.staffPosition > prevNote.staffPosition &&
+      (currNote.staffPosition % 2 === 1 ||
+        prevNote.staffPosition !== currNote.staffPosition - 1 ||
+        !prevNote.morae ||
+        prevNote.morae.length === 0)
+    )
+      neume.trailingSpace = 0;
+    return state;
+  }
+};
+
+var pesOriscusState: NeumeState = {
+  neume: function() {
+    return new Neumes.PesOriscus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Default &&
+      currNote.staffPosition > prevNote.staffPosition
+    )
+      return salicusState;
+    else return builder.createNeume(new Neumes.PesOriscus(), false);
+  }
+};
+
+var podatusState: NeumeState = {
+  neume: function() {
+    return new Neumes.Podatus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (currNote.staffPosition > prevNote.staffPosition) {
+      if (currNote.ictus)
+        currNote.ictus.positionHint = MarkingPositionHint.Above;
+      if (prevNote.ictus)
+        prevNote.ictus.positionHint = MarkingPositionHint.Below;
+
+      if (prevNote.shape === NoteShape.Oriscus) return salicusState;
+      else return scandicusState;
+    } else if (currNote.staffPosition < prevNote.staffPosition) {
+      if (currNote.shape === NoteShape.Inclinatum)
+        return pesSubpunctisState;
+      else return torculusState;
+    } else return builder.createNeume(new Neumes.Podatus(), false);
+  }
+};
+
+var clivisState: NeumeState = {
+  neume: function() {
+    return new Neumes.Clivis();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Default &&
+      currNote.staffPosition > prevNote.staffPosition
+    ) {
+      if (currNote.ictus)
+        currNote.ictus.positionHint = MarkingPositionHint.Above;
+      return porrectusState;
+    } else if (
+      currNote.staffPosition < prevNote.staffPosition &&
+      currNote.liquescent & LiquescentType.Small
+    ) {
+      return builder.createNeume(new Neumes.Ancus(), true);
+    } else {
+      return builder.createNeume(new Neumes.Clivis(), false);
+    }
+  }
+};
+
+var climacusState: NeumeState = {
+  neume: function() {
+    return new Neumes.Climacus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (currNote.shape !== NoteShape.Inclinatum)
+      return builder.createNeume(new Neumes.Climacus(), false);
+    else return climacusState;
+  }
+};
+
+var porrectusState: NeumeState = {
+  neume: function() {
+    return new Neumes.Porrectus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Default &&
+      currNote.staffPosition < prevNote.staffPosition
+    )
+      return builder.createNeume(new Neumes.PorrectusFlexus(), true);
+    else return builder.createNeume(new Neumes.Porrectus(), false);
+  }
+};
+
+var pesSubpunctisState: NeumeState = {
+  neume: function() {
+    return new Neumes.PesSubpunctis();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (currNote.shape !== NoteShape.Inclinatum)
+      return builder.createNeume(new Neumes.PesSubpunctis(), false);
+    else return pesSubpunctisState;
+  }
+};
+
+var salicusState: NeumeState = {
+  neume: function() {
+    return new Neumes.Salicus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Default &&
+      currNote.staffPosition < prevNote.staffPosition
+    )
+      return salicusFlexusState;
+    else return builder.createNeume(new Neumes.Salicus(), false);
+  }
+};
+
+var salicusFlexusState: NeumeState = {
+  neume: function() {
+    return new Neumes.SalicusFlexus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    return builder.createNeume(new Neumes.SalicusFlexus(), false);
+  }
+};
+
+var scandicusState: NeumeState = {
+  neume: function() {
+    return new Neumes.Scandicus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      prevNote.shape === NoteShape.Virga &&
+      currNote.shape === NoteShape.Inclinatum &&
+      currNote.staffPosition < prevNote.staffPosition
+    ) {
+      // if we get here, then it seems we have a podatus, now being followed by a climacus
+      // rather than a scandicus. react accordingly
+      return builder.createNeume(new Neumes.Podatus(), false, false);
+    } else if (
+      currNote.shape === NoteShape.Default &&
+      currNote.staffPosition < prevNote.staffPosition
+    )
+      return scandicusFlexusState;
+    else return builder.createNeume(new Neumes.Scandicus(), false);
+  }
+};
+
+var scandicusFlexusState: NeumeState = {
+  neume: function() {
+    return new Neumes.ScandicusFlexus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    return builder.createNeume(new Neumes.ScandicusFlexus(), false);
+  }
+};
+
+var virgaState: NeumeState = {
+  neume: function() {
+    return new Neumes.Virga();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Inclinatum &&
+      currNote.staffPosition < prevNote.staffPosition
+    )
+      return climacusState;
+    else if (
+      currNote.shape === NoteShape.Virga &&
+      currNote.staffPosition === prevNote.staffPosition
+    )
+      return bivirgaState;
+    else return builder.createNeume(new Neumes.Virga(), false);
+  }
+};
+
+var bivirgaState: NeumeState = {
+  neume: function() {
+    return new Neumes.Bivirga();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Virga &&
+      currNote.staffPosition === prevNote.staffPosition
+    )
+      return builder.createNeume(new Neumes.Trivirga(), true);
+    else return builder.createNeume(new Neumes.Bivirga(), false);
+  }
+};
+
+var apostrophaState: NeumeState = {
+  neume: function() {
+    return new Neumes.Apostropha();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (currNote.staffPosition === prevNote.staffPosition)
+      return distrophaState;
+    else return builder.createNeume(new Neumes.Apostropha(), false);
+  }
+};
+
+var distrophaState: NeumeState = {
+  neume: function() {
+    return new Neumes.Distropha();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (currNote.staffPosition === prevNote.staffPosition) {
+      if (prevNote.morae && prevNote.morae.length) {
+        return builder.createNeume(new Neumes.Distropha(), false);
+      } else {
+        return tristrophaState;
+      }
+    } else return builder.createNeume(new Neumes.Apostropha(), false, false);
+  }
+};
+
+var tristrophaState: NeumeState = {
+  neume: function() {
+    return new Neumes.Tristropha();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    // we only create a tristropha when the note run ends after three
+    // and the neume() function of this state is called. Otherwise
+    // we always interpret the third note to belong to the next sequence
+    // of notes.
+    //
+    // fixme: gabc allows any number of punctum/stropha in succession...
+    // is this a valid neume type? Or is it just multiple *stropha neumes
+    // in succession? Should we simplify the apostropha/distropha/
+    // tristropha classes to a generic stropha neume that can have 1 or
+    // more successive notes?
+    return builder.createNeume(new Neumes.Distropha(), false, false);
+  }
+};
+
+var torculusState: NeumeState = {
+  neume: function() {
+    return new Neumes.Torculus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Default &&
+      currNote.staffPosition > prevNote.staffPosition
+    ) {
+      if (currNote.ictus)
+        currNote.ictus.positionHint = MarkingPositionHint.Above;
+      return torculusResupinusState;
+    }
+    return builder.createNeume(new Neumes.Torculus(), false);
+  }
+};
+
+var torculusResupinusState: NeumeState = {
+  neume: function() {
+    return new Neumes.TorculusResupinus();
+  },
+  handle: function(currNote, prevNote, notesRemaining, builder) {
+    if (
+      currNote.shape === NoteShape.Default &&
+      currNote.staffPosition < prevNote.staffPosition
+    )
+      return builder.createNeume(new Neumes.TorculusResupinusFlexus(), true);
+    else return builder.createNeume(new Neumes.TorculusResupinus(), false);
+  }
 };
 
 export class Gabc {
@@ -2418,6 +2861,7 @@ export class Gabc {
 
     if (text.match(/^(?:[*†]+|i+j|\d+)\.?$/)) lyricType = LyricType.Directive;
 
+    // (the lyric is measured when its new notation is laid out)
     var lyric = new Lyric(
       ctxt,
       text,
@@ -2425,7 +2869,8 @@ export class Gabc {
       notation,
       notations,
       sourceIndex,
-      openStyles
+      openStyles,
+      false
     );
     lyric.elidesToNext = elides;
     if (forceConnector) lyric.setForceConnector(true);
@@ -3081,460 +3526,34 @@ export class Gabc {
     notes: Note[],
     finalTrailingSpace: TrailingSpace
   ) {
-    var neumes: Neumes.Neume[] = [];
-    var firstNoteIndex = 0;
-    var currNoteIndex = 0;
-
-    // here we use a simple finite state machine to create the neumes from the notes
-    // createNeume is helper function which returns the next state after a neume is created
-    // (unknownState). Each state object has a neume() function and a handle() function.
-    // neume() allows us to create the neume of the state in the event that we run out
-    // of notes. handle() gives the state an opportunity to examine the currNote and
-    // determine what to do...either transition to a different neume/state, or
-    // continue building the neume of that state. handle() returns the next state
-
-    var createNeume = function(
-      neume: Neumes.Neume,
-      includeCurrNote: boolean,
-      includePrevNote = true
-    ): NeumeState {
-      // add the notes to the neume
-      var lastNoteIndex;
-      if (includeCurrNote) lastNoteIndex = currNoteIndex;
-      else if (includePrevNote) lastNoteIndex = currNoteIndex - 1;
-      else lastNoteIndex = currNoteIndex - 2;
-
-      // (which leaves no state to go on to)
-      if (lastNoteIndex < 0) return undefined as unknown as NeumeState;
-
-      while (firstNoteIndex <= lastNoteIndex) {
-        let note = notes[firstNoteIndex++];
-        neume.addNote(note);
-        if (note.alText) {
-          if (!neume.alText) neume.alText = [];
-          neume.alText.push(note.alText);
-          note.alText.noteIndex = firstNoteIndex - 1;
-        }
-      }
-
-      neumes.push(neume);
-
-      if (includeCurrNote === false) {
-        currNoteIndex--;
-
-        if (includePrevNote === false) currNoteIndex--;
-
-        neume.keepWithNext = true;
-        if (notes[currNoteIndex + 1].shape === NoteShape.Quilisma)
-          neume.trailingSpace = 0;
-        else {
-          neume.trailingSpace = TrailingSpaceMultiple(1);
-          neume.allowLineBreakBeforeNext = true;
-        }
-      }
-
-      return unknownState;
-    };
-
-    var unknownState: NeumeState = {
-      neume: function() {
-        return new Neumes.Punctum();
-      },
-      handle: function(currNote, prevNote) {
-        // a linea (gabc =) is a neume of its own, whatever its shape
-        if (currNote.linea) return createNeume(new Neumes.Punctum(), true);
-        else if (currNote.shape === NoteShape.Virga) return virgaState;
-        else if (currNote.shape === NoteShape.Stropha) return apostrophaState;
-        else if (currNote.shape === NoteShape.Oriscus) return oriscusState;
-        else if (currNote.shape === NoteShape.Inclinatum)
-          return punctaInclinataState;
-        // (a cavum goes into a neume like any other note, and is drawn hollow
-        // there, but a punctum cavum between lines, r0, stands alone)
-        else if (
-          currNote.shapeModifiers & NoteShapeModifiers.Cavum &&
-          currNote.shapeModifiers & NoteShapeModifiers.Linea
-        )
-          return createNeume(new Neumes.Punctum(), true);
-        else return punctumState;
-      }
-    };
-
-    var punctumState: NeumeState = {
-      neume: function() {
-        return new Neumes.Punctum();
-      },
-      handle: function(currNote, prevNote, notesRemaining) {
-        // an oriscus scapus is joined to the lower punctum before it, as in
-        // Gregorio (unless either is liquescent)
-        if (
-          currNote.shape === NoteShape.Oriscus &&
-          currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
-          currNote.staffPosition > prevNote.staffPosition &&
-          prevNote.liquescent === LiquescentType.None &&
-          currNote.liquescent === LiquescentType.None
-        )
-          return pesOriscusState;
-
-        if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
-          var neume = new Neumes.Punctum();
-          var state = createNeume(neume, false);
-          // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
-          // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
-          // Otherwise, we want no trailing space.
-          if (
-            currNote.staffPosition > prevNote.staffPosition &&
-            (currNote.staffPosition % 2 === 1 ||
-              prevNote.staffPosition !== currNote.staffPosition - 1 ||
-              !prevNote.morae ||
-              prevNote.morae.length === 0)
-          )
-            neume.trailingSpace = 0;
-          return state;
-        }
-
-        if (currNote.staffPosition > prevNote.staffPosition) {
-          if (currNote.ictus)
-            currNote.ictus.positionHint = MarkingPositionHint.Above;
-          // a pes quadratum (gabc q) has no more notes, as in Gregorio
-          if (prevNote.quadratum)
-            return createNeume(new Neumes.PesQuadratum(), true);
-          return podatusState;
-        } else if (currNote.staffPosition < prevNote.staffPosition) {
-          if (prevNote.ictus)
-            prevNote.ictus.positionHint = MarkingPositionHint.Above;
-          // (TypeScript thinks the shape must be 0 by now, from the check above)
-          if ((currNote.shape as NoteShape) === NoteShape.Inclinatum) return climacusState;
-          else {
-            return clivisState;
-          }
-        } else if (!prevNote.morae || !prevNote.morae.length) {
-          return distrophaState;
-        }
-        return createNeume(new Neumes.Punctum(), false);
-      }
-    };
-
-    var punctaInclinataState: NeumeState = {
-      neume: function() {
-        return new Neumes.PunctaInclinata();
-      },
-      handle: function() {
-        if (currNote.shape !== NoteShape.Inclinatum)
-          return createNeume(new Neumes.PunctaInclinata(), false);
-        else return punctaInclinataState;
-      }
-    };
-
-    var oriscusState: NeumeState = {
-      neume: function() {
-        return new Neumes.Oriscus();
-      },
-      handle: function(currNote, prevNote) {
-        // (the oriscus points to the note after it, unless gabc designates its direction)
-        if (currNote.shape === NoteShape.Default) {
-          if (currNote.staffPosition > prevNote.staffPosition)
-            return createNeume(new Neumes.PesQuassus(), true);
-          else if (currNote.staffPosition < prevNote.staffPosition)
-            return createNeume(new Neumes.Clivis(), true);
-        }
-        // stand alone oriscus
-        var neume = new Neumes.Oriscus(),
-          state = createNeume(neume, false);
-        // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
-        // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
-        // Otherwise, we want no trailing space.
-        if (
-          currNote.staffPosition > prevNote.staffPosition &&
-          (currNote.staffPosition % 2 === 1 ||
-            prevNote.staffPosition !== currNote.staffPosition - 1 ||
-            !prevNote.morae ||
-            prevNote.morae.length === 0)
-        )
-          neume.trailingSpace = 0;
-        return state;
-      }
-    };
-
-    var pesOriscusState: NeumeState = {
-      neume: function() {
-        return new Neumes.PesOriscus();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Default &&
-          currNote.staffPosition > prevNote.staffPosition
-        )
-          return salicusState;
-        else return createNeume(new Neumes.PesOriscus(), false);
-      }
-    };
-
-    var podatusState: NeumeState = {
-      neume: function() {
-        return new Neumes.Podatus();
-      },
-      handle: function(currNote, prevNote) {
-        if (currNote.staffPosition > prevNote.staffPosition) {
-          if (currNote.ictus)
-            currNote.ictus.positionHint = MarkingPositionHint.Above;
-          if (prevNote.ictus)
-            prevNote.ictus.positionHint = MarkingPositionHint.Below;
-
-          if (prevNote.shape === NoteShape.Oriscus) return salicusState;
-          else return scandicusState;
-        } else if (currNote.staffPosition < prevNote.staffPosition) {
-          if (currNote.shape === NoteShape.Inclinatum)
-            return pesSubpunctisState;
-          else return torculusState;
-        } else return createNeume(new Neumes.Podatus(), false);
-      }
-    };
-
-    var clivisState: NeumeState = {
-      neume: function() {
-        return new Neumes.Clivis();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Default &&
-          currNote.staffPosition > prevNote.staffPosition
-        ) {
-          if (currNote.ictus)
-            currNote.ictus.positionHint = MarkingPositionHint.Above;
-          return porrectusState;
-        } else if (
-          currNote.staffPosition < prevNote.staffPosition &&
-          currNote.liquescent & LiquescentType.Small
-        ) {
-          return createNeume(new Neumes.Ancus(), true);
-        } else {
-          return createNeume(new Neumes.Clivis(), false);
-        }
-      }
-    };
-
-    var climacusState: NeumeState = {
-      neume: function() {
-        return new Neumes.Climacus();
-      },
-      handle: function(currNote, prevNote) {
-        if (currNote.shape !== NoteShape.Inclinatum)
-          return createNeume(new Neumes.Climacus(), false);
-        else return state;
-      }
-    };
-
-    var porrectusState: NeumeState = {
-      neume: function() {
-        return new Neumes.Porrectus();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Default &&
-          currNote.staffPosition < prevNote.staffPosition
-        )
-          return createNeume(new Neumes.PorrectusFlexus(), true);
-        else return createNeume(new Neumes.Porrectus(), false);
-      }
-    };
-
-    var pesSubpunctisState: NeumeState = {
-      neume: function() {
-        return new Neumes.PesSubpunctis();
-      },
-      handle: function(currNote, prevNote) {
-        if (currNote.shape !== NoteShape.Inclinatum)
-          return createNeume(new Neumes.PesSubpunctis(), false);
-        else return state;
-      }
-    };
-
-    var salicusState: NeumeState = {
-      neume: function() {
-        return new Neumes.Salicus();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Default &&
-          currNote.staffPosition < prevNote.staffPosition
-        )
-          return salicusFlexusState;
-        else return createNeume(new Neumes.Salicus(), false);
-      }
-    };
-
-    var salicusFlexusState: NeumeState = {
-      neume: function() {
-        return new Neumes.SalicusFlexus();
-      },
-      handle: function(currNote, prevNote) {
-        return createNeume(new Neumes.SalicusFlexus(), false);
-      }
-    };
-
-    var scandicusState: NeumeState = {
-      neume: function() {
-        return new Neumes.Scandicus();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          prevNote.shape === NoteShape.Virga &&
-          currNote.shape === NoteShape.Inclinatum &&
-          currNote.staffPosition < prevNote.staffPosition
-        ) {
-          // if we get here, then it seems we have a podatus, now being followed by a climacus
-          // rather than a scandicus. react accordingly
-          return createNeume(new Neumes.Podatus(), false, false);
-        } else if (
-          currNote.shape === NoteShape.Default &&
-          currNote.staffPosition < prevNote.staffPosition
-        )
-          return scandicusFlexusState;
-        else return createNeume(new Neumes.Scandicus(), false);
-      }
-    };
-
-    var scandicusFlexusState: NeumeState = {
-      neume: function() {
-        return new Neumes.ScandicusFlexus();
-      },
-      handle: function(currNote, prevNote) {
-        return createNeume(new Neumes.ScandicusFlexus(), false);
-      }
-    };
-
-    var virgaState: NeumeState = {
-      neume: function() {
-        return new Neumes.Virga();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Inclinatum &&
-          currNote.staffPosition < prevNote.staffPosition
-        )
-          return climacusState;
-        else if (
-          currNote.shape === NoteShape.Virga &&
-          currNote.staffPosition === prevNote.staffPosition
-        )
-          return bivirgaState;
-        else return createNeume(new Neumes.Virga(), false);
-      }
-    };
-
-    var bivirgaState: NeumeState = {
-      neume: function() {
-        return new Neumes.Bivirga();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Virga &&
-          currNote.staffPosition === prevNote.staffPosition
-        )
-          return createNeume(new Neumes.Trivirga(), true);
-        else return createNeume(new Neumes.Bivirga(), false);
-      }
-    };
-
-    var apostrophaState: NeumeState = {
-      neume: function() {
-        return new Neumes.Apostropha();
-      },
-      handle: function(currNote, prevNote) {
-        if (currNote.staffPosition === prevNote.staffPosition)
-          return distrophaState;
-        else return createNeume(new Neumes.Apostropha(), false);
-      }
-    };
-
-    var distrophaState: NeumeState = {
-      neume: function() {
-        return new Neumes.Distropha();
-      },
-      handle: function(currNote, prevNote) {
-        if (currNote.staffPosition === prevNote.staffPosition) {
-          if (prevNote.morae && prevNote.morae.length) {
-            return createNeume(new Neumes.Distropha(), false);
-          } else {
-            return tristrophaState;
-          }
-        } else return createNeume(new Neumes.Apostropha(), false, false);
-      }
-    };
-
-    var tristrophaState: NeumeState = {
-      neume: function() {
-        return new Neumes.Tristropha();
-      },
-      handle: function(currNote, prevNote) {
-        // we only create a tristropha when the note run ends after three
-        // and the neume() function of this state is called. Otherwise
-        // we always interpret the third note to belong to the next sequence
-        // of notes.
-        //
-        // fixme: gabc allows any number of punctum/stropha in succession...
-        // is this a valid neume type? Or is it just multiple *stropha neumes
-        // in succession? Should we simplify the apostropha/distropha/
-        // tristropha classes to a generic stropha neume that can have 1 or
-        // more successive notes?
-        return createNeume(new Neumes.Distropha(), false, false);
-      }
-    };
-
-    var torculusState: NeumeState = {
-      neume: function() {
-        return new Neumes.Torculus();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Default &&
-          currNote.staffPosition > prevNote.staffPosition
-        ) {
-          if (currNote.ictus)
-            currNote.ictus.positionHint = MarkingPositionHint.Above;
-          return torculusResupinusState;
-        }
-        return createNeume(new Neumes.Torculus(), false);
-      }
-    };
-
-    var torculusResupinusState: NeumeState = {
-      neume: function() {
-        return new Neumes.TorculusResupinus();
-      },
-      handle: function(currNote, prevNote) {
-        if (
-          currNote.shape === NoteShape.Default &&
-          currNote.staffPosition < prevNote.staffPosition
-        )
-          return createNeume(new Neumes.TorculusResupinusFlexus(), true);
-        else return createNeume(new Neumes.TorculusResupinus(), false);
-      }
-    };
+    // (see NeumeBuilder)
+    var builder = new NeumeBuilder(notes);
+    var neumes = builder.neumes;
 
     var state = unknownState;
 
-    while (currNoteIndex < notes.length) {
-      var prevNote = currNoteIndex > 0 ? notes[currNoteIndex - 1] : null;
-      var currNote = notes[currNoteIndex];
+    while (builder.currNoteIndex < notes.length) {
+      var prevNote = builder.currNoteIndex > 0 ? notes[builder.currNoteIndex - 1] : null;
+      var currNote = notes[builder.currNoteIndex];
 
       // a linea (gabc =) and the lower note of a pes quadratum (gabc q) start
       // a new neume, as in Gregorio
       if ((currNote.linea || currNote.quadratum) && state !== unknownState)
-        state = createNeume(state.neume(), false);
+        state = builder.createNeume(state.neume(), false);
       else
         // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
         state = state.handle(
           currNote,
           prevNote!,
-          notes.length - 1 - currNoteIndex
+          notes.length - 1 - builder.currNoteIndex,
+          builder
         );
 
       // if we are on the last note, then try to create a neume if we need to.
-      if (currNoteIndex === notes.length - 1 && state !== unknownState)
-        createNeume(state.neume(), true);
+      if (builder.currNoteIndex === notes.length - 1 && state !== unknownState)
+        builder.createNeume(state.neume(), true);
 
-      currNoteIndex++;
+      builder.currNoteIndex++;
     }
 
     setFinalTrailingSpace(ctxt, neumes, finalTrailingSpace);

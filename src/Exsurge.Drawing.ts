@@ -3391,7 +3391,12 @@ export class TextElement extends ChantLayoutElement {
     sourceIndex?: number,
     sourceGabc?: string,
     /** set before the text is measured, since its css class can style it */
-    textType?: TextTypes[keyof TextTypes]
+    textType?: TextTypes[keyof TextTypes],
+    /**
+     * whether to measure the text now, rather than leave it for whatever lays
+     * it out to measure (see recalculateMetrics())
+     */
+    measure = true
   ) {
     super();
 
@@ -3413,7 +3418,7 @@ export class TextElement extends ChantLayoutElement {
 
     this.generateSpansFromText(ctxt, text);
 
-    this.recalculateMetrics(ctxt);
+    if (measure) this.recalculateMetrics(ctxt);
   }
 
   /**
@@ -3696,8 +3701,10 @@ export class TextElement extends ChantLayoutElement {
 
   /** the size in px of this element's text in the given properties */
   fontSizeForProperties(ctxt: ChantContext, properties: CssProperties | TextSpanProperties = {}) {
-    let fontSize = parseFloat(properties["font-size"] as string) || this.fontSize(ctxt);
-    if (/%$/.test(properties["font-size"] as string)) {
+    const size = properties["font-size"];
+    if (size === undefined) return this.fontSize(ctxt) * (this.resize || 1);
+    let fontSize = parseFloat(size as string) || this.fontSize(ctxt);
+    if (/%$/.test(size as string)) {
       fontSize *= this.fontSize(ctxt) / 100;
     }
     return fontSize * (this.resize || 1);
@@ -3798,21 +3805,17 @@ export class TextElement extends ChantLayoutElement {
         );
         if ("actualBoundingBoxAscent" in metrics) {
           let left = metrics.actualBoundingBoxLeft;
-          bbox.union(
-            new Rect(
-              width - left,
-              baseline - metrics.actualBoundingBoxAscent,
-              metrics.width + left,
-              metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent
-            )
+          bbox.unionWith(
+            width - left,
+            baseline - metrics.actualBoundingBoxAscent,
+            metrics.width + left,
+            metrics.actualBoundingBoxDescent + metrics.actualBoundingBoxAscent
           );
           if (this instanceof DropCap) {
             width += Math.max(0, left);
           }
         } else {
-          bbox.union(
-            new Rect(width, baseline - fontSize, (metrics as TextMetrics).width, fontSize)
-          );
+          bbox.unionWith(width, baseline - fontSize, (metrics as TextMetrics).width, fontSize);
         }
         width += metrics.width;
       } else if (
@@ -3839,13 +3842,11 @@ export class TextElement extends ChantLayoutElement {
           );
           let subBbox = measured.bbox;
           let subWidth = measured.advanceWidth;
-          bbox.union(
-            new Rect(
-              width + subBbox.x1,
-              subBbox.y1,
-              subWidth - subBbox.x1,
-              subBbox.y2 - subBbox.y1
-            )
+          bbox.unionWith(
+            width + subBbox.x1,
+            subBbox.y1,
+            subWidth - subBbox.x1,
+            subBbox.y2 - subBbox.y1
           );
           width += subWidth;
           if (this instanceof DropCap) {
@@ -3858,13 +3859,11 @@ export class TextElement extends ChantLayoutElement {
           const multiplier = spanFontSize / unitsPerEm;
           let subBbox = run.bbox;
           let subWidth = run.advanceWidth * multiplier;
-          bbox.union(
-            new Rect(
-              width + subBbox.minX * multiplier,
-              baseline - subBbox.maxY * multiplier,
-              subWidth - subBbox.minX * multiplier,
-              (subBbox.height) * multiplier
-            )
+          bbox.unionWith(
+            width + subBbox.minX * multiplier,
+            baseline - subBbox.maxY * multiplier,
+            subWidth - subBbox.minX * multiplier,
+            (subBbox.height) * multiplier
           );
           width += subWidth;
           if (this instanceof DropCap) {
@@ -3874,13 +3873,11 @@ export class TextElement extends ChantLayoutElement {
       } else if (strategy === TextMeasuringStrategy.Svg) {
         const measured = ctxt.measureSvgText(this.createSvgNodeToMeasure(ctxt, span, myText));
         const subBbox = measured.bbox;
-        bbox.union(
-          new Rect(
-            width + subBbox.x,
-            baseline + subBbox.y,
-            subBbox.width,
-            subBbox.height
-          )
+        bbox.unionWith(
+          width + subBbox.x,
+          baseline + subBbox.y,
+          subBbox.width,
+          subBbox.height
         );
         width += measured.advanceWidth;
         if (this instanceof DropCap) {
@@ -4588,7 +4585,13 @@ export class Lyric extends TextElement {
     notations?: ChantNotationElement[],
     sourceIndex?: number,
     /** the tags of the styles left open before the lyric, e.g. "<i>" (see openStyles) */
-    openStyles = ""
+    openStyles = "",
+    /**
+     * whether to measure the lyric now; a lyric of a notation that will be laid
+     * out needn't be, since ChantNotationElement.performLayout() measures it
+     * again anyway
+     */
+    measure = true
   ) {
     super(
       ctxt,
@@ -4598,7 +4601,8 @@ export class Lyric extends TextElement {
       "start",
       sourceIndex,
       text,
-      TextTypes.lyric
+      TextTypes.lyric,
+      measure
     );
 
     // save the original text in case we need to later use the lyric
@@ -4640,7 +4644,7 @@ export class Lyric extends TextElement {
 
     // TextElement measured the lyric before it knew it was a directive, which
     // has a css class of its own and is centered differently
-    if (this.lyricType === LyricType.Directive) this.recalculateMetrics(ctxt);
+    if (measure && this.lyricType === LyricType.Directive) this.recalculateMetrics(ctxt);
   }
 
   allowsConnector() {
