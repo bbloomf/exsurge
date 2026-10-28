@@ -110,15 +110,15 @@
             "closed"
         <g className="Notations">
           <use source-index=230 element-index=14 id="note-14" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=230 elementIndex=14 noteIndex=13> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
-      <g transform="translate(375.55872000000005,0)" source=<Punctum> className="ChantNotationElement Punctum">
-        <text source-index=233 x=1.1738 y=13.012000000000008 style={} source=<Lyric sourceIndex=233> className="lyric" textAnchor="start" source-gabc="<b>a</i>b</b>">
-          <tspan source-index=3 style={fontWeight: "bold"} className=undefined>
+      <g transform="translate(377.01312,0)" source=<Punctum> className="ChantNotationElement Punctum">
+        <text source-index=233 x=-0.28059999999999974 y=13.012000000000008 style={} source=<Lyric sourceIndex=233> className="lyric" textAnchor="start" source-gabc="<b>a</i>b</b>">
+          <tspan source-index=3 style={fontStyle: "italic", fontWeight: "bold"} className=undefined>
             "a"
           <tspan source-index=8 style={fontWeight: "bold"} className=undefined>
             "b"
         <g className="Notations">
           <use source-index=247 element-index=15 id="note-15" x=3.125 y=-25 source=<Note sourceIndex=247 elementIndex=15 noteIndex=14> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
-      <g transform="translate(389.62122000000005,0)" source=<DoubleBar sourceIndex=251 elementIndex=16> className="ChantNotationElement DoubleBar" source-gabc="::">
+      <g transform="translate(391.07562,0)" source=<DoubleBar sourceIndex=251 elementIndex=16> className="ChantNotationElement DoubleBar" source-gabc="::">
         <g className="Notations">
           <rect x=0 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=251 element-index=16 source=<DoubleBar sourceIndex=251 elementIndex=16> className="dividerLine" source-gabc="::">
           <rect x=5.45 y=-43.75 width=0.8 height=37.5 fill="#000" source-index=251 element-index=16 source=<DoubleBar sourceIndex=251 elementIndex=16> className="dividerLine" source-gabc="::">

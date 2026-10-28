@@ -74,6 +74,36 @@ describe("GabcHeader", function() {
     }
   });
 
+  it("skips a byte-order mark before the first field", function() {
+    // (as Gregorio does)
+    const text = "\uFEFFnabc-lines: 1;\nname: t;\n%%\n(c4) a(f|vi)";
+    const header = new GabcHeader(text);
+    assert.strictEqual(header["nabc-lines"], "1");
+    assert.strictEqual(header.name, "t");
+    assert.strictEqual(GabcHeader.getLength(text), text.indexOf("(c4)"));
+    assert.strictEqual(Gabc.getNabcLines(text), 1);
+    // and one with no header isn't a lyric
+    const ctxt = new ChantContext();
+    const notations = Gabc.createMappingsFromSource(ctxt, "\uFEFF(c4) a(f)").flatMap((mapping) => mapping.notations);
+    assert.deepStrictEqual(notations.flatMap((notation) => notation.lyrics.map((lyric) => lyric.text)), ["a"]);
+  });
+
+  it("reads a field with spaces before its name or its colon, and an indented %%", function() {
+    // (Gregorio warns about these, but reads them)
+    const text = "  name: t;\nmode : 8;\n  %%\n(c4) a(f)";
+    const header = new GabcHeader(text);
+    assert.strictEqual(header.name, "t");
+    assert.strictEqual(header.mode, "8");
+    assert.strictEqual(GabcHeader.getLength(text), text.indexOf("(c4)"));
+  });
+
+  it("leaves out a comment after the value's semicolon", function() {
+    const header = new GabcHeader("name: a; % comment\ncommentary: one\ntwo;; % the end\nmode: 50%;\n%%\n");
+    assert.strictEqual(header.name, "a");
+    assert.strictEqual(header.commentary, "one\ntwo");
+    assert.strictEqual(header.mode, "50%");
+  });
+
   it("doesn't end the header at a comment that starts with %%", function() {
     assert.strictEqual(GabcHeader.getLength("name: Kyrie;\n%% a comment\n(c4) a(f)"), 0);
   });

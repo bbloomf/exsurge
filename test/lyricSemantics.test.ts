@@ -269,6 +269,96 @@ describe('Above-lines text and translations', function() {
   });
 });
 
+describe('Translations without lyrics', function() {
+  it('keeps a translation on a syllable that has no text, and draws it', function() {
+    // (Gregorio's notes_without_word: translation OPENING_BRACKET notes)
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) [t](f) a(f) [x](g)'), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 600);
+    var translated = score.notations.filter((notation) => notation.translationText);
+    assert.deepEqual(translated.map((notation) => notation.translationText!.map((text) => text.text)), [['t'], ['x']]);
+    assert.deepEqual(translated.map((notation) => notation.hasLyrics()), [false, false]);
+    var svg = score.createSvg(ctxt);
+    assert.match(svg, />t</);
+    assert.match(svg, />x</);
+    assert.doesNotMatch(svg, /NaN/);
+  });
+});
+
+describe('Lyric centering braces', function() {
+  it("doesn't print the braces after the first pair, nor braces that don't pair", function() {
+    // (Gregorio: abcde, centered on b, and ab)
+    var lyrics = lyricsOf('(c4) a{b}c{d}e(f) a}b{(f) <v>{x}</v>{y}z(g) f{o}o{(g)');
+    assert.deepEqual(lyrics.map((lyric) => lyric.text), ['abcde', 'ab', 'xyz', 'foo']);
+    assert.deepEqual(lyrics.map((lyric) => [lyric.centerStartIndex, lyric.centerLength]), [[1, 1], [-1, 2], [1, 1], [1, 1]]);
+  });
+
+  it('centers on the first { and the first } only when the } is after it, and keeps <pr> where it was in the text', function() {
+    var lyrics = lyricsOf('(c4) a}b{c}(f) {}ab(f) x{<v>}</v>y}z(g) a{b<pr>c}d(f) a{b}c<pr>d{e}(f) {a}<pr>b(f)');
+    assert.deepEqual(lyrics.map((lyric) => lyric.text), ['abc', 'ab', 'xyz', 'abcd', 'abcde', 'ab']);
+    assert.deepEqual(
+      lyrics.map((lyric) => [lyric.centerStartIndex, lyric.protrusion && lyric.protrusion.textIndex]),
+      [[-1, undefined], [0, undefined], [1, undefined], [1, 2], [1, 3], [0, 1]]
+    );
+    assert.deepEqual(lyrics.slice(1).map((lyric) => lyric.centerLength), [0, 1, 2, 1, 1]);
+  });
+});
+
+describe('A lone hyphen', function() {
+  it('is a forced hyphen with no text', function() {
+    // (Gregorio's -(f))
+    var ctxt = new Drawing.ChantContext();
+    ctxt.setFont('Palatino', 16, {}, { Regular: fakeFont(0.5) });
+    var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, '(c4) a(f) -(g) b(h)'), false);
+    score.performLayout(ctxt);
+    score.layoutChantLines(ctxt, 600);
+    var lyric = score.notations.filter((notation) => notation.hasLyrics())[1].lyrics[0];
+    assert.equal(lyric.text, '');
+    assert.equal(lyric.needsConnector, true);
+    assert.doesNotMatch(score.createSvg(ctxt), /NaN/);
+  });
+});
+
+describe('Styles over several syllables', function() {
+  const tags = (lyric: Drawing.Lyric) => lyric.spans.map((span) => span.text + ':' + span.activeTags.join('+'));
+
+  it('carries a style left open into the next syllables and words, as Gregorio does', function() {
+    // (Gregorio: all italic, then <i>a</i> <i>b</i> c)
+    assert.deepEqual(lyricsOf('(c4) <i>Ky(f)ri(g)e</i>(h) a(g)').map(tags), [['Ky:i'], ['ri:i'], ['e:i'], ['a:']]);
+    var lyrics = lyricsOf('(c4) <i>a(f) b(g)</i> c(h)');
+    assert.deepEqual(lyrics.map(tags), [['a:i'], ['b:i'], ['c:']]);
+    // the closing tag after the notes stays with the word before it
+    assert.deepEqual(lyrics.map((lyric) => lyric.lyricType), [
+      Drawing.LyricType.SingleSyllable,
+      Drawing.LyricType.SingleSyllable,
+      Drawing.LyricType.SingleSyllable
+    ]);
+    // and isn't a syllable of its own at the end
+    assert.deepEqual(lyricsOf('(c4) a(f)<i>b(g)</i>').map(tags), [['a:'], ['b:i']]);
+  });
+
+  it('opens the styles again in the order Gregorio does, and keeps each line of lyrics apart', function() {
+    assert.deepEqual(lyricsOf('(c4) <b><i>x(f)y</i>(g) z</b>(h) w(g)').map(tags), [['x:b+i'], ['y:i+b'], ['z:b'], ['w:']]);
+    var ctxt = new Drawing.ChantContext();
+    var notations = Gabc.createMappingsFromSource(ctxt, '(c4) <i>a|<b>b(f) c|d(g)</i> e|f</b>(h)').flatMap((mapping) => mapping.notations);
+    assert.deepEqual(
+      notations.filter((notation) => notation.hasLyrics()).map((notation) => notation.lyrics.map(tags)),
+      [[['a:i'], ['b:b']], [['c:i'], ['d:b']], [['e:'], ['f:b']]]
+    );
+  });
+
+  it("keeps a lyric's source indices where they were", function() {
+    var source = '(c4) <i>Ky(f)ri{e}(g)';
+    var lyric = lyricsOf(source)[1];
+    assert.equal(lyric.openStyles, '<i>');
+    assert.equal(lyric.sourceIndex, source.indexOf('ri'));
+    assert.equal(lyric.spans[0].index, 0);
+    assert.deepEqual([lyric.centerStartIndex, lyric.centerLength], [2, 1]);
+  });
+});
+
 describe('Clear', function() {
   function layout(gabc: string, fontSize = 16) {
     var ctxt = new Drawing.ChantContext();

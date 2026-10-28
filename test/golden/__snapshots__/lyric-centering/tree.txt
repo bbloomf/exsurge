@@ -62,9 +62,9 @@
         <g className="Notations">
           <use source-index=84 element-index=6 id="note-7" x=3.125 y=-31.249999999999996 source=<Note sourceIndex=84 elementIndex=6 noteIndex=6> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="h">
       <g transform="translate(229.1636,0)" source=<Punctum> className="ChantNotationElement Punctum">
-        <text source-index=87 x=-1.1230000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=87> className="lyric" textAnchor="start" source-gabc="ab{c">
+        <text source-index=87 x=-1.1230000000000002 y=13.012000000000008 style={} source=<Lyric sourceIndex=87> className="lyric" textAnchor="start" source-gabc="abc">
           <tspan source-index=0 style={} className=undefined>
-            "ab{c"
+            "abc"
         <g className="Notations">
           <use source-index=92 element-index=7 id="note-8" x=3.125 y=-25 source=<Note sourceIndex=92 elementIndex=7 noteIndex=7> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="g">
       <g transform="translate(243.2261,0)" source=<DoubleBar sourceIndex=96 elementIndex=8> className="ChantNotationElement DoubleBar" source-gabc="::">

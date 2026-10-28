@@ -58,6 +58,7 @@ import type {
   AreaBoundary,
   ChantContext,
   ChoralSign,
+  NabcChoralSign,
   DropCap,
   SvgElementWithSource,
   SvgTreeNode
@@ -139,6 +140,8 @@ export class Note extends ChantLayoutElement {
   braceStart?: BracePoint;
   braceEnd?: BracePoint;
   choralSign?: ChoralSign;
+  /** Gregorio's NABC choral sign ([cn:…]), drawn where a choral sign goes */
+  choralNabc?: NabcChoralSign;
   /** text above the note, which goes to its neume's alText */
   alText?: AboveLinesText;
   /** the number of stems of a punctum inclinatum (gabc |) */
@@ -707,6 +710,11 @@ export interface MarksForNext {
   areas: { euouae?: AreaBoundary; noLineBreak?: AreaBoundary };
   /** the tunings of Gregorio's blocks of episemata ([oh:…{] … [oh}]) that the next notes are in */
   episemaBlocks?: { above?: EpisemaTuning; below?: EpisemaTuning };
+  /**
+   * the names of Gregorio's styles left open (e.g. "i" for <i>), which go on
+   * into the next syllables, for each line of lyrics (see Gabc.createSyllableLyrics())
+   */
+  openStyles?: string[][];
 }
 
 /** the lowest and highest staff positions of the notes in Gregorio's brackets (gabc [[ and ]]) */
@@ -726,6 +734,8 @@ export class ChantMapping {
   marksForNext?: MarksForNext;
   /** whether the word before left marks on this one's notes or syllable */
   followsMarks?: boolean;
+  /** the styles that the words before left open on its lyrics, as it was parsed (see MarksForNext.openStyles) */
+  openStylesBefore?: string[][];
 
   // source can be any object type. in the case of gabc, source is a text
   // string that maps to a gabc word (e.g.: "no(g)bis(fg)").

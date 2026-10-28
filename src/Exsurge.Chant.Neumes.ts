@@ -658,6 +658,12 @@ export class Neume extends ChantNotationElement {
         this.addVisualizer(note.choralSign);
       }
 
+      // (which is drawn only when there's a NABC font to draw it with)
+      if (note.choralNabc) {
+        note.choralNabc.performLayout(ctxt);
+        if (note.choralNabc.neumes) this.addVisualizer(note.choralNabc);
+      }
+
       // braces are handled by the chant line, so we don't mess with them here
       // this is because brace size depends on chant line logic (neume spacing,
       // justification, etc.) so they are considered chant line level
@@ -757,6 +763,7 @@ export class Neume extends ChantNotationElement {
       if (note.episemata[i].positionHint === MarkingPositionHint.Default)
         note.episemata[i].positionHint = position;
     if (note.choralSign) note.choralSign.positionHint = position;
+    if (note.choralNabc) note.choralNabc.positionHint = position;
     return note.episemata.length;
   }
   positionEpisemataAbove(note: Note) {

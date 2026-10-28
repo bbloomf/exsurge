@@ -396,11 +396,12 @@ export const featureCases: GoldenCase[] = [
   },
   {
     // the comments aren't printed, and one at the end of a line takes the line
-    // break away; a % in the notes or after a letter isn't one
+    // break away; one in the notes ends at the end of its line, and one after
+    // a letter takes the notes after it, as in Gregorio
     name: "comments-in-notation",
     gabc:
       "(c4) Ky(f)ri(g)e(h) % a comment (x)\n e(g)lé(f)i(g)son.(f) (::)\n% a whole line\n" +
-      "Chri(g)ste(h) % comment\n e(g)lé(f)i(g)%c\nson(g) a(f%g) %small%(g) a%b%c(h) % 50% off\n 50%(f) (::)"
+      "Chri(g)ste(h) % comment\n e(g)lé(f)i(g)%c\nson(g) a(f%g\nh) %small%(g) a%b%c(h) % 50% off\n 50%(f)\n(g) (::)"
   },
   {
     // the escaped characters are printed as they are

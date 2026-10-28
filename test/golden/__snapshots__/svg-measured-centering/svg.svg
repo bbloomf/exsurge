@@ -80,7 +80,7 @@
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(229.1636,0)" >
 <text source-index="87" x="-1.1230000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
-<tspan source-index="0" style="" >ab{c</tspan>
+<tspan source-index="0" style="" >abc</tspan>
 </text>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="92" element-index="7" id="note-8" x="3.125" y="-25" >
 </use>
