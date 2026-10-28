@@ -3383,7 +3383,12 @@ export class TextElement extends ChantLayoutElement {
     sourceIndex?: number,
     sourceGabc?: string,
     /** set before the text is measured, since its css class can style it */
-    textType?: TextTypes[keyof TextTypes]
+    textType?: TextTypes[keyof TextTypes],
+    /**
+     * whether to measure the text now, rather than leave it for whatever lays
+     * it out to measure (see recalculateMetrics())
+     */
+    measure = true
   ) {
     super();
 
@@ -3405,7 +3410,7 @@ export class TextElement extends ChantLayoutElement {
 
     this.generateSpansFromText(ctxt, text);
 
-    this.recalculateMetrics(ctxt);
+    if (measure) this.recalculateMetrics(ctxt);
   }
 
   /**
@@ -4570,7 +4575,13 @@ export class Lyric extends TextElement {
     notations?: ChantNotationElement[],
     sourceIndex?: number,
     /** the tags of the styles left open before the lyric, e.g. "<i>" (see openStyles) */
-    openStyles = ""
+    openStyles = "",
+    /**
+     * whether to measure the lyric now; a lyric of a notation that will be laid
+     * out needn't be, since ChantNotationElement.performLayout() measures it
+     * again anyway
+     */
+    measure = true
   ) {
     super(
       ctxt,
@@ -4580,7 +4591,8 @@ export class Lyric extends TextElement {
       "start",
       sourceIndex,
       text,
-      TextTypes.lyric
+      TextTypes.lyric,
+      measure
     );
 
     // save the original text in case we need to later use the lyric
@@ -4622,7 +4634,7 @@ export class Lyric extends TextElement {
 
     // TextElement measured the lyric before it knew it was a directive, which
     // has a css class of its own and is centered differently
-    if (this.lyricType === LyricType.Directive) this.recalculateMetrics(ctxt);
+    if (measure && this.lyricType === LyricType.Directive) this.recalculateMetrics(ctxt);
   }
 
   allowsConnector() {

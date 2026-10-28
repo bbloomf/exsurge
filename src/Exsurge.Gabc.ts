@@ -2167,6 +2167,7 @@ export class Gabc {
 
     if (text.match(/^(?:[*†]+|i+j|\d+)\.?$/)) lyricType = LyricType.Directive;
 
+    // (the lyric is measured when its new notation is laid out)
     var lyric = new Lyric(
       ctxt,
       text,
@@ -2174,7 +2175,8 @@ export class Gabc {
       notation,
       notations,
       sourceIndex,
-      openStyles
+      openStyles,
+      false
     );
     lyric.elidesToNext = elides;
     if (forceConnector) lyric.setForceConnector(true);
