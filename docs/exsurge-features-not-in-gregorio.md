@@ -84,6 +84,7 @@ The table lists those four and the 18 others found. Gregorio has an equivalent f
 | 4 | Stems, flags and beams on inclinata | `G\|`, `G\|\|`, `G\|F\|E\|` | Not in Gregorio | `\|` is Gregorio's NABC separator | `inclinata-with-stems` |
 | 5 | Oriscus orientation | `o<`, `o>`, `O<`, `O>` | Different syntax: `o1`, `o0` | Gregorio reads `<` and `>` as liquescence | `single-notes` |
 | 6 | Several lyric lines | `Ky\|Chri(f)` | Not in Gregorio | `\|` is a literal character to Gregorio | `multiple-lyric-lines` |
+| | | `lyric-line: Chri+ste e+le+i+son;` in the header | Not in Gregorio | Gregorio keeps the header as metadata | none (unit tests) |
 | 7 | Lyric markup | `*b*`, `_i_`, `^red^`, `%sc%`, `<u>` | Different syntax | `%` starts a Gregorio comment; `*` is a star | `lyric-markup` |
 | | | `<font family fill class>` | TeX or font only | Printed literally by Gregorio | `lyric-markup` |
 | | | `<br>` | Not in Gregorio | Printed literally by Gregorio | `line-breaks-in-text` |
@@ -302,6 +303,24 @@ Spí|rá|mú(ih)ri|cli|ne(g)tus,|tus, |re, (gh) (::)
 - **Word ends.** In the first line, words follow the GABC words, as usual: a word ends at a space after `)`. Each later line marks its own word ends. A text ending in a space ends a word; any other text is the middle of a word, and gets a hyphen. So in the second and later lines, put a space before the `|` or the `(` at every word end, even after a one-syllable word (`Qui |`). Otherwise `Qui` gets a hyphen.
 - **Reading the lines.** Each text is a separate `Lyric` in `notation.lyrics`, with its `lyricIndex`.
 - **Verse numbers.** Put a stanza's number in a `<verseNum>` tag at the start of its first text: `<verseNum>1.</verseNum> Ve|<verseNum>2.</verseNum> Qui |<verseNum>3.</verseNum> Tu (g)`. The space or `~` after the tag is left out, and markup around just the tag goes with the number (`<i><verseNum>1.</verseNum></i> Ve`). The number is drawn apart from the syllable, which is centered without it, and the numbers of a syllable are right aligned a word space before the leftmost of its texts (`LyricArray.alignVerseNumbers()`). On each line after the first, the first text of each line of lyrics has the number in effect on it before it (`ChantLine.repeatVerseNumbers()`), until the next number on that line of lyrics or an empty tag (`<verseNum></verseNum>` or `<verseNum/>`), e.g. before an Amen or a refrain. `ctxt.repeatVerseNumbers = false` draws each number only where it is in the gabc. With a drop cap, the first syllable's number isn't drawn there, since the drop cap takes its place, but it's repeated on the later lines as usual. Each is a `VerseNumber`, `lyric.verseNumber` or `lyric.repeatedVerseNumber`, drawn with the CSS classes `verseNumber lyric`. Gregorio prints the tag as it stands.
+
+**Lines from the header: `lyric-line`.** A stanza can instead be written whole, in a `lyric-line` header. Each `lyric-line` header is one line of lyrics, the first under the gabc's own lyrics and each later one under the one before:
+
+```
+lyric-line: <verseNum>2.</verseNum> Chri+ste e+le+i+son;
+lyric-line: <verseNum>3.</verseNum> Ky+ri-e e+le+_ son;
+%%
+(c4) Ky(f)ri(g)e(h) (,) e(f)le(g)i(h)son(f) (::)
+```
+
+- **Where the syllables go.** Each syllable with notes takes the next syllable of each `lyric-line`, in turn. This includes a syllable with notes and no text (`(g)`), so a melisma in the first stanza can carry separate syllables in another. Clefs, bars and syllables without notes take none. A `lyric-line` with more syllables than there are syllables with notes has the rest left out, with a warning on the console.
+- **Breaks.** A `+` separates two syllables of a word, and a `-` separates them with a hyphen that is always drawn, as a syllable ending in `-` has in the gabc. Spaces (and line breaks) separate words, even with a `+` or `-` among them (`a - b` is two words). The hyphens between syllables, and the word ends, come from these breaks, not from the gabc's words.
+- **Empty syllables.** A syllable that is just `_` has no lyric, and isn't counted in its word: in `Ky+ri+_ e`, `ri` ends its word.
+- **Inside a syllable.** A `_` is a space, which, as in any syllable, never breaks; a `~` is a lyric tie, drawn as `ctxt.lyricTie` says, as in the gabc's lyrics. Markup, `{ }` centering, `<clear>`, `<pr>` and `<verseNum>` work as in the gabc's syllables. The text in `<v>`, `<sp>` and `<alt>`, and in tags, is kept together, and a verse number goes with the syllable after it.
+- **Escapes.** A `$` takes away the meaning of the character after it: `twen$-ty`, `$+`, `$_`, `$~`, `$ ` (a space in a word). A value that ends with a `;` is written `$;` before the `;` that ends it (`son$;;`). (Only `lyric-line` headers read `$` this way; other headers end at any `;`.)
+- **The `|` lines.** With any `lyric-line` header, the first `lyric-line` is always the second line of lyrics, and the texts that a `|` adds to a syllable with notes are left out. The texts that a `|` adds to other notations (e.g. `*|†(,)`) are kept. An empty `lyric-line` is left out.
+- **Source indices.** Each lyric from a `lyric-line` has `lyric.fromLyricLine` set, and a source index that is the negative of its index in the gabc, header and all: `gabc.slice(-lyric.sourceIndex)` starts with it. An edit of the notes doesn't change it.
+- **Editing.** `Gabc.updateMappingsFromSource()` reads the headers again on each edit. The lyrics that stay the same are kept, so only the notations whose lyrics change are laid out again.
 
 **Limits.**
 
