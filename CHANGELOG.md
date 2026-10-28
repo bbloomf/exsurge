@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/bbloomf/exsurge/compare/v2.7.0...v2.8.0) (2026-10-28)
+
+
+### Features
+
+* **layout:** Paginate from a first page that something else began ([0f14a3f](https://github.com/bbloomf/exsurge/commit/0f14a3f798712dbbeffd0e7a4f4158a63ad72531))
+
 # [2.7.0](https://github.com/bbloomf/exsurge/compare/v2.6.1...v2.7.0) (2026-10-28)
 
 

@@ -398,6 +398,14 @@ export declare class ChantScore {
     forceLayout?: boolean;
     /** the score split into pages, by paginate() (or just this score) */
     pages: ChantScore[];
+    /**
+     * whether paginate() left the page the score starts on empty, because its
+     * titles and first line (or the lines beside its drop cap) didn't fit in
+     * the firstPageHeight it was given.  pages[0] is then the score's first
+     * page after that one.
+     */
+    firstPageEmpty: boolean;
+    private laidOutLines?;
     selection?: Selection;
     /** the notation that the insertion cursor is after */
     insertionElement?: ChantNotationElement | null;
@@ -561,7 +569,19 @@ export declare class ChantScore {
     private reuseLine;
     /** how big the drop cap and the annotation are, which the first line depends on */
     private dropCapAndAnnotationSizes;
-    paginate(height: number): void;
+    /**
+     * Split the score into pages (this.pages) of at most height, keeping the
+     * lines beside the drop cap together on the first.  It can be called again,
+     * with another height, without laying the lines out again.
+     * @param height the height of a page
+     * @param firstPageHeight the room left on the page the score starts on
+     *   (when something else began it), at most height, which it is by default
+     *   or when it isn't a finite number.  The first page has only the lines
+     *   that fit there; when the titles and first line (or the lines beside the
+     *   drop cap) don't, it's left empty, which firstPageEmpty says, and the
+     *   score starts on the next page.  The pages after the first have height.
+     */
+    paginate(height: number, firstPageHeight?: number): void;
     draw(ctxt: ChantContext, scale?: number): void;
     getSvgProps(ctxt: ChantContext, zoom?: number | boolean): {
         [attribute: string]: string | number | undefined;
