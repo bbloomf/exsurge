@@ -293,6 +293,11 @@ export interface BracketRange {
     low: number;
     high: number;
 }
+/** a syllable with notes: the notation that takes its lyrics, and all of its notations */
+export interface LyricSlot {
+    notation: ChantNotationElement;
+    notations: ChantNotationElement[];
+}
 export declare class ChantMapping {
     source: string;
     notations: ChantNotationElement[];
@@ -303,6 +308,8 @@ export declare class ChantMapping {
     followsMarks?: boolean;
     /** the styles that the words before left open on its lyrics, as it was parsed (see MarksForNext.openStyles) */
     openStylesBefore?: string[][];
+    /** the word's syllables with notes, which take the lyrics of the lyric-line headers in turn */
+    lyricSlots?: LyricSlot[];
     constructor(source: string, notations: ChantNotationElement[], sourceIndex: number);
 }
 export interface ElementSelection {
@@ -374,6 +381,7 @@ export declare class ChantScore {
     useDropCap: boolean | undefined;
     dropCap: DropCap | null;
     private dropCapRelayouts;
+    private linesLaidOutWith?;
     annotation: Annotation | Annotations | null;
     compiled: boolean;
     autoColoring: boolean;
@@ -512,6 +520,47 @@ export declare class ChantScore {
      */
     private placeDropCap;
     layoutChantLines(ctxt: ChantContext, width: number, finishedCallback?: (score: ChantScore) => void): void;
+    /**
+     * What the lines laid out at width depend on besides the notations that
+     * they read (see LineLayoutInputs): the context's settings (see
+     * layoutSettings()), the width, and the staff.  Or undefined, where the
+     * next layout can't use them again: when the optimal line breaker plans
+     * them (and lays out lines of its own from the notations, which leaves them
+     * as those lines laid them out), and when the drop cap is beside more than
+     * the first line or put somewhere else on it (see placeDropCap()), which
+     * moves the lines it's beside.
+     */
+    private lineLayoutSettings;
+    /**
+     * How many of lines, the lines that the last layoutChantLines() laid out,
+     * from the first, this layout would lay out the same, with settings (see
+     * lineLayoutSettings()), so that it can use them again: those that read
+     * the same notations, not laid out again since (see isReadUpToDate()), with
+     * the same source indices, under the same clef, on the same staff (see
+     * lineExtent()), and for the first line, beside the same drop cap and
+     * annotation, as big as they were.  (The notations that a line read are
+     * laid out as it left them still, since the lines after it lay out only
+     * the notations after it.)  It stops after the last of them that left the
+     * context as it was at the start, with no brace, slur or custom ledger line
+     * going on to the next line, so that the line after it can be laid out
+     * from there.
+     */
+    private reusableLines;
+    /**
+     * Keeps what the layout of line, which started at the notation at start
+     * under clef, at extent, depended on (see LineLayoutInputs), once it's laid
+     * out.
+     */
+    private recordLineLayout;
+    /**
+     * Puts what the line's layout left in the context, and in the score, back
+     * as it left them, for a line laid out by an earlier layout that this one
+     * uses again (see reusableLines()): the clef in effect after it, and for
+     * the first line, where it put the drop cap and the annotation.
+     */
+    private reuseLine;
+    /** how big the drop cap and the annotation are, which the first line depends on */
+    private dropCapAndAnnotationSizes;
     paginate(height: number): void;
     draw(ctxt: ChantContext, scale?: number): void;
     getSvgProps(ctxt: ChantContext, zoom?: number | boolean): {
@@ -520,6 +569,18 @@ export declare class ChantScore {
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext, zoom?: number | boolean): SvgTreeNode;
     createSvg(ctxt: ChantContext): string;
+    /**
+     * What the svg of line shows besides how the line is laid out (see
+     * ChantLine.createSvgFragment()), with the context's settings (see
+     * layoutSettings()): each of its notations, as it's laid out (by its
+     * layoutId), with its source index and which of its elements are selected,
+     * the same for its clef and custos, and on the first line, the drop cap and
+     * annotation, as big as they are and where they are.  Or undefined for the
+     * line with the insertion cursor, which is drawn where the selection is
+     * (see ChantLine.layoutInsertionCursor()).  (From the line's own score,
+     * which a page of it isn't: see copyLines().)
+     */
+    private lineSvgKey;
     /**
      * For drawing line i on its own, in an svg that starts at top: the
      * transform that puts the part of a drop cap beside the line in its svg,

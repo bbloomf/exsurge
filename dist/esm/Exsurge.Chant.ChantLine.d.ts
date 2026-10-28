@@ -91,6 +91,12 @@ export declare class ChantLine extends ChantLayoutElement {
     lyricLineHeight: number;
     lyricLineBaseline: number;
     numLyricLines: number;
+    /**
+     * the row that each line of lyrics is drawn on, leaving out the lines of
+     * lyrics that have no text on the line and no verse number in effect (as
+     * before an Amen after an empty verse number), which take up no room
+     */
+    lyricRows: number[];
     altLineHeight: number;
     altLineBaseline: number;
     numAltLines: number;
@@ -118,6 +124,19 @@ export declare class ChantLine extends ChantLayoutElement {
     elementIndex: number;
     /** a brace that continues onto the next line */
     braceStart?: BracePoint;
+    /**
+     * the index of the furthest notation that buildFromChantNotationIndex()
+     * laid out on the line, to see whether it fitted (see readEnd())
+     */
+    furthestLaidOut?: number;
+    /**
+     * what the line put inside its svg last (see createSvgFragment()), and the
+     * key it was made for
+     */
+    svgFragmentCache?: {
+        key: string;
+        inner: string;
+    };
     constructor(score: ChantScore);
     get staffSpaces(): number;
     performLayout(ctxt: ChantContext): void;
@@ -139,8 +158,31 @@ export declare class ChantLine extends ChantLayoutElement {
     }): (SvgElementWithSource | SvgTreeNode)[];
     createSvgNode(ctxt: ChantContext, top?: number): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext, top?: number): SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext, top?: number): string;
+    /**
+     * The line's svg, starting at top.  With a cacheKey, what goes inside it is
+     * kept, and used again while createSvgFragment() is given the same key, so
+     * the key has to say everything about the line that its svg shows besides
+     * how it's laid out (such as what's selected: see ChantScore.createSvg()).
+     * Laying the line out again forgets it.
+     */
+    createSvgFragment(ctxt: ChantContext, top?: number, cacheKey?: string): string;
+    /** what goes inside the line's svg (see createSvgFragment()) */
+    createInnerSvgFragment(ctxt: ChantContext): string;
     buildFromChantNotationIndex(ctxt: ChantContext, newElementStart: number, width: number, lineIndex?: number): void;
+    /**
+     * The index after the last of the score's notations that
+     * buildFromChantNotationIndex() could have read to lay the line out, so
+     * that it would lay it out the same again while they're the same (see
+     * ChantScore.reusableLines()): as many past the furthest that it laid out
+     * as LineBreaker's readTo() reads (for a soft accidental, a clef and line
+     * break, or the end of the score), and on through the text only notations
+     * after that (see isTextOnlyBeforeDivider()), to the neume that the custos
+     * at the end of the line is for (see wantsEolCustos() and
+     * ChantContext.findNextNeume()), and through the syllables and notes that
+     * ctxt.minSyllablesLastLine and ctxt.minNotesLastLine count, from there
+     * (which counts more of them than it did, if it counted from further back).
+     */
+    readEnd(ctxt: ChantContext): number;
     centerDividers(): void;
     isSoftAccidentalVisible(index: number): boolean;
     spaceNeumeBeforeSoftAccidental(ctxt: ChantContext, index: number): void;
@@ -199,6 +241,8 @@ export declare class ChantLine extends ChantLayoutElement {
      * (with ChantContext.repeatVerseNumbers), before it's positioned.
      */
     repeatVerseNumbers(ctxt: ChantContext, index: number): void;
+    /** the row on the line that the line of lyrics at index is drawn on */
+    lyricRow(index: number): number;
     /**
      * Find the notation closest to x without going past it
      * @param {number} x

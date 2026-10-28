@@ -486,6 +486,13 @@ export declare class ChantContext {
      */
     nabcLines: number;
     /**
+     * The number of lines of lyrics that the gabc's lyric-line headers give,
+     * which Gabc.createMappingsFromSource() and updateMappingsFromSource() set.
+     * When it's more than 0, they take the place of the lines of lyrics after
+     * the first that a | adds to a syllable with notes.
+     */
+    lyricLines: number;
+    /**
      * The fonts to draw Gregorio's NABC with: nabcFonts[0] for its first line,
      * above the staff, and nabcFonts[1] for its second, below the staff, or
      * nabcFonts[0] for both, as with Gregorio's \gresetnabcfont.  exsurge has
@@ -1196,7 +1203,12 @@ export declare class TextElement extends ChantLayoutElement {
     elementIndex?: number;
     constructor(ctxt: ChantContext, text: string, fontFamily: (ctxt: ChantContext) => string, fontSize: (ctxt: ChantContext) => number, textAnchor: string, sourceIndex?: number, sourceGabc?: string, 
     /** set before the text is measured, since its css class can style it */
-    textType?: TextTypes[keyof TextTypes]);
+    textType?: TextTypes[keyof TextTypes], 
+    /**
+     * whether to measure the text now, rather than leave it for whatever lays
+     * it out to measure (see recalculateMetrics())
+     */
+    measure?: boolean);
     /**
      * The matching element in score (see TextType.getFromScore()).  For title
      * text, score needs titles.
@@ -1325,6 +1337,16 @@ export declare class Lyric extends TextElement {
     protrusionWidth?: number;
     /** which line of lyrics this is */
     lyricIndex?: number;
+    /**
+     * whether the lyric is from a lyric-line header (or makes room for one),
+     * and so has a source index that is the negative of its index in the gabc,
+     * header and all (see Gabc.applyLyricLines())
+     */
+    fromLyricLine?: boolean;
+    /** what the lyric was made from, to keep it while that stays the same (see Gabc.applyLyricLines()) */
+    lyricLineKey?: string;
+    /** the index in the gabc of the lyric-line syllable that the lyric was made from */
+    lyricLineIndex?: number;
     /** the right edge of a line of text-only syllables that starts with this lyric */
     lineWidth?: number;
     /** the verse number before the lyric in the gabc ("<verseNum>1.</verseNum> Ve") */
@@ -1361,7 +1383,13 @@ export declare class Lyric extends TextElement {
     openStyles?: string;
     constructor(ctxt: ChantContext, text: string, lyricType?: LyricType | null | "", notation?: ChantNotationElement, notations?: ChantNotationElement[], sourceIndex?: number, 
     /** the tags of the styles left open before the lyric, e.g. "<i>" (see openStyles) */
-    openStyles?: string);
+    openStyles?: string, 
+    /**
+     * whether to measure the lyric now; a lyric of a notation that will be laid
+     * out needn't be, since ChantNotationElement.performLayout() measures it
+     * again anyway
+     */
+    measure?: boolean);
     allowsConnector(): boolean;
     setForceConnector(force: boolean): void;
     setPreventConnector(prevent: boolean): void;
@@ -1585,6 +1613,8 @@ export interface LyricProtrusion {
     /** where the text that may protrude starts in the lyric's text */
     textIndex: number;
 }
+/** a ChantNotationElement.layoutId for a layout of a notation, unlike any before it */
+export declare const newLayoutId: () => number;
 /**
  * A notation in a score: a neume, clef, divider, accidental, custos, line
  * break or text with no notes.  The layout tells them apart by the flags

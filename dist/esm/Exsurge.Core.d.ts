@@ -39,6 +39,7 @@ export declare class Rect {
     equals(rect: Rect): boolean;
     contains(other: Point | Rect): boolean;
     union(rect: Rect): void;
+    unionWith(x: number, y: number, width: number, height: number): void;
 }
 /**
  * Margins

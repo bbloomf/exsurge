@@ -219,6 +219,12 @@ const sumCondensable = (spaces) => {
 export class ChantLine extends ChantLayoutElement {
     constructor(score) {
         super();
+        /**
+         * the row that each line of lyrics is drawn on, leaving out the lines of
+         * lyrics that have no text on the line and no verse number in effect (as
+         * before an Amen after an empty verse number), which take up no room
+         */
+        this.lyricRows = [];
         this.score = score;
         this.notationsStartIndex = 0;
         this.numNotationsOnLine = 0;
@@ -275,19 +281,19 @@ export class ChantLine extends ChantLayoutElement {
         this.translationLineBaseline = 0;
         this.numTranslationLines = 0;
         const aboveLinesLineHeight = ctxt.textStyles.al.size * (ctxt.textStyles.al.lineHeight || 1.1);
+        const usedLyricLines = [];
         for (i = this.notationsStartIndex; i < lastNeumeIndex; i++) {
             notation = notations[i];
             if (notation.bounds.height || notation.bounds.width)
                 this.notationBounds.union(notation.bounds);
-            // keep track of lyric line offsets
-            if (notation.lyrics.length && notation.lyrics[0].text) {
-                // if (notation.lyrics[0].bounds.height > this.lyricLineHeight)
-                //   this.lyricLineHeight = notation.lyrics[0].bounds.height;
-                if (notation.lyrics[0].origin.y > this.lyricLineBaseline)
-                    this.lyricLineBaseline = notation.lyrics[0].origin.y;
-                if (notation.lyrics.length > this.numLyricLines)
-                    this.numLyricLines = notation.lyrics.length;
-            }
+            // keep track of lyric line offsets, and which lines of lyrics are used
+            notation.lyrics.forEach((lyric, j) => {
+                if (!lyric.text && !lyric.verseNumber && !lyric.verseNumberInEffect)
+                    return;
+                usedLyricLines[j] = true;
+                if (lyric.origin.y > this.lyricLineBaseline)
+                    this.lyricLineBaseline = lyric.origin.y;
+            });
             if (notation.alText && this.numAltLines < notation.alText.length) {
                 if (notation.alText[0].bounds.height > this.altLineHeight)
                     this.altLineHeight = notation.alText[0].bounds.height;
@@ -310,6 +316,13 @@ export class ChantLine extends ChantLayoutElement {
                     this.numTranslationLines = notation.translationText.length;
             }
         }
+        // a line of lyrics that isn't used is drawn on the row of the next one
+        this.lyricRows = [];
+        for (let j = 0; j < usedLyricLines.length; j++) {
+            this.lyricRows.push(this.numLyricLines);
+            if (usedLyricLines[j])
+                this.numLyricLines++;
+        }
         if (this.custos)
             this.notationBounds.union(this.custos.bounds);
         // add any braces to the notationBounds as well
@@ -328,11 +341,9 @@ export class ChantLine extends ChantLayoutElement {
             this.notationBounds.y - this.altLineHeight - ctxt.staffInterval * 0.5;
         for (i = this.notationsStartIndex; i < lastNeumeIndex; i++) {
             notation = notations[i];
-            var offset = 0;
-            for (var j = 0; j < notation.lyrics.length; j++) {
-                notation.lyrics[j].bounds.y = offset + this.lyricLineBaseline;
-                offset += this.lyricLineHeight;
-            }
+            for (var j = 0; j < notation.lyrics.length; j++)
+                notation.lyrics[j].bounds.y = this.lyricRow(j) * this.lyricLineHeight + this.lyricLineBaseline;
+            var offset = this.lyricRow(notation.lyrics.length) * this.lyricLineHeight;
             if (notation.translationText) {
                 for (j = 0; j < notation.translationText.length; j++) {
                     notation.translationText[j].bounds.y =
@@ -371,7 +382,8 @@ export class ChantLine extends ChantLayoutElement {
                 let lyricLines = this.numLyricLines;
                 for (i = this.notationsStartIndex; i < this.extraTextOnlyIndex; i++) {
                     notations[i].lyrics.forEach((lyric, j) => {
-                        lyricLines = Math.max(lyricLines, j + lyric.numLines);
+                        if (lyric.text)
+                            lyricLines = Math.max(lyricLines, this.lyricRow(j) + lyric.numLines);
                     });
                 }
                 offset = (lyricLines - 1) * this.lyricLineHeight;
@@ -397,11 +409,8 @@ export class ChantLine extends ChantLayoutElement {
             }
         }
         if (this.startingClef.hasLyrics()) {
-            offset = 0;
-            for (j = 0; j < this.startingClef.lyrics.length; j++) {
-                this.startingClef.lyrics[j].bounds.y = offset + this.lyricLineBaseline;
-                offset += this.lyricLineHeight;
-            }
+            for (j = 0; j < this.startingClef.lyrics.length; j++)
+                this.startingClef.lyrics[j].bounds.y = this.lyricRow(j) * this.lyricLineHeight + this.lyricLineBaseline;
         }
         // dropCap and the annotations (which ChantScore.placeDropCap() places once
         // the lines are laid out, for a drop cap beside more lines than this)
@@ -638,7 +647,25 @@ export class ChantLine extends ChantLayoutElement {
             "element-index": this.elementIndex
         }, ...inner);
     }
-    createSvgFragment(ctxt, top = 0) {
+    /**
+     * The line's svg, starting at top.  With a cacheKey, what goes inside it is
+     * kept, and used again while createSvgFragment() is given the same key, so
+     * the key has to say everything about the line that its svg shows besides
+     * how it's laid out (such as what's selected: see ChantScore.createSvg()).
+     * Laying the line out again forgets it.
+     */
+    createSvgFragment(ctxt, top = 0, cacheKey) {
+        var cache = this.svgFragmentCache, inner = cacheKey !== undefined && cache && cache.key === cacheKey ? cache.inner : this.createInnerSvgFragment(ctxt);
+        if (cacheKey !== undefined)
+            this.svgFragmentCache = { key: cacheKey, inner };
+        return QuickSvg.createFragment("g", {
+            class: "chantLine",
+            transform: "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
+            "element-index": this.elementIndex
+        }, inner);
+    }
+    /** what goes inside the line's svg (see createSvgFragment()) */
+    createInnerSvgFragment(ctxt) {
         var inner = "";
         // add the chant lines
         var i, x1 = this.staffLeft, x2 = this.staffRight;
@@ -695,11 +722,7 @@ export class ChantLine extends ChantLayoutElement {
                 inner += notations[i].createSvgFragment(ctxt);
         if (this.custos)
             inner += this.custos.createSvgFragment(ctxt);
-        return QuickSvg.createFragment("g", {
-            class: "chantLine",
-            transform: "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
-            "element-index": this.elementIndex
-        }, inner);
+        return inner;
     }
     buildFromChantNotationIndex(ctxt, newElementStart, width, 
     // which of the score's lines this is (see ChantScore.lineExtent()): the
@@ -711,6 +734,7 @@ export class ChantLine extends ChantLayoutElement {
         this.notationsStartIndex = newElementStart;
         this.numNotationsOnLine = 0;
         this.clefLineBreak = null;
+        delete this.svgFragmentCache;
         this.paddingLeft = 0;
         this.extraTextOnlyIndex = null;
         this.extraTextOnlyLyricIndex = 0;
@@ -775,6 +799,7 @@ export class ChantLine extends ChantLayoutElement {
         }
         var lastLyricsBeforeTextOnly;
         var textOnlyStartIndex;
+        this.furthestLaidOut = newElementStart;
         for (i = newElementStart; i <= lastNotationIndex; i++) {
             // a hidden soft accidental takes no space, so the notation after it is
             // positioned as though it weren't there
@@ -784,6 +809,8 @@ export class ChantLine extends ChantLayoutElement {
                     prevNeume = curr;
             }
             curr = notations[i];
+            if (i > this.furthestLaidOut)
+                this.furthestLaidOut = i;
             // as in Gregorio, a clef just before a line break only goes at the start
             // of the next line, and the custos at the end of this line is worked out
             // from the clef that is in effect on it.  (Not when the clef or the line
@@ -1229,6 +1256,41 @@ export class ChantLine extends ChantLayoutElement {
             }
         }
         this.finishLayout(ctxt);
+    }
+    /**
+     * The index after the last of the score's notations that
+     * buildFromChantNotationIndex() could have read to lay the line out, so
+     * that it would lay it out the same again while they're the same (see
+     * ChantScore.reusableLines()): as many past the furthest that it laid out
+     * as LineBreaker's readTo() reads (for a soft accidental, a clef and line
+     * break, or the end of the score), and on through the text only notations
+     * after that (see isTextOnlyBeforeDivider()), to the neume that the custos
+     * at the end of the line is for (see wantsEolCustos() and
+     * ChantContext.findNextNeume()), and through the syllables and notes that
+     * ctxt.minSyllablesLastLine and ctxt.minNotesLastLine count, from there
+     * (which counts more of them than it did, if it counted from further back).
+     */
+    readEnd(ctxt) {
+        var notations = this.score.notations, count = notations.length, furthest = this.furthestLaidOut, 
+        // (as readTo() in Exsurge.Chant.LineBreaking)
+        end = Math.min(count, furthest + 3), k = furthest + 1;
+        while (k < count && notations[k].constructor === TextOnly)
+            k++;
+        end = Math.max(end, Math.min(count, k + 1));
+        k = this.notationsStartIndex + this.numNotationsOnLine;
+        while (k < count && !(notations[k].isNeume && !notations[k].hasNoWidth))
+            k++;
+        end = Math.max(end, Math.min(count, k + 1));
+        if (ctxt.minSyllablesLastLine && ctxt.minNotesLastLine) {
+            let syllables = 0, notes = 0;
+            for (k = furthest + 1; k < count && syllables < ctxt.minSyllablesLastLine && notes < ctxt.minNotesLastLine; k++) {
+                if (notations[k].hasLyrics())
+                    syllables++;
+                notes += (notations[k].notes || []).length;
+            }
+            end = Math.max(end, k);
+        }
+        return end;
     }
     centerDividers() {
         var lastIndex = this.extraTextOnlyIndex === null
@@ -2363,6 +2425,10 @@ export class ChantLine extends ChantLayoutElement {
         });
         if (repeated)
             notation.alignLyrics(ctxt);
+    }
+    /** the row on the line that the line of lyrics at index is drawn on */
+    lyricRow(index) {
+        return index < this.lyricRows.length ? this.lyricRows[index] : this.numLyricLines;
     }
     /**
      * Find the notation closest to x without going past it

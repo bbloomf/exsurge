@@ -315,6 +315,18 @@ var __lyricProtrusionRegex = /<\s*pr\s*(?::\s*(\d*\.?\d+|\d+\.)\s*)?\/?\s*>/g;
 // any space, and in any markup of its own ("<i><verseNum>1.</verseNum></i>"),
 // and the space after it; or an empty one (<verseNum></verseNum> or <verseNum/>)
 var __verseNumberRegex = /^(\s*)((?:<[a-z]+>)*)<verseNum(?:\s*\/>|>([\s\S]*?)<\/verseNum>)((?:<\/[a-z]+>)*)\s*/i;
+// in a lyric-line header (see Gabc.splitLyricLine()): a verse number, with
+// the closing tags and space after it, which go with the syllable after it;
+// the text in <v> or <alt>, or in <sp> or a tag, which is kept as it is; the
+// breaks between syllables and words; or any other character
+var __lyricLineRegex = /(<verseNum(?:\s*\/>|>[\s\S]*?<\/verseNum>)(?:<\/[a-z]+>)*\s*)|(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>)|(<sp>[^<]*?<\/sp>|<[^<>]*>)|([\s+-]+)|([\s\S])/gi;
+// a ~ is a lyric tie (except in a special character, e.g. <sp>~</sp>),
+// or a space in verbatim TeX, above-lines text and translations
+const replaceLyricTies = (ctxt, text) => {
+    var lyricTieSpecial = LyricTieSpecials[ctxt.lyricTie];
+    var lyricTie = (lyricTieSpecial && ctxt.specials[lyricTieSpecial]) || " ";
+    return text.replace(/(^|<\/sp>)([\s\S]*?)($|<sp>)/g, (_, pre, main, post) => `${pre}${main.replace(/(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|\[[^\]]*\])|~/g, (tie, notLyric) => (notLyric ? notLyric.replace(/~/g, " ") : lyricTie))}${post}`);
+};
 // those controls at the start of a lyric
 var __leadingControlsRegex = new RegExp("^(?:" + [__lyricAreaTagRegex, __lyricClearRegex, __lyricProtrusionRegex].map((regex) => regex.source).join("|") + ")*");
 // (a note can start with Gregorio's @, unless it's the @ between two clefs, c1@c4)
@@ -403,18 +415,28 @@ const findHeaderEnd = (gabc) => {
 const regexHeaderLine = /^[ \t]*([\w-_.]+)[ \t]*:\s*(.*?)(;;?[ \t]*(?:%.*)?)?$/i;
 // a line that ends a multi-line value
 const regexHeaderValueEnd = /^(.*?);;?[ \t]*(?:%.*)?$/;
+// the same, where a $ escapes the character after it, as it does in a
+// lyric-line header (exsurge's own), so its value can end with $; ("lyric-line: a+b$;;")
+const regexEscapedHeaderLine = /^[ \t]*([\w-_.]+)[ \t]*:\s*((?:\$[\s\S]?|[^$])*?)(;;?[ \t]*(?:%.*)?)?$/i;
+const regexEscapedHeaderValueEnd = /^((?:\$[\s\S]?|[^$])*?);;?[ \t]*(?:%.*)?$/;
+const isEscapedHeader = (key) => key === "lyric-line";
+// a header line, read as regexHeaderLine or regexEscapedHeaderLine reads it
+const matchHeaderLine = (line) => {
+    let match = regexHeaderLine.exec(line);
+    return match && isEscapedHeader(match[1]) ? regexEscapedHeaderLine.exec(line) : match;
+};
 // lines that can't be part of a multi-line value: another header, a comment
 // or the end of the header
 const regexHeaderNotValue = /^[ \t]*(?:[\w-_.]+[ \t]*:|[%#])/i;
 const regexHeaderComment = /^%.*/;
 // the lines of a value that goes on over the lines after lines[start], and
 // the index of the line that ends it, or null if those lines don't end it
-const multiLineHeaderValue = (lines, start) => {
+const multiLineHeaderValue = (lines, start, escaped = false) => {
     let values = [];
     for (let i = start + 1; i < lines.length; ++i) {
         if (regexHeaderNotValue.test(lines[i]))
             break;
-        let match = regexHeaderValueEnd.exec(lines[i]);
+        let match = (escaped ? regexEscapedHeaderValueEnd : regexHeaderValueEnd).exec(lines[i]);
         if (match)
             return { values: [...values, match[1]], end: i };
         values.push(lines[i]);
@@ -442,13 +464,13 @@ const GabcHeaderClass = class GabcHeader {
             // (without a byte-order mark, which Gregorio skips)
             var lines = txtHeader.replace(/^\uFEFF/, "").split(/\r?\n/g);
             for (var i = 0; i < lines.length; ++i) {
-                let line = lines[i], match = regexHeaderLine.exec(line);
+                let line = lines[i], match = matchHeaderLine(line);
                 if (match) {
                     var key = match[1].replace(/-([a-z])/g, function (a, letter) {
                         return letter.toUpperCase();
                     });
                     var value = match[2];
-                    var multiLine = match[3] ? null : multiLineHeaderValue(lines, i);
+                    var multiLine = match[3] ? null : multiLineHeaderValue(lines, i, isEscapedHeader(match[1]));
                     if (multiLine) {
                         value = [value, ...multiLine.values].join("\n");
                         i = multiLine.end;
@@ -468,7 +490,7 @@ const GabcHeaderClass = class GabcHeader {
                 }
                 else if ((match = regexHeaderComment.exec(line))) {
                     if (!regexHeaderEndLine.test(line)) {
-                        match = regexHeaderLine.exec(line.slice(1));
+                        match = matchHeaderLine(line.slice(1));
                         if (match) {
                             let key = match[1].replace(/-([a-z])/g, function (a, letter) {
                                 return letter.toUpperCase();
@@ -544,7 +566,14 @@ export const GabcHeader = GabcHeaderClass;
  * that mean nothing to the parser (see gabcEscapes.ts), also keeping the
  * length.
  */
-var maskGabc = (gabc) => gabc.replace(__commentRegex, (match, escaped, alt, notes, comment) => escaped
+var maskGabc = (gabc) => {
+    // (a word is masked to see whether it's empty and then again to be parsed)
+    if (gabc !== __lastMasked.gabc)
+        __lastMasked = { gabc, masked: maskGabcNow(gabc) };
+    return __lastMasked.masked;
+};
+var __lastMasked = { gabc: "", masked: "" };
+var maskGabcNow = (gabc) => gabc.replace(__commentRegex, (match, escaped, alt, notes, comment) => escaped
     ? escapeChar(escaped)
     : alt
         ? alt.replace(__escapeRegex, (escape, char) => escapeChar(char))
@@ -723,6 +752,411 @@ var lyricTextIndex = (ctxt, lyric, text, index) => {
     }
     return textIndex;
 };
+// Gabc.createNeumesFromNotes() makes the neumes of the notes with a simple
+// finite state machine.  Each state has a neume() function and a handle()
+// function.  neume() makes the neume of the state in the event that we run
+// out of notes.  handle() gives the state an opportunity to examine the
+// currNote and determine what to do...either transition to a different
+// neume/state, or continue building the neume of that state.  handle()
+// returns the next state.  (The states are made once, rather than for each
+// call, and handle() is given the NeumeBuilder of the notes it's handling.)
+class NeumeBuilder {
+    constructor(notes) {
+        this.notes = notes;
+        this.neumes = [];
+        this.firstNoteIndex = 0;
+        this.currNoteIndex = 0;
+    }
+    // makes a neume of the notes up to the current note and returns the next
+    // state after a neume is created (unknownState)
+    createNeume(neume, includeCurrNote, includePrevNote = true) {
+        // add the notes to the neume
+        var lastNoteIndex;
+        if (includeCurrNote)
+            lastNoteIndex = this.currNoteIndex;
+        else if (includePrevNote)
+            lastNoteIndex = this.currNoteIndex - 1;
+        else
+            lastNoteIndex = this.currNoteIndex - 2;
+        // (which leaves no state to go on to)
+        if (lastNoteIndex < 0)
+            return undefined;
+        while (this.firstNoteIndex <= lastNoteIndex) {
+            let note = this.notes[this.firstNoteIndex++];
+            neume.addNote(note);
+            if (note.alText) {
+                if (!neume.alText)
+                    neume.alText = [];
+                neume.alText.push(note.alText);
+                note.alText.noteIndex = this.firstNoteIndex - 1;
+            }
+        }
+        this.neumes.push(neume);
+        if (includeCurrNote === false) {
+            this.currNoteIndex--;
+            if (includePrevNote === false)
+                this.currNoteIndex--;
+            neume.keepWithNext = true;
+            if (this.notes[this.currNoteIndex + 1].shape === NoteShape.Quilisma)
+                neume.trailingSpace = 0;
+            else {
+                neume.trailingSpace = TrailingSpaceMultiple(1);
+                neume.allowLineBreakBeforeNext = true;
+            }
+        }
+        return unknownState;
+    }
+}
+var unknownState = {
+    neume: function () {
+        return new Neumes.Punctum();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        // a linea (gabc =) is a neume of its own, whatever its shape
+        if (currNote.linea)
+            return builder.createNeume(new Neumes.Punctum(), true);
+        else if (currNote.shape === NoteShape.Virga)
+            return virgaState;
+        else if (currNote.shape === NoteShape.Stropha)
+            return apostrophaState;
+        else if (currNote.shape === NoteShape.Oriscus)
+            return oriscusState;
+        else if (currNote.shape === NoteShape.Inclinatum)
+            return punctaInclinataState;
+        // (a cavum goes into a neume like any other note, and is drawn hollow
+        // there, but a punctum cavum between lines, r0, stands alone)
+        else if (currNote.shapeModifiers & NoteShapeModifiers.Cavum &&
+            currNote.shapeModifiers & NoteShapeModifiers.Linea)
+            return builder.createNeume(new Neumes.Punctum(), true);
+        else
+            return punctumState;
+    }
+};
+var punctumState = {
+    neume: function () {
+        return new Neumes.Punctum();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        // an oriscus scapus is joined to the lower punctum before it, as in
+        // Gregorio (unless either is liquescent)
+        if (currNote.shape === NoteShape.Oriscus &&
+            currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
+            currNote.staffPosition > prevNote.staffPosition &&
+            prevNote.liquescent === LiquescentType.None &&
+            currNote.liquescent === LiquescentType.None)
+            return pesOriscusState;
+        if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
+            var neume = new Neumes.Punctum();
+            var state = builder.createNeume(neume, false);
+            // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
+            // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
+            // Otherwise, we want no trailing space.
+            if (currNote.staffPosition > prevNote.staffPosition &&
+                (currNote.staffPosition % 2 === 1 ||
+                    prevNote.staffPosition !== currNote.staffPosition - 1 ||
+                    !prevNote.morae ||
+                    prevNote.morae.length === 0))
+                neume.trailingSpace = 0;
+            return state;
+        }
+        if (currNote.staffPosition > prevNote.staffPosition) {
+            if (currNote.ictus)
+                currNote.ictus.positionHint = MarkingPositionHint.Above;
+            // a pes quadratum (gabc q) has no more notes, as in Gregorio
+            if (prevNote.quadratum)
+                return builder.createNeume(new Neumes.PesQuadratum(), true);
+            return podatusState;
+        }
+        else if (currNote.staffPosition < prevNote.staffPosition) {
+            if (prevNote.ictus)
+                prevNote.ictus.positionHint = MarkingPositionHint.Above;
+            // (TypeScript thinks the shape must be 0 by now, from the check above)
+            if (currNote.shape === NoteShape.Inclinatum)
+                return climacusState;
+            else {
+                return clivisState;
+            }
+        }
+        else if (!prevNote.morae || !prevNote.morae.length) {
+            return distrophaState;
+        }
+        return builder.createNeume(new Neumes.Punctum(), false);
+    }
+};
+var punctaInclinataState = {
+    neume: function () {
+        return new Neumes.PunctaInclinata();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape !== NoteShape.Inclinatum)
+            return builder.createNeume(new Neumes.PunctaInclinata(), false);
+        else
+            return punctaInclinataState;
+    }
+};
+var oriscusState = {
+    neume: function () {
+        return new Neumes.Oriscus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        // (the oriscus points to the note after it, unless gabc designates its direction)
+        if (currNote.shape === NoteShape.Default) {
+            if (currNote.staffPosition > prevNote.staffPosition)
+                return builder.createNeume(new Neumes.PesQuassus(), true);
+            else if (currNote.staffPosition < prevNote.staffPosition)
+                return builder.createNeume(new Neumes.Clivis(), true);
+        }
+        // stand alone oriscus
+        var neume = new Neumes.Oriscus(), state = builder.createNeume(neume, false);
+        // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
+        // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
+        // Otherwise, we want no trailing space.
+        if (currNote.staffPosition > prevNote.staffPosition &&
+            (currNote.staffPosition % 2 === 1 ||
+                prevNote.staffPosition !== currNote.staffPosition - 1 ||
+                !prevNote.morae ||
+                prevNote.morae.length === 0))
+            neume.trailingSpace = 0;
+        return state;
+    }
+};
+var pesOriscusState = {
+    neume: function () {
+        return new Neumes.PesOriscus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Default &&
+            currNote.staffPosition > prevNote.staffPosition)
+            return salicusState;
+        else
+            return builder.createNeume(new Neumes.PesOriscus(), false);
+    }
+};
+var podatusState = {
+    neume: function () {
+        return new Neumes.Podatus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.staffPosition > prevNote.staffPosition) {
+            if (currNote.ictus)
+                currNote.ictus.positionHint = MarkingPositionHint.Above;
+            if (prevNote.ictus)
+                prevNote.ictus.positionHint = MarkingPositionHint.Below;
+            if (prevNote.shape === NoteShape.Oriscus)
+                return salicusState;
+            else
+                return scandicusState;
+        }
+        else if (currNote.staffPosition < prevNote.staffPosition) {
+            if (currNote.shape === NoteShape.Inclinatum)
+                return pesSubpunctisState;
+            else
+                return torculusState;
+        }
+        else
+            return builder.createNeume(new Neumes.Podatus(), false);
+    }
+};
+var clivisState = {
+    neume: function () {
+        return new Neumes.Clivis();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Default &&
+            currNote.staffPosition > prevNote.staffPosition) {
+            if (currNote.ictus)
+                currNote.ictus.positionHint = MarkingPositionHint.Above;
+            return porrectusState;
+        }
+        else if (currNote.staffPosition < prevNote.staffPosition &&
+            currNote.liquescent & LiquescentType.Small) {
+            return builder.createNeume(new Neumes.Ancus(), true);
+        }
+        else {
+            return builder.createNeume(new Neumes.Clivis(), false);
+        }
+    }
+};
+var climacusState = {
+    neume: function () {
+        return new Neumes.Climacus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape !== NoteShape.Inclinatum)
+            return builder.createNeume(new Neumes.Climacus(), false);
+        else
+            return climacusState;
+    }
+};
+var porrectusState = {
+    neume: function () {
+        return new Neumes.Porrectus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Default &&
+            currNote.staffPosition < prevNote.staffPosition)
+            return builder.createNeume(new Neumes.PorrectusFlexus(), true);
+        else
+            return builder.createNeume(new Neumes.Porrectus(), false);
+    }
+};
+var pesSubpunctisState = {
+    neume: function () {
+        return new Neumes.PesSubpunctis();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape !== NoteShape.Inclinatum)
+            return builder.createNeume(new Neumes.PesSubpunctis(), false);
+        else
+            return pesSubpunctisState;
+    }
+};
+var salicusState = {
+    neume: function () {
+        return new Neumes.Salicus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Default &&
+            currNote.staffPosition < prevNote.staffPosition)
+            return salicusFlexusState;
+        else
+            return builder.createNeume(new Neumes.Salicus(), false);
+    }
+};
+var salicusFlexusState = {
+    neume: function () {
+        return new Neumes.SalicusFlexus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        return builder.createNeume(new Neumes.SalicusFlexus(), false);
+    }
+};
+var scandicusState = {
+    neume: function () {
+        return new Neumes.Scandicus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (prevNote.shape === NoteShape.Virga &&
+            currNote.shape === NoteShape.Inclinatum &&
+            currNote.staffPosition < prevNote.staffPosition) {
+            // if we get here, then it seems we have a podatus, now being followed by a climacus
+            // rather than a scandicus. react accordingly
+            return builder.createNeume(new Neumes.Podatus(), false, false);
+        }
+        else if (currNote.shape === NoteShape.Default &&
+            currNote.staffPosition < prevNote.staffPosition)
+            return scandicusFlexusState;
+        else
+            return builder.createNeume(new Neumes.Scandicus(), false);
+    }
+};
+var scandicusFlexusState = {
+    neume: function () {
+        return new Neumes.ScandicusFlexus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        return builder.createNeume(new Neumes.ScandicusFlexus(), false);
+    }
+};
+var virgaState = {
+    neume: function () {
+        return new Neumes.Virga();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Inclinatum &&
+            currNote.staffPosition < prevNote.staffPosition)
+            return climacusState;
+        else if (currNote.shape === NoteShape.Virga &&
+            currNote.staffPosition === prevNote.staffPosition)
+            return bivirgaState;
+        else
+            return builder.createNeume(new Neumes.Virga(), false);
+    }
+};
+var bivirgaState = {
+    neume: function () {
+        return new Neumes.Bivirga();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Virga &&
+            currNote.staffPosition === prevNote.staffPosition)
+            return builder.createNeume(new Neumes.Trivirga(), true);
+        else
+            return builder.createNeume(new Neumes.Bivirga(), false);
+    }
+};
+var apostrophaState = {
+    neume: function () {
+        return new Neumes.Apostropha();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.staffPosition === prevNote.staffPosition)
+            return distrophaState;
+        else
+            return builder.createNeume(new Neumes.Apostropha(), false);
+    }
+};
+var distrophaState = {
+    neume: function () {
+        return new Neumes.Distropha();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.staffPosition === prevNote.staffPosition) {
+            if (prevNote.morae && prevNote.morae.length) {
+                return builder.createNeume(new Neumes.Distropha(), false);
+            }
+            else {
+                return tristrophaState;
+            }
+        }
+        else
+            return builder.createNeume(new Neumes.Apostropha(), false, false);
+    }
+};
+var tristrophaState = {
+    neume: function () {
+        return new Neumes.Tristropha();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        // we only create a tristropha when the note run ends after three
+        // and the neume() function of this state is called. Otherwise
+        // we always interpret the third note to belong to the next sequence
+        // of notes.
+        //
+        // fixme: gabc allows any number of punctum/stropha in succession...
+        // is this a valid neume type? Or is it just multiple *stropha neumes
+        // in succession? Should we simplify the apostropha/distropha/
+        // tristropha classes to a generic stropha neume that can have 1 or
+        // more successive notes?
+        return builder.createNeume(new Neumes.Distropha(), false, false);
+    }
+};
+var torculusState = {
+    neume: function () {
+        return new Neumes.Torculus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Default &&
+            currNote.staffPosition > prevNote.staffPosition) {
+            if (currNote.ictus)
+                currNote.ictus.positionHint = MarkingPositionHint.Above;
+            return torculusResupinusState;
+        }
+        return builder.createNeume(new Neumes.Torculus(), false);
+    }
+};
+var torculusResupinusState = {
+    neume: function () {
+        return new Neumes.TorculusResupinus();
+    },
+    handle: function (currNote, prevNote, notesRemaining, builder) {
+        if (currNote.shape === NoteShape.Default &&
+            currNote.staffPosition < prevNote.staffPosition)
+            return builder.createNeume(new Neumes.TorculusResupinusFlexus(), true);
+        else
+            return builder.createNeume(new Neumes.TorculusResupinus(), false);
+    }
+};
 export class Gabc {
     // takes gabc source code (without the header info) and returns an array
     // of ChantMappings describing the chant. A chant score can then be created
@@ -731,6 +1165,8 @@ export class Gabc {
     static createMappingsFromSource(ctxt, gabcSource) {
         var headerLength = GabcHeader.getLength(gabcSource);
         ctxt.nabcLines = this.getNabcLines(gabcSource, headerLength);
+        var lyricLines = this.getLyricLines(gabcSource, headerLength);
+        ctxt.lyricLines = lyricLines.length;
         gabcSource = gabcSource.slice(headerLength);
         var words = this.splitWords(gabcSource);
         // set the default clef
@@ -743,6 +1179,7 @@ export class Gabc {
         this.marksForNext = noMarksForNext;
         var mappings = this.createMappingsFromWords(ctxt, words);
         endTrailingAreas(mappings, this.marksForNext.areas);
+        this.applyLyricLines(ctxt, mappings, lyricLines);
         // always set the last notation to have a trailingSpace of 0. This makes layout for the last chant line simpler
         if (mappings.length > 0 &&
             mappings[mappings.length - 1].notations.length > 0)
@@ -755,6 +1192,185 @@ export class Gabc {
             return 0;
         let nabcLines = parseInt(new GabcHeader(gabc.slice(0, headerLength))["nabc-lines"], 10);
         return nabcLines > 0 ? nabcLines : 0;
+    }
+    /**
+     * The values of a gabc file's lyric-line headers, in order, each with its
+     * $ escapes masked (as maskGabc() masks them) and the index in the gabc of
+     * each of its characters.  Values with nothing in them are left out.
+     */
+    static getLyricLines(gabc, headerLength = GabcHeader.getLength(gabc)) {
+        let lyricLines = [];
+        if (!headerLength)
+            return lyricLines;
+        // the header's lines, without their line ends, and where each starts
+        let lines = [];
+        let starts = [];
+        let start = 0;
+        for (let line of gabc.slice(0, headerLength).split("\n")) {
+            // (without a byte-order mark, which Gregorio skips)
+            let bom = start === 0 && line.startsWith("\uFEFF") ? 1 : 0;
+            lines.push(line.slice(bom).replace(/\r$/, ""));
+            starts.push(start + bom);
+            start += line.length + 1;
+        }
+        for (let i = 0; i < lines.length; ++i) {
+            let match = matchHeaderLine(lines[i]);
+            if (!match)
+                continue;
+            let multiLine = match[3] ? null : multiLineHeaderValue(lines, i, isEscapedHeader(match[1]));
+            if (match[1] === "lyric-line") {
+                let text = match[2];
+                let first = starts[i] + lines[i].length - text.length - (match[3] || "").length;
+                let indices = Array.from({ length: text.length }, (_, k) => first + k);
+                // (the lines of a multi-line value, after the line breaks before them)
+                multiLine === null || multiLine === void 0 ? void 0 : multiLine.values.forEach((value, j) => {
+                    let lineStart = starts[i + j + 1];
+                    text += "\n" + value;
+                    indices.push(lineStart - 1, ...Array.from({ length: value.length }, (_, k) => lineStart + k));
+                });
+                if (text.trim())
+                    lyricLines.push({
+                        text: text.replace(__escapeRegex, (escape, char) => escapeChar(char)),
+                        indices
+                    });
+            }
+            if (multiLine)
+                i = multiLine.end;
+        }
+        return lyricLines;
+    }
+    /**
+     * Splits a lyric-line header's value into syllables: a + between them, a -
+     * between them that is always drawn as a hyphen, and spaces between words.
+     * A syllable that is just _ is left empty, and in other syllables, _ is a
+     * space (which, as in any syllable, doesn't break) and ~ is a lyric tie,
+     * as in the gabc's syllables.  A verse number goes with the syllable after
+     * it, and the text in <v>, <alt> and <sp>, and in tags, is kept as it is.
+     */
+    static splitLyricLine(ctxt, line) {
+        // each syllable, and the break after it: "+", "-", " " (the end of a word) or "" (the end of the line)
+        let syllables = [];
+        let syllable = null;
+        let match;
+        __lyricLineRegex.lastIndex = 0;
+        while ((match = __lyricLineRegex.exec(line.text))) {
+            let [all, , , , breaks, char] = match;
+            if (breaks !== undefined) {
+                if (syllable) {
+                    // (a - between spaces is a dash between words, not a hyphen)
+                    syllable.breakAfter = /\s/.test(breaks) ? " " : breaks.includes("-") ? "-" : "+";
+                    syllables.push(syllable);
+                    syllable = null;
+                }
+                continue;
+            }
+            if (!syllable)
+                syllable = { text: "", raw: "", index: line.indices[match.index], breakAfter: "" };
+            syllable.raw += all;
+            syllable.text += char === "_" ? " " : all;
+        }
+        if (syllable)
+            syllables.push(syllable);
+        // (and a ~ in a syllable is a lyric tie, as in the gabc's syllables)
+        for (let syllable of syllables)
+            syllable.text = replaceLyricTies(ctxt, syllable.text);
+        // each syllable's text (with a - for a hyphen that's always drawn), where
+        // it is in the gabc, and its place in its word, which the empty
+        // syllables don't count in
+        let result = syllables.map((syllable) => ({
+            text: syllable.raw === "_" ? "" : syllable.text + (syllable.breakAfter === "-" ? "-" : ""),
+            index: syllable.index,
+            lyricType: LyricType.SingleSyllable
+        }));
+        let word = [];
+        result.forEach((lyric, i) => {
+            if (lyric.text)
+                word.push(lyric);
+            // (a + or - at the end of the line ends its word too)
+            if (i < result.length - 1 && (syllables[i].breakAfter === "+" || syllables[i].breakAfter === "-"))
+                return;
+            word.forEach((lyric, k) => (lyric.lyricType =
+                word.length === 1
+                    ? LyricType.SingleSyllable
+                    : k === 0
+                        ? LyricType.BeginningSyllable
+                        : k === word.length - 1
+                            ? LyricType.EndingSyllable
+                            : LyricType.MiddleSyllable));
+            word = [];
+        });
+        return result;
+    }
+    /**
+     * Gives the syllables with notes in mappings (see ChantMapping.lyricSlots)
+     * the syllables of lyricLines, the gabc's lyric-line headers, in turn, each
+     * header a line of lyrics after the first.  A syllable that has no lyric of
+     * its own gets an empty one, as does one that a header leaves empty (with
+     * _) when a header after it doesn't.  Each lyric's source index is the
+     * negative of its index in the gabc, header and all.  The lyrics that the
+     * headers gave before are kept where they are still the same, so that only
+     * the notations whose lyrics change need to be laid out again.
+     */
+    static applyLyricLines(ctxt, mappings, lyricLines) {
+        let slots = [].concat(...mappings.map((mapping) => mapping.lyricSlots || []));
+        let lines = lyricLines.map((line) => this.splitLyricLine(ctxt, line));
+        lines.forEach((syllables, k) => {
+            if (syllables.length > slots.length)
+                console.warn(`lyric-line ${k + 1} has ${syllables.length} syllables, but there are only ${slots.length} syllables with notes for them`);
+        });
+        // the styles that the syllables before left open on each line
+        let openStyles = lines.map(() => []);
+        for (let s = 0; s < slots.length; s++) {
+            let { notation, notations } = slots[s];
+            let oldLyrics = notation.lyrics.filter((lyric) => lyric.fromLyricLine);
+            let lyrics = notation.lyrics.filter((lyric) => !lyric.fromLyricLine);
+            // the last line with a syllable that isn't empty here
+            let last = -1;
+            lines.forEach((syllables, k) => {
+                if (syllables[s] && syllables[s].text)
+                    last = k;
+            });
+            // the old lyric made from the same key (moved to where its syllable is
+            // now in the header), or else a new one
+            const lyricFor = (key, lyricIndex, text, lyricType, index, opening = "") => {
+                let lyric = oldLyrics.find((lyric) => lyric.lyricLineKey === key && lyric.lyricIndex === lyricIndex);
+                if (lyric) {
+                    // (its source indices are negative)
+                    let moved = index - lyric.lyricLineIndex;
+                    lyric.sourceIndex -= moved;
+                    if (lyric.verseNumber)
+                        lyric.verseNumber.sourceIndex -= moved;
+                }
+                else {
+                    lyric = this.createLyric(ctxt, text, lyricType, notation, notations, index, opening);
+                    lyric.sourceIndex = -lyric.sourceIndex;
+                    if (lyric.verseNumber)
+                        lyric.verseNumber.sourceIndex = -lyric.verseNumber.sourceIndex;
+                    lyric.fromLyricLine = true;
+                    lyric.lyricLineKey = key;
+                    lyric.lyricIndex = lyricIndex;
+                }
+                lyric.lyricLineIndex = index;
+                return lyric;
+            };
+            if (last >= 0) {
+                lyrics = lyrics.slice(0, 1);
+                let index = lines[last][s].index;
+                if (!lyrics.length)
+                    lyrics.push(lyricFor("\u0000", 0, "", LyricType.SingleSyllable, index));
+                for (let k = 0; k <= last; k++) {
+                    let syllable = lines[k][s] || { text: "", index, lyricType: LyricType.SingleSyllable };
+                    let opening = openingTags(openStyles[k]);
+                    openStyles[k] = openStylesAfter(openStyles[k], syllable.text);
+                    let key = [syllable.text, syllable.lyricType, opening].join("\u0000");
+                    lyrics.push(lyricFor(key, k + 1, syllable.text, syllable.lyricType, syllable.index, opening));
+                }
+            }
+            if (lyrics.length !== notation.lyrics.length || lyrics.some((lyric, i) => lyric !== notation.lyrics[i])) {
+                notation.lyrics = lyrics;
+                notation.needsLayout = true;
+            }
+        }
     }
     /**
      * Splits a syllable's notes into gabc and Gregorio's NABC, when there are
@@ -1013,12 +1629,15 @@ export class Gabc {
     static updateMappingsFromSource(ctxt, mappings, newGabcSource, insertionIndex = null, oldInsertionIndex = null) {
         var headerLength = GabcHeader.getLength(newGabcSource);
         var nabcLines = this.getNabcLines(newGabcSource, headerLength);
+        var lyricLines = this.getLyricLines(newGabcSource, headerLength);
         newGabcSource = newGabcSource.slice(headerLength);
-        if (nabcLines !== ctxt.nabcLines) {
-            // a | means something else now, so every word is parsed anew
+        if (nabcLines !== ctxt.nabcLines || !lyricLines.length !== !ctxt.lyricLines) {
+            // a | means something else now (in the notes, or in the lyrics of a
+            // syllable with notes), so every word is parsed anew
             ctxt.nabcLines = nabcLines;
             mappings.splice(0);
         }
+        ctxt.lyricLines = lyricLines.length;
         // always remove the last old mapping since it's spacing/trailingSpace is handled specially
         mappings.pop();
         // whether each mapping was parsed under a Chi-Rho clef, the only clef under which 0
@@ -1163,6 +1782,9 @@ export class Gabc {
                             }
                             for (l = 0; l < curNotation.lyrics.length; ++l) {
                                 let lyric = curNotation.lyrics[l];
+                                // (the lyrics of the lyric-line headers are where they were in the header)
+                                if (lyric.fromLyricLine)
+                                    continue;
                                 lyric.sourceIndex += sourceIndexDiff;
                                 if (lyric.dropCap)
                                     lyric.dropCap.sourceIndex += sourceIndexDiff;
@@ -1219,6 +1841,7 @@ export class Gabc {
             }
         }
         endTrailingAreas(mappings, this.marksForNext.areas);
+        this.applyLyricLines(ctxt, mappings, lyricLines);
         // always set the last notation to have a trailingSpace of 0. This makes layout for the last chant line simpler
         if (mappings.length > 0 &&
             mappings[mappings.length - 1].notations.length > 0)
@@ -1334,6 +1957,8 @@ export class Gabc {
         // from marksForNext, and leave the rest of for the next word
         var followsMarks = hasMarks(this.marksForNext);
         var openStylesBefore = this.marksForNext.openStyles;
+        // the syllables with notes, for the lyric-line headers (see applyLyricLines())
+        var lyricSlots = [];
         var mappingOf = () => {
             this.marksForNext = Object.assign(Object.assign({}, this.marksForNext), { areas: mergeAreas(this.marksForNext.areas, trailingAreas) });
             if (closingStyleTags)
@@ -1345,6 +1970,8 @@ export class Gabc {
                 mapping.followsMarks = true;
             if (openStylesKey(openStylesBefore))
                 mapping.openStylesBefore = openStylesBefore;
+            if (lyricSlots.length)
+                mapping.lyricSlots = lyricSlots;
             return mapping;
         };
         var syllableMatch;
@@ -1370,11 +1997,7 @@ export class Gabc {
             trailingAreas = {};
         for (var j = 0; j < matches.length; j++) {
             var match = matches[j];
-            // a ~ is a lyric tie (except in a special character, e.g. <sp>~</sp>),
-            // or a space in verbatim TeX, above-lines text and translations
-            var lyricTieSpecial = LyricTieSpecials[ctxt.lyricTie];
-            var lyricTie = (lyricTieSpecial && ctxt.specials[lyricTieSpecial]) || " ";
-            var lyricText = match[1].replace(__commentMaskRegex, "").replace(/(^|<\/sp>)([\s\S]*?)($|<sp>)/g, (_, pre, main, post) => `${pre}${main.replace(/(<v>[\s\S]*?<\/v>|<alt>[\s\S]*?<\/alt>|\[[^\]]*\])|~/g, (tie, notLyric) => (notLyric ? notLyric.replace(/~/g, " ") : lyricTie))}${post}`);
+            var lyricText = replaceLyricTies(ctxt, match[1].replace(__commentMaskRegex, ""));
             var alText = [];
             var translationText = [];
             var notationData = match[2];
@@ -1436,6 +2059,25 @@ export class Gabc {
             }
             if (items.length === 0)
                 continue;
+            // add the lyrics and/or alText to the first notation that makes sense...
+            var notationWithLyrics = null;
+            for (var i = 0; i < items.length; i++) {
+                var cne = items[i];
+                if (cne.isAccidental && i + 1 < items.length)
+                    continue;
+                notationWithLyrics = cne;
+                break;
+            }
+            if (notationWithLyrics && notationWithLyrics.isNeume) {
+                lyricSlots.push({ notation: notationWithLyrics, notations: items });
+                // the lyric-line headers take the place of the lines of lyrics that a
+                // | adds to a syllable with notes, and of the controls in them
+                if (ctxt.lyricLines > 0 && lyricText.includes("|")) {
+                    lyricText = lyricText.split("|")[0];
+                    areas = {};
+                    readSyllableControls(lyricText, areas);
+                }
+            }
             var itemNotes = [].concat(...items.map((item) => item.notes || []));
             this.setAutomaticLeanings(itemNotes);
             for (let note of itemNotes)
@@ -1454,15 +2096,6 @@ export class Gabc {
             items[0].firstOfSyllable = !!printedText;
             items[0].firstOfParentheses = true;
             notations.push(...items);
-            // add the lyrics and/or alText to the first notation that makes sense...
-            var notationWithLyrics = null;
-            for (var i = 0; i < items.length; i++) {
-                var cne = items[i];
-                if (cne.isAccidental && i + 1 < items.length)
-                    continue;
-                notationWithLyrics = cne;
-                break;
-            }
             // (exec() of "undefined", which matches nothing, so lastIndex goes back to 0)
             var m = __altTranslationRegex.exec(undefined);
             let indexOffset = 0;
@@ -1550,127 +2183,136 @@ export class Gabc {
                     proposedLyricType = LyricType.MiddleSyllable;
                 }
             }
-            // Gregorio's controls, which aren't printed: <eu> and <nlba> (which
-            // createMappingFromWord() read), <clear> and <pr> (only the first <pr>
-            // counts, as in Gregorio).  The lyric's source starts after any at its start.
-            var lyricSourceIndex = sourceIndex + __leadingControlsRegex.exec(lyricText)[0].length;
-            var clear = false;
-            var protrusion;
-            lyricText = lyricText
-                .replace(__lyricAreaTagRegex, "")
-                .replace(__lyricClearRegex, () => {
-                clear = true;
-                return "";
-            })
-                .replace(__lyricProtrusionRegex, (tag, factor, index) => {
-                if (!protrusion)
-                    protrusion = { factor: factor ? parseFloat(factor) : undefined, textIndex: index };
-                return "";
-            });
-            // a verse number is drawn apart from the syllable, which is centered
-            // without it (see VerseNumber); an empty one ends the verse number in
-            // effect, which isn't repeated after it (e.g. before an Amen)
-            let verseNumber;
-            let endsVerseNumbers = false;
-            var verseNumberMatch = __verseNumberRegex.exec(lyricText);
-            // (the markup around it must close just after it)
-            if (verseNumberMatch &&
-                verseNumberMatch[4] !== (verseNumberMatch[2].match(/\w+/g) || []).reverse().map((tag) => `</${tag}>`).join(""))
-                verseNumberMatch = null;
-            if (verseNumberMatch) {
-                let [all, space, open, number, close] = verseNumberMatch;
-                let length = all.length;
-                // (and a lyric tie after it, which isn't a space unless ctxt.lyricTie is "space")
-                let tieSpecial = LyricTieSpecials[ctxt.lyricTie];
-                let tie = tieSpecial && ctxt.specials[tieSpecial];
-                if (tie && lyricText.startsWith(tie, length))
-                    length += tie.length + /^\s*/.exec(lyricText.slice(length + tie.length))[0].length;
-                let verseNumberText = (number || "").trim();
-                if (verseNumberText)
-                    verseNumber = new VerseNumber(ctxt, open + verseNumberText + close, 
-                    // (from its markup, or else just after the tag)
-                    lyricSourceIndex + (open ? space.length : all.indexOf(">") + 1));
-                else
-                    endsVerseNumbers = true;
-                lyricText = lyricText.slice(length);
-                lyricSourceIndex += length;
-                if (protrusion)
-                    protrusion.textIndex = Math.max(0, protrusion.textIndex - length);
-            }
-            // gabc allows lyrics to indicate the centering part of the text by
-            // using braces to indicate how to center the lyric. So a lyric can
-            // look like "f{i}re" or "{fenced}" to center on the i or on the entire
-            // word, respectively. Here we determine if the lyric should be spaced
-            // manually with this method of using braces.
-            // however, we don't consider any braces inside of v tags.  The first {
-            // and the first } center the lyric (if the } is after the {), and, as in Gregorio (which
-            // ignores a second center), no brace is printed.  Each brace is taken
-            // out, keeping where it was and where it is without the braces before it:
-            var centerStartIndex = -1;
-            var centerLength = 0;
-            let braces = {};
-            let bracesRemoved = 0, bracesBeforeProtrusion = 0;
-            lyricText = lyricText.replace(/(<v>[\s\S]*?<\/v>)|[{}]/g, (brace, vTag, index) => {
-                if (vTag)
-                    return vTag;
-                braces[brace] = braces[brace] || { index, at: index - bracesRemoved };
-                bracesRemoved++;
-                if (protrusion && index < protrusion.textIndex)
-                    bracesBeforeProtrusion++;
-                return "";
-            });
-            let opening = braces["{"], closing = braces["}"];
-            if (opening && closing && closing.index > opening.index) {
-                centerStartIndex = opening.at;
-                centerLength = closing.at - opening.at;
-            }
-            if (protrusion)
-                protrusion.textIndex -= bracesBeforeProtrusion;
-            var lyric = this.makeLyric(ctxt, lyricText, proposedLyricType, notation, notations, lyricSourceIndex, openingTags(openStyles[i] || []));
-            if (centerStartIndex >= 0) {
-                // update indices in case there had been any tags, etc.
-                let textIndex = 0, centerEndIndex = -1;
-                for (let span of lyric.spans) {
-                    if (centerStartIndex >= span.index &&
-                        centerStartIndex <= span.index + span.text.length) {
-                        centerEndIndex = centerStartIndex + centerLength;
-                        centerStartIndex += textIndex - span.index;
-                    }
-                    if (centerEndIndex >= 0 &&
-                        centerEndIndex >= span.index &&
-                        centerEndIndex <= span.index + span.text.length) {
-                        centerEndIndex += textIndex - span.index;
-                        centerLength = centerEndIndex - centerStartIndex;
-                        centerEndIndex = -1;
-                        break;
-                    }
-                    textIndex += span.text.length;
-                }
-                if (centerEndIndex >= 0) {
-                    centerEndIndex = textIndex;
-                    centerLength = centerEndIndex - centerStartIndex;
-                }
-            }
-            // if we have manual lyric centering, then set it now
-            if (centerStartIndex >= 0) {
-                lyric.centerStartIndex = centerStartIndex;
-                lyric.centerLength = centerLength;
-            }
-            if (clear)
-                lyric.clear = true;
-            if (verseNumber)
-                lyric.verseNumber = verseNumber;
-            if (endsVerseNumbers)
-                lyric.endsVerseNumbers = true;
-            if (protrusion) {
-                protrusion.textIndex = lyricTextIndex(ctxt, lyric, lyricText, protrusion.textIndex);
-                lyric.protrusion = protrusion;
-            }
+            var lyric = this.createLyric(ctxt, lyricText, proposedLyricType, notation, notations, sourceIndex, openingTags(openStyles[i] || []));
             lyric.lyricIndex = lyrics.push(lyric) - 1;
             sourceIndex += lyricTexts[i].length + 1;
         }
         notation.lyrics = lyrics;
         return lyrics;
+    }
+    /**
+     * Makes one of a syllable's lyrics from its text: its verse number, the
+     * braces that center it and Gregorio's controls (<eu> and <nlba>, which
+     * createMappingFromWord() read, <clear> and <pr>) are taken out of the text.
+     */
+    static createLyric(ctxt, lyricText, proposedLyricType, notation, notations, sourceIndex, openStyles) {
+        // Gregorio's controls, which aren't printed: <eu> and <nlba> (which
+        // createMappingFromWord() read), <clear> and <pr> (only the first <pr>
+        // counts, as in Gregorio).  The lyric's source starts after any at its start.
+        var lyricSourceIndex = sourceIndex + __leadingControlsRegex.exec(lyricText)[0].length;
+        var clear = false;
+        var protrusion;
+        lyricText = lyricText
+            .replace(__lyricAreaTagRegex, "")
+            .replace(__lyricClearRegex, () => {
+            clear = true;
+            return "";
+        })
+            .replace(__lyricProtrusionRegex, (tag, factor, index) => {
+            if (!protrusion)
+                protrusion = { factor: factor ? parseFloat(factor) : undefined, textIndex: index };
+            return "";
+        });
+        // a verse number is drawn apart from the syllable, which is centered
+        // without it (see VerseNumber); an empty one ends the verse number in
+        // effect, which isn't repeated after it (e.g. before an Amen)
+        let verseNumber;
+        let endsVerseNumbers = false;
+        var verseNumberMatch = __verseNumberRegex.exec(lyricText);
+        // (the markup around it must close just after it)
+        if (verseNumberMatch &&
+            verseNumberMatch[4] !== (verseNumberMatch[2].match(/\w+/g) || []).reverse().map((tag) => `</${tag}>`).join(""))
+            verseNumberMatch = null;
+        if (verseNumberMatch) {
+            let [all, space, open, number, close] = verseNumberMatch;
+            let length = all.length;
+            // (and a lyric tie after it, which isn't a space unless ctxt.lyricTie is "space")
+            let tieSpecial = LyricTieSpecials[ctxt.lyricTie];
+            let tie = tieSpecial && ctxt.specials[tieSpecial];
+            if (tie && lyricText.startsWith(tie, length))
+                length += tie.length + /^\s*/.exec(lyricText.slice(length + tie.length))[0].length;
+            let verseNumberText = (number || "").trim();
+            if (verseNumberText)
+                verseNumber = new VerseNumber(ctxt, open + verseNumberText + close, 
+                // (from its markup, or else just after the tag)
+                lyricSourceIndex + (open ? space.length : all.indexOf(">") + 1));
+            else
+                endsVerseNumbers = true;
+            lyricText = lyricText.slice(length);
+            lyricSourceIndex += length;
+            if (protrusion)
+                protrusion.textIndex = Math.max(0, protrusion.textIndex - length);
+        }
+        // gabc allows lyrics to indicate the centering part of the text by
+        // using braces to indicate how to center the lyric. So a lyric can
+        // look like "f{i}re" or "{fenced}" to center on the i or on the entire
+        // word, respectively. Here we determine if the lyric should be spaced
+        // manually with this method of using braces.
+        // however, we don't consider any braces inside of v tags.  The first {
+        // and the first } center the lyric (if the } is after the {), and, as in Gregorio (which
+        // ignores a second center), no brace is printed.  Each brace is taken
+        // out, keeping where it was and where it is without the braces before it:
+        var centerStartIndex = -1;
+        var centerLength = 0;
+        let braces = {};
+        let bracesRemoved = 0, bracesBeforeProtrusion = 0;
+        lyricText = lyricText.replace(/(<v>[\s\S]*?<\/v>)|[{}]/g, (brace, vTag, index) => {
+            if (vTag)
+                return vTag;
+            braces[brace] = braces[brace] || { index, at: index - bracesRemoved };
+            bracesRemoved++;
+            if (protrusion && index < protrusion.textIndex)
+                bracesBeforeProtrusion++;
+            return "";
+        });
+        let opening = braces["{"], closing = braces["}"];
+        if (opening && closing && closing.index > opening.index) {
+            centerStartIndex = opening.at;
+            centerLength = closing.at - opening.at;
+        }
+        if (protrusion)
+            protrusion.textIndex -= bracesBeforeProtrusion;
+        var lyric = this.makeLyric(ctxt, lyricText, proposedLyricType, notation, notations, lyricSourceIndex, openStyles);
+        if (centerStartIndex >= 0) {
+            // update indices in case there had been any tags, etc.
+            let textIndex = 0, centerEndIndex = -1;
+            for (let span of lyric.spans) {
+                if (centerStartIndex >= span.index &&
+                    centerStartIndex <= span.index + span.text.length) {
+                    centerEndIndex = centerStartIndex + centerLength;
+                    centerStartIndex += textIndex - span.index;
+                }
+                if (centerEndIndex >= 0 &&
+                    centerEndIndex >= span.index &&
+                    centerEndIndex <= span.index + span.text.length) {
+                    centerEndIndex += textIndex - span.index;
+                    centerLength = centerEndIndex - centerStartIndex;
+                    centerEndIndex = -1;
+                    break;
+                }
+                textIndex += span.text.length;
+            }
+            if (centerEndIndex >= 0) {
+                centerEndIndex = textIndex;
+                centerLength = centerEndIndex - centerStartIndex;
+            }
+        }
+        // if we have manual lyric centering, then set it now
+        if (centerStartIndex >= 0) {
+            lyric.centerStartIndex = centerStartIndex;
+            lyric.centerLength = centerLength;
+        }
+        if (clear)
+            lyric.clear = true;
+        if (verseNumber)
+            lyric.verseNumber = verseNumber;
+        if (endsVerseNumbers)
+            lyric.endsVerseNumbers = true;
+        if (protrusion) {
+            protrusion.textIndex = lyricTextIndex(ctxt, lyric, lyricText, protrusion.textIndex);
+            lyric.protrusion = protrusion;
+        }
+        return lyric;
     }
     static makeLyric(ctxt, text, lyricType, notation, notations, sourceIndex, openStyles = "") {
         var elides = false;
@@ -1708,7 +2350,8 @@ export class Gabc {
         }
         if (text.match(/^(?:[*†]+|i+j|\d+)\.?$/))
             lyricType = LyricType.Directive;
-        var lyric = new Lyric(ctxt, text, lyricType, notation, notations, sourceIndex, openStyles);
+        // (the lyric is measured when its new notation is laid out)
+        var lyric = new Lyric(ctxt, text, lyricType, notation, notations, sourceIndex, openStyles, false);
         lyric.elidesToNext = elides;
         if (forceConnector)
             lyric.setForceConnector(true);
@@ -2301,418 +2944,24 @@ export class Gabc {
         return doNotCut && !forceCut;
     }
     static createNeumesFromNotes(ctxt, notes, finalTrailingSpace) {
-        var neumes = [];
-        var firstNoteIndex = 0;
-        var currNoteIndex = 0;
-        // here we use a simple finite state machine to create the neumes from the notes
-        // createNeume is helper function which returns the next state after a neume is created
-        // (unknownState). Each state object has a neume() function and a handle() function.
-        // neume() allows us to create the neume of the state in the event that we run out
-        // of notes. handle() gives the state an opportunity to examine the currNote and
-        // determine what to do...either transition to a different neume/state, or
-        // continue building the neume of that state. handle() returns the next state
-        var createNeume = function (neume, includeCurrNote, includePrevNote = true) {
-            // add the notes to the neume
-            var lastNoteIndex;
-            if (includeCurrNote)
-                lastNoteIndex = currNoteIndex;
-            else if (includePrevNote)
-                lastNoteIndex = currNoteIndex - 1;
-            else
-                lastNoteIndex = currNoteIndex - 2;
-            // (which leaves no state to go on to)
-            if (lastNoteIndex < 0)
-                return undefined;
-            while (firstNoteIndex <= lastNoteIndex) {
-                let note = notes[firstNoteIndex++];
-                neume.addNote(note);
-                if (note.alText) {
-                    if (!neume.alText)
-                        neume.alText = [];
-                    neume.alText.push(note.alText);
-                    note.alText.noteIndex = firstNoteIndex - 1;
-                }
-            }
-            neumes.push(neume);
-            if (includeCurrNote === false) {
-                currNoteIndex--;
-                if (includePrevNote === false)
-                    currNoteIndex--;
-                neume.keepWithNext = true;
-                if (notes[currNoteIndex + 1].shape === NoteShape.Quilisma)
-                    neume.trailingSpace = 0;
-                else {
-                    neume.trailingSpace = TrailingSpaceMultiple(1);
-                    neume.allowLineBreakBeforeNext = true;
-                }
-            }
-            return unknownState;
-        };
-        var unknownState = {
-            neume: function () {
-                return new Neumes.Punctum();
-            },
-            handle: function (currNote, prevNote) {
-                // a linea (gabc =) is a neume of its own, whatever its shape
-                if (currNote.linea)
-                    return createNeume(new Neumes.Punctum(), true);
-                else if (currNote.shape === NoteShape.Virga)
-                    return virgaState;
-                else if (currNote.shape === NoteShape.Stropha)
-                    return apostrophaState;
-                else if (currNote.shape === NoteShape.Oriscus)
-                    return oriscusState;
-                else if (currNote.shape === NoteShape.Inclinatum)
-                    return punctaInclinataState;
-                // (a cavum goes into a neume like any other note, and is drawn hollow
-                // there, but a punctum cavum between lines, r0, stands alone)
-                else if (currNote.shapeModifiers & NoteShapeModifiers.Cavum &&
-                    currNote.shapeModifiers & NoteShapeModifiers.Linea)
-                    return createNeume(new Neumes.Punctum(), true);
-                else
-                    return punctumState;
-            }
-        };
-        var punctumState = {
-            neume: function () {
-                return new Neumes.Punctum();
-            },
-            handle: function (currNote, prevNote, notesRemaining) {
-                // an oriscus scapus is joined to the lower punctum before it, as in
-                // Gregorio (unless either is liquescent)
-                if (currNote.shape === NoteShape.Oriscus &&
-                    currNote.shapeModifiers & NoteShapeModifiers.Stemmed &&
-                    currNote.staffPosition > prevNote.staffPosition &&
-                    prevNote.liquescent === LiquescentType.None &&
-                    currNote.liquescent === LiquescentType.None)
-                    return pesOriscusState;
-                if (currNote.shape || prevNote.liquescent === LiquescentType.Small) {
-                    var neume = new Neumes.Punctum();
-                    var state = createNeume(neume, false);
-                    // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
-                    // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
-                    // Otherwise, we want no trailing space.
-                    if (currNote.staffPosition > prevNote.staffPosition &&
-                        (currNote.staffPosition % 2 === 1 ||
-                            prevNote.staffPosition !== currNote.staffPosition - 1 ||
-                            !prevNote.morae ||
-                            prevNote.morae.length === 0))
-                        neume.trailingSpace = 0;
-                    return state;
-                }
-                if (currNote.staffPosition > prevNote.staffPosition) {
-                    if (currNote.ictus)
-                        currNote.ictus.positionHint = MarkingPositionHint.Above;
-                    // a pes quadratum (gabc q) has no more notes, as in Gregorio
-                    if (prevNote.quadratum)
-                        return createNeume(new Neumes.PesQuadratum(), true);
-                    return podatusState;
-                }
-                else if (currNote.staffPosition < prevNote.staffPosition) {
-                    if (prevNote.ictus)
-                        prevNote.ictus.positionHint = MarkingPositionHint.Above;
-                    // (TypeScript thinks the shape must be 0 by now, from the check above)
-                    if (currNote.shape === NoteShape.Inclinatum)
-                        return climacusState;
-                    else {
-                        return clivisState;
-                    }
-                }
-                else if (!prevNote.morae || !prevNote.morae.length) {
-                    return distrophaState;
-                }
-                return createNeume(new Neumes.Punctum(), false);
-            }
-        };
-        var punctaInclinataState = {
-            neume: function () {
-                return new Neumes.PunctaInclinata();
-            },
-            handle: function () {
-                if (currNote.shape !== NoteShape.Inclinatum)
-                    return createNeume(new Neumes.PunctaInclinata(), false);
-                else
-                    return punctaInclinataState;
-            }
-        };
-        var oriscusState = {
-            neume: function () {
-                return new Neumes.Oriscus();
-            },
-            handle: function (currNote, prevNote) {
-                // (the oriscus points to the note after it, unless gabc designates its direction)
-                if (currNote.shape === NoteShape.Default) {
-                    if (currNote.staffPosition > prevNote.staffPosition)
-                        return createNeume(new Neumes.PesQuassus(), true);
-                    else if (currNote.staffPosition < prevNote.staffPosition)
-                        return createNeume(new Neumes.Clivis(), true);
-                }
-                // stand alone oriscus
-                var neume = new Neumes.Oriscus(), state = createNeume(neume, false);
-                // if the current note is on a space within the staff AND the previous note is on the line below AND the previous note has a mora,
-                // then we went the trailing space at its default of intraNeumeSpacing to prevent the dot from running up into the current note.
-                // Otherwise, we want no trailing space.
-                if (currNote.staffPosition > prevNote.staffPosition &&
-                    (currNote.staffPosition % 2 === 1 ||
-                        prevNote.staffPosition !== currNote.staffPosition - 1 ||
-                        !prevNote.morae ||
-                        prevNote.morae.length === 0))
-                    neume.trailingSpace = 0;
-                return state;
-            }
-        };
-        var pesOriscusState = {
-            neume: function () {
-                return new Neumes.PesOriscus();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Default &&
-                    currNote.staffPosition > prevNote.staffPosition)
-                    return salicusState;
-                else
-                    return createNeume(new Neumes.PesOriscus(), false);
-            }
-        };
-        var podatusState = {
-            neume: function () {
-                return new Neumes.Podatus();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.staffPosition > prevNote.staffPosition) {
-                    if (currNote.ictus)
-                        currNote.ictus.positionHint = MarkingPositionHint.Above;
-                    if (prevNote.ictus)
-                        prevNote.ictus.positionHint = MarkingPositionHint.Below;
-                    if (prevNote.shape === NoteShape.Oriscus)
-                        return salicusState;
-                    else
-                        return scandicusState;
-                }
-                else if (currNote.staffPosition < prevNote.staffPosition) {
-                    if (currNote.shape === NoteShape.Inclinatum)
-                        return pesSubpunctisState;
-                    else
-                        return torculusState;
-                }
-                else
-                    return createNeume(new Neumes.Podatus(), false);
-            }
-        };
-        var clivisState = {
-            neume: function () {
-                return new Neumes.Clivis();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Default &&
-                    currNote.staffPosition > prevNote.staffPosition) {
-                    if (currNote.ictus)
-                        currNote.ictus.positionHint = MarkingPositionHint.Above;
-                    return porrectusState;
-                }
-                else if (currNote.staffPosition < prevNote.staffPosition &&
-                    currNote.liquescent & LiquescentType.Small) {
-                    return createNeume(new Neumes.Ancus(), true);
-                }
-                else {
-                    return createNeume(new Neumes.Clivis(), false);
-                }
-            }
-        };
-        var climacusState = {
-            neume: function () {
-                return new Neumes.Climacus();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape !== NoteShape.Inclinatum)
-                    return createNeume(new Neumes.Climacus(), false);
-                else
-                    return state;
-            }
-        };
-        var porrectusState = {
-            neume: function () {
-                return new Neumes.Porrectus();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Default &&
-                    currNote.staffPosition < prevNote.staffPosition)
-                    return createNeume(new Neumes.PorrectusFlexus(), true);
-                else
-                    return createNeume(new Neumes.Porrectus(), false);
-            }
-        };
-        var pesSubpunctisState = {
-            neume: function () {
-                return new Neumes.PesSubpunctis();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape !== NoteShape.Inclinatum)
-                    return createNeume(new Neumes.PesSubpunctis(), false);
-                else
-                    return state;
-            }
-        };
-        var salicusState = {
-            neume: function () {
-                return new Neumes.Salicus();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Default &&
-                    currNote.staffPosition < prevNote.staffPosition)
-                    return salicusFlexusState;
-                else
-                    return createNeume(new Neumes.Salicus(), false);
-            }
-        };
-        var salicusFlexusState = {
-            neume: function () {
-                return new Neumes.SalicusFlexus();
-            },
-            handle: function (currNote, prevNote) {
-                return createNeume(new Neumes.SalicusFlexus(), false);
-            }
-        };
-        var scandicusState = {
-            neume: function () {
-                return new Neumes.Scandicus();
-            },
-            handle: function (currNote, prevNote) {
-                if (prevNote.shape === NoteShape.Virga &&
-                    currNote.shape === NoteShape.Inclinatum &&
-                    currNote.staffPosition < prevNote.staffPosition) {
-                    // if we get here, then it seems we have a podatus, now being followed by a climacus
-                    // rather than a scandicus. react accordingly
-                    return createNeume(new Neumes.Podatus(), false, false);
-                }
-                else if (currNote.shape === NoteShape.Default &&
-                    currNote.staffPosition < prevNote.staffPosition)
-                    return scandicusFlexusState;
-                else
-                    return createNeume(new Neumes.Scandicus(), false);
-            }
-        };
-        var scandicusFlexusState = {
-            neume: function () {
-                return new Neumes.ScandicusFlexus();
-            },
-            handle: function (currNote, prevNote) {
-                return createNeume(new Neumes.ScandicusFlexus(), false);
-            }
-        };
-        var virgaState = {
-            neume: function () {
-                return new Neumes.Virga();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Inclinatum &&
-                    currNote.staffPosition < prevNote.staffPosition)
-                    return climacusState;
-                else if (currNote.shape === NoteShape.Virga &&
-                    currNote.staffPosition === prevNote.staffPosition)
-                    return bivirgaState;
-                else
-                    return createNeume(new Neumes.Virga(), false);
-            }
-        };
-        var bivirgaState = {
-            neume: function () {
-                return new Neumes.Bivirga();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Virga &&
-                    currNote.staffPosition === prevNote.staffPosition)
-                    return createNeume(new Neumes.Trivirga(), true);
-                else
-                    return createNeume(new Neumes.Bivirga(), false);
-            }
-        };
-        var apostrophaState = {
-            neume: function () {
-                return new Neumes.Apostropha();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.staffPosition === prevNote.staffPosition)
-                    return distrophaState;
-                else
-                    return createNeume(new Neumes.Apostropha(), false);
-            }
-        };
-        var distrophaState = {
-            neume: function () {
-                return new Neumes.Distropha();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.staffPosition === prevNote.staffPosition) {
-                    if (prevNote.morae && prevNote.morae.length) {
-                        return createNeume(new Neumes.Distropha(), false);
-                    }
-                    else {
-                        return tristrophaState;
-                    }
-                }
-                else
-                    return createNeume(new Neumes.Apostropha(), false, false);
-            }
-        };
-        var tristrophaState = {
-            neume: function () {
-                return new Neumes.Tristropha();
-            },
-            handle: function (currNote, prevNote) {
-                // we only create a tristropha when the note run ends after three
-                // and the neume() function of this state is called. Otherwise
-                // we always interpret the third note to belong to the next sequence
-                // of notes.
-                //
-                // fixme: gabc allows any number of punctum/stropha in succession...
-                // is this a valid neume type? Or is it just multiple *stropha neumes
-                // in succession? Should we simplify the apostropha/distropha/
-                // tristropha classes to a generic stropha neume that can have 1 or
-                // more successive notes?
-                return createNeume(new Neumes.Distropha(), false, false);
-            }
-        };
-        var torculusState = {
-            neume: function () {
-                return new Neumes.Torculus();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Default &&
-                    currNote.staffPosition > prevNote.staffPosition) {
-                    if (currNote.ictus)
-                        currNote.ictus.positionHint = MarkingPositionHint.Above;
-                    return torculusResupinusState;
-                }
-                return createNeume(new Neumes.Torculus(), false);
-            }
-        };
-        var torculusResupinusState = {
-            neume: function () {
-                return new Neumes.TorculusResupinus();
-            },
-            handle: function (currNote, prevNote) {
-                if (currNote.shape === NoteShape.Default &&
-                    currNote.staffPosition < prevNote.staffPosition)
-                    return createNeume(new Neumes.TorculusResupinusFlexus(), true);
-                else
-                    return createNeume(new Neumes.TorculusResupinus(), false);
-            }
-        };
+        // (see NeumeBuilder)
+        var builder = new NeumeBuilder(notes);
+        var neumes = builder.neumes;
         var state = unknownState;
-        while (currNoteIndex < notes.length) {
-            var prevNote = currNoteIndex > 0 ? notes[currNoteIndex - 1] : null;
-            var currNote = notes[currNoteIndex];
+        while (builder.currNoteIndex < notes.length) {
+            var prevNote = builder.currNoteIndex > 0 ? notes[builder.currNoteIndex - 1] : null;
+            var currNote = notes[builder.currNoteIndex];
             // a linea (gabc =) and the lower note of a pes quadratum (gabc q) start
             // a new neume, as in Gregorio
             if ((currNote.linea || currNote.quadratum) && state !== unknownState)
-                state = createNeume(state.neume(), false);
+                state = builder.createNeume(state.neume(), false);
             else
                 // (only the first note has no previous note, and it starts with unknownState, which doesn't use it)
-                state = state.handle(currNote, prevNote, notes.length - 1 - currNoteIndex);
+                state = state.handle(currNote, prevNote, notes.length - 1 - builder.currNoteIndex, builder);
             // if we are on the last note, then try to create a neume if we need to.
-            if (currNoteIndex === notes.length - 1 && state !== unknownState)
-                createNeume(state.neume(), true);
-            currNoteIndex++;
+            if (builder.currNoteIndex === notes.length - 1 && state !== unknownState)
+                builder.createNeume(state.neume(), true);
+            builder.currNoteIndex++;
         }
         setFinalTrailingSpace(ctxt, neumes, finalTrailingSpace);
         return neumes;

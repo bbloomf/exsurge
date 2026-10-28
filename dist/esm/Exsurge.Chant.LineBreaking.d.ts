@@ -34,14 +34,21 @@ interface Stretch {
     /** sum without the space before custos */
     sumWithoutCustos: number;
 }
-/** a line laid out from some notation (see LineBreaker.layOutLineFrom()) */
-interface TrialLine {
-    /** where its staff starts (where it ends is up to the layout that uses it) */
-    staffLeft: number;
-    paddingLeft: number;
-    /** the clef in effect at its start, and that clef's layoutId */
-    clef: Clef;
-    clefLayoutId?: number;
+/**
+ * the notations that a line laid out from the one at start reads (see
+ * LineBreaker.layOutLineFrom()): from the one before it (whose lyrics it can
+ * start with), up to two after the last that it lays out, where last is
+ * (which spaceNeumeBeforeSoftAccidental() and isClefLineBreak() look at),
+ * or to the end of the score
+ */
+export declare const readFrom: (start: number) => number;
+export declare const readTo: (last: number, notationCount: number) => number;
+/**
+ * the notations that laying out a line read, as they were then: laying it out
+ * again gives the same while they're the same (see isReadUpToDate()), and the
+ * clef in effect at its start is too
+ */
+export interface ReadNotations {
     /** the notations that it read (see readFrom()), and their layoutIds */
     read: ChantNotationElement[];
     layoutIds: Array<number | undefined>;
@@ -53,6 +60,30 @@ interface TrialLine {
      * notation out again (see Gabc.updateMappingsFromSource())
      */
     translationEnds: Array<ChantNotationElement | undefined>;
+}
+/**
+ * whether the notations that a line read from the one at from (see
+ * readFrom()) are still the score's notations there, not laid out again
+ * since, with the same ends to their translations, and going on to the end of
+ * the score only if they did then (for a line at the end of the score
+ * finishes differently)
+ */
+export declare function isReadUpToDate(notations: ChantNotationElement[], from: number, line: ReadNotations): boolean;
+/**
+ * what lines laid out from the score depend on besides its notations: the
+ * context's settings, and whether the score has a drop cap (but for the
+ * settings that are objects, such as the text styles, which the notations
+ * are laid out again for: see ChantScore.performLayout())
+ */
+export declare function layoutSettings(score: ChantScore, ctxt: ChantContext): string;
+/** a line laid out from some notation (see LineBreaker.layOutLineFrom()) */
+interface TrialLine extends ReadNotations {
+    /** where its staff starts (where it ends is up to the layout that uses it) */
+    staffLeft: number;
+    paddingLeft: number;
+    /** the clef in effect at its start, and that clef's layoutId */
+    clef: Clef;
+    clefLayoutId?: number;
     /**
      * the widths it serves: from how far right it was laid out to, or with no
      * limit if it ended of its own accord, down to any narrower width, unless
@@ -70,7 +101,7 @@ interface TrialLine {
 }
 /** the lines laid out from each notation by the last layouts of a score, by the notation */
 interface TrialLines {
-    /** the settings they were laid out with (see LineBreaker.getSettings()) */
+    /** the settings they were laid out with (see layoutSettings()) */
     settings: string;
     lines: Map<ChantNotationElement, TrialLine[]>;
     /** the last layouts' plans (see LineBreaker.planAgain()) */
@@ -202,12 +233,7 @@ export declare class LineBreaker {
      * have changed since, without those from notations no longer in it
      */
     getTrialLines(): TrialLines;
-    /**
-     * what lines laid out from the score depend on besides its notations: the
-     * context's settings, and whether the score has a drop cap (but for the
-     * settings that are objects, such as the text styles, which the notations
-     * are laid out again for: see ChantScore.performLayout())
-     */
+    /** (see layoutSettings()) */
     getSettings(): string;
     /**
      * Lays out notations from start, as buildFromChantNotationIndex() would lay

@@ -11,6 +11,13 @@ import type { ChantContext, ChantNotationElement, TrailingSpace } from "./Exsurg
 export type WordDiff<Descriptor extends {
     source: string;
 } = ChantMapping> = ["=" | "+", string[]] | ["-", Descriptor[]];
+/** a lyric-line header's value, from Gabc.getLyricLines() */
+export interface LyricLine {
+    /** the value, with its $ escapes masked */
+    text: string;
+    /** the index in the gabc of each character of the text */
+    indices: number[];
+}
 /** a syllable of a gabc word, from Gabc.parseWord() */
 export interface ParsedSyllable {
     notations: string;
@@ -77,6 +84,36 @@ export declare class Gabc {
     static createMappingsFromSource(ctxt: ChantContext, gabcSource: string): ChantMapping[];
     /** the number of lines of NABC that a gabc file's header gives (nabc-lines) */
     static getNabcLines(gabc: string, headerLength?: number): number;
+    /**
+     * The values of a gabc file's lyric-line headers, in order, each with its
+     * $ escapes masked (as maskGabc() masks them) and the index in the gabc of
+     * each of its characters.  Values with nothing in them are left out.
+     */
+    static getLyricLines(gabc: string, headerLength?: number): LyricLine[];
+    /**
+     * Splits a lyric-line header's value into syllables: a + between them, a -
+     * between them that is always drawn as a hyphen, and spaces between words.
+     * A syllable that is just _ is left empty, and in other syllables, _ is a
+     * space (which, as in any syllable, doesn't break) and ~ is a lyric tie,
+     * as in the gabc's syllables.  A verse number goes with the syllable after
+     * it, and the text in <v>, <alt> and <sp>, and in tags, is kept as it is.
+     */
+    static splitLyricLine(ctxt: ChantContext, line: LyricLine): {
+        text: string;
+        index: number;
+        lyricType: LyricType;
+    }[];
+    /**
+     * Gives the syllables with notes in mappings (see ChantMapping.lyricSlots)
+     * the syllables of lyricLines, the gabc's lyric-line headers, in turn, each
+     * header a line of lyrics after the first.  A syllable that has no lyric of
+     * its own gets an empty one, as does one that a header leaves empty (with
+     * _) when a header after it doesn't.  Each lyric's source index is the
+     * negative of its index in the gabc, header and all.  The lyrics that the
+     * headers gave before are kept where they are still the same, so that only
+     * the notations whose lyrics change need to be laid out again.
+     */
+    static applyLyricLines(ctxt: ChantContext, mappings: ChantMapping[], lyricLines: LyricLine[]): void;
     /**
      * Splits a syllable's notes into gabc and Gregorio's NABC, when there are
      * nabcLines lines of NABC.  As in Gregorio, the parts between the |s take
@@ -159,6 +196,12 @@ export declare class Gabc {
     static setAutomaticLeanings(notes: Note[]): void;
     static createMappingFromWord(ctxt: ChantContext, word: string, sourceIndex: number, lastTranslationNeumes: ChantNotationElement[], insertionIndex?: number): ChantMapping;
     static createSyllableLyrics(ctxt: ChantContext, text: string, proposedLyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number): Lyric[];
+    /**
+     * Makes one of a syllable's lyrics from its text: its verse number, the
+     * braces that center it and Gregorio's controls (<eu> and <nlba>, which
+     * createMappingFromWord() read, <clear> and <pr>) are taken out of the text.
+     */
+    static createLyric(ctxt: ChantContext, lyricText: string, proposedLyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number, openStyles: string): Lyric;
     static makeLyric(ctxt: ChantContext, text: string, lyricType: LyricType, notation: ChantNotationElement, notations: ChantNotationElement[], sourceIndex: number, openStyles?: string): Lyric;
     static parseNotations(ctxt: ChantContext, data: string, sourceIndex: number, insertionIndex?: number): ChantNotationElement[];
     static createClef(type: string, line: number, flat: boolean): Clef;

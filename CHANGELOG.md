@@ -1,3 +1,22 @@
+# [2.7.0](https://github.com/bbloomf/exsurge/compare/v2.6.1...v2.7.0) (2026-10-28)
+
+
+### Bug Fixes
+
+* **layout:** Leave out the lines of lyrics that a line of the score doesn't use ([cdccfa8](https://github.com/bbloomf/exsurge/commit/cdccfa835782ee7236660511d3aa132988df0481))
+
+
+### Features
+
+* **gabc:** Read lyric-line headers as extra lines of lyrics ([e9211ad](https://github.com/bbloomf/exsurge/commit/e9211ad82efa28d286486c67887c81d24ca4fbce))
+
+
+### Performance Improvements
+
+* Allocate less and mask each gabc word once while parsing ([d7d350a](https://github.com/bbloomf/exsurge/commit/d7d350aa5eb1061d0b09aea3fe26913c9ccdfa6d))
+* **layout:** Use the lines and svg that an edit leaves as they were again ([16c13a4](https://github.com/bbloomf/exsurge/commit/16c13a4d0a77d5bccd56cbdcc5d14b69d6d7021d))
+* **parse:** Leave a parsed lyric to be measured when it's laid out ([097dc83](https://github.com/bbloomf/exsurge/commit/097dc83e5c06a8f8f2f59d0e6798d8f98395af3d))
+
 ## [2.6.1](https://github.com/bbloomf/exsurge/compare/v2.6.0...v2.6.1) (2026-10-28)
 
 
