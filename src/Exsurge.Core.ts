@@ -205,12 +205,17 @@ export class Rect {
   }
 
   union(rect: Rect) {
+    this.unionWith(rect.x, rect.y, rect.width, rect.height);
+  }
 
-    var right = Math.max(this.x + this.width, rect.x + rect.width);
-    var bottom = Math.max(this.y + this.height, rect.y + rect.height);
+  // the same as union(new Rect(x, y, width, height)), without making the rect
+  unionWith(x: number, y: number, width: number, height: number) {
 
-    this.x = Math.min(this.x, rect.x);
-    this.y = Math.min(this.y, rect.y);
+    var right = Math.max(this.x + this.width, x + width);
+    var bottom = Math.max(this.y + this.height, y + height);
+
+    this.x = Math.min(this.x, x);
+    this.y = Math.min(this.y, y);
 
     this.width = right - this.x;
     this.height = bottom - this.y;
