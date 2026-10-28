@@ -308,6 +308,12 @@ export class ChantLine extends ChantLayoutElement {
   lyricLineHeight: number;
   lyricLineBaseline: number;
   numLyricLines: number;
+  /**
+   * the row that each line of lyrics is drawn on, leaving out the lines of
+   * lyrics that have no text on the line and no verse number in effect (as
+   * before an Amen after an empty verse number), which take up no room
+   */
+  lyricRows: number[] = [];
   altLineHeight!: number;
   altLineBaseline!: number;
   numAltLines!: number;
@@ -418,6 +424,7 @@ export class ChantLine extends ChantLayoutElement {
     this.numTranslationLines = 0;
 
     const aboveLinesLineHeight = ctxt.textStyles.al.size * (ctxt.textStyles.al.lineHeight || 1.1);
+    const usedLyricLines: boolean[] = [];
 
     for (i = this.notationsStartIndex; i < lastNeumeIndex; i++) {
       notation = notations[i];
@@ -425,15 +432,12 @@ export class ChantLine extends ChantLayoutElement {
       if (notation.bounds.height || notation.bounds.width)
         this.notationBounds.union(notation.bounds);
 
-      // keep track of lyric line offsets
-      if (notation.lyrics.length && notation.lyrics[0].text) {
-        // if (notation.lyrics[0].bounds.height > this.lyricLineHeight)
-        //   this.lyricLineHeight = notation.lyrics[0].bounds.height;
-        if (notation.lyrics[0].origin.y > this.lyricLineBaseline)
-          this.lyricLineBaseline = notation.lyrics[0].origin.y;
-        if (notation.lyrics.length > this.numLyricLines)
-          this.numLyricLines = notation.lyrics.length;
-      }
+      // keep track of lyric line offsets, and which lines of lyrics are used
+      notation.lyrics.forEach((lyric, j) => {
+        if (!lyric.text && !lyric.verseNumber && !lyric.verseNumberInEffect) return;
+        usedLyricLines[j] = true;
+        if (lyric.origin.y > this.lyricLineBaseline) this.lyricLineBaseline = lyric.origin.y;
+      });
 
       if (notation.alText && this.numAltLines < notation.alText.length) {
         if (notation.alText[0].bounds.height > this.altLineHeight)
@@ -461,6 +465,13 @@ export class ChantLine extends ChantLayoutElement {
       }
     }
 
+    // a line of lyrics that isn't used is drawn on the row of the next one
+    this.lyricRows = [];
+    for (let j = 0; j < usedLyricLines.length; j++) {
+      this.lyricRows.push(this.numLyricLines);
+      if (usedLyricLines[j]) this.numLyricLines++;
+    }
+
     if (this.custos) this.notationBounds.union(this.custos.bounds);
 
     // add any braces to the notationBounds as well
@@ -482,11 +493,9 @@ export class ChantLine extends ChantLayoutElement {
 
     for (i = this.notationsStartIndex; i < lastNeumeIndex; i++) {
       notation = notations[i];
-      var offset = 0;
-      for (var j = 0; j < notation.lyrics.length; j++) {
-        notation.lyrics[j].bounds.y = offset + this.lyricLineBaseline;
-        offset += this.lyricLineHeight;
-      }
+      for (var j = 0; j < notation.lyrics.length; j++)
+        notation.lyrics[j].bounds.y = this.lyricRow(j) * this.lyricLineHeight + this.lyricLineBaseline;
+      var offset = this.lyricRow(notation.lyrics.length) * this.lyricLineHeight;
 
       if (notation.translationText) {
         for (j = 0; j < notation.translationText.length; j++) {
@@ -529,7 +538,7 @@ export class ChantLine extends ChantLayoutElement {
         let lyricLines = this.numLyricLines;
         for (i = this.notationsStartIndex; i < this.extraTextOnlyIndex; i++) {
           notations[i].lyrics.forEach((lyric, j) => {
-            lyricLines = Math.max(lyricLines, j + lyric.numLines!);
+            if (lyric.text) lyricLines = Math.max(lyricLines, this.lyricRow(j) + lyric.numLines!);
           });
         }
         offset = (lyricLines - 1) * this.lyricLineHeight;
@@ -555,11 +564,8 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     if (this.startingClef.hasLyrics()) {
-      offset = 0;
-      for (j = 0; j < this.startingClef.lyrics.length; j++) {
-        this.startingClef.lyrics[j].bounds.y = offset + this.lyricLineBaseline;
-        offset += this.lyricLineHeight;
-      }
+      for (j = 0; j < this.startingClef.lyrics.length; j++)
+        this.startingClef.lyrics[j].bounds.y = this.lyricRow(j) * this.lyricLineHeight + this.lyricLineBaseline;
     }
 
     // dropCap and the annotations (which ChantScore.placeDropCap() places once
@@ -2941,6 +2947,11 @@ export class ChantLine extends ChantLayoutElement {
       repeated = true;
     });
     if (repeated) notation.alignLyrics(ctxt);
+  }
+
+  /** the row on the line that the line of lyrics at index is drawn on */
+  lyricRow(index: number) {
+    return index < this.lyricRows.length ? this.lyricRows[index] : this.numLyricLines;
   }
 
   /**

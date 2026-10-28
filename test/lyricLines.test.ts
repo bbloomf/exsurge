@@ -226,3 +226,34 @@ describe('Header values', function() {
     assert.equal(header.commentary, 'Price $');
   });
 });
+
+describe('Lines of lyrics on a line of the score', function() {
+  // the number of lines of lyrics on each line of the score, and the y of each lyric of its neumes
+  function rowsOf(gabc: string) {
+    var { score, ctxt } = scoreOf(gabc);
+    score.layoutChantLines(ctxt, 1000);
+    return score.lines.map((line): [number, number[][]] => [
+      line.numLyricLines,
+      score.notations
+        .slice(line.notationsStartIndex, line.notationsStartIndex + line.numNotationsOnLine)
+        .filter((notation) => notation.isNeume)
+        .map((notation) => notation.lyrics.map((lyric) => lyric.bounds.y - line.lyricLineBaseline))
+    ]);
+  }
+
+  it("leaves out the lines of lyrics with no text and no verse number in effect, as before an Amen", function() {
+    var verses = '(c4) <verseNum>1.</verseNum> Glo|<verseNum>2.</verseNum> Lau(f)ri|des(g)a.|tu.(h) (::) (z) ';
+    var [first, amen] = rowsOf(verses + '<verseNum></verseNum>|<verseNum></verseNum>A(f) |men.(g) (::)');
+    assert.equal(first[0], 2);
+    assert.equal(amen[0], 1);
+    assert.deepEqual(amen[1], [[0, 0], [0, 0]]);
+  });
+
+  it("keeps a line of lyrics with a verse number in effect, though it has no text on the line", function() {
+    var verses = '(c4) <verseNum>1.</verseNum> Glo|<verseNum>2.</verseNum> Lau(f)ri|des(g)a.|tu.(h) (::) (z) ';
+    var [, amen] = rowsOf(verses + '|A(f) |men.(g) (::)');
+    assert.equal(amen[0], 2);
+    var height = rowsOf(verses)[0][1][0][1];
+    assert.deepEqual(amen[1], [[0, height], [0, height]]);
+  });
+});
