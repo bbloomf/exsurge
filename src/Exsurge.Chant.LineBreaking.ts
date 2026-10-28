@@ -172,17 +172,15 @@ interface Stretch {
  * (which spaceNeumeBeforeSoftAccidental() and isClefLineBreak() look at),
  * or to the end of the score
  */
-const readFrom = (start: number) => Math.max(0, start - 1);
-const readTo = (last: number, notationCount: number) => Math.min(notationCount, last + 3);
+export const readFrom = (start: number) => Math.max(0, start - 1);
+export const readTo = (last: number, notationCount: number) => Math.min(notationCount, last + 3);
 
-/** a line laid out from some notation (see LineBreaker.layOutLineFrom()) */
-interface TrialLine {
-  /** where its staff starts (where it ends is up to the layout that uses it) */
-  staffLeft: number;
-  paddingLeft: number;
-  /** the clef in effect at its start, and that clef's layoutId */
-  clef: Clef;
-  clefLayoutId?: number;
+/**
+ * the notations that laying out a line read, as they were then: laying it out
+ * again gives the same while they're the same (see isReadUpToDate()), and the
+ * clef in effect at its start is too
+ */
+export interface ReadNotations {
   /** the notations that it read (see readFrom()), and their layoutIds */
   read: ChantNotationElement[];
   layoutIds: Array<number | undefined>;
@@ -194,6 +192,53 @@ interface TrialLine {
    * notation out again (see Gabc.updateMappingsFromSource())
    */
   translationEnds: Array<ChantNotationElement | undefined>;
+}
+
+/**
+ * whether the notations that a line read from the one at from (see
+ * readFrom()) are still the score's notations there, not laid out again
+ * since, with the same ends to their translations, and going on to the end of
+ * the score only if they did then (for a line at the end of the score
+ * finishes differently)
+ */
+export function isReadUpToDate(notations: ChantNotationElement[], from: number, line: ReadNotations) {
+  var read = line.read;
+  if (line.toEnd !== (from + read.length === notations.length) || from + read.length > notations.length)
+    return false;
+  for (var k = 0; k < read.length; k++) {
+    var notation = notations[from + k];
+    if (notation !== read[k] || notation.layoutId !== line.layoutIds[k]) return false;
+  }
+  var ends = line.translationEnds;
+  for (k = 0; k < ends.length; k += 2) if (ends[k]!.translationText![0].endNeume !== ends[k + 1]) return false;
+  return true;
+}
+
+/**
+ * what lines laid out from the score depend on besides its notations: the
+ * context's settings, and whether the score has a drop cap (but for the
+ * settings that are objects, such as the text styles, which the notations
+ * are laid out again for: see ChantScore.performLayout())
+ */
+export function layoutSettings(score: ChantScore, ctxt: ChantContext) {
+  var context = ctxt as unknown as Record<string, unknown>,
+    settings = "useDropCap=" + score.useDropCap;
+  for (var key of Object.keys(context)) {
+    var value = context[key];
+    if (typeof value !== "object" && typeof value !== "function" && !contextState.includes(key))
+      settings += ";" + key + "=" + value;
+  }
+  return settings;
+}
+
+/** a line laid out from some notation (see LineBreaker.layOutLineFrom()) */
+interface TrialLine extends ReadNotations {
+  /** where its staff starts (where it ends is up to the layout that uses it) */
+  staffLeft: number;
+  paddingLeft: number;
+  /** the clef in effect at its start, and that clef's layoutId */
+  clef: Clef;
+  clefLayoutId?: number;
   /**
    * the widths it serves: from how far right it was laid out to, or with no
    * limit if it ended of its own accord, down to any narrower width, unless
@@ -212,7 +257,7 @@ interface TrialLine {
 
 /** the lines laid out from each notation by the last layouts of a score, by the notation */
 interface TrialLines {
-  /** the settings they were laid out with (see LineBreaker.getSettings()) */
+  /** the settings they were laid out with (see layoutSettings()) */
   settings: string;
   lines: Map<ChantNotationElement, TrialLine[]>;
   /** the last layouts' plans (see LineBreaker.planAgain()) */
@@ -593,17 +638,7 @@ export class LineBreaker {
 
   /** whether laying out the line from start again would give the same as line */
   isUpToDate(line: TrialLine, start: number) {
-    var notations = this.score.notations,
-      from = readFrom(start),
-      read = line.read;
-    if (line.toEnd !== (from + read.length === notations.length) || from + read.length > notations.length)
-      return false;
-    for (var k = 0; k < read.length; k++) {
-      var notation = notations[from + k];
-      if (notation !== read[k] || notation.layoutId !== line.layoutIds[k]) return false;
-    }
-    var ends = line.translationEnds;
-    for (k = 0; k < ends.length; k += 2) if (ends[k]!.translationText![0].endNeume !== ends[k + 1]) return false;
+    if (!isReadUpToDate(this.score.notations, readFrom(start), line)) return false;
     var clef = this.clefAt(start);
     return clef === line.clef && clef.layoutId === line.clefLayoutId;
   }
@@ -627,21 +662,9 @@ export class LineBreaker {
     return this.trialLines;
   }
 
-  /**
-   * what lines laid out from the score depend on besides its notations: the
-   * context's settings, and whether the score has a drop cap (but for the
-   * settings that are objects, such as the text styles, which the notations
-   * are laid out again for: see ChantScore.performLayout())
-   */
+  /** (see layoutSettings()) */
   getSettings() {
-    var ctxt = this.ctxt as unknown as Record<string, unknown>,
-      settings = "useDropCap=" + this.score.useDropCap;
-    for (var key of Object.keys(ctxt)) {
-      var value = ctxt[key];
-      if (typeof value !== "object" && typeof value !== "function" && !contextState.includes(key))
-        settings += ";" + key + "=" + value;
-    }
-    return settings;
+    return layoutSettings(this.score, this.ctxt);
   }
 
   /**

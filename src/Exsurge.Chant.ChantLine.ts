@@ -341,6 +341,16 @@ export class ChantLine extends ChantLayoutElement {
   elementIndex!: number;
   /** a brace that continues onto the next line */
   braceStart?: BracePoint;
+  /**
+   * the index of the furthest notation that buildFromChantNotationIndex()
+   * laid out on the line, to see whether it fitted (see readEnd())
+   */
+  furthestLaidOut?: number;
+  /**
+   * what the line put inside its svg last (see createSvgFragment()), and the
+   * key it was made for
+   */
+  svgFragmentCache?: { key: string; inner: string };
 
   constructor(score: ChantScore) {
     super();
@@ -894,7 +904,32 @@ export class ChantLine extends ChantLayoutElement {
     );
   }
 
-  createSvgFragment(ctxt: ChantContext, top = 0) {
+  /**
+   * The line's svg, starting at top.  With a cacheKey, what goes inside it is
+   * kept, and used again while createSvgFragment() is given the same key, so
+   * the key has to say everything about the line that its svg shows besides
+   * how it's laid out (such as what's selected: see ChantScore.createSvg()).
+   * Laying the line out again forgets it.
+   */
+  createSvgFragment(ctxt: ChantContext, top = 0, cacheKey?: string) {
+    var cache = this.svgFragmentCache,
+      inner =
+        cacheKey !== undefined && cache && cache.key === cacheKey ? cache.inner : this.createInnerSvgFragment(ctxt);
+    if (cacheKey !== undefined) this.svgFragmentCache = { key: cacheKey, inner };
+    return QuickSvg.createFragment(
+      "g",
+      {
+        class: "chantLine",
+        transform:
+          "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
+        "element-index": this.elementIndex
+      },
+      inner
+    );
+  }
+
+  /** what goes inside the line's svg (see createSvgFragment()) */
+  createInnerSvgFragment(ctxt: ChantContext) {
     var inner = "";
 
     // add the chant lines
@@ -968,16 +1003,7 @@ export class ChantLine extends ChantLayoutElement {
 
     if (this.custos) inner += this.custos.createSvgFragment(ctxt);
 
-    return QuickSvg.createFragment(
-      "g",
-      {
-        class: "chantLine",
-        transform:
-          "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
-        "element-index": this.elementIndex
-      },
-      inner
-    );
+    return inner;
   }
 
   buildFromChantNotationIndex(
@@ -998,6 +1024,7 @@ export class ChantLine extends ChantLayoutElement {
     this.notationsStartIndex = newElementStart;
     this.numNotationsOnLine = 0;
     this.clefLineBreak = null;
+    delete this.svgFragmentCache;
 
     this.paddingLeft = 0;
 
@@ -1074,6 +1101,7 @@ export class ChantLine extends ChantLayoutElement {
     }
     var lastLyricsBeforeTextOnly: Lyric[] | undefined;
     var textOnlyStartIndex: number | undefined;
+    this.furthestLaidOut = newElementStart;
 
     for (i = newElementStart; i <= lastNotationIndex; i++) {
       // a hidden soft accidental takes no space, so the notation after it is
@@ -1084,6 +1112,7 @@ export class ChantLine extends ChantLayoutElement {
       }
 
       curr = notations[i];
+      if (i > this.furthestLaidOut) this.furthestLaidOut = i;
 
       // as in Gregorio, a clef just before a line break only goes at the start
       // of the next line, and the custos at the end of this line is worked out
@@ -1629,6 +1658,47 @@ export class ChantLine extends ChantLayoutElement {
     }
 
     this.finishLayout(ctxt);
+  }
+
+  /**
+   * The index after the last of the score's notations that
+   * buildFromChantNotationIndex() could have read to lay the line out, so
+   * that it would lay it out the same again while they're the same (see
+   * ChantScore.reusableLines()): as many past the furthest that it laid out
+   * as LineBreaker's readTo() reads (for a soft accidental, a clef and line
+   * break, or the end of the score), and on through the text only notations
+   * after that (see isTextOnlyBeforeDivider()), to the neume that the custos
+   * at the end of the line is for (see wantsEolCustos() and
+   * ChantContext.findNextNeume()), and through the syllables and notes that
+   * ctxt.minSyllablesLastLine and ctxt.minNotesLastLine count, from there
+   * (which counts more of them than it did, if it counted from further back).
+   */
+  readEnd(ctxt: ChantContext) {
+    var notations = this.score.notations,
+      count = notations.length,
+      furthest = this.furthestLaidOut!,
+      // (as readTo() in Exsurge.Chant.LineBreaking)
+      end = Math.min(count, furthest + 3),
+      k = furthest + 1;
+    while (k < count && notations[k].constructor === TextOnly) k++;
+    end = Math.max(end, Math.min(count, k + 1));
+    k = this.notationsStartIndex + this.numNotationsOnLine;
+    while (k < count && !(notations[k].isNeume && !notations[k].hasNoWidth)) k++;
+    end = Math.max(end, Math.min(count, k + 1));
+    if (ctxt.minSyllablesLastLine && ctxt.minNotesLastLine) {
+      let syllables = 0,
+        notes = 0;
+      for (
+        k = furthest + 1;
+        k < count && syllables < ctxt.minSyllablesLastLine && notes < ctxt.minNotesLastLine;
+        k++
+      ) {
+        if (notations[k].hasLyrics()) syllables++;
+        notes += (notations[k].notes || []).length;
+      }
+      end = Math.max(end, k);
+    }
+    return end;
   }
 
   centerDividers() {

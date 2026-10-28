@@ -171,3 +171,156 @@ describe("Laying out an edited score", () => {
     }
   }, 60000);
 });
+
+// The lines at the start that an edit leaves as they were are used again,
+// with their svg (see ChantScore.layoutChantLines() and createSvg()).  So
+// after each edit, the score is compared with the same score edited the
+// same way but with every line laid out again (and its svg made again),
+// glyph definitions and all, and with the edited gabc laid out afresh.
+describe("Using the lines that an edit leaves as they were", () => {
+  /** a copy of the svg of each line, to count those used again */
+  const lineSvgs = (score: any) => new Map(score.lines.map((line: any) => [line, line.svgFragmentCache?.inner]));
+
+  async function assertLinesUsedAgain(gabc: string, edits: string[], options: RenderOptions, message: string) {
+    const width = options.width || 330;
+    const random = createRandom(edits.length);
+    const reused = await render(E, gabc, { ...options, width }, []);
+    const relaidOut = await render(E, gabc, { ...options, width }, []);
+    let linesUsedAgain = 0;
+    // each with the same elements selected, or the insertion cursor in the same place
+    const select = (score: any, selection: any) => {
+      score.updateSelection(selection);
+    };
+    let lastLines = lineSvgs(reused.score);
+    for (const [i, edit] of edits.entries()) {
+      const elementCount = reused.score.notes.length;
+      const selection = random.chance(0.3)
+        ? undefined
+        : random.chance(0.5)
+        ? { element: { indices: [random.int(elementCount), random.int(elementCount)] } }
+        : { element: { indices: [], insertion: { afterElementIndex: random.int(elementCount) } } };
+      for (const { score, ctxt } of [reused, relaidOut]) {
+        E.Gabc.updateMappingsFromSource(ctxt, score.mappings, edit);
+        score.updateNotations(ctxt);
+        score.performLayout(ctxt);
+        // (with no lines from before, it lays them all out again)
+        if (score === relaidOut.score) score.lines = [];
+        score.layoutChantLines(ctxt, width);
+        select(score, selection);
+      }
+      linesUsedAgain += reused.score.lines.filter((line: any) => lastLines.has(line)).length;
+      assert.strictEqual(
+        reused.score.createSvg(reused.ctxt),
+        relaidOut.score.createSvg(relaidOut.ctxt),
+        `${message}, edit ${i}`
+      );
+      lastLines = lineSvgs(reused.score);
+      const fresh = await render(E, edit, { ...options, width }, []);
+      select(fresh.score, selection);
+      assert.strictEqual(output(reused.score, reused.ctxt), output(fresh.score, fresh.ctxt), `${message}, edit ${i} afresh`);
+
+      // and with only the selection changed, the svg of the lines with it is made again
+      const selected = { element: { indices: [random.int(elementCount)] } };
+      select(reused.score, selected);
+      select(relaidOut.score, selected);
+      relaidOut.score.lines.forEach((line: any) => delete line.svgFragmentCache);
+      assert.strictEqual(
+        reused.score.createSvg(reused.ctxt),
+        relaidOut.score.createSvg(relaidOut.ctxt),
+        `${message}, edit ${i}, selected again`
+      );
+    }
+    return linesUsedAgain;
+  }
+
+  /** edits of gabc, one after another: notes added and changed, words and dividers put in and taken out, and spaces added */
+  function randomEdits(random: ReturnType<typeof createRandom>, gabc: string, count: number) {
+    const edits: string[] = [];
+    let edited = gabc;
+    for (let i = 0; i < count; i++) {
+      const words = edited.split(" ");
+      const at = 1 + random.int(Math.max(1, words.length - 1));
+      const groups = [...edited.matchAll(/\(([a-mA-M][^()]*)\)/g)];
+      const group = groups.length > 2 ? groups[1 + random.int(groups.length - 2)] : null;
+      switch (random.int(6)) {
+        case 0:
+          if (!group) continue;
+          edited = edited.slice(0, group.index! + 1) + "g" + edited.slice(group.index! + 1);
+          break;
+        case 1:
+          if (!group) continue;
+          edited = edited.slice(0, group.index!) + "(h)" + edited.slice(group.index! + group[0].length);
+          break;
+        case 2:
+          words.splice(at, 0, random.pick(["no(gh)vum(g)", "(,)", "(z)", "(c3)", "Al(f)le(g)lú(h)ia.(g) (::)"]));
+          edited = words.join(" ");
+          break;
+        case 3:
+          if (words.length < 4) continue;
+          words.splice(at, 1);
+          edited = words.join(" ");
+          break;
+        case 4:
+          // (a space more between two words, which only moves the source indices after it)
+          words[at] = " " + words[at];
+          edited = words.join(" ");
+          break;
+        default:
+          edited = edited.replace(/\((.)/g, (paren, pitch, index) =>
+            index === groups[groups.length - 1]?.index ? "(" + pitch + "f" : paren
+          );
+      }
+      edits.push(edited);
+    }
+    return edits;
+  }
+
+  it("lays random gabc out after edits as when every line is laid out again", async () => {
+    let linesUsedAgain = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      const random = createRandom(1000 + seed);
+      const gabc = randomGabc(random, 30 + random.int(90));
+      const options: RenderOptions = {
+        width: random.pick([200, 330, 600]),
+        useDropCap: seed % 2 === 0,
+        setupContext: (ctxt) => {
+          if (seed % 4 === 1) {
+            ctxt.minSyllablesLastLine = 3;
+            ctxt.minNotesLastLine = 5;
+          }
+        },
+        setupScore: (score, ctxt, E) => {
+          if (seed % 3 === 0) score.annotation = new E.Annotation(ctxt, "Ps.");
+        }
+      };
+      linesUsedAgain += await assertLinesUsedAgain(gabc, randomEdits(random, gabc, 6), options, `random ${seed}`);
+    }
+    assert.ok(linesUsedAgain > 0);
+  }, 120000);
+
+  it("moves the source indices of the lyrics that a line starts with, when a space put in before moves them", async () => {
+    // (at this width, most lines start with the lyrics of the double bar before them)
+    const gabc = "(c4) " + "Al(f)le(g)lú(h)ia.(g) Ps.(::) ".repeat(12);
+    const spaceAfter = (count: number) =>
+      gabc.split("Ps.(::) ").reduce((edited, part, i) => edited + (i ? "Ps.(::) " + (i === count ? " " : "") : "") + part);
+    const edits = [spaceAfter(1), gabc, spaceAfter(6), gabc];
+    await assertLinesUsedAgain(gabc, edits, { width: 210 }, "spaces");
+  });
+
+  it("uses the lines before an edit of a long score again", async () => {
+    const passage =
+      "AD(c)te(d) le(f)vá(fe)vi(f) á(fg)ni(gf)mam(f) me(fe)am:(e.) (,) De(f)us(fg) me(f)us,(fe) in(e) te(f) con(gh)fí(g)do,(fe) (;) " +
+      "non(f) e(fe)ru(c)bé(d)scam:(fe..) (:) ne(f)que(f) ir(fe)rí(fg)de(gf)ant(f) me(fe) in(f)i(gh)mí(g)ci(fe) me(f)i:(f.) (::) ";
+    const gabc = "(c4) " + passage.repeat(6);
+    const notes = [...gabc.matchAll(/\(f\)/g)].map((match) => match.index!);
+    const edits: string[] = [];
+    for (const index of [notes[1], notes[notes.length >> 1], notes[notes.length - 2]]) {
+      edits.push(gabc.slice(0, index) + "(g)" + gabc.slice(index + 3), gabc);
+    }
+    for (const useDropCap of [false, true]) {
+      const linesUsedAgain = await assertLinesUsedAgain(gabc, edits, { width: 600, useDropCap }, `long score`);
+      // (3 of its 8 lines after each edit in the middle, and 7 after each at the end)
+      assert.strictEqual(linesUsedAgain, 20);
+    }
+  }, 60000);
+});

@@ -4,6 +4,8 @@
 //
 // usage: npm run bench -- [file.gabc ...]
 // which builds dist/exsurge.js and times that.
+// It then times an editor's edit cycle (see editCycle()): a note changed at the
+// start, in the middle and at the end of the score, and changed back.
 // With no files, a built-in passage is repeated to make a long score.
 // To time real fonts as well, set BENCH_FONT to a .ttf or .otf file and
 // BENCH_FONTKIT and/or BENCH_OPENTYPE to where fontkit or opentype.js is installed.
@@ -106,6 +108,51 @@ function run(gabc, strategy) {
   return times;
 }
 
+// An edit as an editor makes it: one note of the score changed, then the
+// score brought up to date (Gabc.updateMappingsFromSource(), updateNotations()
+// and performLayout(), which lay out only what the edit changed), its lines
+// laid out again and its svg made again.  Each edit changes a (f) to (g) at
+// the start, in the middle or at the end of the score, and the next changes it
+// back, so that the score goes on being the same length.
+function editCycle(gabc, strategy, rounds) {
+  var ctxt = createContext(strategy);
+  var score = new Chant.ChantScore(ctxt, Gabc.createMappingsFromSource(ctxt, gabc), true);
+  score.performLayout(ctxt);
+  score.layoutChantLines(ctxt, 800);
+  score.createSvg(ctxt);
+  var notes = [];
+  for (var i = gabc.indexOf('(f)'); i >= 0; i = gabc.indexOf('(f)', i + 1)) notes.push(i);
+  var places = { start: notes[1], middle: notes[notes.length >> 1], end: notes[notes.length - 2] };
+  var runs = {};
+  Object.keys(places).forEach(function(place) {
+    var edited = gabc.slice(0, places[place]) + '(g)' + gabc.slice(places[place] + 3);
+    runs[place] = [];
+    for (var round = 0; round < rounds; round++) {
+      [edited, gabc].forEach(function(source) {
+        var times = {};
+        var t = now();
+        Gabc.updateMappingsFromSource(ctxt, score.mappings, source);
+        times.update = now() - t;
+        t = now();
+        score.updateNotations(ctxt);
+        times.updateNotations = now() - t;
+        t = now();
+        score.performLayout(ctxt);
+        times.performLayout = now() - t;
+        t = now();
+        score.layoutChantLines(ctxt, 800);
+        times.layoutChantLines = now() - t;
+        t = now();
+        score.createSvg(ctxt);
+        times.createSvg = now() - t;
+        times.total = Object.keys(times).reduce(function(sum, key) { return sum + times[key]; }, 0);
+        runs[place].push(times);
+      });
+    }
+  });
+  return runs;
+}
+
 function median(values) {
   values = values.slice().sort(function(a, b) { return a - b; });
   return values[Math.floor(values.length / 2)];
@@ -124,4 +171,15 @@ var iterations = 7;
   });
   if (perRun) line.push(perRun + ' text measurements');
   console.log(strategy + ': ' + line.join(', '));
+});
+
+['fake fontkit'].concat(Object.keys(realFonts)).forEach(function(strategy) {
+  editCycle(gabc, strategy, 2); // warm up
+  var runs = editCycle(gabc, strategy, 10);
+  Object.keys(runs).forEach(function(place) {
+    var line = Object.keys(runs[place][0]).map(function(key) {
+      return key + ' ' + median(runs[place].map(function(r) { return r[key]; })).toFixed(1) + 'ms';
+    });
+    console.log(strategy + ', edit at the ' + place + ': ' + line.join(', '));
+  });
 });

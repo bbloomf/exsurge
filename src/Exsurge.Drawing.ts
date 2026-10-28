@@ -5651,6 +5651,9 @@ export interface LyricProtrusion {
 // the last ChantNotationElement.layoutId given
 let __lastLayoutId = 0;
 
+/** a ChantNotationElement.layoutId for a layout of a notation, unlike any before it */
+export const newLayoutId = () => ++__lastLayoutId;
+
 /**
  * A notation in a score: a neume, clef, divider, accidental, custos, line
  * break or text with no notes.  The layout tells them apart by the flags
@@ -5831,7 +5834,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   // on completion, exsurge presumes that the bounds, the origin, and the fragment objects are
   // all valid and prepared for higher level layout.
   performLayout(ctxt: ChantContext) {
-    this.layoutId = ++__lastLayoutId;
+    this.layoutId = newLayoutId();
     if (typeof this.trailingSpace === "function")
       this.calculatedTrailingSpace = this.trailingSpace(ctxt);
     else this.calculatedTrailingSpace = this.trailingSpace;
