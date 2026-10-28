@@ -24,14 +24,20 @@
 //
 
 import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
-import { LineBreaker } from "./Exsurge.Chant.LineBreaking.js";
+import {
+  isReadUpToDate,
+  layoutSettings,
+  LineBreaker,
+  readFrom,
+  type ReadNotations
+} from "./Exsurge.Chant.LineBreaking.js";
 import { InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import { Pitch, Rect, Step } from "./Exsurge.Core.js";
 import {
   Annotation, CavumGlyphCode, ChantLayoutElement,
   ChantNotationElement,
   GlyphCode,
-  GlyphVisualizer, Lyric, LyricType, QuickSvg, TextLeftRight,
+  GlyphVisualizer, Lyric, LyricType, newLayoutId, QuickSvg, TextLeftRight,
   TextMeasuringStrategy,
   TextSpan,
   type VerseNumber
@@ -687,8 +693,13 @@ export class ChantLineBreak extends ChantNotationElement {
   }
 
   performLayout(ctxt: ChantContext) {
+    // (a layoutId, as any notation's layout gives it, so that the lines that
+    // read it are laid out again for it, and it's laid out until it needs to
+    // be again, rather than each time the score is: see layoutChantLines())
+    this.layoutId = newLayoutId();
     // reset the bounds before doing a layout
     this.bounds = new Rect(0, 0, 0, 0);
+    this.needsLayout = false;
   }
 
   clone() {
@@ -824,6 +835,45 @@ function dropCapPlacement(ctxt: ChantContext) {
   };
 }
 
+/**
+ * what laying out a line of a score depended on, so that the next layout of
+ * the score can use the line again if it would lay it out the same (see
+ * ChantScore.reusableLines())
+ */
+interface LineLayoutInputs extends ReadNotations {
+  /**
+   * the source index of the mapping of each notation it read, which its svg
+   * shows (as do the lyrics that a line can start with, copied from the
+   * notation before it), and which an edit of the spaces between words can
+   * change without laying the notation out again
+   */
+  sourceIndices: number[];
+  /** the clef in effect at its start, and that clef's layoutId; and the clef in effect after it */
+  clef: Clef;
+  clefLayoutId?: number;
+  clefAfter: Clef;
+  /** where its staff was (see ChantScore.lineExtent()) */
+  extent: LineExtent;
+  /**
+   * whether a brace, slur or custom ledger line went on from it to the next
+   * line, which the next line takes from the context (so the lines after it
+   * aren't laid out again without it)
+   */
+  leftOpen: boolean;
+  /**
+   * for the first line: the drop cap and annotation, how big they were (see
+   * dropCapAndAnnotationSizes()), and where it put them, which their layout
+   * forgets
+   */
+  first?: {
+    dropCap: DropCap | null;
+    annotation: Annotation | Annotations | null;
+    sizes: string;
+    placed: number[];
+  };
+}
+const lineLayoutInputs = new WeakMap<ChantLine, LineLayoutInputs>();
+
 /*
  * Score, document
  */
@@ -857,6 +907,9 @@ export class ChantScore {
   // how many times layoutChantLines() has laid the lines out again so far, to
   // fit a drop cap to them (see fitDropCap())
   private dropCapRelayouts = 0;
+  // what the last layoutChantLines() laid the lines out with, if the next can
+  // use them again (see reusableLines())
+  private linesLaidOutWith?: string;
   annotation: Annotation | Annotations | null;
   compiled: boolean;
   autoColoring: boolean;
@@ -1112,14 +1165,19 @@ export class ChantScore {
       let lyrics = notation.lyrics[0];
       if (notation === first) {
         // a new drop cap is taken from the lyric without the first word's styles
-        if (!useDropCap || !lyrics.dropCap)
+        let hadDropCap = lyrics.dropCap;
+        if (!useDropCap || !hadDropCap)
           lyrics.setFirstWordStyles(ctxt, null);
         if (useDropCap) {
           this.dropCap = lyrics.generateDropCap(ctxt);
         } else {
           lyrics.removeDropCap(ctxt);
         }
-        notation.needsLayout = true;
+        // (but a drop cap that it had already is kept, with the lyric as it
+        // was, which needn't be laid out again; so the lines that an edit
+        // after it leaves as they were can be used again: see
+        // layoutChantLines())
+        if (!useDropCap || !hadDropCap || lyrics.dropCap !== hadDropCap) notation.needsLayout = true;
       } else if (lyrics && lyrics.dropCap) {
         // the lyric that the drop cap was taken from before the score was
         // edited, which isn't the first any longer
@@ -1582,6 +1640,7 @@ export class ChantScore {
     width: number,
     finishedCallback?: (score: ChantScore) => void
   ) {
+    var lastLines = this.lines;
     this.lines = [];
     this.keptInAreas = null;
     ctxt.noticeFontChanges();
@@ -1617,19 +1676,37 @@ export class ChantScore {
     var spaceBetweenSystems = ctxt.staffInterval * ctxt.spaceBetweenSystems;
     var lineBreaker = ctxt.lineBreaking === "optimal" && width > 0 ? new LineBreaker(this, ctxt, width) : null;
 
-    do {
-      var line = new ChantLine(this);
+    // (the lines at the start that the last layout laid out as this one
+    // would, which this one uses again, when the lines are filled greedily)
+    var settings = this.lineLayoutSettings(ctxt, width, !!lineBreaker),
+      reusable = this.reusableLines(ctxt, width, lastLines, settings);
 
-      if (lineBreaker) line.plannedEnd = lineBreaker.plannedEnd(this.lines.length, currIndex);
-      line.buildFromChantNotationIndex(ctxt, currIndex, width);
+    do {
+      var line: ChantLine;
+      if (this.lines.length < reusable) {
+        line = lastLines[this.lines.length];
+        this.reuseLine(ctxt, line);
+      } else {
+        line = new ChantLine(this);
+        let start = currIndex,
+          clef = ctxt.activeClef,
+          extent = this.lineExtent(ctxt, this.lines.length, width);
+
+        if (lineBreaker) line.plannedEnd = lineBreaker.plannedEnd(this.lines.length, currIndex);
+        line.buildFromChantNotationIndex(ctxt, currIndex, width);
+        line.performLayout(ctxt);
+        if (settings) this.recordLineLayout(ctxt, line, start, clef, extent);
+      }
       currIndex = line.notationsStartIndex + line.numNotationsOnLine;
-      line.performLayout(ctxt);
       line.elementIndex = this.lines.length;
       this.lines.push(line);
 
-      line.bounds.y = -line.bounds.y + y;
+      // (from where the line's layout put the top of it, which is where its
+      // bounds were before this put them in the score)
+      line.bounds.y = -line.notationBounds!.y + y;
       y += line.bounds.height + spaceBetweenSystems;
     } while (currIndex < this.notations.length);
+    this.linesLaidOutWith = settings;
 
     // (again, for a drop cap fitted to the lines; see fitDropCap())
     if (this.fitDropCap(ctxt)) {
@@ -1653,6 +1730,154 @@ export class ChantScore {
     }
 
     if (finishedCallback) finishedCallback(this);
+  }
+
+  /**
+   * What the lines laid out at width depend on besides the notations that
+   * they read (see LineLayoutInputs): the context's settings (see
+   * layoutSettings()), the width, and the staff.  Or undefined, where the
+   * next layout can't use them again: when the optimal line breaker plans
+   * them (and lays out lines of its own from the notations, which leaves them
+   * as those lines laid them out), and when the drop cap is beside more than
+   * the first line or put somewhere else on it (see placeDropCap()), which
+   * moves the lines it's beside.
+   */
+  private lineLayoutSettings(ctxt: ChantContext, width: number, planned: boolean) {
+    if (planned || (this.dropCap && !this.dropCapOnFirstLine(ctxt))) return undefined;
+    return [
+      layoutSettings(this, ctxt),
+      "width=" + width,
+      "staffLineCount=" + this.staffLineCount,
+      "extendLastSystemStaffLines=" + this.extendLastSystemStaffLines
+    ].join(";");
+  }
+
+  /**
+   * How many of lines, the lines that the last layoutChantLines() laid out,
+   * from the first, this layout would lay out the same, with settings (see
+   * lineLayoutSettings()), so that it can use them again: those that read
+   * the same notations, not laid out again since (see isReadUpToDate()), with
+   * the same source indices, under the same clef, on the same staff (see
+   * lineExtent()), and for the first line, beside the same drop cap and
+   * annotation, as big as they were.  (The notations that a line read are
+   * laid out as it left them still, since the lines after it lay out only
+   * the notations after it.)  It stops after the last of them that left the
+   * context as it was at the start, with no brace, slur or custom ledger line
+   * going on to the next line, so that the line after it can be laid out
+   * from there.
+   */
+  private reusableLines(ctxt: ChantContext, width: number, lines: ChantLine[], settings?: string) {
+    if (!settings || settings !== this.linesLaidOutWith) return 0;
+    var notations = this.notations,
+      clef = this.startingClef,
+      start = 0,
+      reusable = 0;
+    for (var i = 0; i < lines.length && start < notations.length; i++) {
+      var line = lines[i],
+        inputs = lineLayoutInputs.get(line),
+        from = readFrom(start),
+        extent = this.lineExtent(ctxt, i, width);
+      if (
+        !inputs ||
+        inputs.clef !== clef ||
+        inputs.clefLayoutId !== clef.layoutId ||
+        inputs.extent.left !== extent.left ||
+        inputs.extent.right !== extent.right ||
+        inputs.extent.textLeft !== extent.textLeft ||
+        !isReadUpToDate(notations, from, inputs) ||
+        inputs.sourceIndices.some((sourceIndex, k) => notations[from + k].mapping!.sourceIndex !== sourceIndex)
+      )
+        break;
+      var first = inputs.first;
+      if (
+        first &&
+        (first.dropCap !== this.dropCap ||
+          first.annotation !== this.annotation ||
+          first.sizes !== this.dropCapAndAnnotationSizes())
+      )
+        break;
+      clef = inputs.clefAfter;
+      start = line.notationsStartIndex + line.numNotationsOnLine;
+      if (!inputs.leftOpen) reusable = i + 1;
+    }
+    return reusable;
+  }
+
+  /**
+   * Keeps what the layout of line, which started at the notation at start
+   * under clef, at extent, depended on (see LineLayoutInputs), once it's laid
+   * out.
+   */
+  private recordLineLayout(ctxt: ChantContext, line: ChantLine, start: number, clef: Clef, extent: LineExtent) {
+    var notations = this.notations,
+      from = readFrom(start),
+      read = notations.slice(from, line.readEnd(ctxt)),
+      translationEnds: Array<ChantNotationElement | undefined> = [],
+      isOpen = (open?: object) => !!open && Object.keys(open).length > 0;
+    for (var notation of read)
+      if (notation.translationText && notation.translationText.length)
+        translationEnds.push(notation, notation.translationText[0].endNeume);
+    var inputs: LineLayoutInputs = {
+      read,
+      layoutIds: read.map((notation) => notation.layoutId),
+      toEnd: from + read.length === notations.length,
+      translationEnds,
+      sourceIndices: read.map((notation) => notation.mapping!.sourceIndex),
+      clef,
+      clefLayoutId: clef.layoutId,
+      clefAfter: ctxt.activeClef,
+      extent,
+      leftOpen: !!ctxt.lastStartBrace || isOpen(ctxt.openSlurs) || isOpen(ctxt.openLedgerLines)
+    };
+    if (line.isFirstLine) {
+      var dropCap = this.dropCap,
+        annotation = this.annotation;
+      inputs.first = {
+        dropCap,
+        annotation,
+        sizes: this.dropCapAndAnnotationSizes(),
+        placed: [
+          dropCap ? dropCap.bounds.x : 0,
+          dropCap ? dropCap.bounds.y : 0,
+          annotation ? annotation.bounds.x : 0,
+          annotation ? annotation.bounds.y : 0
+        ]
+      };
+    }
+    lineLayoutInputs.set(line, inputs);
+  }
+
+  /**
+   * Puts what the line's layout left in the context, and in the score, back
+   * as it left them, for a line laid out by an earlier layout that this one
+   * uses again (see reusableLines()): the clef in effect after it, and for
+   * the first line, where it put the drop cap and the annotation.
+   */
+  private reuseLine(ctxt: ChantContext, line: ChantLine) {
+    var inputs = lineLayoutInputs.get(line)!,
+      first = inputs.first;
+    ctxt.activeClef = inputs.clefAfter;
+    if (first) {
+      if (this.dropCap) {
+        this.dropCap.bounds.x = first.placed[0];
+        this.dropCap.bounds.y = first.placed[1];
+      }
+      if (this.annotation) {
+        this.annotation.bounds.x = first.placed[2];
+        this.annotation.bounds.y = first.placed[3];
+      }
+    }
+  }
+
+  /** how big the drop cap and the annotation are, which the first line depends on */
+  private dropCapAndAnnotationSizes() {
+    return [this.dropCap, this.annotation]
+      .map((element) =>
+        element
+          ? [element.bounds.width, element.bounds.height, element.origin.x, element.origin.y, element.padding].join()
+          : ""
+      )
+      .join(";");
   }
 
   paginate(height: number) {
@@ -1774,14 +1999,52 @@ export class ChantScore {
 
     if (this.titles) fragment += this.titles.createSvgFragment(ctxt);
 
+    // (each line's svg is kept, for the next svg to use again where the line
+    // and what it shows are the same)
+    var settings = layoutSettings(this, ctxt);
     for (var i = 0; i < this.lines.length; i++)
-      fragment += this.lines[i].createSvgFragment(ctxt);
+      fragment += this.lines[i].createSvgFragment(ctxt, 0, this.lineSvgKey(this.lines[i], settings));
 
     fragment = QuickSvg.createFragment("g", {}, fragment);
 
     fragment = QuickSvg.createFragment("svg", this.getSvgProps(ctxt), fragment);
 
     return fragment;
+  }
+
+  /**
+   * What the svg of line shows besides how the line is laid out (see
+   * ChantLine.createSvgFragment()), with the context's settings (see
+   * layoutSettings()): each of its notations, as it's laid out (by its
+   * layoutId), with its source index and which of its elements are selected,
+   * the same for its clef and custos, and on the first line, the drop cap and
+   * annotation, as big as they are and where they are.  Or undefined for the
+   * line with the insertion cursor, which is drawn where the selection is
+   * (see ChantLine.layoutInsertionCursor()).  (From the line's own score,
+   * which a page of it isn't: see copyLines().)
+   */
+  private lineSvgKey(line: ChantLine, settings: string) {
+    if (line.insertionCursor) return undefined;
+    var score = line.score,
+      notations = score.notations,
+      end = line.notationsStartIndex + line.numNotationsOnLine,
+      selected = (element: ChantLayoutElement) =>
+        element.selected || ((element as Clef).model && (element as Clef).model!.selected) ? 1 : 0,
+      describe = (notation: ChantNotationElement) =>
+        notation.layoutId +
+        ":" +
+        (notation.mapping ? notation.mapping.sourceIndex : "") +
+        ":" +
+        (notation.notes ? notation.notes.map(selected).join("") : selected(notation)),
+      key = settings + "|" + describe(line.startingClef);
+    for (var i = line.notationsStartIndex; i < end; i++) key += "," + describe(notations[i]);
+    if (line.custos) key += "|" + describe(line.custos);
+    if (line.isFirstLine)
+      key +=
+        "|" +
+        score.dropCapAndAnnotationSizes() +
+        [score.dropCap, score.annotation].map((element) => element && [element.bounds.x, element.bounds.y]).join();
+    return key;
   }
 
   /**
