@@ -627,3 +627,29 @@ describe('Splitting gabc into words again after an edit', function() {
     }
   });
 });
+
+describe('The insertion cursor after a clef that a line starts with', function() {
+  // (the line takes the clef as its starting clef, and draws the cursor after it)
+  async function cursorLine(gabc: string, edit?: string) {
+    var { score, ctxt } = await render(Exsurge, gabc, { width: 600 }, []);
+    if (edit) {
+      Gabc.updateMappingsFromSource(ctxt, score.mappings, edit);
+      score.updateNotations(ctxt);
+      score.performLayout(ctxt);
+      score.layoutChantLines(ctxt, 600);
+    }
+    var clef = score.notations.filter((notation: any) => notation.isClef).pop()!;
+    score.updateSelection({ element: { indices: [], insertion: { afterElementIndex: score.notes.indexOf(clef) } } });
+    var line = score.lines.findIndex((line: any) => line.insertionCursor);
+    assert.equal(score.insertionElement, score.lines[line].startingClef);
+    return line;
+  }
+
+  it('is drawn on that line', async function() {
+    assert.equal(await cursorLine('(c4) a(f) b(g) (z) (c3) c(h) d(g) (z) e(f) f(g)'), 1);
+  });
+
+  it('is drawn on that line after an edit that moves the clef there', async function() {
+    assert.equal(await cursorLine('(c4) a(f) b(g) (c3) c(h) d(g) (z) e(f) f(g)', '(c4) a(f) b(g) (z) (c3) c(h) d(g) (z) e(f) f(g)'), 1);
+  });
+});
