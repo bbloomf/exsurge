@@ -57,22 +57,27 @@
 </line>
 </g>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(12.062316288634145,0)" >
 <text source-index="5" x="-1.1230000000000002" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >a</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(29.958594365304194,0)" >
 <text source-index="11" x="-1.3894000000000002" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >b</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="13" element-index="1" id="note-2" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
@@ -80,37 +85,45 @@
 <use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(46.73890771455649,0)" >
 <text source-index="18" x="-1.6558000000000002" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >c</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="20" element-index="2" id="note-3" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(64.63518579122653,0)" >
 <text source-index="25" x="1.1018" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >d</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="27" element-index="3" id="note-4" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-14.0625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(82.53146386789658,0)" >
 <text source-index="32" x="0.8353999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >e</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="34" element-index="4" id="note-5" x="3.125" y="-25" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Podatus" transform="translate(100.42774194456663,0)" >
 <text source-index="38" x="0.569" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >f</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PodatusLowerShort" class=" note" source-index="40" element-index="5" id="note-6" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#PodatusUpperShort" class=" note" source-index="41" element-index="6" id="note-7" x="6.25" y="-25" >
@@ -118,10 +131,12 @@
 <use xlink:href="#Mora" class="" x="6.375" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Podatus" transform="translate(118.32402002123668,0)" >
 <text source-index="45" x="0.3026" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >g</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PodatusLowerShort" class=" note" source-index="47" element-index="7" id="note-8" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#PodatusUpperShort" class=" note" source-index="49" element-index="8" id="note-9" x="6.25" y="-25" >
@@ -131,10 +146,12 @@
 <use xlink:href="#Mora" class="" x="6.375" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Clivis" transform="translate(136.22029809790672,0)" >
 <text source-index="53" x="0.03620000000000001" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >h</tspan>
 </text>
+<g class="Notations" >
 <rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="55" element-index="9" id="note-10" x="3.125" y="-25" >
@@ -144,10 +161,12 @@
 <use xlink:href="#Mora" class="" x="12.625" y="-14.0625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Clivis" transform="translate(160.36657617457678,0)" >
 <text source-index="60" x="-0.23019999999999996" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >i</tspan>
 </text>
+<g class="Notations" >
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="62" element-index="11" id="note-12" x="3.125" y="-31.249999999999996" >
@@ -157,10 +176,12 @@
 <use xlink:href="#Mora" class="" x="12.625" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Torculus" transform="translate(184.51285425124684,0)" >
 <text source-index="67" x="-0.49659999999999993" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >j</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="69" element-index="13" id="note-14" x="3.125" y="-18.75" >
 </use>
 <rect x="5.45" y="-31.25" width="0.8" height="12.5" fill="#000" class="neumeLine" >
@@ -172,10 +193,12 @@
 <use xlink:href="#Mora" class="" x="18.075" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Porrectus" transform="translate(214.10913232791685,0)" >
 <text source-index="75" x="-0.7629999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >k</tspan>
 </text>
+<g class="Notations" >
 <rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="77" element-index="16" id="note-17" x="3.125" y="-25" >
@@ -187,10 +210,12 @@
 <use xlink:href="#Mora" class="" x="19.0215" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(244.6519104045869,0)" >
 <text source-index="83" x="-1.0293999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >l</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="85" element-index="19" id="note-20" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="86" element-index="20" id="note-21" x="8.31201998281125" y="-18.75" >
@@ -200,10 +225,12 @@
 <use xlink:href="#Mora" class="" x="16.7490399656225" y="-12.5" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(274.0381931742972,0)" >
 <text source-index="91" x="-1.2957999999999998" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >m</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="93" element-index="22" id="note-23" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="94" element-index="23" id="note-24" x="8.31201998281125" y="-18.75" >
@@ -215,10 +242,12 @@
 <use xlink:href="#Mora" class="" x="16.7490399656225" y="-12.5" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Virga" transform="translate(303.4244759440075,0)" >
 <text source-index="100" x="-1.5621999999999998" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >n</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="102" element-index="25" id="note-26" x="3.125" y="-18.75" >
 </use>
 <rect x="5.45" y="-18.75" width="0.8" height="16.875" fill="#000" class="neumeLine" >
@@ -226,28 +255,34 @@
 <use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Oriscus" transform="translate(321.32075402067755,0)" >
 <text source-index="107" x="1.1954" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >o</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#OriscusAsc" class=" note" source-index="109" element-index="26" id="note-27" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Apostropha" transform="translate(339.2170320973476,0)" >
 <text source-index="114" x="0.8040000000000003" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >p</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#Stropha" class=" note" source-index="116" element-index="27" id="note-28" x="3" y="-18.75" >
 </use>
 <use xlink:href="#Mora" class="" x="6.2285625" y="-23.4375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Podatus" transform="translate(356.9668726740177,0)" >
 <text source-index="121" x="0.6625999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >q</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PodatusLowerShort" class=" note" source-index="123" element-index="28" id="note-29" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#PodatusUpperShort" class=" note" source-index="125" element-index="29" id="note-30" x="6.25" y="-25" >
@@ -255,10 +290,12 @@
 <use xlink:href="#Mora" class="" x="6.375" y="-14.0625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Clivis" transform="translate(371.3541154781055,0)" >
 <text source-index="128" x="0.3961999999999999" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >r</tspan>
 </text>
+<g class="Notations" >
 <rect x="0" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="130" element-index="30" id="note-31" x="3.125" y="-25" >
@@ -268,10 +305,12 @@
 <use xlink:href="#Mora" class="" x="6.375" y="-26.5625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Porrectus" transform="translate(391.9913582821933,0)" >
 <text source-index="135" x="0.12979999999999992" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >s</tspan>
 </text>
+<g class="Notations" >
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="137" element-index="32" id="note-33" x="3.125" y="-31.25" >
@@ -283,54 +322,68 @@
 <use xlink:href="#Mora" class="" x="19.0215" y="-35.9375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(422.53413635886335,0)" >
 <text source-index="143" x="-0.13660000000000005" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >t</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="145" element-index="35" id="note-36" x="3.125" y="-25" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-35.9375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(440.4304144355334,0)" >
 <text source-index="150" x="-0.403" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >u</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="152" element-index="36" id="note-37" x="3.125" y="-25" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-14.0625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(458.32669251220346,0)" >
 <text source-index="157" x="-0.6694" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >v</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="159" element-index="37" id="note-38" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-23.4375" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(469.20169251220346,0)" >
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="162" element-index="38" id="note-39" x="3.125" y="-25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(483.58893531629127,0)" >
 <text source-index="165" x="-0.9357999999999995" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >w</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="167" element-index="39" id="note-40" x="3.125" y="-25" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-26.5625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(494.46393531629127,0)" >
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="170" element-index="40" id="note-41" x="3.125" y="-18.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Clivis" transform="translate(508.8511781203791,0)" >
 <text source-index="173" x="-1.2021999999999995" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >x</tspan>
 </text>
+<g class="Notations" >
 <rect x="0" y="-31.25" width="0.8" height="16.006761363636365" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="175" element-index="41" id="note-42" x="3.125" y="-31.249999999999996" >
@@ -340,7 +393,9 @@
 <use xlink:href="#Mora" class="" x="12.625" y="-26.5625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Clivis" transform="translate(525.976178120379,0)" >
+<g class="Notations" >
 <rect x="-0.8" y="-25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="179" element-index="43" id="note-44" x="2.325" y="-18.75" >
@@ -348,10 +403,12 @@
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="180" element-index="44" id="note-45" x="8.575" y="-12.5" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Scandicus" transform="translate(546.6134209244668,0)" >
 <text source-index="183" x="-1.4685999999999995" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >y</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="185" element-index="45" id="note-46" x="3.125" y="-18.75" >
 </use>
 <use xlink:href="#PodatusLowerShort" class=" note" source-index="186" element-index="46" id="note-47" x="9.375" y="-25" >
@@ -363,10 +420,12 @@
 <use xlink:href="#Mora" class="" x="12.625" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(571.8756637285546,0)" >
 <text source-index="192" x="-1.7349999999999994" y="14.887" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >z</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="194" element-index="48" id="note-49" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="196" element-index="49" id="note-50" x="8.31201998281125" y="-18.75" >
@@ -376,11 +435,14 @@
 <use xlink:href="#Mora" class="" x="11.56201998281125" y="-14.0625" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement DoubleBar" transform="translate(593.75,0)" >
+<g class="Notations" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="201" element-index="50" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="201" element-index="50" source="[object Object]" >
 </rect>
+</g>
 </g>
 </g>
 </g>

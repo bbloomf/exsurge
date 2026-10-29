@@ -49,8 +49,10 @@
 </line>
 </g>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(6.25,0)" >
 <text source-index="5" x="-4.248" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -60,8 +62,10 @@
 <use xlink:href="#Nabc-gregall-vi" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#None" class="" source-index="7" element-index="0" x="0" y="0" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(19.9948,0)" >
 <text source-index="12" x="-4.5144" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -71,8 +75,10 @@
 <use xlink:href="#Nabc-gregall-pe" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#None" class="" source-index="14" element-index="1" x="0" y="0" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(35.55389449112978,0)" >
 <text source-index="19" x="-4.7808" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -82,8 +88,10 @@
 <use xlink:href="#Nabc-gregall-cllsc3" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#None" class="" source-index="21" element-index="2" x="0" y="0" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(59.586356209150324,0)" >
 <text source-index="30" x="1.1018" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -93,8 +101,10 @@
 <use xlink:href="#Nabc-gregall-ta" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="32" element-index="3" id="note-1" x="3.125" y="-18.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(72.00655620915033,0)" >
 <text source-index="38" x="-2.2896" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -104,14 +114,18 @@
 <use xlink:href="#Nabc-gregall-to" class="" x="15.397831262303148" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#None" class="" source-index="40" element-index="4" x="0" y="0" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement DoubleBar" transform="translate(91.75585178593853,0)" >
+<g class="Notations" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="47" element-index="5" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="47" element-index="5" source="[object Object]" >
 </rect>
+</g>
 </g>
 </g>
 </g>

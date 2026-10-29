@@ -101,8 +101,10 @@
 </line>
 </g>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-31.25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
 <text source-index="5" x="-7.8766" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -114,8 +116,10 @@
 <use xlink:href="#Nabc-gregall-lsi" class="" x="0" y="-242.7470552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="9" element-index="0" id="note-1" x="3.125" y="-12.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Podatus" transform="translate(38.4705,0)" >
 <text source-index="18" x="-6.9262" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -125,12 +129,14 @@
 <use xlink:href="#Nabc-gregall-pe" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PodatusLower" class=" note" source-index="22" element-index="1" id="note-2" x="3.125" y="-12.5" >
 </use>
 <rect x="5.45" y="-37.5" width="0.8" height="25" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PodatusUpper" class=" note" source-index="23" element-index="2" id="note-3" x="6.25" y="-37.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(61.842094491129785,0)" >
 <text source-index="29" x="0.8353999999999999" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -140,8 +146,10 @@
 <use xlink:href="#Nabc-gregall-vilsc3" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="33" element-index="3" id="note-4" x="3.125" y="-37.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(89.37489449112978,0)" >
 <text source-index="43" x="-4.622199999999999" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -156,8 +164,10 @@
 <use xlink:href="#Nabc-gregall-lsc" class="" x="28.125" y="-315.4033052934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="46" element-index="4" id="note-5" x="3.125" y="-37.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(108.12841858076564,0)" >
 <text source-index="61" x="-5.4574" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -174,8 +184,10 @@
 <use xlink:href="#Nabc-gregall-vi" class="" x="55.5" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="65" element-index="5" id="note-6" x="3.125" y="-37.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(135.76693538748833,0)" >
 <text source-index="82" x="-5.687799999999999" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -187,14 +199,18 @@
 <use xlink:href="#Nabc-gregall-lsi" class="" x="20.25" y="-260.8876802934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="85" element-index="6" id="note-7" x="3.125" y="-12.5" >
 </use>
 <use xlink:href="#Mora" class="" x="6.375" y="-12.5" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement QuarterBar" transform="translate(153.70443538748833,0)" >
+<g class="Notations" >
 <rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="99" element-index="7" source="[object Object]" >
 </rect>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(161.56693538748834,0)" >
 <text source-index="102" x="-3.2110000000000003" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -208,8 +224,10 @@
 <use xlink:href="#Nabc-gregall-lsc" class="" x="36.5" y="-330.2158052934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="105" element-index="8" id="note-8" x="3.125" y="-12.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(186.72531904761905,0)" >
 <text source-index="121" x="-9.8278" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -224,8 +242,10 @@
 <use xlink:href="#Nabc-gregall-lsc" class="" x="83.24999999999999" y="-288.5595552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="124" element-index="9" id="note-9" x="3.125" y="-12.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(216.27300784313726,0)" >
 <text source-index="137" x="-7.113399999999999" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -241,8 +261,10 @@
 <use xlink:href="#Nabc-gregall-lss" class="" x="83.24999999999999" y="-243.8095552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="140" element-index="10" id="note-10" x="3.125" y="-12.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(249.90028263305322,0)" >
 <text source-index="158" x="-4.795" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -257,8 +279,10 @@
 <use xlink:href="#Nabc-gregall-lsc" class="" x="24.25" y="-297.4970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="161" element-index="11" id="note-11" x="3.125" y="-12.5" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Clivis" transform="translate(272.6434866479925,0)" >
 <text source-index="174" x="-9.7774" y="20.67025000000001" class="lyric" text-anchor="start" style="" >
@@ -272,6 +296,7 @@
 <use xlink:href="#Nabc-gregall-lsc" class="" x="120.25" y="-290.9033052934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <rect x="0" y="-6.25" width="0.8" height="9.756761363636363" fill="#000" class="neumeLine" >
 </rect>
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="179" element-index="12" id="note-12" x="3.125" y="-6.25" >
@@ -283,9 +308,12 @@
 <use xlink:href="#Mora" class="" x="12.625" y="0" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement HalfBar" transform="translate(307.9362383753501,0)" >
+<g class="Notations" >
 <rect x="0" y="-37.5" width="0.8" height="25" fill="#000" class="dividerLine" source-index="201" element-index="14" source="[object Object]" >
 </rect>
+</g>
 </g>
 </g>
 </g>

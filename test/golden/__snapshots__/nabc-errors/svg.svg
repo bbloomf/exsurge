@@ -37,8 +37,10 @@
 </line>
 </g>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
 <text source-index="5" x="-1.1230000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -49,8 +51,10 @@
 </use>
 <text class="nabcError" x="8.958422408963584" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-18.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(48.64436078431372,0)" >
 <text source-index="15" x="-1.3894000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -61,8 +65,10 @@
 </use>
 <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="17" element-index="1" id="note-2" x="3.125" y="-25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(89.71698166455663,0)" >
 <text source-index="33" x="-1.6558000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -71,8 +77,10 @@
 <g class="nabc nabc-1" >
 <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="35" element-index="2" id="note-3" x="3.125" y="-31.249999999999996" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(115.34042003990676,0)" >
 <text source-index="50" x="1.1018" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -81,8 +89,10 @@
 <g class="nabc nabc-1" >
 <text class="nabcError" x="0" y="-51.30230144749553" font-family="Fake-{}" font-size="7.342969187675069" fill="#000" >ERR</text>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="52" element-index="3" id="note-4" x="3.125" y="-25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(140.96385841525688,0)" >
 <text source-index="58" x="0.8353999999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
@@ -92,14 +102,18 @@
 <use xlink:href="#Nabc-gregall-ta" class="" x="0" y="-261.9970552934061" transform="scale(0.19581251167133518)" >
 </use>
 </g>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="60" element-index="4" id="note-5" x="3.125" y="-18.75" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement DoubleBar" transform="translate(155.02635841525688,0)" >
+<g class="Notations" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="67" element-index="5" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="67" element-index="5" source="[object Object]" >
 </rect>
+</g>
 </g>
 </g>
 </g>

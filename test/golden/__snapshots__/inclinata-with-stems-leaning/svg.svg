@@ -37,17 +37,22 @@
 </line>
 </g>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
 <text source-index="5" x="-1.1230000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >a</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-18.75" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(20.3125,0)" >
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="8" element-index="1" id="note-2" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="10" element-index="2" id="note-3" x="8.31201998281125" y="-31.25" >
@@ -63,10 +68,12 @@
 <polygon points="3.220072934151424,-48.8 3.220072934151424,-51.2 14.394112899773924,-63.7 14.394112899773924,-61.3" fill="#000" class="neumeBeam" >
 </polygon>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(47.8740399656225,0)" >
 <text source-index="16" x="-1.3894000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >b</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="18" element-index="4" id="note-5" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="20" element-index="5" id="note-6" x="8.31201998281125" y="-31.25" >
@@ -78,14 +85,18 @@
 <polygon points="3.220072934151424,-48.8 3.220072934151424,-51.2 9.207092916962674,-57.45 9.207092916962674,-55.05" fill="#000" class="neumeBeam" >
 </polygon>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(70.24855994843375,0)" >
 <text source-index="25" x="-1.6558000000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >c</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="27" element-index="6" id="note-7" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(79.62355994843375,0)" >
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="28" element-index="7" id="note-8" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="31" element-index="8" id="note-9" x="6.404941376214037" y="-18.75" >
@@ -97,14 +108,18 @@
 <polygon points="3.220072934151424,-48.8 3.220072934151424,-51.2 7.300014310365461,-44.95 7.300014310365461,-42.55" fill="#000" class="neumeBeam" >
 </polygon>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(100.09100132464779,0)" >
 <text source-index="36" x="1.1018" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >d</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="38" element-index="9" id="note-10" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(109.46600132464779,0)" >
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="39" element-index="10" id="note-11" x="3.125" y="-25" >
 </use>
 <use xlink:href="#PunctumInclinatumLiquescent" class=" note" source-index="40" element-index="11" id="note-12" x="8.31201998281125" y="-18.75" >
@@ -116,14 +131,18 @@
 <polygon points="2.2299270658485764,-48.8 2.2299270658485764,-51.2 8.71201998281125,-44.95 8.71201998281125,-42.55" fill="#000" class="neumeBeam" >
 </polygon>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(131.84052130745903,0)" >
 <text source-index="45" x="0.8353999999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >e</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="47" element-index="12" id="note-13" x="3.125" y="-18.75" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(138.09052130745903,0)" >
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumAscendens" class=" note" source-index="48" element-index="13" id="note-14" x="3.125" y="-25" >
 </use>
 <rect x="3.220072934151424" y="-50" width="0.8" height="25" fill="#000" class="neumeLine" >
@@ -131,14 +150,18 @@
 <polygon points="-0.9465937325152433,-51.925 -0.9465937325152433,-54.325 4.020072934151424,-51.2 4.020072934151424,-48.8" fill="#000" class="neumeBeam" >
 </polygon>
 </g>
+</g>
 <g class="ChantNotationElement Punctum" transform="translate(155.82461503997428,0)" >
 <text source-index="52" x="0.569" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >f</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="54" element-index="14" id="note-15" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement PunctaInclinata" transform="translate(165.19961503997428,0)" >
+<g class="Notations" >
 <use xlink:href="#PunctumInclinatumDescendens" class=" note" source-index="55" element-index="15" id="note-16" x="3.125" y="-25" >
 </use>
 <rect x="2.2299270658485764" y="-50" width="0.8" height="25" fill="#000" class="neumeLine" >
@@ -146,11 +169,14 @@
 <polygon points="-1.9367396008180906,-51.925 -1.9367396008180906,-54.325 3.029927065848576,-51.2 3.029927065848576,-48.8" fill="#000" class="neumeBeam" >
 </polygon>
 </g>
+</g>
 <g class="ChantNotationElement DoubleBar" transform="translate(180.79885464079237,0)" >
+<g class="Notations" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="60" element-index="16" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="60" element-index="16" source="[object Object]" >
 </rect>
+</g>
 </g>
 </g>
 </g>

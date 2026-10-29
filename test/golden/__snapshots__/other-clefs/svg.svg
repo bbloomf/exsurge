@@ -37,76 +37,102 @@
 </line>
 </g>
 <g class="ChantNotationElement TrebleClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#TrebleClef" class="" source-index="1" element-index="-1" x="0" y="-18.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(41.362500000000004,0)" >
 <text source-index="10" x="-1.1230000000000002" y="30.912000000000006" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >a</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="12" element-index="0" id="note-1" x="3.125" y="-18.75" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement TrebleClef" transform="translate(55.425000000000004,0)" >
+<g class="Notations" >
 <use xlink:href="#TrebleClefSmall" class="" source-index="16" element-index="1" x="0" y="-18.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(91.525,0)" >
 <text source-index="26" x="-1.3894000000000002" y="30.912000000000006" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >b</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="28" element-index="2" id="note-2" x="3.125" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement TrebleClef" transform="translate(105.5875,0)" >
+<g class="Notations" >
 <use xlink:href="#TrebleClef" class="" source-index="32" element-index="3" x="0" y="-43.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(150.07500000000002,0)" >
 <text source-index="41" x="-1.6558000000000002" y="30.912000000000006" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >c</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="43" element-index="4" id="note-3" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement ChiRhoClef" transform="translate(164.13750000000002,0)" >
+<g class="Notations" >
 <use xlink:href="#ChiRhoClef" class="" source-index="47" element-index="5" x="0" y="-31.25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(192.29181250000002,0)" >
 <text source-index="52" x="1.1018" y="30.912000000000006" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >d</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="54" element-index="6" id="note-4" x="3.125" y="-22.916666666666664" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement ChiRhoClef" transform="translate(206.35431250000002,0)" >
+<g class="Notations" >
 <use xlink:href="#ChiRhoClefSans" class="" source-index="58" element-index="7" x="0" y="-31.25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(234.16681250000002,0)" >
 <text source-index="64" x="0.8353999999999999" y="30.912000000000006" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >e</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="66" element-index="8" id="note-5" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement ChiRhoClef" transform="translate(248.22931250000002,0)" >
+<g class="Notations" >
 <use xlink:href="#ChiRhoClef" class="" source-index="70" element-index="9" x="0" y="-6.25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(276.383625,0)" >
 <text source-index="75" x="0.569" y="30.912000000000006" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >f</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="77" element-index="10" id="note-6" x="3.125" y="-10.416666666666668" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement DoubleBar" transform="translate(290.446125,0)" >
+<g class="Notations" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="81" element-index="11" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="81" element-index="11" source="[object Object]" >
 </rect>
+</g>
 </g>
 </g>
 </g>

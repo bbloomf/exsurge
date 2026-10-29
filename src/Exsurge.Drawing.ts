@@ -6018,8 +6018,8 @@ export class ChantNotationElement extends ChantLayoutElement {
 
   // (made on its own rather than with an SvgOutput, as getInnerSvgNodes()
   // could be: the string is made most often, for every notation, and an
-  // SvgOutput would make it slower.  Besides, the string doesn't put the
-  // visualizers in a group, as the DOM nodes and the svg tree do.)
+  // SvgOutput would make it slower.  It makes the same elements, though,
+  // with the visualizers in a group too.)
   createSvgFragment(ctxt: ChantContext) {
     var inner = "";
 
@@ -6040,8 +6040,12 @@ export class ChantNotationElement extends ChantLayoutElement {
     if (this.nabcNeumes)
       for (let nabc of this.nabcNeumes) if (nabc && !nabc.phantom) inner += nabc.createSvgFragment(ctxt);
 
-    for (var i = 0; i < this.visualizers.length; i++)
-      inner += this.visualizers[i].createSvgFragment(ctxt, this);
+    if (this.visualizers.length) {
+      let visualizers = "";
+      for (var i = 0; i < this.visualizers.length; i++)
+        visualizers += this.visualizers[i].createSvgFragment(ctxt, this);
+      inner += QuickSvg.createFragment("g", { class: "Notations" }, visualizers);
+    }
 
     return QuickSvg.createFragment("g", this.getSvgProps(), inner);
   }
