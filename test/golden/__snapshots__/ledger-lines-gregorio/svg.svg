@@ -412,7 +412,7 @@
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="182" element-index="56" id="note-57" x="24.3465" y="-50" >
 </use>
-<use xlink:href="#PodatusUpper" class=" note" source-index="183" element-index="57" id="note-58" x="24.3465" y="-56.25" >
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="183" element-index="57" id="note-58" x="24.3465" y="-56.25" >
 </use>
 </g>
 <g class="ChantNotationElement TorculusResupinus" transform="translate(49.3465,0)" >
@@ -425,7 +425,7 @@
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="190" element-index="60" id="note-61" x="25.1465" y="6.25" >
 </use>
-<use xlink:href="#PodatusUpper" class=" note" source-index="191" element-index="61" id="note-62" x="25.1465" y="0" >
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="191" element-index="61" id="note-62" x="25.1465" y="0" >
 </use>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(85.4305,0)" >

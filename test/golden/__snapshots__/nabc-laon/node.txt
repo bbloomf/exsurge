@@ -47,8 +47,6 @@
         <path d="M-7.921-75.365L49.726-5.226 7.84 74.589-49.726 5.226z">
       <g id="VerticalEpisemaBelow" class="glyph" transform="scale(0.0625)">
         <path d="M-8 56c2 3 6 4 8 4s6-1 8-4v-52c-2-3-6-4-8-4s-6 1-8 4z">
-      <g id="PodatusUpper" class="glyph" transform="scale(0.0625)">
-        <path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
       <g id="Nabc-grelaon-lsa" class="glyph" transform="scale(0.0625)">
         <path d="m193-98c43-23 43-23 8 24-41 57-41 57-88 48-81-16-81-16-40-74 133-186 133-186 226-186 12 0 12 0 11-18-2-21-2-21-15-20-29 5-29 5 60-58 47-32 47-32 32 176-10 80-10 80 124 52 54-16 54-16-4 38-60 58-60 58-98 58-126-4-126-4-126-130 0-26 0-26-36-16-61 15-61 15-100 76-12 19-12 19 10 36 10 8 10 8 36-6z">
       <g id="Nabc-grelaon-viB" class="glyph" transform="scale(0.0625)">
@@ -225,7 +223,7 @@
           <use {http://www.w3.org/1999/xlink}xlink:href="#Quilisma" class=" note" source-index="177" element-index="28" id="note-27" x="3.125" y="-31.250000000000004" source=<Note sourceIndex=177 elementIndex=28 noteIndex=26>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="179" element-index="29" id="note-28" x="9.375" y="-37.5" source=<Note sourceIndex=179 elementIndex=29 noteIndex=27>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="180" element-index="30" id="note-29" x="25.1465" y="-31.25" source=<Note sourceIndex=180 elementIndex=30 noteIndex=28>>
-          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="181" element-index="31" id="note-30" x="25.1465" y="-37.5" source=<Note sourceIndex=181 elementIndex=31 noteIndex=29>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpperShort" class=" note" source-index="181" element-index="31" id="note-30" x="25.1465" y="-37.5" source=<Note sourceIndex=181 elementIndex=31 noteIndex=29>>
       <g class="ChantNotationElement Clivis" transform="translate(371.55052455797465,0)" source=<Clivis>>
         <text source-index="206" x="-6.753399999999999" y="20.670249999999996" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=206>>
           <tspan source-index="0" style="">

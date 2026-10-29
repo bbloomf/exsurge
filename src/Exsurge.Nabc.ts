@@ -314,6 +314,12 @@ const glyphNameCharacters: { [char: string]: string } = { B: ">", N: "-", E: "!"
 export const nabcNameOfGlyph = (glyphName: string) =>
   glyphName.replace(/[BNET]/g, (char) => glyphNameCharacters[char]);
 
+const nabcNameCharacters: { [char: string]: string } = { ">": "B", "-": "N", "!": "E", "~": "T" };
+
+/** The name of a glyph in one of Gregorio's NABC fonts for its NABC name (see nabcNameOfGlyph()). */
+export const glyphNameOfNabc = (nabcName: string) =>
+  nabcName.replace(/[>\-!~]/g, (char) => nabcNameCharacters[char]);
+
 const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
 
 /**

@@ -33,6 +33,7 @@ import {
   InclinatumGlyphTurn,
   MarkingPositionHint,
   QuickSvg,
+  SvgShape,
   type ChantContext,
   type ChantNotationElement
 } from "./Exsurge.Drawing.js";
@@ -124,7 +125,7 @@ const episemaTuningShifts = { m: 0.057, ol: -0.285, oh: 0.257, ul: -0.252, uh: 0
  *
  * A horizontal episema marking is it's own visualizer (that is, it implements createSvgFragment)
  */
-export class HorizontalEpisema extends ChantLayoutElement {
+export class HorizontalEpisema extends SvgShape {
   note: Note;
   positionHint: MarkingPositionHint;
   /** whether the episema stops at its note, rather than joining the next one */
@@ -389,15 +390,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
-  }
-  createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
+  get svgTag() {
+    return "rect";
   }
 }
 
@@ -582,7 +576,7 @@ export class Mora extends GlyphVisualizer {
  * step is 157.5 font units, and its bracketupshift and bracketdownshift are
  * 0.03cm and 0.04cm at its default staff size, where a step is 0.1436cm.
  */
-export class NoteBracket extends ChantLayoutElement {
+export class NoteBracket extends SvgShape {
   isRight: boolean;
   /** the width of the line and hooks */
   lineWeight: number;
@@ -660,15 +654,8 @@ export class NoteBracket extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("path", this.getSvgProps(ctxt));
-  }
-  createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
+  get svgTag() {
+    return "path";
   }
 }
 
@@ -746,7 +733,7 @@ export interface SlurStart {
  * between its ends or below it, outlined with a 0.3bp pen (0.074 staff
  * intervals).  The slur is drawn by the chant line.
  */
-export class Slur extends ChantLayoutElement {
+export class Slur extends SvgShape {
   isAbove: boolean;
   start: { x: number; y: number };
   end: { x: number; y: number };
@@ -872,15 +859,8 @@ export class Slur extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("path", this.getSvgProps(ctxt));
-  }
-  createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
+  get svgTag() {
+    return "path";
   }
 }
 

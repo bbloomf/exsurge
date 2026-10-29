@@ -134,6 +134,29 @@ describe("Laying out an edited score", () => {
     });
   }
 
+  // (the words between them, which have no mappings, are left out of the
+  // diff, so the source indices of the words after them come from where
+  // each word is rather than from the word before it)
+  it("lays gabc with blank lines, comments and trailing spaces out after edits as afresh", async () => {
+    const gabc =
+      "(c4) Ad(f)te(g) le(h)vá(g)vi(f) (,)\n\n" +
+      "% a comment on a line of its own\n" +
+      "á(fg)ni(gf)mam(f) me(fe)am. (:) \n" +
+      "\n\n" +
+      "De(f)us(fg) me(f)us(fe) (::) \n";
+    const edits = [
+      gabc.replace("me(fe)am", "me(fg)am"),
+      gabc.replace("\n\n\n", "\n"),
+      gabc.replace("% a comment", "\n\n% a comment"),
+      gabc.replace("me(fe)am. (:) \n", "me(fe)am. (:)\n% another\n"),
+      gabc.replace("De(f)us", "\n\nDe(g)us"),
+      gabc.trimEnd(),
+      gabc + "\n\n  "
+    ];
+    for (const lineBreaking of ["greedy", "optimal"] as const)
+      await assertEditsLaidOutAfresh(gabc, edits, {}, lineBreaking, lineBreaking);
+  });
+
   it("gives the lyric back the letter of a drop cap that the score no longer uses", async () => {
     const gabc = golden("first-syllable-styles").gabc;
     const setupContext = golden("first-syllable-styles").setupContext;

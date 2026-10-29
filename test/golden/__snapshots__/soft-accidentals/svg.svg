@@ -29,10 +29,6 @@
 <g >
 </g>
 </g>
-<g id="PodatusUpper" class="glyph" transform="scale(0.0625)" >
-<path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z" >
-</path>
-</g>
 <g id="Natural" class="glyph" transform="scale(0.0625)" >
 <path d="M7.906-166.563c-2.864 0-5.614.52-8.218 1.563v13.28l.78 56.25.782 78.907v85.157c.52 3.646 2.604 5.73 6.25 6.25l23.438-3.906 23.437-3.907v29.69c0 42.186-.26 63.54-.78 64.06l6.25 2.345c1.04.52 2.082.78 3.124.78 2.603 0 4.947-1.3 7.03-3.905L67.656-71.25c-.52-2.604-2.083-3.906-4.687-3.906-7.814 0-17.19 1.04-28.126 3.125l-19.53 3.124.78-38.28V-165c-2.604-1.042-5.323-1.562-8.188-1.563zM55.938-40v71.875l-41.407 7.03c0-48.436.262-72.655.783-72.655L55.938-40z" >
 </path>
@@ -143,7 +139,7 @@
 </use>
 <use xlink:href="#None" class=" note porrectus porrectus-end" source-index="54" element-index="19" id="note-17" x="25.1465" y="-12.5" >
 </use>
-<use xlink:href="#PodatusUpper" class=" note" source-index="55" element-index="20" id="note-18" x="25.1465" y="-18.75" >
+<use xlink:href="#PodatusUpperShort" class=" note" source-index="55" element-index="20" id="note-18" x="25.1465" y="-18.75" >
 </use>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(202.67872809305834,0)" >

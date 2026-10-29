@@ -63,6 +63,27 @@ export const isHiddenAccidental = (notation: ChantNotationElement) =>
 // (these, like isHiddenAccidental, are shared with LineBreaker.layOutLineFrom(),
 // which lays out lines as buildFromChantNotationIndex() does)
 
+/** whether a notation's lyrics start a word: they're the first syllable of one, or a word of one syllable */
+export const startsWordWithLyrics = (notation: ChantNotationElement) =>
+  notation.hasLyrics() &&
+  (notation.lyrics[0].lyricType === LyricType.BeginningSyllable ||
+    notation.lyrics[0].lyricType === LyricType.SingleSyllable);
+
+/**
+ * whether the notation at index is a clef that a line break comes just after,
+ * which, as in Gregorio, only goes at the start of the next line (but not
+ * when the clef or the line break has text, which neither line would then draw)
+ */
+export function isClefLineBreak(notations: ChantNotationElement[], index: number) {
+  return (
+    !!notations[index].isClef &&
+    !notations[index].hasLyrics() &&
+    index + 1 < notations.length - 1 &&
+    notations[index + 1].constructor === ChantLineBreak &&
+    !notations[index + 1].hasLyrics()
+  );
+}
+
 /** whether only text-only notations come between the notation at index, which is one, and the next divider */
 export function isTextOnlyBeforeDivider(notations: ChantNotationElement[], index: number) {
   if (notations[index].constructor !== TextOnly) return false;
@@ -246,6 +267,12 @@ interface CondensableSpace {
 
 /** the spaces between notations so far on a line, and the sum of their condensable space */
 type CondensableSpaces = CondensableSpace[] & { sum: number };
+
+// shrinks lyric's connector (its hyphen) to width, but no narrower than the
+// space between syllables: the space between notes, where the notation has
+// more than one line of lyrics (lyricLines), or else the space between words
+const shrinkConnector = (ctxt: ChantContext, lyric: Lyric, lyricLines: number, width: number) =>
+  lyric.setConnectorWidth(Math.max(width, lyricLines > 1 ? ctxt.intraNeumeSpacing : ctxt.minLyricWordSpacing));
 
 // the sum of the condensable space in spaces, added up in order
 const sumCondensable = (spaces: CondensableSpace[]) => {
@@ -589,9 +616,10 @@ export class ChantLine extends ChantLayoutElement {
         if (dropCap !== null) {
           this.score.annotation.bounds.y = this.score.annotationTop(ctxt, this.lyricLineBaseline, true);
           if (this.score.annotation.bounds.y < this.notationBounds.y) {
-            this.notationBounds.y = this.score.annotation.bounds.y;
+            // (keeping the bottom where it was)
             this.notationBounds.height +=
               this.notationBounds.y - this.score.annotation.bounds.y;
+            this.notationBounds.y = this.score.annotation.bounds.y;
           }
         }
         this.score.annotation.bounds.y += this.score.annotation.origin.y;
@@ -781,7 +809,8 @@ export class ChantLine extends ChantLayoutElement {
         (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("rect", {
           key: "insertion",
           x: x1,
-          y: ctxt.staffInterval * this.score.staffLineCount * -2 + 1,
+          // (from the top line to the bottom line, as the staff lines are drawn below)
+          y: ctxt.staffInterval * (this.score.staffLineCount * -2 + 1),
           width: x2 - x1,
           height: ctxt.staffInterval * 2 * staffSpaces,
           fill: "none"
@@ -1058,6 +1087,9 @@ export class ChantLine extends ChantLayoutElement {
     var startsWithClefChange = !!(notations.length && notations[newElementStart].isClef);
     if (startsWithClefChange) {
       ctxt.activeClef = notations[newElementStart] as Clef;
+      // (which is on this line, as its starting clef, though it's skipped
+      // over: see ChantScore.updateSelection())
+      notations[newElementStart].line = this;
       newElementStart++;
       this.notationsStartIndex++;
 
@@ -1065,6 +1097,7 @@ export class ChantLine extends ChantLayoutElement {
       // already (see clefLineBreak)
       let previousLine = lineIndex > 0 && this.score.lines && this.score.lines[lineIndex - 1];
       if (previousLine && previousLine.clefLineBreak && previousLine.clefLineBreak === notations[newElementStart]) {
+        notations[newElementStart].line = this;
         newElementStart++;
         this.notationsStartIndex++;
       }
@@ -1118,15 +1151,7 @@ export class ChantLine extends ChantLayoutElement {
       // of the next line, and the custos at the end of this line is worked out
       // from the clef that is in effect on it.  (Not when the clef or the line
       // break has text, which neither line would then draw.)
-      if (
-        width > 0 &&
-        curr.isClef &&
-        !curr.hasLyrics() &&
-        this.numNotationsOnLine > 0 &&
-        i + 1 < lastNotationIndex &&
-        notations[i + 1].constructor === ChantLineBreak &&
-        !notations[i + 1].hasLyrics()
-      ) {
+      if (width > 0 && this.numNotationsOnLine > 0 && isClefLineBreak(notations, i)) {
         this.clefLineBreak = notations[i + 1] as ChantLineBreak;
         this.justify =
           this.clefLineBreak.justify ||
@@ -1452,9 +1477,7 @@ export class ChantLine extends ChantLayoutElement {
         ];
         if (
           next &&
-          next.hasLyrics() &&
-          (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-            next.lyrics[0].lyricType === LyricType.SingleSyllable) &&
+          startsWordWithLyrics(next) &&
           (this.custos || this.wantsEolCustos(ctxt))
         ) {
           this.toJustify!.push(this.custos);
@@ -1614,14 +1637,8 @@ export class ChantLine extends ChantLayoutElement {
           whitespace = rightEdge! - lyrics.getRight();
           // shrink the hyphen if we are already out of whitespace or if we would be if we used a regular hyphen:
           if (whitespace < 0) {
-            var minHyphenWidth = Math.max(
-              ctxt.hyphenWidth + whitespace,
-              this.lastLyrics.length > 1
-                ? ctxt.intraNeumeSpacing
-                : ctxt.minLyricWordSpacing
-            );
             // we might not need to shift the syllable, but we do want to shrink the hyphen...
-            lyrics.setConnectorWidth(minHyphenWidth);
+            shrinkConnector(ctxt, lyrics, this.lastLyrics.length, ctxt.hyphenWidth + whitespace);
           }
         }
       }
@@ -2087,14 +2104,8 @@ export class ChantLine extends ChantLayoutElement {
         if (lyrics.allowsConnector()) {
           var connectorWidth = lyrics.getConnectorWidth();
           if (ctxt.minLyricWordSpacing < connectorWidth) {
-            var minHyphenWidth = Math.max(
-              connectorWidth - extraSpaceBeforeCustos,
-              this.lastLyrics.length > 1
-                ? ctxt.intraNeumeSpacing
-                : ctxt.minLyricWordSpacing
-            );
             // we might not need to shift the syllable, but we do want to shrink the hyphen...
-            lyrics.setConnectorWidth(minHyphenWidth);
+            shrinkConnector(ctxt, lyrics, this.lastLyrics.length, connectorWidth - extraSpaceBeforeCustos);
           }
         }
         ++i;
@@ -2313,8 +2324,6 @@ export class ChantLine extends ChantLayoutElement {
 
     var episemata: HorizontalEpisema[] = []; // keep track of episemata in case we can connect some
     var startBrace = null;
-    var minY = Number.MAX_VALUE,
-      maxY = Number.MIN_VALUE; // for braces
 
     // (centered between leftX and rightX, when there's a rightX)
     var positionNonLyricText = (text: TextElement, neume: ChantNotationElement, rightX?: number, leftX = 0) => {
@@ -2338,9 +2347,6 @@ export class ChantLine extends ChantLayoutElement {
     for (var i = this.notationsStartIndex; i < lastIndex; i++) {
       var neume = notations[i];
 
-      minY = Math.min(minY, neume.bounds.y);
-      maxY = Math.max(maxY, neume.bounds.bottom());
-
       if (neume.constructor === Custos) {
         processSignForLedgerLine(neume);
         continue;
@@ -2361,8 +2367,11 @@ export class ChantLine extends ChantLayoutElement {
           if (text.endNeume) {
             // (a translation whose end neume is on a later line, where the
             // line couldn't be kept from breaking, goes on to the end of this one)
-            let endsOnLine = false;
-            for (let k = i; k < lastIndex && !endsOnLine; k++) endsOnLine = notations[k] === text.endNeume;
+            let end = text.endNeume.notationIndex;
+            let endsOnLine =
+              end !== undefined && notations[end] === text.endNeume
+                ? end >= i && end < lastIndex
+                : notations.slice(i, lastIndex).includes(text.endNeume);
             var rightX = !endsOnLine
               ? this.staffRight
               : text.endNeume.hasLyrics()
@@ -2702,14 +2711,7 @@ export class ChantLine extends ChantLayoutElement {
       curr.bounds.x += prev.calculatedTrailingSpace;
     }
 
-    if (
-      curr.hasLyrics() &&
-      !prev.isDivider &&
-      !prev.isAccidental &&
-      this.numNotationsOnLine > 0 &&
-      (curr.lyrics[0].lyricType === LyricType.SingleSyllable ||
-        curr.lyrics[0].lyricType === LyricType.BeginningSyllable)
-    ) {
+    if (!prev.isDivider && !prev.isAccidental && this.numNotationsOnLine > 0 && startsWordWithLyrics(curr)) {
       curr.bounds.x += ctxt.intraNeumeSpacing * ctxt.interVerbalMultiplier;
     }
     if (curr.hasNoWidth || fixedX) {
@@ -2833,6 +2835,8 @@ export class ChantLine extends ChantLayoutElement {
 
     // on the first pass, we will check the absolute left-most placement of the new syllables
     // we will make additional passes until everything is stable
+    // (and whether the spaces on the line were condensed less, for the lyrics)
+    var condensed = false;
     do {
       var hasShifted = false;
       var atLeastOneWithoutConnector = false;
@@ -2908,14 +2912,8 @@ export class ChantLine extends ChantLayoutElement {
             if (ctxt.minLyricWordSpacing < ctxt.hyphenWidth) {
               var spaceBetweenSyls = currLyricLeft - prevLyricRight;
               if (spaceBetweenSyls < ctxt.hyphenWidth) {
-                var minHyphenWidth =
-                  prevLyrics.length > 1
-                    ? ctxt.intraNeumeSpacing
-                    : ctxt.minLyricWordSpacing;
                 // we might not need to shift the syllable, but we do want to shrink the hyphen...
-                prevLyrics[i].setConnectorWidth(
-                  Math.max(minHyphenWidth, spaceBetweenSyls)
-                );
+                shrinkConnector(ctxt, prevLyrics[i], prevLyrics.length, spaceBetweenSyls);
               }
             }
             prevLyrics[i].setNeedsConnector(true);
@@ -2944,7 +2942,7 @@ export class ChantLine extends ChantLayoutElement {
               condensableSpacesSincePrevLyric.forEach(space => {
                 space.condensable *= multiplier;
               });
-              condensableSpaces.sum = sumCondensable(condensableSpaces);
+              condensed = true;
             }
           }
         }
@@ -2954,6 +2952,9 @@ export class ChantLine extends ChantLayoutElement {
       hasShifted &&
       atLeastOneWithoutConnector
     );
+    // (added up again once, rather than for each line of lyrics, since nothing
+    // above reads the sum)
+    if (condensed) condensableSpaces.sum = sumCondensable(condensableSpaces);
     if (cleared) curr.bounds.x += clearShift();
 
     for (i = Math.min(curr.lyrics.length, prevLyrics.length) - 1; i >= 0; i--) {

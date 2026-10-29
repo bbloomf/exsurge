@@ -283,7 +283,7 @@
           <rect x=5.45 y=-56.25 width=0.8 height=12.5 fill="#000" className="neumeLine">
           <use source-index=181 element-index=55 id="note-56" x=8.575 y=-56.25 source=<Note sourceIndex=181 elementIndex=55 noteIndex=55> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="l">
           <use source-index=182 element-index=56 id="note-57" x=24.3465 y=-50 source=<Note sourceIndex=182 elementIndex=56 noteIndex=56> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="k">
-          <use source-index=183 element-index=57 id="note-58" x=24.3465 y=-56.25 source=<Note sourceIndex=183 elementIndex=57 noteIndex=57> className=" note" xlinkHref="#PodatusUpper" source-gabc="l">
+          <use source-index=183 element-index=57 id="note-58" x=24.3465 y=-56.25 source=<Note sourceIndex=183 elementIndex=57 noteIndex=57> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="l">
       <g transform="translate(49.3465,0)" source=<TorculusResupinus> className="ChantNotationElement TorculusResupinus">
         <text source-index=186 x=-0.6694 y=27.6995 style={} source=<Lyric sourceIndex=186> className="lyric" textAnchor="start" source-gabc="v">
           <tspan source-index=0 style={} className=undefined>
@@ -292,7 +292,7 @@
           <use source-index=188 element-index=58 id="note-59" x=3.125 y=6.25 source=<Note sourceIndex=188 elementIndex=58 noteIndex=58> className=" note" xlinkHref="#PunctumQuadratum" source-gabc="b">
           <use source-index=189 element-index=59 id="note-60" x=9.375 y=0 source=<Note sourceIndex=189 elementIndex=59 noteIndex=59> className=" note porrectus porrectus-start" xlinkHref="#Porrectus1" source-gabc="c">
           <use source-index=190 element-index=60 id="note-61" x=25.1465 y=6.25 source=<Note sourceIndex=190 elementIndex=60 noteIndex=60> className=" note porrectus porrectus-end" xlinkHref="#None" source-gabc="b">
-          <use source-index=191 element-index=61 id="note-62" x=25.1465 y=0 source=<Note sourceIndex=191 elementIndex=61 noteIndex=61> className=" note" xlinkHref="#PodatusUpper" source-gabc="c">
+          <use source-index=191 element-index=61 id="note-62" x=25.1465 y=0 source=<Note sourceIndex=191 elementIndex=61 noteIndex=61> className=" note" xlinkHref="#PodatusUpperShort" source-gabc="c">
       <g transform="translate(85.4305,0)" source=<Punctum> className="ChantNotationElement Punctum">
         <text source-index=194 x=-0.9357999999999995 y=27.6995 style={} source=<Lyric sourceIndex=194> className="lyric" textAnchor="start" source-gabc="w">
           <tspan source-index=0 style={} className=undefined>

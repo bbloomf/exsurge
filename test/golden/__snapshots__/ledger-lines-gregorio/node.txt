@@ -283,7 +283,7 @@
           <rect x="5.45" y="-56.25" width="0.8" height="12.5" fill="#000" class="neumeLine">
           <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="181" element-index="55" id="note-56" x="8.575" y="-56.25" source=<Note sourceIndex=181 elementIndex=55 noteIndex=55>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="182" element-index="56" id="note-57" x="24.3465" y="-50" source=<Note sourceIndex=182 elementIndex=56 noteIndex=56>>
-          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="183" element-index="57" id="note-58" x="24.3465" y="-56.25" source=<Note sourceIndex=183 elementIndex=57 noteIndex=57>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpperShort" class=" note" source-index="183" element-index="57" id="note-58" x="24.3465" y="-56.25" source=<Note sourceIndex=183 elementIndex=57 noteIndex=57>>
       <g class="ChantNotationElement TorculusResupinus" transform="translate(49.3465,0)" source=<TorculusResupinus>>
         <text source-index="186" x="-0.6694" y="27.6995" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=186>>
           <tspan source-index="0" style="">
@@ -292,7 +292,7 @@
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="188" element-index="58" id="note-59" x="3.125" y="6.25" source=<Note sourceIndex=188 elementIndex=58 noteIndex=58>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="189" element-index="59" id="note-60" x="9.375" y="0" source=<Note sourceIndex=189 elementIndex=59 noteIndex=59>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="190" element-index="60" id="note-61" x="25.1465" y="6.25" source=<Note sourceIndex=190 elementIndex=60 noteIndex=60>>
-          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="191" element-index="61" id="note-62" x="25.1465" y="0" source=<Note sourceIndex=191 elementIndex=61 noteIndex=61>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpperShort" class=" note" source-index="191" element-index="61" id="note-62" x="25.1465" y="0" source=<Note sourceIndex=191 elementIndex=61 noteIndex=61>>
       <g class="ChantNotationElement Punctum" transform="translate(85.4305,0)" source=<Punctum>>
         <text source-index="194" x="-0.9357999999999995" y="27.6995" class="lyric" text-anchor="start" style="" source=<Lyric sourceIndex=194>>
           <tspan source-index="0" style="">

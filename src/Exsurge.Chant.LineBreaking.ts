@@ -28,13 +28,15 @@ import {
   allowsCustosBefore,
   ChantLine,
   copyBeginningLyrics,
+  isClefLineBreak,
   isHiddenAccidental,
   isTextOnlyBeforeDivider,
+  startsWordWithLyrics,
   resetNotation
 } from "./Exsurge.Chant.ChantLine.js";
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
 import { Custos } from "./Exsurge.Chant.Signs.js";
-import { LyricArray, LyricType } from "./Exsurge.Drawing.js";
+import { LyricArray } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef } from "./Exsurge.Chant.js";
 import type { Accidental } from "./Exsurge.Chant.Signs.js";
@@ -327,6 +329,13 @@ export class LineBreaker {
   };
   /** the clef in effect just before each notation (see clefBefore()) */
   clefs?: Clef[];
+  /**
+   * the first notation that a line laid out by this layout could have left
+   * otherwise than the line built from it leaves it (see layOutLineFrom()), or
+   * Infinity if it laid out none, so that the lines that read only notations
+   * before it can be used again (see ChantScore.reusableLines())
+   */
+  touchedFrom = Infinity;
 
   constructor(score: ChantScore, ctxt: ChantContext, width: number) {
     this.score = score;
@@ -674,6 +683,8 @@ export class LineBreaker {
    * end, with what it read (see TrialLine).
    */
   layOutLineFrom(start: number, extent: LineExtent): TrialLine {
+    // (and the notation before it, whose lyrics the line can start with)
+    this.touchedFrom = Math.min(this.touchedFrom, start - 1);
     var ctxt = this.ctxt,
       score = this.score,
       notations = score.notations,
@@ -870,14 +881,7 @@ export class LineBreaker {
    * the line break just after it, as buildFromChantNotationIndex() puts it
    */
   isClefLineBreak(index: number) {
-    var notations = this.score.notations;
-    return (
-      !!notations[index].isClef &&
-      !notations[index].hasLyrics() &&
-      index + 1 < notations.length - 1 &&
-      notations[index + 1].constructor === ChantLineBreak &&
-      !notations[index + 1].hasLyrics()
-    );
+    return isClefLineBreak(this.score.notations, index);
   }
 
   /**
@@ -958,11 +962,7 @@ export class LineBreaker {
       next = notations[index];
     // (each gabc word has a mapping of its own)
     if (next.mapping && prev.mapping) return next.mapping !== prev.mapping;
-    return (
-      next.hasLyrics() &&
-      (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-        next.lyrics[0].lyricType === LyricType.SingleSyllable)
-    );
+    return startsWordWithLyrics(next);
   }
 
   /**
@@ -1051,11 +1051,7 @@ export class LineBreaker {
     var right = Math.max(lyricRight, neumeRight);
 
     var next = notations[end];
-    var nextStartsWord =
-      !!next &&
-      next.hasLyrics() &&
-      (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-        next.lyrics[0].lyricType === LyricType.SingleSyllable);
+    var nextStartsWord = !!next && startsWordWithLyrics(next);
     ends.push(
       end - start,
       right,
