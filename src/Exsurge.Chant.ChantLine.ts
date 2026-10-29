@@ -36,9 +36,9 @@ import {
 import { custosLedgerLineOverhang, hasDrawnLedgerLine, ledgerLineOverhang } from "./ledgerLines.js";
 import { Point, Rect } from "./Exsurge.Core.js";
 import {
-  ChantLayoutElement, CurlyBraceVisualizer, GlyphCode, Lyric,
+  ChantLayoutElement, CurlyBraceVisualizer, GlyphCode, joinFragments, Lyric,
   LyricArray,
-  LyricType, MarkingPositionHint, NabcDimensions, QuickSvg, RoundBraceVisualizer
+  LyricType, MarkingPositionHint, NabcDimensions, RoundBraceVisualizer, SvgOutputs
 } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
@@ -49,8 +49,9 @@ import type {
   ChantContext,
   ChantNotationElement,
   NabcNeumes,
-  SvgAttributes,
   SvgElementWithSource,
+  SvgOutput,
+  SvgPart,
   SvgTreeNode,
   TextElement,
   TrailingSpaceFunction
@@ -280,13 +281,6 @@ const sumCondensable = (spaces: CondensableSpace[]) => {
   for (var i = 0; i < spaces.length; i++) sum += spaces[i].condensable;
   return sum;
 };
-
-// QuickSvg.createNode() or QuickSvg.createSvgTree(), as getInnerNodes() calls them
-type CreateSvgElement = (
-  name: string,
-  attributes: SvgAttributes,
-  children?: Array<SvgElementWithSource | SvgTreeNode>
-) => SvgElementWithSource | SvgTreeNode;
 
 // a chant line represents one staff line on the page. ChantLines are created by the score
 // and laid out by the page
@@ -789,15 +783,14 @@ export class ChantLine extends ChantLayoutElement {
     canvasCtxt.translate(-this.bounds.x, -this.bounds.y);
   }
 
-  getInnerNodes(
-    ctxt: ChantContext,
-    top = 0,
-    functionNames: {
-      quickSvg: "createNode" | "createSvgTree";
-      elements: "createSvgNode" | "createSvgTree";
-    } = { quickSvg: "createNode", elements: "createSvgNode" }
-  ) {
-    var inner: Array<SvgElementWithSource | SvgTreeNode> = [];
+  /**
+   * what goes inside the line's svg, made as output makes it (and when the
+   * context is editable, with an invisible rect over the staff for the
+   * editor's mouse events)
+   */
+  createInnerSvg(ctxt: ChantContext, output: SvgOutput) {
+    var inner: SvgPart[] = [],
+      method = output.method;
 
     // add the chant lines
     var i,
@@ -806,7 +799,7 @@ export class ChantLine extends ChantLayoutElement {
     const staffSpaces = this.staffSpaces;
     if (ctxt.editable) {
       inner.push(
-        (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("rect", {
+        output.element("rect", {
           key: "insertion",
           x: x1,
           // (from the top line to the bottom line, as the staff lines are drawn below)
@@ -821,7 +814,7 @@ export class ChantLine extends ChantLayoutElement {
     // create the staff lines
     for (i = this.score.staffLineCount * -2 + 1; i < 0; i += 2) {
       inner.push(
-        (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("line", {
+        output.element("line", {
           key: i,
           x1: x1,
           y1: ctxt.staffInterval * i,
@@ -834,12 +827,10 @@ export class ChantLine extends ChantLayoutElement {
       );
     }
 
-    inner = [
-      (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("g", { class: "staffLines" }, inner)
-    ];
+    inner = [output.element("g", { class: "staffLines" }, inner)];
 
     if (this.layoutInsertionCursor(ctxt)) {
-      inner.push(this.insertionCursor![functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+      inner.push(this.insertionCursor![method](ctxt) as SvgPart);
     }
 
     // create the ledger lines
@@ -848,7 +839,7 @@ export class ChantLine extends ChantLayoutElement {
       var y = ctxt.calculateHeightFromStaffPosition(ledgerLine.staffPosition);
 
       inner.push(
-        (QuickSvg[functionNames.quickSvg] as CreateSvgElement)("line", {
+        output.element("line", {
           x1: ledgerLine.x1,
           y1: y,
           x2: ledgerLine.x2,
@@ -862,26 +853,25 @@ export class ChantLine extends ChantLayoutElement {
 
     // add any braces
     for (i = 0; i < this.braces.length; i++)
-      inner.push(this.braces[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+      inner.push(this.braces[i][method](ctxt) as SvgPart);
     for (i = 0; i < this.slurs.length; i++)
-      inner.push(this.slurs[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+      inner.push(this.slurs[i][method](ctxt) as SvgPart);
 
     // dropCap and the annotations
     if (this.isFirstLine) {
       if (this.score.dropCap !== null)
-        inner.push(this.score.dropCap[functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+        inner.push(this.score.dropCap[method](ctxt) as SvgPart);
 
       if (
         this.score.annotation !== null &&
         (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
       )
         // only draw it if there is a dropCap or there is no mergeAnnotationWithTextLeft
-        inner = inner.concat(
-          this.score.annotation[functionNames.elements](ctxt)
-        );
+        // (as DOM nodes, the annotations are one node each)
+        inner = inner.concat(this.score.annotation[method](ctxt));
     }
 
-    inner.push(this.startingClef[functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+    inner.push(this.startingClef[method](ctxt) as SvgPart);
 
     var notations = this.score.notations;
     var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
@@ -889,39 +879,30 @@ export class ChantLine extends ChantLayoutElement {
     // The ending custos is added separately, even when it is an explicit notation.
     for (i = this.notationsStartIndex; i < lastIndex; i++)
       if (notations[i] !== this.custos)
-        inner.push(notations[i][functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+        inner.push(notations[i][method](ctxt) as SvgPart);
 
-    if (this.custos)
-      inner.push(this.custos[functionNames.elements](ctxt) as SvgElementWithSource | SvgTreeNode);
+    if (this.custos) inner.push(this.custos[method](ctxt) as SvgPart);
     return inner;
   }
 
-  createSvgNode(ctxt: ChantContext, top = 0) {
-    let inner = this.getInnerNodes(ctxt, top, {
-      quickSvg: "createNode",
-      elements: "createSvgNode"
-    });
-
-    return QuickSvg.createNode(
-      "g",
-      {
-        class: "chantLine",
-        transform:
-          "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
-        "element-index": this.elementIndex,
-        source: this
-      },
-      inner as SvgElementWithSource[]
-    );
+  /** what goes inside the line's svg, as DOM nodes or an svg tree (see createInnerSvg()) */
+  getInnerNodes(
+    ctxt: ChantContext,
+    top = 0,
+    functionNames: {
+      quickSvg: "createNode" | "createSvgTree";
+      elements: "createSvgNode" | "createSvgTree";
+    } = { quickSvg: "createNode", elements: "createSvgNode" }
+  ) {
+    return this.createInnerSvg(
+      ctxt,
+      functionNames.elements === "createSvgTree" ? SvgOutputs.tree : SvgOutputs.node
+    ) as Array<SvgElementWithSource | SvgTreeNode>;
   }
 
-  createSvgTree(ctxt: ChantContext, top = 0) {
-    let inner = this.getInnerNodes(ctxt, top, {
-      quickSvg: "createSvgTree",
-      elements: "createSvgTree"
-    });
-
-    return QuickSvg.createSvgTree(
+  /** the line's svg, starting at top, made as output makes it, with what goes inside it */
+  private createSvgAs(top: number, output: SvgOutput, inner: SvgPart[]) {
+    return output.element(
       "g",
       {
         class: "chantLine",
@@ -929,8 +910,18 @@ export class ChantLine extends ChantLayoutElement {
           "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
         "element-index": this.elementIndex
       },
-      ...(inner as SvgTreeNode[])
+      inner
     );
+  }
+
+  createSvgNode(ctxt: ChantContext, top = 0) {
+    var node = this.createSvgAs(top, SvgOutputs.node, this.createInnerSvg(ctxt, SvgOutputs.node)) as SvgElementWithSource;
+    node.source = this;
+    return node;
+  }
+
+  createSvgTree(ctxt: ChantContext, top = 0) {
+    return this.createSvgAs(top, SvgOutputs.tree, this.createInnerSvg(ctxt, SvgOutputs.tree)) as SvgTreeNode;
   }
 
   /**
@@ -945,94 +936,12 @@ export class ChantLine extends ChantLayoutElement {
       inner =
         cacheKey !== undefined && cache && cache.key === cacheKey ? cache.inner : this.createInnerSvgFragment(ctxt);
     if (cacheKey !== undefined) this.svgFragmentCache = { key: cacheKey, inner };
-    return QuickSvg.createFragment(
-      "g",
-      {
-        class: "chantLine",
-        transform:
-          "translate(" + this.bounds.x + "," + (this.bounds.y - top) + ")",
-        "element-index": this.elementIndex
-      },
-      inner
-    );
+    return this.createSvgAs(top, SvgOutputs.fragment, [inner]) as string;
   }
 
   /** what goes inside the line's svg (see createSvgFragment()) */
   createInnerSvgFragment(ctxt: ChantContext) {
-    var inner = "";
-
-    // add the chant lines
-    var i,
-      x1 = this.staffLeft,
-      x2 = this.staffRight;
-
-    // create the staff lines
-    for (i = this.score.staffLineCount * -2 + 1; i < 0; i += 2) {
-      inner += QuickSvg.createFragment("line", {
-        x1: x1,
-        y1: ctxt.staffInterval * i,
-        x2: x2,
-        y2: ctxt.staffInterval * i,
-        stroke: ctxt.staffLineColor,
-        "stroke-width": ctxt.staffLineWeight,
-        class: "staffLine"
-      });
-    }
-
-    inner = QuickSvg.createFragment("g", { class: "staffLines" }, inner);
-
-    if (this.layoutInsertionCursor(ctxt)) {
-      inner += this.insertionCursor!.createSvgFragment(ctxt);
-    }
-
-    // create the ledger lines
-    for (i = 0; i < this.ledgerLines.length; i++) {
-      var ledgerLine = this.ledgerLines[i];
-      var y = ctxt.calculateHeightFromStaffPosition(ledgerLine.staffPosition);
-
-      inner += QuickSvg.createFragment("line", {
-        x1: ledgerLine.x1,
-        y1: y,
-        x2: ledgerLine.x2,
-        y2: y,
-        stroke: ctxt.staffLineColor,
-        "stroke-width": ctxt.staffLineWeight,
-        class: "ledgerLine"
-      });
-    }
-
-    // add any braces
-    for (i = 0; i < this.braces.length; i++)
-      inner += this.braces[i].createSvgFragment(ctxt);
-    for (i = 0; i < this.slurs.length; i++)
-      inner += this.slurs[i].createSvgFragment(ctxt);
-
-    // dropCap and the annotations
-    if (this.isFirstLine) {
-      if (this.score.dropCap !== null)
-        inner += this.score.dropCap.createSvgFragment(ctxt);
-
-      if (
-        this.score.annotation !== null &&
-        (!ctxt.mergeAnnotationWithTextLeft || this.score.dropCap)
-      )
-        // only draw it if there is a dropCap or there is no mergeAnnotationWithTextLeft
-        inner += this.score.annotation.createSvgFragment(ctxt);
-    }
-
-    inner += this.startingClef.createSvgFragment(ctxt);
-
-    var notations = this.score.notations;
-    var lastIndex = this.notationsStartIndex + this.numNotationsOnLine;
-
-    // The ending custos is added separately, even when it is an explicit notation.
-    for (i = this.notationsStartIndex; i < lastIndex; i++)
-      if (notations[i] !== this.custos)
-        inner += notations[i].createSvgFragment(ctxt);
-
-    if (this.custos) inner += this.custos.createSvgFragment(ctxt);
-
-    return inner;
+    return joinFragments(this.createInnerSvg(ctxt, SvgOutputs.fragment) as string[]);
   }
 
   buildFromChantNotationIndex(

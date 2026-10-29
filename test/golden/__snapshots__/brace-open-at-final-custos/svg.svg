@@ -31,19 +31,25 @@
 <path d="M 14.06 -50.00 C 16.89 -59.38 28.20 -59.38 31.02 -50.00" stroke="#000" stroke-width="0.8px" fill="none" class="brace" >
 </path>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
 <text source-index="5" x="-1.1230000000000002" y="9.988000000000007" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >a</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="7" element-index="0" id="note-1" x="3.125" y="-25" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement Custos" transform="translate(28.125,0)" >
+<g class="Notations" >
 <use xlink:href="#CustosLong" class="" source-index="15" element-index="1" x="0" y="-31.25" >
 </use>
+</g>
 </g>
 </g>
 </g>

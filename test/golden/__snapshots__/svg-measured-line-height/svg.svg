@@ -33,57 +33,73 @@
 </line>
 </g>
 <g class="ChantNotationElement DoClef" transform="translate(0,0)" >
+<g class="Notations" >
 <use xlink:href="#DoClef" class="" source-index="1" element-index="-1" x="0" y="-43.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(14.0625,0)" >
 <text source-index="5" x="-10.339" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >Ky</tspan>
 <tspan source-index="6" style="newLine: 1;" dy="1.5em" x="-10.339" >rie</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="15" element-index="0" id="note-1" x="3.125" y="-18.75" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(31.25,0)" >
 <text source-index="18" x="0.8353999999999999" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >e</tspan>
 <tspan source-index="6" style="newLine: 1;" dy="1.5em" x="0.8353999999999999" >lé</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="27" element-index="1" id="note-2" x="3.125" y="-25" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement Punctum" transform="translate(58.552400000000006,0)" >
 <text source-index="30" x="-4.795" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >son.</tspan>
 <tspan source-index="12" style="newLine: 2;" dy="3em" x="-4.795" >A</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#PunctumQuadratum" class=" note" source-index="44" element-index="2" id="note-3" x="3.125" y="-31.249999999999996" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement QuarterBar" transform="translate(73.74069999999999,0)" >
+<g class="Notations" >
 <rect x="0" y="-50" width="0.8" height="12.5" fill="#000" class="dividerLine" source-index="48" element-index="3" source="[object Object]" >
 </rect>
+</g>
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(290.1216,0)" >
 <text source-index="51" x="-206.64260000000002" y="13.012000000000008" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="xOffset: 33.56899999999999;" x="-173.07360000000003" >Here is a very long run of text</tspan>
 <tspan source-index="0" style="xOffset: -0.19900000000001228;newLine: true;" dy="1.5em" x="-206.84160000000003" >only syllables that will not fit</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#None" class="" source-index="116" element-index="4" x="0" y="0" >
 </use>
+</g>
 </g>
 <g class="ChantNotationElement TextOnly" transform="translate(282.6912,0)" >
 <text source-index="118" x="-50.3856" y="77.81200000000001" class="lyric" text-anchor="start" style="" >
 <tspan source-index="0" style="" >on the line</tspan>
 </text>
+<g class="Notations" >
 <use xlink:href="#None" class="" source-index="130" element-index="5" x="0" y="0" >
 </use>
 </g>
+</g>
 <g class="ChantNotationElement DoubleBar" transform="translate(81.2274,0)" >
+<g class="Notations" >
 <rect x="0" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="133" element-index="6" source="[object Object]" >
 </rect>
 <rect x="5.45" y="-43.75" width="0.8" height="37.5" fill="#000" class="dividerLine" source-index="133" element-index="6" source="[object Object]" >
 </rect>
+</g>
 </g>
 </g>
 </g>
