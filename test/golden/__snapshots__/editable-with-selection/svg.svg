@@ -47,6 +47,8 @@
 </g>
 <g class="chantLine" transform="translate(0,58.75)" element-index="0" >
 <g class="staffLines" >
+<rect x="0" y="-43.75" width="600" height="37.5" fill="none" >
+</rect>
 <line x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
 <line x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine" >

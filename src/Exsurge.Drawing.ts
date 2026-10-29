@@ -903,6 +903,56 @@ export const QuickSvg = {
   }
 };
 
+/**
+ * svg strings one after another.  (Adding them up, rather than join(), lets
+ * the engine put off copying them into one string until the whole svg is
+ * made, rather than doing it for each element that holds others.)
+ */
+export const joinFragments = (fragments: string[]) => {
+  var joined = "";
+  for (var i = 0; i < fragments.length; i++) joined += fragments[i];
+  return joined;
+};
+
+/** a piece of svg as one of the SvgOutputs makes it: a DOM node, an svg tree or a string */
+export type SvgPart = SvgElementWithSource | SvgTreeNode | string;
+
+/**
+ * One of the ways that a score is drawn as svg (see SvgOutputs), for code
+ * that makes its svg the same way in each of them
+ */
+export interface SvgOutput {
+  /** the method that layout elements make their svg with this way */
+  readonly method: "createSvgNode" | "createSvgTree" | "createSvgFragment";
+  /**
+   * an element with attributes and children made this way.  Neither a key
+   * attribute (which of its siblings it is, for React) nor the source (what
+   * in the score the element shows) is an svg attribute, so the string leaves
+   * them out, though the DOM nodes have always had the key as an attribute.
+   */
+  element(name: string, attributes: SvgAttributes, children?: SvgPart[]): SvgPart;
+}
+
+export const SvgOutputs: { readonly node: SvgOutput; readonly tree: SvgOutput; readonly fragment: SvgOutput } = {
+  node: {
+    method: "createSvgNode",
+    element: (name, attributes, children) => QuickSvg.createNode(name, attributes, children as Node[])
+  },
+  tree: {
+    method: "createSvgTree",
+    element: (name, attributes, children) =>
+      QuickSvg.createSvgTree(name, attributes, ...((children || []) as SvgTreeNode[]))
+  },
+  fragment: {
+    method: "createSvgFragment",
+    element: (name, attributes, children) => {
+      if (attributes.key !== undefined) attributes.key = undefined;
+      if (attributes.source !== undefined) attributes.source = undefined;
+      return QuickSvg.createFragment(name, attributes, children && joinFragments(children as string[]));
+    }
+  }
+};
+
 export const TextMeasuringStrategy = {
   // shapes
   Svg: 0,
@@ -5966,6 +6016,10 @@ export class ChantNotationElement extends ChantLayoutElement {
     return QuickSvg.createSvgTree("g", svgProps, ...(inner as SvgTreeNode[]));
   }
 
+  // (made on its own rather than with an SvgOutput, as getInnerSvgNodes()
+  // could be: the string is made most often, for every notation, and an
+  // SvgOutput would make it slower.  Besides, the string doesn't put the
+  // visualizers in a group, as the DOM nodes and the svg tree do.)
   createSvgFragment(ctxt: ChantContext) {
     var inner = "";
 
