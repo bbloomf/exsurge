@@ -26,7 +26,7 @@
     <g class="Titles" source=<Titles>>
     <g class="chantLine" transform="translate(0,58.75)" element-index="0" source=<ChantLine elementIndex=0>>
       <g class="staffLines">
-        <rect key="insertion" x="0" y="-49" width="600" height="37.5" fill="none">
+        <rect key="insertion" x="0" y="-43.75" width="600" height="37.5" fill="none">
         <line key="-7" x1="0" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-5" x1="0" y1="-31.25" x2="600" y2="-31.25" stroke="#000" stroke-width="0.8" class="staffLine">
         <line key="-3" x1="0" y1="-18.75" x2="600" y2="-18.75" stroke="#000" stroke-width="0.8" class="staffLine">

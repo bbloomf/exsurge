@@ -39,7 +39,7 @@ import type { ChantMapping, ChantScore, Clef, Note } from "./Exsurge.Chant.js";
 import type { LineBreaking } from "./Exsurge.Chant.LineBreaking.js";
 import type { BracePoint, LedgerLineStart, SlurStart } from "./Exsurge.Chant.Markings.js";
 import type { Neume } from "./Exsurge.Chant.Neumes.js";
-import { layoutNabc, type NabcFont, type NabcItem, type NabcLayout, parseNabc } from "./Exsurge.Nabc.js";
+import { glyphNameOfNabc, layoutNabc, type NabcFont, type NabcItem, type NabcLayout, parseNabc } from "./Exsurge.Nabc.js";
 import { texLengthToStaffIntervals } from "./texLengths.js";
 import type { Titles } from "./Exsurge.Titles.js";
 
@@ -639,6 +639,26 @@ export type QuickSvgRoot = SVGSVGElement & {
   clearNotations(): void;
 };
 
+// an attribute's value as it goes between double quotes in an svg string
+var __subsForAttributeValues: { [char: string]: string } = { "&": "&amp;", "<": "&lt;", '"': "&quot;" };
+var escapeAttributeValue = (value: string) =>
+  // (which few values need, and which is quicker to see than with a regex)
+  value.indexOf("&") < 0 && value.indexOf("<") < 0 && value.indexOf('"') < 0
+    ? value
+    : value.replace(/[&<"]/g, (char) => __subsForAttributeValues[char]);
+
+// (for createSvgTree(), but for the source and element indices)
+const convertKeysToCamelCase = (obj: SvgAttributes) => {
+  for (let key of Object.keys(obj)) {
+    if (/[-:][a-z]/.test(key)) {
+      if (/^\w+-index$/.test(key)) continue;
+      let camelCase = key.replace(/[-:]([a-z])/g, (whole, letter) => letter.toUpperCase());
+      obj[camelCase] = obj[key];
+      delete obj[key];
+    }
+  }
+};
+
 export const QuickSvg = {
   // namespaces
   ns: "http://www.w3.org/2000/svg" as const,
@@ -769,10 +789,11 @@ export const QuickSvg = {
         typeof attributes[attr] !== "undefined"
       ) {
         var val = attributes[attr];
-        var match = attr.match(/^([^:]+):([^:]+)$/);
-        if (match) {
+        // (a prefixed name, such as xlink:href, is in the prefix's namespace)
+        var colon = attr.indexOf(":");
+        if (colon > 0 && colon < attr.length - 1 && attr.indexOf(":", colon + 1) < 0) {
           node.setAttributeNS(
-            (this as unknown as { [prefix: string]: string })[match[1]],
+            (this as unknown as { [prefix: string]: string })[attr.slice(0, colon)],
             attr,
             val
           );
@@ -807,18 +828,6 @@ export const QuickSvg = {
     if (children.length === 1 && children[0] instanceof Array) {
       children = children[0];
     }
-    const convertKeysToCamelCase = (obj: SvgAttributes) => {
-      for (let key of Object.keys(obj)) {
-        if (/[-:][a-z]/.test(key)) {
-          if (/^\w+-index$/.test(key)) continue;
-          let camelCase = key.replace(/[-:]([a-z])/g, (whole, letter) =>
-            letter.toUpperCase()
-          );
-          obj[camelCase] = obj[key];
-          delete obj[key];
-        }
-      }
-    };
     convertKeysToCamelCase(props);
     if (props.style && typeof props.style === "object") {
       // camelCase a copy, since the style object may not be the caller's to
@@ -846,8 +855,11 @@ export const QuickSvg = {
       if (
         attributes!.hasOwnProperty(attr) &&
         typeof attributes![attr] !== "undefined"
-      )
-        fragment += attr + '="' + attributes![attr] + '" ';
+      ) {
+        // (most values are numbers, which have nothing to escape)
+        let value = attributes![attr];
+        fragment += attr + '="' + (typeof value === "string" ? escapeAttributeValue(value) : value) + '" ';
+      }
     }
 
     fragment += ">" + child + "</" + name + ">";
@@ -1288,6 +1300,8 @@ export class ChantContext {
   pixelRatio: number;
 
   svgTextMeasurer?: QuickSvgRoot;
+  /** the style element kept in svgTextMeasurer (see prepareSvgTextMeasurer()) */
+  private svgTextMeasurerStyle?: SVGStyleElement;
   // set by makeCanvasIfNeeded():
   canvas?: HTMLCanvasElement;
   canvasCtxt?: CanvasRenderingContext2D;
@@ -1631,13 +1645,12 @@ export class ChantContext {
     properties: FontStyleProperties = {},
     fontFamily?: string
   ): MeasuringFont | undefined {
-    let key = this.getFontFilenameForProperties(properties),
-      keyWithFontFamily = this.getFontFilenameForProperties(properties, fontFamily);
+    if (!this.fontDictionary) return undefined;
+    let keyWithFontFamily = this.getFontFilenameForProperties(properties, fontFamily);
     return (
-      this.fontDictionary &&
-      (this.fontDictionary[keyWithFontFamily] ||
-        this.fontDictionary[fontFamily as string] ||
-        this.fontDictionary.Regular)
+      this.fontDictionary[keyWithFontFamily] ||
+      this.fontDictionary[fontFamily as string] ||
+      this.fontDictionary.Regular
     );
   }
 
@@ -1765,12 +1778,16 @@ export class ChantContext {
   measureCanvasText(font: string, text: string): TextMetrics {
     const canvasCtxt = this.canvasCtxt!;
     const cache = this.getTextMetricsCache(canvasCtxt);
-    // the alignment moves the bounding box, and draw() leaves it set
-    const key = canvasCtxt.textAlign + "\0" + font + "\0" + text;
-    let metrics = cache.get(key);
+    // the alignment moves the bounding box, and draw() leaves it set (the
+    // measurements are kept by font and then by text, rather than by a key
+    // made of all three for each measurement)
+    const fontKey = canvasCtxt.textAlign + "\0" + font;
+    let byText: Map<string, TextMetrics> | undefined = cache.get(fontKey);
+    if (!byText) cache.set(fontKey, (byText = new Map()));
+    let metrics = byText.get(text);
     if (!metrics) {
       if (canvasCtxt.font !== font) canvasCtxt.font = font;
-      metrics = this.cacheTextMetrics(cache, key, canvasCtxt.measureText(text));
+      metrics = this.cacheTextMetrics(byText, text, canvasCtxt.measureText(text));
     }
     return metrics;
   }
@@ -1816,27 +1833,19 @@ export class ChantContext {
   }
 
   /**
-   * measures text drawn with an opentype.js font at (x, y)
+   * measures text drawn with an opentype.js font at the origin, with its
+   * baseline at y = 0 (so that the same text is measured once, wherever it
+   * goes; its bounding box can come out a little differently elsewhere, by
+   * rounding, which is too little to change a layout)
    * @param {import('opentype.js').Font} font
    * @param {string} text
-   * @param {number} x
-   * @param {number} y
    * @param {number} fontSize
    * @param {boolean} smallCaps
    * @returns {{ advanceWidth: number, bbox: import('opentype.js').BoundingBox }}
    */
-  measureOpenTypeText(
-    font: OpenTypeFont,
-    text: string,
-    x: number,
-    y: number,
-    fontSize: number,
-    smallCaps: boolean
-  ): OpenTypeMetrics {
+  measureOpenTypeText(font: OpenTypeFont, text: string, fontSize: number, smallCaps: boolean): OpenTypeMetrics {
     const cache = this.getTextMetricsCache(font);
-    // the bounding box comes out slightly differently depending on where
-    // the path is, so where it is is part of the key
-    const key = `${x},${y},${fontSize},${smallCaps ? "c" : "-"},${text}`;
+    const key = `${fontSize},${smallCaps ? "c" : "-"},${text}`;
     let metrics = cache.get(key);
     if (!metrics) {
       const options: { features: { [feature: string]: boolean } } = {
@@ -1844,7 +1853,7 @@ export class ChantContext {
       };
       if (smallCaps) options.features.smcp = true;
       metrics = this.cacheTextMetrics(cache, key, {
-        bbox: font.getPath(text, x, y, fontSize, options).getBoundingBox(),
+        bbox: font.getPath(text, 0, 0, fontSize, options).getBoundingBox(),
         advanceWidth: font.getAdvanceWidth(text, fontSize, options)
       });
     }
@@ -1884,6 +1893,30 @@ export class ChantContext {
       style += `${svgSelector} .${cssClass}{fill:${color};font-family:${font};font-size:${size}px;font-kerning:normal}`;
     }
     return style;
+  }
+
+  /**
+   * Empties svgTextMeasurer for a text element to be measured in it, but for
+   * its style element, which is kept (and changed only when the styles
+   * change, so that the browser needn't read them again for each element),
+   * and returns that style element.
+   */
+  prepareSvgTextMeasurer() {
+    const measurer = this.svgTextMeasurer!;
+    let styleNode = this.svgTextMeasurerStyle;
+    if (styleNode && styleNode.parentNode === measurer) {
+      let css = this.createStyleCss();
+      if (styleNode.textContent !== css) styleNode.textContent = css;
+    } else styleNode = this.svgTextMeasurerStyle = this.createStyleNode();
+    // (leaving the style element where it is)
+    for (let child = measurer.firstChild; child; ) {
+      let next = child.nextSibling;
+      if (child !== styleNode) measurer.removeChild(child);
+      child = next;
+    }
+    if (styleNode.parentNode !== measurer) measurer.appendChild(styleNode);
+    measurer.setAttribute("class", this.getSvgClass());
+    return styleNode;
   }
 
   createStyleNode() {
@@ -2062,7 +2095,65 @@ export class ChantLayoutElement {
   }
 }
 
-export class DividerLineVisualizer extends ChantLayoutElement {
+/**
+ * A layout element drawn as one svg element, the svgTag with the attributes
+ * that getSvgProps() gives, in each of the ways that a score is drawn as svg
+ */
+export abstract class SvgShape extends ChantLayoutElement {
+  abstract get svgTag(): string;
+  abstract getSvgProps(ctxt: ChantContext): SvgAttributes;
+
+  createSvgNode(ctxt: ChantContext) {
+    return QuickSvg.createNode(this.svgTag, this.getSvgProps(ctxt));
+  }
+
+  createSvgTree(ctxt: ChantContext) {
+    return QuickSvg.createSvgTree(this.svgTag, this.getSvgProps(ctxt));
+  }
+
+  createSvgFragment(ctxt: ChantContext) {
+    return QuickSvg.createFragment(this.svgTag, this.getSvgProps(ctxt));
+  }
+}
+
+/** a line as wide as its weight, from its top down: a divider's, or a neume's or a virga's */
+export abstract class VerticalLineVisualizer extends SvgShape {
+  get svgTag() {
+    return "rect";
+  }
+
+  /** the line's weight, color and css class */
+  abstract lineStyle(ctxt: ChantContext): { weight: number; color: string; cssClass: string };
+
+  draw(ctxt: ChantContext) {
+    var canvasCtxt = ctxt.canvasCtxt!,
+      { weight, color } = this.lineStyle(ctxt);
+
+    canvasCtxt.fillStyle = color;
+    canvasCtxt.fillRect(this.bounds.x, this.bounds.y, weight, this.bounds.height);
+  }
+
+  getSvgProps(ctxt: ChantContext): SvgAttributes {
+    var { weight, color, cssClass } = this.lineStyle(ctxt);
+    return {
+      x: this.bounds.x,
+      y: this.bounds.y,
+      width: weight,
+      height: this.bounds.height,
+      fill: color,
+      class: cssClass
+    };
+  }
+}
+
+/** (a neume's line and a virga's stem) */
+const neumeLineStyle = (ctxt: ChantContext) => ({
+  weight: ctxt.neumeLineWeight,
+  color: ctxt.neumeLineColor,
+  cssClass: "neumeLine"
+});
+
+export class DividerLineVisualizer extends VerticalLineVisualizer {
   divider?: ChantNotationElement;
 
   constructor(
@@ -2093,28 +2184,12 @@ export class DividerLineVisualizer extends ChantLayoutElement {
     this.origin.y = y0;
   }
 
-  draw(ctxt: ChantContext) {
-    var canvasCtxt = ctxt.canvasCtxt!;
-
-    canvasCtxt.fillStyle = ctxt.dividerLineColor;
-
-    canvasCtxt.fillRect(
-      this.bounds.x,
-      this.bounds.y,
-      ctxt.dividerLineWeight,
-      this.bounds.height
-    );
+  lineStyle(ctxt: ChantContext) {
+    return { weight: ctxt.dividerLineWeight, color: ctxt.dividerLineColor, cssClass: "dividerLine" };
   }
 
   getSvgProps(ctxt: ChantContext) {
-    let props: SvgAttributes = {
-      x: this.bounds.x,
-      y: this.bounds.y,
-      width: ctxt.dividerLineWeight,
-      height: this.bounds.height,
-      fill: ctxt.dividerLineColor,
-      class: "dividerLine"
-    };
+    let props = super.getSvgProps(ctxt);
     if (this.divider) {
       if (this.divider.selected) props.class += " selected";
       props["source-index"] = this.divider.sourceIndex;
@@ -2123,20 +2198,9 @@ export class DividerLineVisualizer extends ChantLayoutElement {
     }
     return props;
   }
-
-  createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
-  }
-  createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
-  }
 }
 
-export class NeumeLineVisualizer extends ChantLayoutElement {
+export class NeumeLineVisualizer extends VerticalLineVisualizer {
   /**
    * @param note1 the note to draw the line to, or a staff position to draw it
    * to, or nothing to draw it to four staff positions above note0
@@ -2207,43 +2271,12 @@ export class NeumeLineVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  draw(ctxt: ChantContext) {
-    var canvasCtxt = ctxt.canvasCtxt!;
-
-    canvasCtxt.fillStyle = ctxt.neumeLineColor;
-
-    canvasCtxt.fillRect(
-      this.bounds.x,
-      this.bounds.y,
-      ctxt.neumeLineWeight,
-      this.bounds.height
-    );
-  }
-
-  getSvgProps(ctxt: ChantContext) {
-    return {
-      x: this.bounds.x,
-      y: this.bounds.y,
-      width: ctxt.neumeLineWeight,
-      height: this.bounds.height,
-      fill: ctxt.neumeLineColor,
-      class: "neumeLine"
-    };
-  }
-
-  createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
-  }
-  createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
+  lineStyle(ctxt: ChantContext) {
+    return neumeLineStyle(ctxt);
   }
 }
 
-export class NeumeBeamVisualizer extends ChantLayoutElement {
+export class NeumeBeamVisualizer extends SvgShape {
   constructor(
     ctxt: ChantContext,
     x0: number,
@@ -2307,19 +2340,12 @@ export class NeumeBeamVisualizer extends ChantLayoutElement {
     };
   }
 
-  createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("polygon", this.getSvgProps(ctxt));
-  }
-  createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("polygon", this.getSvgProps(ctxt));
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("polygon", this.getSvgProps(ctxt));
+  get svgTag() {
+    return "polygon";
   }
 }
 
-export class VirgaLineVisualizer extends ChantLayoutElement {
+export class VirgaLineVisualizer extends VerticalLineVisualizer {
   /**
    * @param fusedShift the interval to the next note, if a virga reversa or
    * oriscus scapus is fused to it (see FusedNeume.fusedShift()), or else 0
@@ -2361,38 +2387,8 @@ export class VirgaLineVisualizer extends ChantLayoutElement {
     this.origin.y = 0;
   }
 
-  draw(ctxt: ChantContext) {
-    var canvasCtxt = ctxt.canvasCtxt!;
-
-    canvasCtxt.fillStyle = ctxt.neumeLineColor;
-    canvasCtxt.fillRect(
-      this.bounds.x,
-      this.bounds.y,
-      ctxt.neumeLineWeight,
-      this.bounds.height
-    );
-  }
-
-  getSvgProps(ctxt: ChantContext) {
-    return {
-      x: this.bounds.x,
-      y: this.bounds.y,
-      width: ctxt.neumeLineWeight,
-      height: this.bounds.height,
-      fill: ctxt.neumeLineColor,
-      class: "neumeLine"
-    };
-  }
-
-  createSvgNode(ctxt: ChantContext) {
-    return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
-  }
-  createSvgTree(ctxt: ChantContext) {
-    return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
-  }
-
-  createSvgFragment(ctxt: ChantContext) {
-    return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
+  lineStyle(ctxt: ChantContext) {
+    return neumeLineStyle(ctxt);
   }
 }
 
@@ -2503,6 +2499,9 @@ export class LineaVisualizer extends ChantLayoutElement {
   }
 }
 
+// a porrectus's swash, by the number of staff positions it goes down (see porrectusGlyph())
+const __porrectusGlyphCodeRegex = /^Porrectus([\d.]+)(Cavum)?$/;
+
 export class GlyphVisualizer extends ChantLayoutElement {
   glyph: Glyph;
   glyphCode!: GlyphCode;
@@ -2533,7 +2532,7 @@ export class GlyphVisualizer extends ChantLayoutElement {
   setGlyph(ctxt: ChantContext, glyphCode?: GlyphCode | null | "", ownGlyph?: Glyph) {
     if (typeof glyphCode === "undefined" || glyphCode === null || glyphCode === "")
       glyphCode = GlyphCode.None;
-    const swash = /^Porrectus([\d.]+)(Cavum)?$/.exec(glyphCode);
+    const swash = glyphCode.startsWith("Porrectus") ? __porrectusGlyphCodeRegex.exec(glyphCode) : null;
     const glyphId =
       swash && ctxt.glyphMultiplier !== 1
         ? `Porrectus${swash[1]}x${ctxt.glyphMultiplier}${swash[2] || ""}`
@@ -2779,10 +2778,10 @@ export class NabcNeumes extends ChantLayoutElement {
       errorWidth: font.unitsPerEm * NabcNeumes.errorSize * 2
     }));
     // (none for a phantom, which isn't drawn)
+    let fontId = nabcFont(font).id;
     this.glyphs = (phantom ? [] : layout.glyphs).map((placed) => {
-      // (whose def's id is the font's name and the glyph's, as the font names
-      // it, with B, N, E and T for >, -, ! and ~)
-      let id = `Nabc-${nabcFont(font).id}-${placed.name.replace(/[>\-!~]/g, (char) => "BNET"[">-!~".indexOf(char)])}`;
+      // (whose def's id is the font's name and the glyph's, as the font names it)
+      let id = `Nabc-${fontId}-${glyphNameOfNabc(placed.name)}`;
       let glyph = nabcGlyph(font, placed.name);
       let visualizer = new GlyphVisualizer(ctxt, id as GlyphCode, glyph);
       visualizer.scale = unit / ctxt.glyphScaling;
@@ -3215,7 +3214,7 @@ export class TextSpan {
 
   get properties() {
     const result: TextSpanProperties = Object.assign({}, this.mergedProperties);
-    if ('xOffset' in this) result.xOffset = this.xOffset;
+    if (this.xOffset !== undefined) result.xOffset = this.xOffset;
     if ('newLine' in this) result.newLine = this.newLine;
     return result;
   }
@@ -3240,7 +3239,7 @@ export class TextSpan {
       this.activeTags,
       this.index
     );
-    if ('xOffset' in this) result.xOffset = this.xOffset;
+    if (this.xOffset !== undefined) result.xOffset = this.xOffset;
     if ('newLine' in this) result.newLine = this.newLine;
     if ('wrappedSpace' in this) result.wrappedSpace = this.wrappedSpace;
     return result;
@@ -3263,13 +3262,6 @@ class MarkupStackFrame {
     this.startIndex = startIndex;
     this.propertyArray = propertyArray;
     if (symbol) this.symbol = symbol;
-  }
-
-  get properties(): CssProperties {
-    return (Object.assign as (...objects: SpanPropertyDict[]) => CssProperties).apply(
-      null,
-      ([{}] as SpanPropertyDict[]).concat(this.propertyArray)
-    );
   }
 
   static createStackFrame(
@@ -3328,6 +3320,14 @@ interface TextLine {
 // the markup in a TextElement's text (see generateSpansFromText()), and the
 // characters that Gregorio's $ escaped (see gabcEscapes.ts)
 const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
+
+const __markupRegex = new RegExp(markupRegexSource, "gi");
+
+// in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
+// {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped
+// character, a command with its arguments, or a brace, which is left out
+// unless it's one of the others (a command's {arguments} may be read again)
+const __vTagRegex = /\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?|\\'\{?([æœaeiouy])\}?|\\([a-z@]+)\*?((?:\s*(?:\[[^\]]*\]|\{(?:[^{}]|\{[^{}]*\})*\}))*)|\\([&%$#_{}])|[{}]/gi;
 
 // a tag (in markupRegexSource's match) that starts or ends with a capital in its name
 const __capitalTagRegex = /^<\/?[a-z]*[A-Z]|<\/[a-z]*[A-Z][a-z]*>$/;
@@ -3433,7 +3433,7 @@ export class TextElement extends ChantLayoutElement {
     text = text.replace(/\s+/g, " ");
     this.text = "";
     this.spans = [];
-    delete this.wrappedSpans;
+    this.wrappedSpans = undefined;
 
     // save ourselves a lot of grief for a very common text:
     if (text === "*" || text === "+" || text === "†") {
@@ -3451,10 +3451,6 @@ export class TextElement extends ChantLayoutElement {
     var markupStack: MarkupStackFrame[] = [];
     var spanStartIndex = 0;
     var newLineInNextSpan = 0;
-
-    // (a frame has no Symbol, so this never matches)
-    var filterFrames = (frame: MarkupStackFrame, symbol: number) =>
-      (frame as unknown as { Symbol?: unknown }).Symbol === symbol;
 
     var closeSpan = (spanText: string, index: number, extraProperties?: CssProperties) => {
       if (spanText === "" && !this.dropCap) return;
@@ -3481,12 +3477,10 @@ export class TextElement extends ChantLayoutElement {
 
     };
 
-    var markupRegex = new RegExp(markupRegexSource, "gi");
-    // in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
-    // {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped
-    // character, a command with its arguments, or a brace, which is left out
-    // unless it's one of the others (a command's {arguments} may be read again)
-    var vTagRegex = /\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?|\\'\{?([æœaeiouy])\}?|\\([a-z@]+)\*?((?:\s*(?:\[[^\]]*\]|\{(?:[^{}]|\{[^{}]*\})*\}))*)|\\([&%$#_{}])|[{}]/gi;
+    // (the regexes are shared, and nothing in here makes spans of other text)
+    var markupRegex = __markupRegex;
+    var vTagRegex = __vTagRegex;
+    markupRegex.lastIndex = 0;
     var match: RegExpExecArray | null = null;
     var openedAsterisk = false;
     var closeCurrentSpan = () =>
@@ -3536,6 +3530,7 @@ export class TextElement extends ChantLayoutElement {
         let vMatch: RegExpExecArray | null;
         let lastIndex = 0;
         let iOffset = 0;
+        vTagRegex.lastIndex = 0;
         while ((vMatch = vTagRegex.exec(vTag))) {
           if (lastIndex < vMatch.index) {
             closeSpan(vTag.slice(lastIndex, vMatch.index), match.index + lastIndex + iOffset);
@@ -3660,12 +3655,6 @@ export class TextElement extends ChantLayoutElement {
           closeCurrentSpan();
           // group close
           if (closingTag) markupStack.pop();
-        } else if (markupStack.filter(filterFrames).length > 0) {
-          // trying to open a recursive group (or forgot to close a previous group)
-          // in either case, we just unwind to the previous stack frame
-          spanStartIndex = markupStack[markupStack.length - 1].startIndex;
-          markupStack.pop();
-          continue;
         } else {
           closeCurrentSpan();
           if (closingTag) {
@@ -3704,7 +3693,7 @@ export class TextElement extends ChantLayoutElement {
     const size = properties["font-size"];
     if (size === undefined) return this.fontSize(ctxt) * (this.resize || 1);
     let fontSize = parseFloat(size as string) || this.fontSize(ctxt);
-    if (/%$/.test(size as string)) {
+    if (typeof size === "string" && size.endsWith("%")) {
       fontSize *= this.fontSize(ctxt) / 100;
     }
     return fontSize * (this.resize || 1);
@@ -3832,19 +3821,13 @@ export class TextElement extends ChantLayoutElement {
         const spanFontSize = this.fontSizeForProperties(ctxt, properties);
         if ('getPath' in font) {
           // opentype.js
-          const measured = ctxt.measureOpenTypeText(
-            font,
-            myText,
-            width,
-            baseline,
-            spanFontSize,
-            smallCaps
-          );
+          // (measured at the origin, so that it's measured once wherever it is)
+          const measured = ctxt.measureOpenTypeText(font, myText, spanFontSize, smallCaps);
           let subBbox = measured.bbox;
           let subWidth = measured.advanceWidth;
           bbox.unionWith(
             width + subBbox.x1,
-            subBbox.y1,
+            baseline + subBbox.y1,
             subWidth - subBbox.x1,
             subBbox.y2 - subBbox.y1
           );
@@ -3935,21 +3918,23 @@ export class TextElement extends ChantLayoutElement {
     if (!wrapped) return;
     for (var i = wrapped.length - 1; i >= 0; i--)
       this.spans.splice(wrapped[i].index, wrapped[i].count, ...wrapped[i].spans);
-    delete this.wrappedSpans;
+    this.wrappedSpans = undefined;
   }
 
   recalculateMetrics(ctxt: ChantContext, resetNewLines = true) {
     if (resetNewLines) {
-      delete this.maxWidth;
-      delete this.firstLineMaxWidth;
-      delete this.rightAligned;
-      delete this.resize;
-      delete this.numLines;
+      // (set to undefined rather than deleted, which would make V8 keep the
+      // element's properties in a slower dictionary)
+      this.maxWidth = undefined;
+      this.firstLineMaxWidth = undefined;
+      this.rightAligned = undefined;
+      this.resize = undefined;
+      this.numLines = undefined;
       // (as they were before the text was wrapped, so that it's measured and
       // wrapped again the same way each time)
       this.unwrap();
       this.spans.forEach((span) => {
-        delete span.xOffset;
+        span.xOffset = undefined;
       });
     }
 
@@ -3959,11 +3944,9 @@ export class TextElement extends ChantLayoutElement {
     this.origin.x = 0;
 
     if (ctxt.textMeasuringStrategy === TextMeasuringStrategy.Svg) {
-      while (ctxt.svgTextMeasurer!.firstChild)
-        ctxt.svgTextMeasurer!.removeChild(ctxt.svgTextMeasurer!.firstChild);
-      ctxt.svgTextMeasurer!.setAttribute("class", ctxt.getSvgClass());
-      ctxt.svgTextMeasurer!.appendChild(this.createSvgNode(ctxt));
-      ctxt.svgTextMeasurer!.appendChild(ctxt.createStyleNode());
+      // the text goes first, before the styles (see prepareSvgTextMeasurer())
+      let styleNode = ctxt.prepareSvgTextMeasurer();
+      ctxt.svgTextMeasurer!.insertBefore(this.createSvgNode(ctxt), styleNode);
 
       // (the loop above leaves TypeScript thinking that firstChild is null)
       var bbox = (ctxt.svgTextMeasurer!.firstChild as unknown as SVGGraphicsElement).getBBox();
@@ -4433,7 +4416,7 @@ export const LyricArray = {
   getRight: function (lyricArray: Lyric[], presumeConnectorNeeded?: boolean, lessProtrusion?: boolean) {
     if (lyricArray.length === 0) return NaN;
 
-    var x = Number.MIN_VALUE;
+    var x = -Infinity;
     for (var i = 0; i < lyricArray.length; i++) {
       let l = lyricArray[i];
       if (l)
@@ -4482,8 +4465,9 @@ export const LyricArray = {
    * they are
    */
   alignVerseNumbers: function (ctxt: ChantContext, lyricArray: Lyric[]) {
+    // (which is called for every notation, though few have verse numbers)
+    if (!lyricArray.some((lyric) => lyric.shownVerseNumber)) return;
     var numbered = lyricArray.filter((lyric) => lyric.shownVerseNumber);
-    if (!numbered.length) return;
     var right =
       Math.min(...lyricArray.filter((lyric) => lyric.text || lyric.shownVerseNumber).map((lyric) => lyric.bounds.x)) -
       ctxt.minLyricWordSpacing;
@@ -4602,7 +4586,9 @@ export class Lyric extends TextElement {
       sourceIndex,
       text,
       TextTypes.lyric,
-      measure
+      // (measured below, once it's known whether it's a directive, which has
+      // a css class of its own and is centered differently)
+      false
     );
 
     // save the original text in case we need to later use the lyric
@@ -4642,9 +4628,7 @@ export class Lyric extends TextElement {
     if (this.allowsConnector())
       this.connectorSpan = new TextSpan(ctxt.syllableConnector);
 
-    // TextElement measured the lyric before it knew it was a directive, which
-    // has a css class of its own and is centered differently
-    if (measure && this.lyricType === LyricType.Directive) this.recalculateMetrics(ctxt);
+    if (measure) this.recalculateMetrics(ctxt);
   }
 
   allowsConnector() {
@@ -5403,7 +5387,8 @@ export class TitleTextElement extends TextElement {
     textAnchor: string,
     sourceIndex?: number,
     sourceGabc?: string,
-    textType?: TextTypes[keyof TextTypes]
+    textType?: TextTypes[keyof TextTypes],
+    measure = true
   ) {
     super(
       ctxt,
@@ -5413,65 +5398,47 @@ export class TitleTextElement extends TextElement {
       textAnchor,
       sourceIndex,
       sourceGabc,
-      textType
+      textType,
+      measure
     );
   }
 }
 
-export class Supertitle extends TitleTextElement {
-  constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
+/** a title in its own text style (see Titles), centered, with space after it of a third of its size */
+export abstract class CenteredTitle extends TitleTextElement {
+  constructor(ctxt: ChantContext, text: string, key: "supertitle" | "title" | "subtitle", sourceIndex?: number) {
     super(
       ctxt,
-      (ctxt.textStyles.supertitle.prefix || "") + text,
-      (ctxt) => ctxt.textStyles.supertitle.font,
-      (ctxt) => ctxt.textStyles.supertitle.size,
+      (ctxt.textStyles[key].prefix || "") + text,
+      (ctxt) => ctxt.textStyles[key].font,
+      (ctxt) => ctxt.textStyles[key].size,
       "middle",
       sourceIndex,
       text,
-      TextTypes.supertitle
+      TextTypes[key]
     );
 
     this.padding = (ctxt: ChantContext) => (
-      (Number(ctxt.textStyles.supertitle.padding) || 1) * ctxt.textStyles.supertitle.size / 3
+      (Number(ctxt.textStyles[key].padding) || 1) * ctxt.textStyles[key].size / 3
     );
   }
 }
 
-export class Title extends TitleTextElement {
+export class Supertitle extends CenteredTitle {
   constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
-    super(
-      ctxt,
-      (ctxt.textStyles.title.prefix || "") + text,
-      (ctxt) => ctxt.textStyles.title.font,
-      (ctxt) => ctxt.textStyles.title.size,
-      "middle",
-      sourceIndex,
-      text,
-      TextTypes.title
-    );
-
-    this.padding = (ctxt: ChantContext) => (
-      (Number(ctxt.textStyles.title.padding) || 1) * ctxt.textStyles.title.size / 3
-    );
+    super(ctxt, text, "supertitle", sourceIndex);
   }
 }
 
-export class Subtitle extends TitleTextElement {
+export class Title extends CenteredTitle {
   constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
-    super(
-      ctxt,
-      (ctxt.textStyles.subtitle.prefix || "") + text,
-      (ctxt) => ctxt.textStyles.subtitle.font,
-      (ctxt) => ctxt.textStyles.subtitle.size,
-      "middle",
-      sourceIndex,
-      text,
-      TextTypes.subtitle
-    );
+    super(ctxt, text, "title", sourceIndex);
+  }
+}
 
-    this.padding = (ctxt: ChantContext) => (
-      (Number(ctxt.textStyles.subtitle.padding) || 1) * ctxt.textStyles.subtitle.size / 3
-    );
+export class Subtitle extends CenteredTitle {
+  constructor(ctxt: ChantContext, text: string, sourceIndex?: number) {
+    super(ctxt, text, "subtitle", sourceIndex);
   }
 }
 
@@ -5489,7 +5456,9 @@ export class TextLeftRight extends TitleTextElement {
       type === "textLeft" ? "start" : "end",
       sourceIndex,
       text,
-      TextTypes.leftRight
+      TextTypes.leftRight,
+      // (measured below, once it has extraClass)
+      false
     );
     this.extraClass = type === "textLeft" ? "textLeft" : "textRight";
     this.headerKey = type === "textLeft" ? "text-left" : "text-right";
@@ -5497,7 +5466,6 @@ export class TextLeftRight extends TitleTextElement {
       (Number(ctxt.textStyles.leftRight.padding) || 1) * ctxt.textStyles.leftRight.size / 5
     );
 
-    // measured again, since TextElement measured it before it had extraClass
     this.recalculateMetrics(ctxt);
   }
 
@@ -5732,13 +5700,15 @@ export class ChantNotationElement extends ChantLayoutElement {
    */
   nabc?: string[];
   // nabc, and the NABC read from it, so that it's read again only when it changes
-  private readNabc?: { nabc: string; items: NabcItem[][] };
+  private readNabc?: { nabc: string[]; items: NabcItem[][] };
   /** the NABC of each line, read with parseNabc(): its neumes, spaces and errors */
   get parsedNabc(): NabcItem[][] | undefined {
-    if (!this.nabc) return undefined;
-    let nabc = JSON.stringify(this.nabc);
-    if (!this.readNabc || this.readNabc.nabc !== nabc) this.readNabc = { nabc, items: this.nabc.map(parseNabc) };
-    return this.readNabc.items;
+    let nabc = this.nabc;
+    if (!nabc) return undefined;
+    let read = this.readNabc;
+    if (!read || read.nabc.length !== nabc.length || read.nabc.some((line, i) => line !== nabc![i]))
+      read = this.readNabc = { nabc: nabc.slice(), items: nabc.map(parseNabc) };
+    return read.items;
   }
   /**
    * the NABC of each line that's drawn, laid out (when there's a NabcFont to
@@ -5803,7 +5773,7 @@ export class ChantNotationElement extends ChantLayoutElement {
   getAllLyricsRight() {
     if (this.lyrics.length === 0) return this.bounds.x;
 
-    var x = Number.MIN_VALUE;
+    var x = -Infinity;
     for (var i = 0; i < this.lyrics.length; i++) {
       if (this.lyrics[i])
         x = Math.max(x, this.lyrics[i].bounds.x + this.lyrics[i].bounds.width);

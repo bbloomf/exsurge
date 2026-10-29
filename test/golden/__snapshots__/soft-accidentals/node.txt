@@ -15,8 +15,6 @@
         <path d="M-50 -52.75C101.027 75.5 185.549 66 212.544 66C221.044 66 244.244 65.5 252.344 36.3L252.344 151.9C252.344 162.7 239.544 162.9 233.644 162.9C165.791 162.9 59.452 159.024 -50 66z">
       <g id="None" class="glyph" transform="scale(0.0625)">
         <g>
-      <g id="PodatusUpper" class="glyph" transform="scale(0.0625)">
-        <path d="m-46.094-55.78c13.542 0 24.61 2.473 33.203 7.42c8.593 4.947 12.891 12.367 12.891 22.264v96.093h-9.375c0-10.938-2.604-19.14-7.812-24.61c-5.21-5.468-14.844-8.203-28.907-8.202c-18.23 0-33.333 4.166-45.312 12.5v-75.782c0-19.79 15.104-29.687 45.312-29.687z">
       <g id="Natural" class="glyph" transform="scale(0.0625)">
         <path d="M7.906-166.563c-2.864 0-5.614.52-8.218 1.563v13.28l.78 56.25.782 78.907v85.157c.52 3.646 2.604 5.73 6.25 6.25l23.438-3.906 23.437-3.907v29.69c0 42.186-.26 63.54-.78 64.06l6.25 2.345c1.04.52 2.082.78 3.124.78 2.603 0 4.947-1.3 7.03-3.905L67.656-71.25c-.52-2.604-2.083-3.906-4.687-3.906-7.814 0-17.19 1.04-28.126 3.125l-19.53 3.124.78-38.28V-165c-2.604-1.042-5.323-1.562-8.188-1.563zM55.938-40v71.875l-41.407 7.03c0-48.436.262-72.655.783-72.655L55.938-40z">
       <g id="DoClef" class="glyph" transform="scale(0.0625)">
@@ -89,7 +87,7 @@
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="52" element-index="17" id="note-15" x="3.125" y="-12.5" source=<Note sourceIndex=52 elementIndex=17 noteIndex=14>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#Porrectus1" class=" note porrectus porrectus-start" source-index="53" element-index="18" id="note-16" x="9.375" y="-18.75" source=<Note sourceIndex=53 elementIndex=18 noteIndex=15>>
           <use {http://www.w3.org/1999/xlink}xlink:href="#None" class=" note porrectus porrectus-end" source-index="54" element-index="19" id="note-17" x="25.1465" y="-12.5" source=<Note sourceIndex=54 elementIndex=19 noteIndex=16>>
-          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpper" class=" note" source-index="55" element-index="20" id="note-18" x="25.1465" y="-18.75" source=<Note sourceIndex=55 elementIndex=20 noteIndex=17>>
+          <use {http://www.w3.org/1999/xlink}xlink:href="#PodatusUpperShort" class=" note" source-index="55" element-index="20" id="note-18" x="25.1465" y="-18.75" source=<Note sourceIndex=55 elementIndex=20 noteIndex=17>>
       <g class="ChantNotationElement Punctum" transform="translate(202.67872809305834,0)" source=<Punctum>>
         <g class="Notations">
           <use {http://www.w3.org/1999/xlink}xlink:href="#PunctumQuadratum" class=" note" source-index="58" element-index="21" id="note-19" x="3.125" y="-31.249999999999996" source=<Note sourceIndex=58 elementIndex=21 noteIndex=18>>

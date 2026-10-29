@@ -8,8 +8,9 @@ import * as Neumes from "../src/Exsurge.Chant.Neumes.js";
 import * as Signs from "../src/Exsurge.Chant.Signs.js";
 import { Spanish } from "../src/Exsurge.Text.js";
 import * as Exsurge from "../src/index.js";
-import { featureCases } from "./golden/cases";
+import { featureCases, settingCases } from "./golden/cases";
 import { render } from "./golden/harness";
+import { createRandom, randomGabc } from "./reference/gabcFuzzer";
 
 function layoutNotations(gabc: string) {
   var ctxt = new Drawing.ChantContext();
@@ -68,6 +69,21 @@ describe('Neume layout', function() {
   });
 });
 
+describe('Torculus resupinus', function() {
+  function lastGlyph(gabc: string) {
+    var neume = layoutNotations(gabc).find((notation) => notation instanceof Neumes.TorculusResupinus)!;
+    assert(neume, gabc);
+    return neume.notes![3].glyphVisualizer!.glyphCode;
+  }
+
+  it("draws its last note as a porrectus draws its last, from the last note's liquescence and interval", function() {
+    assert.equal(lastGlyph('(c4) a(ehfh)'), Drawing.GlyphCode.PodatusUpper);
+    assert.equal(lastGlyph('(c4) a(ehgh)'), Drawing.GlyphCode.PodatusUpperShort);
+    assert.equal(lastGlyph('(c4) a(ehgh>)'), Drawing.GlyphCode.PunctumQuadratumDesLiquescent);
+    assert.equal(lastGlyph('(c4) a(ehgh~)'), Drawing.GlyphCode.TerminatingAscLiquescent);
+  });
+});
+
 describe('Note', function() {
   it('matches its shape modifiers', function() {
     var note = new Chant.Note();
@@ -82,6 +98,12 @@ describe('Note', function() {
 });
 
 describe('Lyric parsing', function() {
+  it("doesn't end a word at a line break in the text of <v>, <alt> or <sp>", function() {
+    assert.deepEqual(Gabc.splitWords('a<v>x\ny</v>(f) b(g)'), ['a<v>x\ny</v>(f)', 'b(g)']);
+    assert.deepEqual(Gabc.splitWords('a<alt>x\ny</alt>(f) b(g)'), ['a<alt>x\ny</alt>(f)', 'b(g)']);
+    assert.deepEqual(Gabc.splitWords('a(f)\nb(g)'), ['a(f)', 'b(g)']);
+  });
+
   it('strips trailing whitespace from a lyric after a |', function() {
     var ctxt = new Drawing.ChantContext();
     var mappings = Gabc.createMappingsFromSource(ctxt, '(c4) a|bus\t (g)');
@@ -536,5 +558,72 @@ describe('Svg defs', function() {
     assertEachSvgInAPageDrawsItsOwnDefs(scores.map(function(score, i) {
       return defsAndUsesOfSvgTree(score.createSvgTree(contexts[i]));
     }), contexts);
+  });
+});
+
+describe('An annotation above the notes beside a drop cap', function() {
+  it('makes room above the first line without moving its bottom', async function() {
+    var annotated = settingCases.find((c) => c.name === 'annotation-with-drop-cap')!;
+    var firstLineBounds = async (withAnnotation: boolean) => {
+      var { score } = await render(Exsurge, annotated.gabc, {
+        width: 600,
+        useDropCap: true,
+        // (an annotation tall enough to reach above the notes)
+        setupContext: (ctxt) => (ctxt.textStyles.annotation.size = 30),
+        setupScore: withAnnotation ? annotated.setupScore : undefined
+      }, []);
+      return score.lines[0].notationBounds;
+    };
+    var plain = await firstLineBounds(false);
+    var withAnnotation = await firstLineBounds(true);
+    assert(withAnnotation.y < plain.y);
+    assert.equal(withAnnotation.bottom(), plain.bottom());
+  });
+});
+
+describe('Svg strings', function() {
+  it("escapes the attributes' values", function() {
+    assert.equal(
+      Drawing.QuickSvg.createFragment('text', { class: 'a"b', style: 'font-family:"A&B"', x: 1 }, 'c'),
+      '<text class="a&quot;b" style="font-family:&quot;A&amp;B&quot;" x="1" >c</text>'
+    );
+  });
+});
+
+describe('Splitting gabc into words again after an edit', function() {
+  // (Gabc.splitMaskedWords() masks only the word that an edit is in again,
+  // where the edit can't change the words around it)
+  it('splits the edited gabc as it splits it afresh', function() {
+    var letters = 'abcdefghijklmnopqrstuvwxyz.,;:!/\'_~<>()% \n$v';
+    var checked = 0;
+    for (var seed = 1; seed <= 200; seed++) {
+      var random = createRandom(seed);
+      var gabc = randomGabc(random, 5 + random.int(30));
+      if (seed % 3 === 0) gabc = gabc.replace(/ /g, (space) => (random.int(4) ? space : ' % a comment\n'));
+      var last = Gabc.splitMaskedWords(gabc);
+      for (var edit = 0; edit < 20; edit++) {
+        var at = random.int(gabc.length + 1);
+        var removed = random.int(3);
+        var added = Array.from({ length: random.int(3) }, () => letters[random.int(letters.length)]).join('');
+        gabc = gabc.slice(0, at) + added + gabc.slice(at + removed);
+        var again = (last = Gabc.splitMaskedWords(gabc, last));
+        var afresh = Gabc.splitMaskedWords(gabc);
+        assert.deepEqual(again, afresh, `seed ${seed}, edit ${edit}`);
+        checked++;
+      }
+    }
+    assert.equal(checked, 4000);
+  });
+
+  it('splits gabc typed at its end, in its last word, as it splits it afresh', function() {
+    for (var start of ['(c4) a(f) (::)\n', '(c4) a(f) b', '(c4) a(f) % a comment']) {
+      var gabc = start,
+        last = Gabc.splitMaskedWords(gabc);
+      for (var letter of 'Al(f)le') {
+        gabc += letter;
+        last = Gabc.splitMaskedWords(gabc, last);
+        assert.deepEqual(last, Gabc.splitMaskedWords(gabc), JSON.stringify(gabc));
+      }
+    }
   });
 });

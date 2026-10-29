@@ -178,17 +178,11 @@ export class Latin extends Language {
 
   // c must be lowercase!
   isVowel(c: string) {
-    for (var i = 0, end = this.vowels.length; i < end; i++)
-      if (this.vowels[i] === c) return true;
-
-    return false;
+    return this.vowels.includes(c);
   }
 
   isVowelThatMightBeConsonant(c: string) {
-    for (var i = 0, end = this.vowelsThatMightBeConsonants.length; i < end; i++)
-      if (this.vowelsThatMightBeConsonants[i] === c) return true;
-
-    return false;
+    return this.vowelsThatMightBeConsonants.includes(c);
   }
 
   // substring should be a vowel and the character following
@@ -207,10 +201,7 @@ export class Latin extends Language {
    * @return {boolean} true if c is an f or a mute consonant
    */
   isMuteConsonantOrF(c: string) {
-    for (var i = 0, end = this.muteConsonantsAndF.length; i < end; i++)
-      if (this.muteConsonantsAndF[i] === c) return true;
-
-    return false;
+    return this.muteConsonantsAndF.includes(c);
   }
 
   /**
@@ -219,10 +210,7 @@ export class Latin extends Language {
    * @return {boolean} true if c is a liquid consonant
    */
   isLiquidConsonant(c: string) {
-    for (var i = 0, end = this.liquidConsonants.length; i < end; i++)
-      if (this.liquidConsonants[i] === c) return true;
-
-    return false;
+    return this.liquidConsonants.includes(c);
   }
 
   /**
@@ -231,10 +219,7 @@ export class Latin extends Language {
    * @return {boolean} true if s is a diphthong
    */
   isDiphthong(s: string) {
-    for (var i = 0, end = this.diphthongs.length; i < end; i++)
-      if (this.diphthongs[i] === s) return true;
-
-    return false;
+    return this.diphthongs.includes(s);
   }
 
   /**
@@ -243,10 +228,7 @@ export class Latin extends Language {
    * @return {boolean} true if s is a diphthong
    */
   isPossibleDiphthong(s: string) {
-    for (var i = 0, end = this.possibleDiphthongs.length; i < end; i++)
-      if (this.possibleDiphthongs[i] === s) return true;
-
-    return false;
+    return this.possibleDiphthongs.includes(s);
   }
 
   /**
@@ -469,10 +451,7 @@ export class Spanish extends Language {
 
   // c must be lowercase!
   isVowel(c: string) {
-    for (var i = 0, end = this.vowels.length; i < end; i++)
-      if (this.vowels[i] === c) return true;
-
-    return false;
+    return this.vowels.includes(c);
   }
 
   /**
@@ -480,10 +459,7 @@ export class Spanish extends Language {
    * @return {boolean} true if c is an f or a mute consonant
    */
   isWeakVowel(c: string) {
-    for (var i = 0, end = this.weakVowels.length; i < end; i++)
-      if (this.weakVowels[i] === c) return true;
-
-    return false;
+    return this.weakVowels.includes(c);
   }
 
   /**
@@ -491,10 +467,7 @@ export class Spanish extends Language {
    * @return {boolean} true if c is an f or a mute consonant
    */
   isStrongVowel(c: string) {
-    for (var i = 0, end = this.strongVowels.length; i < end; i++)
-      if (this.strongVowels[i] === c) return true;
-
-    return false;
+    return this.strongVowels.includes(c);
   }
 
   /**
@@ -503,10 +476,7 @@ export class Spanish extends Language {
    * @return {boolean} true if s is a diphthong
    */
   isDiphthong(s: string) {
-    for (var i = 0, end = this.diphthongs.length; i < end; i++)
-      if (this.diphthongs[i] === s) return true;
-
-    return false;
+    return this.diphthongs.includes(s);
   }
 
   createSyllable(text: string) {

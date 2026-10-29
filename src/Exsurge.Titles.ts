@@ -95,35 +95,18 @@ export class Titles extends ChantLayoutElement {
   layoutTitles(ctxt: ChantContext, width: number) {
     this.bounds = new Rect(0, 0, 0, 0);
     let y = 0;
-    if (this.supertitle) {
-      this.supertitle.recalculateMetrics(ctxt);
-      this.supertitle.setMaxWidth(ctxt, width);
-
-      this.setBoundsX(ctxt, "supertitle", width);
-      this.supertitle.bounds.y = y;
-      this.bounds.union(this.supertitle.bounds);
-      this.supertitle.bounds.y += this.supertitle.origin.y;
-      y += this.supertitle.bounds.height + this.supertitle.padding(ctxt);
-    }
-    if (this.title) {
-      if (y) y += this.title.padding(ctxt);
-      this.title.recalculateMetrics(ctxt);
-      this.title.setMaxWidth(ctxt, width);
-      this.setBoundsX(ctxt, "title", width);
-      this.title.bounds.y = y;
-      this.bounds.union(this.title.bounds);
-      this.title.bounds.y += this.title.origin.y;
-      y += this.title.bounds.height + this.title.padding(ctxt);
-    }
-    if (this.subtitle) {
-      if (y) y += this.subtitle.padding(ctxt);
-      this.subtitle.recalculateMetrics(ctxt);
-      this.subtitle.setMaxWidth(ctxt, width);
-      this.setBoundsX(ctxt, "subtitle", width);
-      this.subtitle.bounds.y = y;
-      this.bounds.union(this.subtitle.bounds);
-      this.subtitle.bounds.y += this.subtitle.origin.y;
-      y += this.subtitle.bounds.height + this.subtitle.padding(ctxt);
+    for (let key of ["supertitle", "title", "subtitle"] as const) {
+      let element = this[key];
+      if (!element) continue;
+      // (with its padding above it too, after the title above it)
+      if (y) y += element.padding(ctxt);
+      element.recalculateMetrics(ctxt);
+      element.setMaxWidth(ctxt, width);
+      this.setBoundsX(ctxt, key, width);
+      element.bounds.y = y;
+      this.bounds.union(element.bounds);
+      element.bounds.y += element.origin.y;
+      y += element.bounds.height + element.padding(ctxt);
     }
     let finalY = y,
       textLeft = this.score.overrideTextLeft || this.textLeft;
@@ -184,17 +167,16 @@ export class Titles extends ChantLayoutElement {
     return !!this.textRight;
   }
 
+  /** the titles and the texts at the left and right, in the order that they're drawn in */
+  elements() {
+    return [this.supertitle, this.title, this.subtitle, this.score.overrideTextLeft || this.textLeft, this.textRight];
+  }
+
   draw(ctxt: ChantContext, scale = 1) {
     var canvasCtxt = ctxt.canvasCtxt!;
     canvasCtxt.translate(this.bounds.x, this.bounds.y);
 
-    for (let el of [
-      this.supertitle,
-      this.title,
-      this.subtitle,
-      this.score.overrideTextLeft || this.textLeft,
-      this.textRight
-    ]) {
+    for (let el of this.elements()) {
       if (el) el.draw(ctxt);
     }
 
@@ -207,13 +189,7 @@ export class Titles extends ChantLayoutElement {
   ) {
     var nodes: Array<SvgElementWithSource | SvgTreeNode> = [];
 
-    for (let el of [
-      this.supertitle,
-      this.title,
-      this.subtitle,
-      this.score.overrideTextLeft || this.textLeft,
-      this.textRight
-    ]) {
+    for (let el of this.elements()) {
       if (el) nodes.push(el[functionName](ctxt));
     }
     return nodes;
@@ -243,13 +219,7 @@ export class Titles extends ChantLayoutElement {
   createSvgFragment(ctxt: ChantContext) {
     var fragment = "";
 
-    for (let el of [
-      this.supertitle,
-      this.title,
-      this.subtitle,
-      this.score.overrideTextLeft || this.textLeft,
-      this.textRight
-    ]) {
+    for (let el of this.elements()) {
       if (el) fragment += el.createSvgFragment(ctxt);
     }
 

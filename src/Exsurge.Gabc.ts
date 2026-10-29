@@ -588,6 +588,17 @@ const multiLineHeaderValue = (lines: string[], start: number, escaped = false) =
   return null;
 };
 
+// the header field on lines[i], if there is one, and the lines of its value
+// after it, if it goes on over them (see multiLineHeaderValue())
+const readHeaderField = (lines: string[], i: number) => {
+  let match = matchHeaderLine(lines[i]);
+  if (!match) return null;
+  return { match, multiLine: match[3] ? null : multiLineHeaderValue(lines, i, isEscapedHeader(match[1])) };
+};
+
+// a header field's name in camelCase (e.g. officePart for office-part)
+const camelCaseKey = (key: string) => key.replace(/-([a-z])/g, (a: string, letter: string) => letter.toUpperCase());
+
 // a header field's lines, with a multi-line value ending in ;; as Gregorio's do
 const headerLines = (key: string, value: string) =>
   value.includes("\n")
@@ -648,13 +659,12 @@ const GabcHeaderClass = class GabcHeader {
       var lines = txtHeader.replace(/^\uFEFF/, "").split(/\r?\n/g);
       for (var i = 0; i < lines.length; ++i) {
         let line = lines[i],
-          match = matchHeaderLine(line);
+          field = readHeaderField(lines, i),
+          match = field && field.match;
         if (match) {
-          var key = match[1].replace(/-([a-z])/g, function(a: string, letter: string) {
-            return letter.toUpperCase();
-          });
+          var key = camelCaseKey(match[1]);
           var value = match[2];
-          var multiLine = match[3] ? null : multiLineHeaderValue(lines, i, isEscapedHeader(match[1]));
+          var multiLine = field!.multiLine;
           if (multiLine) {
             value = [value, ...multiLine.values].join("\n");
             i = multiLine.end;
@@ -673,9 +683,7 @@ const GabcHeaderClass = class GabcHeader {
           if (!regexHeaderEndLine.test(line)) {
             match = matchHeaderLine(line.slice(1));
             if (match) {
-              let key = match[1].replace(/-([a-z])/g, function(a: string, letter: string) {
-                return letter.toUpperCase();
-              });
+              let key = camelCaseKey(match[1]);
               this.cValues[match[1]] = match[2];
               if (key !== match[1]) this.cValues[key] = match[2];
             } else {
@@ -768,7 +776,10 @@ var maskGabcNow = (gabc: string) =>
   );
 
 // whether a gabc word is only spaces and comments
-var isEmptyWord = (word: string) => maskGabc(word).replace(__commentMaskRegex, "").trim() === "";
+var isEmptyWord = (word: string) => isEmptyMaskedWord(maskGabc(word));
+// whether a word as maskGabc() masks it is only spaces and comments
+var isEmptyMaskedWord = (masked: string) => !__nonEmptyMaskedRegex.test(masked);
+var __nonEmptyMaskedRegex = /[^\s\uFDD0]/;
 
 /**
  * Which headers Gabc.applyHeader() applies.  Each is applied unless it is
@@ -883,7 +894,10 @@ var hasMarks = (marks: MarksForNext) =>
 // the open styles (see MarksForNext.openStyles) as a string, which is the
 // same for the same styles, and empty for none
 var openStylesKey = (openStyles: string[][] = []) =>
-  openStyles
+  // (as for most syllables)
+  openStyles.every((styles) => !styles.length)
+    ? ""
+    : openStyles
     .map((styles) => styles.join(" "))
     .join("|")
     .replace(/\|+$/, "");
@@ -895,7 +909,9 @@ var __carriedStyles = ["i", "b", "tt", "sc", "ul", "c"];
 var __styleTagRegex = new RegExp(`<v>[\\s\\S]*?<\\/v>|<sp>[^<]*?<\\/sp>|<(\\/)?(${__carriedStyles.join("|")})>`, "g");
 
 // the styles left open after text, of those open before it
-var openStylesAfter = (openStyles: string[], text: string) => {
+var openStylesAfter = (openStyles: string[], text: string): string[] => {
+  // (as for most syllables)
+  if (!openStyles.length && text.indexOf("<") < 0) return [];
   let open = new Set(openStyles);
   let match: RegExpExecArray | null;
   __styleTagRegex.lastIndex = 0;
@@ -926,6 +942,137 @@ var __wordEndRegex = new RegExp(
   )})>)*)\\s(?=[^\\)]*(?:\\(|$))`,
   "g"
 );
+
+// the words of a gabc source (see Gabc.splitMaskedWords()): the source, each
+// word, each as it's masked, and where each starts in the source
+interface SplitWords {
+  source: string;
+  words: string[];
+  maskedWords: string[];
+  starts: number[];
+}
+// how each score's mappings were last split into words, for the next edit
+// (see updateMappingsFromSource()), kept only as long as the mappings are
+var __splits = new WeakMap<ChantMapping[], SplitWords>();
+
+// splits the notations on whitespace boundaries, as long as the space
+// immediately follows a set of parentheses.  Closing tags, such as Gregorio's
+// </eu> and </nlba> or the end of a style, can come between the parentheses
+// and the space, and stay with the word before them.  (The line breaks in the
+// notes are masked, and the text in <v>, <alt> and <sp> doesn't end a word.)
+var splitWordsAfresh = (source: string): SplitWords => {
+  var words: string[] = [];
+  var maskedWords: string[] = [];
+  var starts: number[] = [];
+  var start = 0;
+  maskWordEnds(maskGabc(source))
+    .split(/\n/g)
+    .forEach((maskedWord) => {
+      words.push(source.substr(start, maskedWord.length));
+      maskedWords.push(maskedWord);
+      starts.push(start);
+      start += maskedWord.length + 1;
+    });
+  return { source, words, maskedWords, starts };
+};
+
+// masked gabc with a line break at the end of each word, and the line breaks
+// in the text in <v>, <alt> and <sp> masked too (keeping its length), so that
+// only the ends of words split it
+var maskWordEnds = (masked: string) =>
+  masked.replace(__wordEndRegex, (match, text, closingTags) =>
+    text ? text.replace(/\n/g, " ") : `)${closingTags}\n`
+  );
+
+// characters that can change how the gabc around them is masked or split into
+// words: spaces, parentheses, tags, comments and escapes
+var __splitContextRegex = /[\s()<>%$\uFEFF]/;
+var __splitAfterRegex = /[)<>%$]/;
+
+// source split into words from last, the words of a source that is the same
+// but for some letters in one word, by masking only that word again; or
+// undefined, where the change could change more than that word
+var splitWordsAgain = (last: SplitWords, source: string): SplitWords | undefined => {
+  var old = last.source;
+  var prefix = 0,
+    suffix = 0,
+    shortest = Math.min(old.length, source.length);
+  while (prefix < shortest && old.charCodeAt(prefix) === source.charCodeAt(prefix)) prefix++;
+  while (
+    suffix < shortest - prefix &&
+    old.charCodeAt(old.length - 1 - suffix) === source.charCodeAt(source.length - 1 - suffix)
+  )
+    suffix++;
+  if (
+    __splitContextRegex.test(old.slice(prefix, old.length - suffix)) ||
+    __splitContextRegex.test(source.slice(prefix, source.length - suffix))
+  )
+    return undefined;
+  // the word the change is in, which it has to end before the end of (as a
+  // letter put in after its notes would keep it from ending there), unless
+  // it's the last word, which no word follows
+  var { words, maskedWords, starts } = last;
+  var low = 0,
+    high = starts.length - 1;
+  while (low < high) {
+    let middle = (low + high + 1) >> 1;
+    if (starts[middle] <= prefix) low = middle;
+    else high = middle - 1;
+  }
+  var i = low,
+    start = starts[i],
+    end = starts[i] + words[i].length;
+  if (i < starts.length - 1 && old.length - suffix >= end) return undefined;
+  // (nor in a tag, whose name decides what the text after it is, nor just
+  // after a $, which escapes the character after it; a < or > in notes, a
+  // liquescent, is taken for a tag's too, which only means the source is
+  // split afresh)
+  var open = source.lastIndexOf("<", prefix - 1);
+  if (open >= start && open > source.lastIndexOf(">", prefix - 1)) return undefined;
+  var changeEnd = source.length - suffix,
+    close = source.indexOf(">", changeEnd),
+    nextOpen = source.indexOf("<", changeEnd);
+  if (close >= 0 && close < end + source.length - old.length && (nextOpen < 0 || close < nextOpen)) return undefined;
+  // (nor next to what ends a word or masks what's after it: a ) before a
+  // space, after a change that takes away what's between them, and a $, %
+  // or the end of a tag)
+  if (__splitAfterRegex.test(source.charAt(prefix - 1)) || source.charAt(changeEnd) === "%") return undefined;
+  // (and which is masked on its own as it was among the others)
+  if (maskWordEnds(maskGabcNow(words[i])) !== maskedWords[i]) return undefined;
+  var change = source.length - old.length;
+  var word = source.slice(starts[i], end + change);
+  words = words.slice();
+  maskedWords = maskedWords.slice();
+  starts = starts.slice();
+  words[i] = word;
+  maskedWords[i] = maskWordEnds(maskGabcNow(word));
+  for (var k = i + 1; k < starts.length; k++) starts[k] += change;
+  return { source, words, maskedWords, starts };
+};
+
+// ends the translation before notation's at notation, on each line where
+// notation's is anchored at its end (textAnchor "end"); notation then has the
+// last translation (in lastTranslationNeumes[0])
+var linkTranslation = (notation: ChantNotationElement, lastTranslationNeumes: ChantNotationElement[]) => {
+  let last = lastTranslationNeumes[0];
+  notation.translationText!.forEach((text, i) => {
+    let lastText = last && text.textAnchor === "end" ? last.translationText![i] : undefined;
+    if (lastText) lastText.endNeume = notation;
+  });
+  lastTranslationNeumes[0] = notation;
+};
+
+// puts items into array at index (without spreading them into arguments, of
+// which there can only be so many)
+var insertAt = <T>(array: T[], index: number, items: T[]) => {
+  if (items.length === 1) {
+    array.splice(index, 0, items[0]);
+    return;
+  }
+  let after = array.splice(index);
+  for (let item of items) array.push(item);
+  for (let item of after) array.push(item);
+};
 
 // the areas that Gregorio's closing tags after the last word's notes end, which end at its last notation
 var endTrailingAreas = (mappings: ChantMapping[], areas: SyllableAreas) => {
@@ -1442,14 +1589,33 @@ export class Gabc {
   // fron the chant mappings and later updated via updateMappings() if need
   // be...
   static createMappingsFromSource(ctxt: ChantContext, gabcSource: string) {
-    var headerLength = GabcHeader.getLength(gabcSource);
-    ctxt.nabcLines = this.getNabcLines(gabcSource, headerLength);
-    var lyricLines = this.getLyricLines(gabcSource, headerLength);
+    var { nabcLines, lyricLines, notations } = this.readSource(gabcSource);
+    ctxt.nabcLines = nabcLines;
     ctxt.lyricLines = lyricLines.length;
-    gabcSource = gabcSource.slice(headerLength);
-    var words = this.splitWords(gabcSource);
+    var split = this.splitMaskedWords(notations);
 
-    // set the default clef
+    this.startParsing(ctxt);
+    var mappings = this.createMappingsFromWords(ctxt, split.words, split.maskedWords);
+    this.finishMappings(ctxt, mappings, lyricLines);
+    __splits.set(mappings, split);
+
+    return mappings;
+  }
+
+  // the parts of gabc: the length of its header, the number of lines of
+  // NABC and the lyric-line headers in it, and the notations after it
+  static readSource(gabcSource: string) {
+    var headerLength = GabcHeader.getLength(gabcSource);
+    return {
+      headerLength,
+      nabcLines: this.getNabcLines(gabcSource, headerLength),
+      lyricLines: this.getLyricLines(gabcSource, headerLength),
+      notations: gabcSource.slice(headerLength)
+    };
+  }
+
+  // starts parsing a chant's words from the default clef
+  static startParsing(ctxt: ChantContext) {
     ctxt.activeClef = Clef.default();
     // the default clef is shared, so forget any accidental the last chant left on it
     ctxt.activeClef.resetAccidentals();
@@ -1457,12 +1623,15 @@ export class Gabc {
     // carry over into this one, nor do Gregorio's marks for the next notes
     delete this.needToEndBrace;
     this.marksForNext = noMarksForNext;
+  }
 
-    var mappings = this.createMappingsFromWords(ctxt, words);
+  // finishes the mappings of a chant's words: the areas that the last word
+  // ends, the lyrics of the lyric-line headers, and no trailing space after
+  // the last notation, which makes the layout of the last line simpler
+  static finishMappings(ctxt: ChantContext, mappings: ChantMapping[], lyricLines: LyricLine[]) {
     endTrailingAreas(mappings, this.marksForNext.areas);
     this.applyLyricLines(ctxt, mappings, lyricLines);
 
-    // always set the last notation to have a trailingSpace of 0. This makes layout for the last chant line simpler
     if (
       mappings.length > 0 &&
       mappings[mappings.length - 1].notations.length > 0
@@ -1470,8 +1639,6 @@ export class Gabc {
       mappings[mappings.length - 1].notations[
         mappings[mappings.length - 1].notations.length - 1
       ].trailingSpace = 0;
-
-    return mappings;
   }
 
   /** the number of lines of NABC that a gabc file's header gives (nabc-lines) */
@@ -1501,9 +1668,9 @@ export class Gabc {
       start += line.length + 1;
     }
     for (let i = 0; i < lines.length; ++i) {
-      let match = matchHeaderLine(lines[i]);
-      if (!match) continue;
-      let multiLine = match[3] ? null : multiLineHeaderValue(lines, i, isEscapedHeader(match[1]));
+      let field = readHeaderField(lines, i);
+      if (!field) continue;
+      let { match, multiLine } = field;
       if (match[1] === "lyric-line") {
         let text = match[2];
         let first = starts[i] + lines[i].length - text.length - (match[3] || "").length;
@@ -1598,6 +1765,9 @@ export class Gabc {
    * the notations whose lyrics change need to be laid out again.
    */
   static applyLyricLines(ctxt: ChantContext, mappings: ChantMapping[], lyricLines: LyricLine[]) {
+    // (without the headers there are no lyrics from them to take out either:
+    // updateMappingsFromSource() parses every word anew once they're gone)
+    if (!lyricLines.length) return;
     let slots = ([] as LyricSlot[]).concat(...mappings.map((mapping) => mapping.lyricSlots || []));
     let lines = lyricLines.map((line) => this.splitLyricLine(ctxt, line));
     lines.forEach((syllables, k) => {
@@ -1968,10 +2138,8 @@ export class Gabc {
     insertionIndex: number | null = null,
     oldInsertionIndex: number | null = null
   ): number {
-    var headerLength = GabcHeader.getLength(newGabcSource);
-    var nabcLines = this.getNabcLines(newGabcSource, headerLength);
-    var lyricLines = this.getLyricLines(newGabcSource, headerLength);
-    newGabcSource = newGabcSource.slice(headerLength);
+    var { headerLength, nabcLines, lyricLines, notations: newNotations } = this.readSource(newGabcSource);
+    newGabcSource = newNotations;
     if (nabcLines !== ctxt.nabcLines || !lyricLines.length !== !ctxt.lyricLines) {
       // a | means something else now (in the notes, or in the lyrics of a
       // syllable with notes), so every word is parsed anew
@@ -1982,17 +2150,6 @@ export class Gabc {
     // always remove the last old mapping since it's spacing/trailingSpace is handled specially
     mappings.pop();
 
-    // whether each mapping was parsed under a Chi-Rho clef, the only clef under which 0
-    // and 9 nudge notes, so that a mapping that is now under another kind of clef can be
-    // parsed again (the default clef is a do clef)
-    var parsedUnderChiRho = new Map<ChantMapping, boolean>();
-    var underChiRho = false;
-    for (const oldMapping of mappings) {
-      parsedUnderChiRho.set(oldMapping, underChiRho);
-      for (const notation of oldMapping.notations)
-        if (notation.isClef) underChiRho = notation instanceof ChiRhoClef;
-    }
-
     if (insertionIndex === null) {
       insertionIndex = NaN;
     }
@@ -2000,7 +2157,12 @@ export class Gabc {
       oldInsertionIndex = NaN;
     }
 
-    var newWords = this.splitWords(newGabcSource);
+    // (leaving out the empty words, which have no mappings, so that the diff
+    // can skip over the unchanged words around an edit however many blank
+    // lines there are)
+    var split = this.splitMaskedWords(newGabcSource, __splits.get(mappings));
+    __splits.set(mappings, split);
+    var { words: newWords, starts: wordStarts } = this.nonEmptyWords(split.words, split.maskedWords);
 
     // the last word is always parsed anew, since its old mapping was removed above. Leaving
     // it out of the diff lets the diff skip over the unchanged words at the end.
@@ -2016,19 +2178,15 @@ export class Gabc {
     }
 
     var index = 0,
+      // (the next of newWords that results go through, which starts at wordStarts[word])
+      word = 0,
       j,
       k,
       l,
-      sourceIndex = 0,
-      wordLength = 0,
       mapping: ChantMapping,
       elementIndex = 0;
 
-    ctxt.activeClef = Clef.default();
-    // the default clef is shared, so forget any accidental the last chant left on it
-    ctxt.activeClef.resetAccidentals();
-    delete this.needToEndBrace;
-    this.marksForNext = noMarksForNext;
+    this.startParsing(ctxt);
 
     // apply the results to the mappings, marking notations that need to be processed
     var lastTranslationNeumes: ChantNotationElement[] = [];
@@ -2037,18 +2195,12 @@ export class Gabc {
       // (the words kept or added, or the mappings deleted, of which only the number is used)
       var resultValues = results[i][1] as string[];
 
-      // (after insertions, sourceIndex is already past them and the empty words among them)
-      if (index > 0 && (i === 0 || results[i - 1][0] !== "+"))
-        sourceIndex =
-          mappings[index - 1].sourceIndex +
-          mappings[index - 1].source.length +
-          1;
       if (resultCode === "=") {
-        var sourceIndexDiff = sourceIndex - mappings[index].sourceIndex;
         // skip over ones that haven't changed, but updating the clef and source
         // index (and pitch in case clef or accidentals have changed) as we go
-        for (j = 0; j < resultValues.length; j++, index++) {
+        for (j = 0; j < resultValues.length; j++, index++, word++) {
           mapping = mappings[index];
+          var sourceIndexDiff = wordStarts[word] - mapping.sourceIndex;
           if (
             elementIndex === 0 &&
             mapping.notations.length &&
@@ -2087,8 +2239,7 @@ export class Gabc {
             elementIndex += elementCount;
           }
           if (
-            parsedUnderChiRho.get(mapping) !==
-              ctxt.activeClef instanceof ChiRhoClef ||
+            !!mapping.parsedUnderChiRho !== ctxt.activeClef instanceof ChiRhoClef ||
             hasMarks(this.marksForNext) ||
             mapping.followsMarks ||
             openStylesKey(this.marksForNext.openStyles) !== openStylesKey(mapping.openStylesBefore)
@@ -2143,21 +2294,11 @@ export class Gabc {
               }
             }
             if (curNotation.translationText) {
-              for (l = 0; l < curNotation.translationText.length; ++l) {
-                let transText = curNotation.translationText[l];
+              for (let transText of curNotation.translationText) {
                 delete transText.endNeume;
-                curNotation.translationText[l].sourceIndex += sourceIndexDiff;
-                if (
-                  transText.textAnchor === "end" &&
-                  lastTranslationNeumes[0]
-                ) {
-                  let lastTranslationText =
-                    lastTranslationNeumes[0].translationText![l];
-                  if (lastTranslationText)
-                    lastTranslationText.endNeume = curNotation;
-                }
+                transText.sourceIndex += sourceIndexDiff;
               }
-              lastTranslationNeumes[0] = curNotation;
+              linkTranslation(curNotation, lastTranslationNeumes);
             }
             if (sourceIndexDiff) {
               if (typeof curNotation.sourceIndex === "number") {
@@ -2184,15 +2325,10 @@ export class Gabc {
         // elements of the change
         mappings.splice(index, resultValues.length);
       } else if (resultCode === "+") {
-        // insert new ones
-        for (j = 0; j < resultValues.length; j++) {
-          wordLength = resultValues[j].length + 1;
-          // like createMappingsFromWords, skip the empty word that trailing
-          // whitespace leaves at the end of the source
-          if (isEmptyWord(resultValues[j])) {
-            sourceIndex += wordLength;
-            continue;
-          }
+        // insert new ones (all at once, since a paste can be many words)
+        let inserted: ChantMapping[] = [];
+        for (j = 0; j < resultValues.length; j++, word++) {
+          let sourceIndex = wordStarts[word];
           let marksBefore = this.marksForNext;
           mapping = this.createMappingFromWord(
             ctxt,
@@ -2231,47 +2367,33 @@ export class Gabc {
             }
           }
 
-          mappings.splice(index++, 0, mapping);
-          sourceIndex += wordLength;
+          inserted.push(mapping);
         }
+        insertAt(mappings, index, inserted);
+        index += inserted.length;
       }
     }
-    endTrailingAreas(mappings, this.marksForNext.areas);
-    this.applyLyricLines(ctxt, mappings, lyricLines);
-
-    // always set the last notation to have a trailingSpace of 0. This makes layout for the last chant line simpler
-    if (
-      mappings.length > 0 &&
-      mappings[mappings.length - 1].notations.length > 0
-    )
-      mappings[mappings.length - 1].notations[
-        mappings[mappings.length - 1].notations.length - 1
-      ].trailingSpace = 0;
+    this.finishMappings(ctxt, mappings, lyricLines);
 
     return headerLength;
   }
 
   // takes an array of gabc words (like that returned by splitWords below)
   // and returns an array of ChantMapping objects, one for each word.
-  static createMappingsFromWords(ctxt: ChantContext, words: string[]) {
+  // (maskedWords, the words as splitMaskedWords() masks them, if they're
+  // given, show which are empty without masking each again)
+  static createMappingsFromWords(ctxt: ChantContext, words: string[], maskedWords?: string[]) {
     var mappings: ChantMapping[] = [];
-    var sourceIndex = 0,
-      wordLength = 0,
-      lastTranslationNeumes: ChantNotationElement[] = [];
+    var lastTranslationNeumes: ChantNotationElement[] = [];
+    var { words: nonEmptyWords, starts } = this.nonEmptyWords(words, maskedWords);
 
-    for (var i = 0; i < words.length; i++) {
-      sourceIndex += wordLength;
-      wordLength = words[i].length + 1;
-      // (the word as it is, which starts at sourceIndex, as in
+    for (var i = 0; i < nonEmptyWords.length; i++) {
+      // (the word as it is, which starts at starts[i], as in
       // updateMappingsFromSource(): its syllables skip any space it starts with)
-      var word = words[i];
-
-      if (isEmptyWord(word)) continue;
-
       var mapping = this.createMappingFromWord(
         ctxt,
-        word,
-        sourceIndex,
+        nonEmptyWords[i],
+        starts[i],
         lastTranslationNeumes
       );
 
@@ -2279,6 +2401,23 @@ export class Gabc {
     }
 
     return mappings;
+  }
+
+  /**
+   * the words of splitWords() that make mappings, leaving out the empty ones
+   * (only spaces and comments), and where each starts in the source that
+   * was split into words (from the words as splitMaskedWords() masks them,
+   * if they're given, rather than masking each word again)
+   */
+  static nonEmptyWords(allWords: string[], maskedWords?: string[]) {
+    var words: string[] = [],
+      starts: number[] = [];
+    for (var i = 0, start = 0; i < allWords.length; start += allWords[i].length + 1, i++)
+      if (maskedWords ? !isEmptyMaskedWord(maskedWords[i]) : !isEmptyWord(allWords[i])) {
+        words.push(allWords[i]);
+        starts.push(start);
+      }
+    return { words, starts };
   }
 
   /**
@@ -2373,6 +2512,7 @@ export class Gabc {
     // from marksForNext, and leave the rest of for the next word
     var followsMarks = hasMarks(this.marksForNext);
     var openStylesBefore = this.marksForNext.openStyles;
+    var parsedUnderChiRho = ctxt.activeClef instanceof ChiRhoClef;
     // the syllables with notes, for the lyric-line headers (see applyLyricLines())
     var lyricSlots: LyricSlot[] = [];
     var mappingOf = () => {
@@ -2386,6 +2526,7 @@ export class Gabc {
       if (hasMarks(this.marksForNext) || openStylesKey(this.marksForNext.openStyles))
         mapping.marksForNext = this.marksForNext;
       if (followsMarks) mapping.followsMarks = true;
+      if (parsedUnderChiRho) mapping.parsedUnderChiRho = true;
       if (openStylesKey(openStylesBefore)) mapping.openStylesBefore = openStylesBefore;
       if (lyricSlots.length) mapping.lyricSlots = lyricSlots;
       return mapping;
@@ -2450,6 +2591,8 @@ export class Gabc {
         notationsSourceIndex,
         insertionIndex
       );
+      // (the TextOnly that NABC can add below has no notes)
+      var itemNotes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
       if (nabc) {
         const sourceIndexOf = (item: ChantNotationElement) => (item.notes ? item.notes[0].sourceIndex : item.sourceIndex!);
         // (a clef, which may become a line's starting clef, and a line break
@@ -2475,9 +2618,8 @@ export class Gabc {
         }
         // a / that splitNabc() put in isn't in the source of the note before it
         // (unless the source has a / there too)
-        let notes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
         for (let cut of nabc.cuts) {
-          let noteBefore = notes.filter((note) => note.sourceIndex - notationsSourceIndex < cut).pop();
+          let noteBefore = itemNotes.filter((note) => note.sourceIndex - notationsSourceIndex < cut).pop();
           if (
             noteBefore &&
             noteBefore.sourceGabc.endsWith("/") &&
@@ -2510,7 +2652,6 @@ export class Gabc {
         }
       }
 
-      var itemNotes = ([] as Note[]).concat(...items.map((item) => item.notes || []));
       this.setAutomaticLeanings(itemNotes);
       for (let note of itemNotes) this.endAutomaticBrace(note);
       // (and the areas that the word before left for its next syllable)
@@ -2571,16 +2712,7 @@ export class Gabc {
 
       if (translationText.length) {
         notationWithLyrics.translationText = translationText;
-        for (i = 0; i < translationText.length; ++i) {
-          let transText = translationText[i];
-          if (transText.textAnchor === "end" && lastTranslationNeumes[0]) {
-            let lastTranslationText =
-              lastTranslationNeumes[0].translationText![i];
-            if (lastTranslationText)
-              lastTranslationText.endNeume = notationWithLyrics;
-          }
-        }
-        lastTranslationNeumes[0] = notationWithLyrics;
+        linkTranslation(notationWithLyrics, lastTranslationNeumes);
       }
 
       if (lyricText === "") continue;
@@ -3010,7 +3142,8 @@ export class Gabc {
       }
     };
 
-    var regex = new RegExp(__notationsRegex);
+    var regex = __notationsRegex;
+    regex.lastIndex = 0;
     var match: RegExpExecArray | null;
     // the second clef of the clef being parsed (gabc c1@c4)
     var secondClef: Clef | null;
@@ -3102,14 +3235,22 @@ export class Gabc {
         case "c3":
         case "c4":
         case "c5":
-          addNotation((ctxt.activeClef = new DoClef(2 * parseInt(atom[1], 10) - 1, 2)));
-          break;
         case "f1":
         case "f2":
         case "f3":
         case "f4":
         case "f5":
-          addNotation((ctxt.activeClef = new FaClef(2 * parseInt(atom[1], 10) - 1, 2)));
+        case "cb1":
+        case "cb2":
+        case "cb3":
+        case "cb4":
+        case "cb5":
+        case "fb1":
+        case "fb2":
+        case "fb3":
+        case "fb4":
+        case "fb5":
+          addNotation((ctxt.activeClef = this.createClef(atom[0], parseInt(atom.slice(-1), 10), atom[1] === "b")));
           break;
         case "treble1":
         case "treble2":
@@ -3134,18 +3275,6 @@ export class Gabc {
         case "xp-4":
         case "xp-5":
           addNotation((ctxt.activeClef = new ChiRhoClef(2 * parseInt(atom.slice(-1), 10) - 1, 2, null, atom.slice(-2, -1) === '-')));
-          break;
-        case "cb1":
-        case "cb2":
-        case "cb3":
-        case "cb4":
-        case "cb5":
-        case "fb1":
-        case "fb2":
-        case "fb3":
-        case "fb4":
-        case "fb5":
-          addNotation((ctxt.activeClef = this.createClef(atom[0], parseInt(atom[2], 10), true)));
           break;
 
         case "z":
@@ -3313,11 +3442,14 @@ export class Gabc {
           } else if (atom.length > 1 && atom[0] === "{") {
             trailingSpace = 0;
             addNotation(null);
+            // (which uses the regex too)
+            let lastIndex = regex.lastIndex;
             let bracketedNotations = this.parseNotations(
               ctxt,
               match[__notationsRegex_group_insideBraces],
               sourceIndex + 1
             );
+            regex.lastIndex = lastIndex;
             nextNoteMarks.push(...this.marksForNext.noteMarks);
             this.marksForNext = { ...this.marksForNext, noteMarks: [] };
             // Set the width of these notations to 0
@@ -4060,8 +4192,11 @@ export class Gabc {
 
         // an oriscus's direction: Gregorio's 1 (up) and 0 (down), or
         // exsurge's own < and >
+        // (and O, an oriscus scapus, with its stem)
         case "o":
+        case "O":
           note.shape = NoteShape.Oriscus;
+          if (c === "O") note.shapeModifiers |= NoteShapeModifiers.Stemmed;
           if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
             note.shapeModifiers |= NoteShapeModifiers.Ascending;
             i++;
@@ -4069,19 +4204,6 @@ export class Gabc {
             note.shapeModifiers |= NoteShapeModifiers.Descending;
             i++;
           }
-          break;
-
-        case "O":
-          note.shape = NoteShape.Oriscus;
-          if (haveLookahead && (lookahead === "<" || lookahead === "1")) {
-            note.shapeModifiers |=
-              NoteShapeModifiers.Ascending | NoteShapeModifiers.Stemmed;
-            i++;
-          } else if (haveLookahead && (lookahead === ">" || lookahead === "0")) {
-            note.shapeModifiers |=
-              NoteShapeModifiers.Descending | NoteShapeModifiers.Stemmed;
-            i++;
-          } else note.shapeModifiers |= NoteShapeModifiers.Stemmed;
           break;
 
         // liquescents
@@ -4359,24 +4481,19 @@ export class Gabc {
   // (see maskGabc()), so a word can go on after a comment at the end of a
   // line, and "$)" doesn't end one, but they're the source's own text.
   static splitWords(gabcNotations: string) {
-    // split the notations on whitespace boundaries, as long as the space
-    // immediately follows a set of parentheses. Prior to doing that, we replace
-    // all whitespace with spaces, which prevents tabs and newlines from ending
-    // up in the notation data.
-    // Closing tags, such as Gregorio's </eu> and </nlba> or the end of a
-    // style, can come between the parentheses and the space, and stay with
-    // the word before them.  (The line breaks in the notes are masked, and
-    // the text in <v>, <alt> and <sp> doesn't end a word.)
-    var words: string[] = [];
-    var start = 0;
-    maskGabc(gabcNotations)
-      .replace(__wordEndRegex, (match, text, closingTags) => text || `)${closingTags}\n`)
-      .split(/\n/g)
-      .forEach((maskedWord) => {
-        words.push(gabcNotations.substr(start, maskedWord.length));
-        start += maskedWord.length + 1;
-      });
-    return words;
+    return this.splitMaskedWords(gabcNotations).words;
+  }
+
+  /**
+   * splitWords(), with each word as it is masked and where each starts.
+   * Given last, what it gave for an earlier source (unchanged since), it
+   * masks again only the word that an edit is in, where it can: the source
+   * an editor gives next is usually the same but for a few letters typed in
+   * one word (see splitWordsAgain()).
+   */
+  static splitMaskedWords(gabcNotations: string, last?: SplitWords): SplitWords {
+    if (last && last.source === gabcNotations) return last;
+    return (last && splitWordsAgain(last, gabcNotations)) || splitWordsAfresh(gabcNotations);
   }
 
   static parseSource(gabcSource: string) {
