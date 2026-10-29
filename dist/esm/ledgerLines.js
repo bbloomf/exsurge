@@ -124,8 +124,11 @@ export function determineLedgerLines(ctxt, notations) {
     var above = ctxt.staffLineCount * 2 + 1, below = -1;
     var open = { above: false, below: false };
     var elements = [];
-    var previousStates = new Map();
-    var owners = new Map();
+    // every item, the notation it's in, and its state before (see stateCode()),
+    // which is run on every layout, so is kept in arrays rather than maps
+    var allItems = [];
+    var owners = [];
+    var previousStates = [];
     for (let notation of notations) {
         // (anything but a neume or an accidental, such as a bar or a clef, ends the element)
         if (!notation.continuesElement ||
@@ -141,8 +144,9 @@ export function determineLedgerLines(ctxt, notations) {
         items.forEach((item, i) => {
             if (i > 0 && item.startsElement)
                 elements.push([]);
-            previousStates.set(item, item.ledgerLineState);
-            owners.set(item, notation);
+            allItems.push(item);
+            owners.push(notation);
+            previousStates.push(stateCode(item.ledgerLineState));
             let note = notation.isNeume ? item : null;
             // a custom ledger line from note to note that starts before the note
             // (or ends before it) does so before the note is added, as Gregorio
@@ -151,10 +155,13 @@ export function determineLedgerLines(ctxt, notations) {
             for (let line of lines)
                 if (line.before && line.kind !== "fixed")
                     open[line.isAbove ? "above" : "below"] = line.kind === "start";
-            let state = {
+            // (the state it had, set again, rather than a new one for every note on every layout)
+            let state = item.ledgerLineState || {
                 above: { line: false, specificity: LedgerLineSpecificity.Supposed },
                 below: { line: false, specificity: LedgerLineSpecificity.Supposed }
             };
+            state.above.line = state.below.line = false;
+            state.above.specificity = state.below.specificity = LedgerLineSpecificity.Supposed;
             // (as Gregorio's lex_add_note(): the note's pitch, or the custom line it's in)
             if (isOnOrBeyond(item.staffPosition, above, true))
                 setLedgerLine(state.above, LedgerLineSpecificity.Drawn, true);
@@ -185,13 +192,18 @@ export function determineLedgerLines(ctxt, notations) {
         runLedgerLines(items, above, true);
         runLedgerLines(items, below, false);
     }
-    var sameState = (a, b) => !!a && !!b && a.line === b.line && a.specificity === b.specificity;
-    for (let [item, before] of previousStates) {
-        let after = item.ledgerLineState;
-        if (!before || !sameState(before.above, after.above) || !sameState(before.below, after.below))
-            owners.get(item).needsLayout = true;
-    }
+    for (let i = 0; i < allItems.length; i++)
+        if (stateCode(allItems[i].ledgerLineState) !== previousStates[i])
+            owners[i].needsLayout = true;
 }
+// an item's state on both sides as a number, or -1 if it has none (a byte for
+// each side, with room for many more specificities than LedgerLineSpecificity has)
+function stateCode(state) {
+    if (!state)
+        return -1;
+    return sideCode(state.above) | (sideCode(state.below) << 8);
+}
+const sideCode = (side) => (side.line ? 1 : 0) | (side.specificity << 1);
 /**
  * Where a stem goes below the staff, as Gregorio's queuetype (gregoriotex-write.c),
  * which chooses a stem's length

@@ -169,6 +169,13 @@ export declare class LineBreaker {
     };
     /** the clef in effect just before each notation (see clefBefore()) */
     clefs?: Clef[];
+    /**
+     * the first notation that a line laid out by this layout could have left
+     * otherwise than the line built from it leaves it (see layOutLineFrom()), or
+     * Infinity if it laid out none, so that the lines that read only notations
+     * before it can be used again (see ChantScore.reusableLines())
+     */
+    touchedFrom: number;
     constructor(score: ChantScore, ctxt: ChantContext, width: number);
     /**
      * The index of the notation after the last one to go on the line with the

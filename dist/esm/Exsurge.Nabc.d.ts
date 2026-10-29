@@ -104,6 +104,8 @@ export declare const nabcAliases: {
  * names have B, N, E and T for >, -, ! and ~ (:89).
  */
 export declare const nabcNameOfGlyph: (glyphName: string) => string;
+/** The name of a glyph in one of Gregorio's NABC fonts for its NABC name (see nabcNameOfGlyph()). */
+export declare const glyphNameOfNabc: (nabcName: string) => string;
 /**
  * The name of a font's glyph for a NABC name: the glyph of that name, or
  * else the glyph that Gregorio's alias of it names (but for grelaon, which

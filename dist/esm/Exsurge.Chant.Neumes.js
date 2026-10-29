@@ -80,6 +80,31 @@ function porrectusThirdGlyph(second, third) {
             ? GlyphCode.PodatusUpper
             : GlyphCode.PodatusUpperShort;
 }
+// the glyph of the last note of a neume that ends going down to it, as a
+// torculus or porrectus flexus does: a small liquescent, or a liquescent that
+// turns up or down, or a punctum
+function flexusEndGlyph(last) {
+    if (last.liquescent & LiquescentType.Small)
+        return GlyphCode.TerminatingDesLiquescent;
+    if (last.liquescent & LiquescentType.Ascending)
+        return GlyphCode.PunctumQuadratumAscLiquescent;
+    if (last.liquescent & LiquescentType.Descending)
+        return GlyphCode.PunctumQuadratumDesLiquescent;
+    return GlyphCode.PunctumQuadratum;
+}
+// the glyph of the note before that last note, which leads into a small liquescent
+function beforeFlexusEndGlyph(last) {
+    return last.liquescent & LiquescentType.Small ? GlyphCode.PunctumQuadratumDesLiquescent : GlyphCode.PunctumQuadratum;
+}
+// the glyph of the first note of a torculus or torculus resupinus: an initio
+// debilis, a quilisma or a punctum
+function firstNoteGlyph(first) {
+    if (first.liquescent === LiquescentType.InitioDebilis)
+        return GlyphCode.TerminatingDesLiquescent;
+    if (first.shape === NoteShape.Quilisma)
+        return GlyphCode.Quilisma;
+    return GlyphCode.PunctumQuadratum;
+}
 // whether Gregorio's [shape:stroke] hint on a flexus's lower note draws it as
 // the stroke a porrectus starts with (but not one with an oriscus or a
 // liquescent)
@@ -141,6 +166,34 @@ class NeumeBuilder {
         }
         return this;
     }
+    // whether a line joins the last note to note: as the notes of a smaller
+    // glyph are, or after a hanging line or a glyph that aligns right, or to an
+    // oriscus scapus with its stem (even a second above), or more than a
+    // second apart
+    needsLineTo(note, withStem) {
+        return (this.lastNote !== null &&
+            (this.ctxt.glyphMultiplier < 1 ||
+                this.lineIsHanging ||
+                (withStem && (note.shapeModifiers & NoteShapeModifiers.Stemmed) !== 0) ||
+                (this.lastNote.glyphVisualizer && this.lastNote.glyphVisualizer.align === "right") ||
+                Math.abs(this.lastNote.staffPosition - note.staffPosition) > 1));
+    }
+    // adds the line from the last note to note, to the left of where the next note goes
+    addLineTo(note) {
+        var line = new NeumeLineVisualizer(this.ctxt, this.lastNote, note, this.lineIsHanging);
+        line.bounds.x = Math.max(this.minX, this.x - line.bounds.width);
+        this.neume.addVisualizer(line);
+        return line;
+    }
+    // a salicus's first two notes: a punctum, and the oriscus above it, which
+    // may or may not be stemmed to it (and is a little apart if it isn't), and
+    // points up unless gabc designates otherwise
+    withSalicusStart(first, second) {
+        this.noteAt(first, GlyphCode.PunctumQuadratum);
+        if (!(second.shapeModifiers & NoteShapeModifiers.Stemmed))
+            this.advanceBy(this.ctxt.intraNeumeSpacing);
+        return this.noteAt(second, Oriscus.getGlyphCode(second, true));
+    }
     // add a note, with a connecting line on the left if we have one.  withStem
     // false draws an oriscus scapus as a plain oriscus, as Gregorio fuses it
     noteAt(note, glyph, withLineTo = true, withStem = true) {
@@ -150,19 +203,8 @@ class NeumeBuilder {
             throw "NeumeBuilder.noteAt: glyph must be a valid glyph code";
         note.setGlyph(this.ctxt, glyph);
         var noteAlignsRight = note.glyphVisualizer.align === "right";
-        var needsLine = withLineTo &&
-            this.lastNote !== null &&
-            (this.ctxt.glyphMultiplier < 1 ||
-                this.lineIsHanging ||
-                // (an oriscus scapus's stem, even a second above)
-                (withStem && (note.shapeModifiers & NoteShapeModifiers.Stemmed) !== 0) ||
-                (this.lastNote.glyphVisualizer &&
-                    this.lastNote.glyphVisualizer.align === "right") ||
-                Math.abs(this.lastNote.staffPosition - note.staffPosition) > 1);
-        if (needsLine) {
-            var line = new NeumeLineVisualizer(this.ctxt, this.lastNote, note, this.lineIsHanging);
-            line.bounds.x = Math.max(this.minX, this.x - line.bounds.width);
-            this.neume.addVisualizer(line);
+        if (withLineTo && this.needsLineTo(note, withStem)) {
+            var line = this.addLineTo(note);
             if (!noteAlignsRight)
                 this.x = line.bounds.x;
         }
@@ -363,12 +405,19 @@ class NeumeBuilder {
         // the same as non-liquscents
         var advanceWidth = Glyphs.PunctumInclinatum.bounds.width * this.ctxt.glyphScaling;
         const stemNotes = [];
+        // the beams of the first note that has them, and the last note that has
+        // them (the notes up to which have stems)
         let beamCount;
+        let lastWithBeams = -1;
+        notes.forEach((note, i) => {
+            if (!note.inclinataFlags)
+                return;
+            beamCount = beamCount || note.inclinataFlags;
+            lastWithBeams = i;
+        });
         // now add all the punctum inclinatum
         for (var i = 0; i < notes.length; i++, prevStaffPosition = staffPosition) {
             var note = notes[i];
-            let beams = notes.slice(i).find(note => note.inclinataFlags);
-            beamCount = beamCount || (beams && beams.inclinataFlags);
             if (note.liquescent & LiquescentType.Small)
                 note.setGlyph(this.ctxt, GlyphCode.PunctumInclinatumLiquescent);
             else if (note.liquescent & LiquescentType.Large)
@@ -401,7 +450,7 @@ class NeumeBuilder {
             }
             note.bounds.x = this.x;
             this.neume.addVisualizer(note);
-            if (beams) {
+            if (i <= lastWithBeams) {
                 stemNotes.push(note);
             }
         }
@@ -430,18 +479,8 @@ class NeumeBuilder {
         return this;
     }
     withPorrectusSwash(start, end) {
-        var needsLine = this.lastNote !== null &&
-            (this.ctxt.glyphMultiplier < 1 ||
-                this.lineIsHanging ||
-                (this.lastNote.glyphVisualizer &&
-                    this.lastNote.glyphVisualizer.align === "right") ||
-                Math.abs(this.lastNote.staffPosition - start.staffPosition) > 1);
-        if (needsLine) {
-            var line = new NeumeLineVisualizer(this.ctxt, this.lastNote, start, this.lineIsHanging);
-            this.x = Math.max(this.minX, this.x - line.bounds.width);
-            line.bounds.x = this.x;
-            this.neume.addVisualizer(line);
-        }
+        if (this.needsLineTo(start, false))
+            this.x = this.addLineTo(start).bounds.x;
         start.setGlyph(this.ctxt, porrectusGlyph(start, end));
         start.bounds.x = this.x;
         // the second glyph does not draw anything, but it still has logical importance for the editing
@@ -1350,22 +1389,11 @@ export class PorrectusFlexus extends Neume {
         var second = this.notes[1];
         var third = this.notes[2];
         var fourth = this.notes[3];
-        var thirdGlyph = GlyphCode.PunctumQuadratum, fourthGlyph;
-        if (fourth.liquescent & LiquescentType.Small) {
-            thirdGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
-            fourthGlyph = GlyphCode.TerminatingDesLiquescent;
-        }
-        else if (fourth.liquescent & LiquescentType.Ascending)
-            fourthGlyph = GlyphCode.PunctumQuadratumAscLiquescent;
-        else if (fourth.liquescent & LiquescentType.Descending)
-            fourthGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
-        else
-            fourthGlyph = GlyphCode.PunctumQuadratum;
         this.build(ctxt)
             .lineFrom(second)
             .withPorrectusSwash(first, second)
-            .noteAt(third, thirdGlyph)
-            .noteAt(fourth, fourthGlyph);
+            .noteAt(third, beforeFlexusEndGlyph(fourth))
+            .noteAt(fourth, flexusEndGlyph(fourth));
         this.finishLayout(ctxt);
     }
 }
@@ -1415,14 +1443,7 @@ export class Salicus extends Neume {
         var first = this.notes[0];
         var second = this.notes[1];
         var third = this.notes[2];
-        var builder = this.build(ctxt).noteAt(first, GlyphCode.PunctumQuadratum);
-        // if the next note doesn't require a stem connector, then add a tad bit
-        // of spacing here
-        if (!(second.shapeModifiers & NoteShapeModifiers.Stemmed))
-            builder.advanceBy(ctxt.intraNeumeSpacing);
-        // second note is always an oriscus, which may or may not be stemmed
-        // to the first, and points up unless gabc designates otherwise
-        builder.noteAt(second, Oriscus.getGlyphCode(second, true));
+        var builder = this.build(ctxt).withSalicusStart(first, second);
         // third note can be a punctum quadratum or various liquescent forms
         if (third.liquescent & LiquescentType.Small)
             builder.noteAt(third, GlyphCode.TerminatingAscLiquescent);
@@ -1449,29 +1470,10 @@ export class SalicusFlexus extends Neume {
         var second = this.notes[1];
         var third = this.notes[2];
         var fourth = this.notes[3];
-        var builder = this.build(ctxt).noteAt(first, GlyphCode.PunctumQuadratum);
-        // if the next note doesn't require a stem connector, then add a tad bit
-        // of spacing here
-        if (!(second.shapeModifiers & NoteShapeModifiers.Stemmed))
-            builder.advanceBy(ctxt.intraNeumeSpacing);
-        // second note is always an oriscus, which may or may not be stemmed
-        // to the first, and points up unless gabc designates otherwise
-        builder.noteAt(second, Oriscus.getGlyphCode(second, true));
+        var builder = this.build(ctxt).withSalicusStart(first, second);
         // third note can be a punctum quadratum or various liquescent forms,
         // ...based on note four though!
-        if (fourth.liquescent & LiquescentType.Small)
-            builder.noteAt(third, GlyphCode.PunctumQuadratumDesLiquescent);
-        else
-            builder.noteAt(third, GlyphCode.PunctumQuadratum);
-        // finally, do the fourth note
-        if (fourth.liquescent & LiquescentType.Small)
-            builder.noteAt(fourth, GlyphCode.TerminatingDesLiquescent);
-        else if (fourth.liquescent & LiquescentType.Ascending)
-            builder.noteAt(fourth, GlyphCode.PunctumQuadratumAscLiquescent);
-        else if (fourth.liquescent & LiquescentType.Descending)
-            builder.noteAt(fourth, GlyphCode.PunctumQuadratumDesLiquescent);
-        else
-            builder.noteAt(fourth, GlyphCode.PunctumQuadratum);
+        builder.noteAt(third, beforeFlexusEndGlyph(fourth)).noteAt(fourth, flexusEndGlyph(fourth));
         this.finishLayout(ctxt);
     }
 }
@@ -1564,25 +1566,10 @@ export class Torculus extends Neume {
         var note1 = this.notes[0];
         var note2 = this.notes[1];
         var note3 = this.notes[2];
-        var glyph1, glyph3;
-        if (note1.liquescent === LiquescentType.InitioDebilis)
-            glyph1 = GlyphCode.TerminatingDesLiquescent;
-        else if (note1.shape === NoteShape.Quilisma)
-            glyph1 = GlyphCode.Quilisma;
-        else
-            glyph1 = GlyphCode.PunctumQuadratum;
-        if (note3.liquescent & LiquescentType.Small)
-            glyph3 = GlyphCode.TerminatingDesLiquescent;
-        else if (note3.liquescent & LiquescentType.Ascending)
-            glyph3 = GlyphCode.PunctumQuadratumAscLiquescent;
-        else if (note3.liquescent & LiquescentType.Descending)
-            glyph3 = GlyphCode.PunctumQuadratumDesLiquescent;
-        else
-            glyph3 = GlyphCode.PunctumQuadratum;
         this.build(ctxt)
-            .noteAt(note1, glyph1)
+            .noteAt(note1, firstNoteGlyph(note1))
             .noteAt(note2, GlyphCode.PunctumQuadratum)
-            .noteAt(note3, glyph3);
+            .noteAt(note3, flexusEndGlyph(note3));
         this.finishLayout(ctxt);
     }
 }
@@ -1600,24 +1587,10 @@ export class TorculusResupinus extends Neume {
         var second = this.notes[1];
         var third = this.notes[2];
         var fourth = this.notes[3];
-        var firstGlyph, fourthGlyph;
-        if (first.liquescent === LiquescentType.InitioDebilis) {
-            firstGlyph = GlyphCode.TerminatingDesLiquescent;
-        }
-        else if (first.shape === NoteShape.Quilisma)
-            firstGlyph = GlyphCode.Quilisma;
-        else
-            firstGlyph = GlyphCode.PunctumQuadratum;
-        if (fourth.liquescent & LiquescentType.Small)
-            fourthGlyph = GlyphCode.TerminatingAscLiquescent;
-        else if (third.liquescent & LiquescentType.Descending)
-            fourthGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
-        else
-            fourthGlyph = GlyphCode.PodatusUpper;
         this.build(ctxt)
-            .noteAt(first, firstGlyph)
+            .noteAt(first, firstNoteGlyph(first))
             .withPorrectusSwash(second, third)
-            .noteAt(fourth, fourthGlyph);
+            .noteAt(fourth, porrectusThirdGlyph(third, fourth));
         this.finishLayout(ctxt);
     }
 }
@@ -1636,29 +1609,11 @@ export class TorculusResupinusFlexus extends Neume {
         var third = this.notes[2];
         var fourth = this.notes[3];
         var fifth = this.notes[4];
-        var firstGlyph, fourthGlyph = GlyphCode.PunctumQuadratum, fifthGlyph;
-        if (first.liquescent === LiquescentType.InitioDebilis) {
-            firstGlyph = GlyphCode.TerminatingDesLiquescent;
-        }
-        else if (first.shape === NoteShape.Quilisma)
-            firstGlyph = GlyphCode.Quilisma;
-        else
-            firstGlyph = GlyphCode.PunctumQuadratum;
-        if (fifth.liquescent & LiquescentType.Small) {
-            fourthGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
-            fifthGlyph = GlyphCode.TerminatingDesLiquescent;
-        }
-        else if (fifth.liquescent & LiquescentType.Ascending)
-            fifthGlyph = GlyphCode.PunctumQuadratumAscLiquescent;
-        else if (fifth.liquescent & LiquescentType.Descending)
-            fifthGlyph = GlyphCode.PunctumQuadratumDesLiquescent;
-        else
-            fifthGlyph = GlyphCode.PunctumQuadratum;
         this.build(ctxt)
-            .noteAt(first, firstGlyph)
+            .noteAt(first, firstNoteGlyph(first))
             .withPorrectusSwash(second, third)
-            .noteAt(fourth, fourthGlyph)
-            .noteAt(fifth, fifthGlyph);
+            .noteAt(fourth, beforeFlexusEndGlyph(fifth))
+            .noteAt(fifth, flexusEndGlyph(fifth));
         this.finishLayout(ctxt);
     }
 }

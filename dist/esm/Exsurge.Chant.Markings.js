@@ -24,7 +24,7 @@
 //
 import { NoteShape } from "./Exsurge.Chant.js";
 import { isOnOrBeyond, LedgerLineSpecificity } from "./ledgerLines.js";
-import { ChantLayoutElement, GlyphCode, GlyphVisualizer, InclinatumGlyphTurn, MarkingPositionHint, QuickSvg } from "./Exsurge.Drawing.js";
+import { ChantLayoutElement, GlyphCode, GlyphVisualizer, InclinatumGlyphTurn, MarkingPositionHint, QuickSvg, SvgShape } from "./Exsurge.Drawing.js";
 // whether a glyph is a punctum inclinatum's (other than a deminutus), solid or hollow
 function isInclinatumGlyph(glyphCode) {
     return glyphCode in InclinatumGlyphTurn;
@@ -77,7 +77,7 @@ const episemaTuningShifts = { m: 0.057, ol: -0.285, oh: 0.257, ul: -0.252, uh: 0
  *
  * A horizontal episema marking is it's own visualizer (that is, it implements createSvgFragment)
  */
-export class HorizontalEpisema extends ChantLayoutElement {
+export class HorizontalEpisema extends SvgShape {
     constructor(note) {
         super();
         this.note = note;
@@ -307,14 +307,8 @@ export class HorizontalEpisema extends ChantLayoutElement {
             class: "horizontalEpisema"
         };
     }
-    createSvgNode(ctxt) {
-        return QuickSvg.createNode("rect", this.getSvgProps(ctxt));
-    }
-    createSvgTree(ctxt) {
-        return QuickSvg.createSvgTree("rect", this.getSvgProps(ctxt));
-    }
-    createSvgFragment(ctxt) {
-        return QuickSvg.createFragment("rect", this.getSvgProps(ctxt));
+    get svgTag() {
+        return "rect";
     }
 }
 /*
@@ -483,7 +477,7 @@ export class Mora extends GlyphVisualizer {
  * step is 157.5 font units, and its bracketupshift and bracketdownshift are
  * 0.03cm and 0.04cm at its default staff size, where a step is 0.1436cm.
  */
-export class NoteBracket extends ChantLayoutElement {
+export class NoteBracket extends SvgShape {
     constructor(ctxt, isRight, lowStaffPosition, highStaffPosition) {
         super();
         this.isRight = isRight;
@@ -548,14 +542,8 @@ export class NoteBracket extends ChantLayoutElement {
             class: "bracket"
         };
     }
-    createSvgNode(ctxt) {
-        return QuickSvg.createNode("path", this.getSvgProps(ctxt));
-    }
-    createSvgTree(ctxt) {
-        return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
-    }
-    createSvgFragment(ctxt) {
-        return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
+    get svgTag() {
+        return "path";
     }
 }
 /** the staff position of the first ledger line above the staff, or below it */
@@ -571,7 +559,7 @@ export function ledgerLinePosition(ctxt, isAbove) {
  * between its ends or below it, outlined with a 0.3bp pen (0.074 staff
  * intervals).  The slur is drawn by the chant line.
  */
-export class Slur extends ChantLayoutElement {
+export class Slur extends SvgShape {
     constructor(ctxt, x0, y0, x1, y1, isAbove) {
         super();
         this.isAbove = isAbove;
@@ -675,14 +663,8 @@ export class Slur extends ChantLayoutElement {
             class: "slur"
         };
     }
-    createSvgNode(ctxt) {
-        return QuickSvg.createNode("path", this.getSvgProps(ctxt));
-    }
-    createSvgTree(ctxt) {
-        return QuickSvg.createSvgTree("path", this.getSvgProps(ctxt));
-    }
-    createSvgFragment(ctxt) {
-        return QuickSvg.createFragment("path", this.getSvgProps(ctxt));
+    get svgTag() {
+        return "path";
     }
 }
 // indicates the shape of the brace

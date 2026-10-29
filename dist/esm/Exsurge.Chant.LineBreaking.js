@@ -23,10 +23,10 @@
 //
 // It is used when ctxt.lineBreaking is "optimal" (see ChantScore.layoutChantLines).
 //
-import { allowsCustosBefore, ChantLine, copyBeginningLyrics, isHiddenAccidental, isTextOnlyBeforeDivider, resetNotation } from "./Exsurge.Chant.ChantLine.js";
+import { allowsCustosBefore, ChantLine, copyBeginningLyrics, isClefLineBreak, isHiddenAccidental, isTextOnlyBeforeDivider, startsWordWithLyrics, resetNotation } from "./Exsurge.Chant.ChantLine.js";
 import { ChantLineBreak, NoteShape, TextOnly } from "./Exsurge.Chant.js";
 import { Custos } from "./Exsurge.Chant.Signs.js";
-import { LyricArray, LyricType } from "./Exsurge.Drawing.js";
+import { LyricArray } from "./Exsurge.Drawing.js";
 import { Glyphs } from "./Exsurge.Glyphs.js";
 // Gregorio's penalties (tex/gregoriotex-gsp-default.tex:26-50).  A penalty of
 // 10000 or more is a place the line can't break at; -10000 or less is one it
@@ -175,6 +175,13 @@ export class LineBreaker {
         this.plannedEnds = new Map();
         /** the ends of the lines that could start at each notation, by its index, for each place a line's staff can start */
         this.lineEnds = [];
+        /**
+         * the first notation that a line laid out by this layout could have left
+         * otherwise than the line built from it leaves it (see layOutLineFrom()), or
+         * Infinity if it laid out none, so that the lines that read only notations
+         * before it can be used again (see ChantScore.reusableLines())
+         */
+        this.touchedFrom = Infinity;
         this.score = score;
         this.ctxt = ctxt;
         this.width = width;
@@ -502,6 +509,8 @@ export class LineBreaker {
      * end, with what it read (see TrialLine).
      */
     layOutLineFrom(start, extent) {
+        // (and the notation before it, whose lyrics the line can start with)
+        this.touchedFrom = Math.min(this.touchedFrom, start - 1);
         var ctxt = this.ctxt, score = this.score, notations = score.notations, ends = [];
         var line = new ChantLine(score);
         line.notationsStartIndex = start;
@@ -688,12 +697,7 @@ export class LineBreaker {
      * the line break just after it, as buildFromChantNotationIndex() puts it
      */
     isClefLineBreak(index) {
-        var notations = this.score.notations;
-        return (!!notations[index].isClef &&
-            !notations[index].hasLyrics() &&
-            index + 1 < notations.length - 1 &&
-            notations[index + 1].constructor === ChantLineBreak &&
-            !notations[index + 1].hasLyrics());
+        return isClefLineBreak(this.score.notations, index);
     }
     /**
      * Gregorio's penalty for breaking the line just before the notation at
@@ -759,9 +763,7 @@ export class LineBreaker {
         // (each gabc word has a mapping of its own)
         if (next.mapping && prev.mapping)
             return next.mapping !== prev.mapping;
-        return (next.hasLyrics() &&
-            (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-                next.lyrics[0].lyricType === LyricType.SingleSyllable));
+        return startsWordWithLyrics(next);
     }
     /**
      * whether a line break before the notation at index would leave fewer than
@@ -837,10 +839,7 @@ export class LineBreaker {
             custos = line.eolCustos(ctxt);
         var right = Math.max(lyricRight, neumeRight);
         var next = notations[end];
-        var nextStartsWord = !!next &&
-            next.hasLyrics() &&
-            (next.lyrics[0].lyricType === LyricType.BeginningSyllable ||
-                next.lyrics[0].lyricType === LyricType.SingleSyllable);
+        var nextStartsWord = !!next && startsWordWithLyrics(next);
         ends.push(end - start, right, custos === "own" ? right : Math.max(lyricRight, neumeRight + Glyphs.CustosLong.bounds.width * ctxt.glyphScaling), reach, shrink, 
         // (which only matters for a line that isn't full and isn't ragged)
         this.getStretch(line, stretchable), penalty, custosKinds.indexOf(custos) | (nextStartsWord ? nextStartsWordFlag : 0) | (ragged ? raggedFlag : 0));

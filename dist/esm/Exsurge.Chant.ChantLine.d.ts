@@ -6,8 +6,16 @@ import { ChantLayoutElement, CurlyBraceVisualizer, Lyric, RoundBraceVisualizer }
 import type { ChantScore, Clef, Note } from "./Exsurge.Chant.js";
 import type { BraceNote } from "./Exsurge.Chant.Markings.js";
 import type { InsertionCursor } from "./Exsurge.Chant.Signs.js";
-import type { ChantContext, ChantNotationElement, SvgElementWithSource, SvgTreeNode } from "./Exsurge.Drawing.js";
+import type { ChantContext, ChantNotationElement, SvgElementWithSource, SvgOutput, SvgPart, SvgTreeNode } from "./Exsurge.Drawing.js";
 export declare const isHiddenAccidental: (notation: ChantNotationElement) => boolean | undefined;
+/** whether a notation's lyrics start a word: they're the first syllable of one, or a word of one syllable */
+export declare const startsWordWithLyrics: (notation: ChantNotationElement) => boolean;
+/**
+ * whether the notation at index is a clef that a line break comes just after,
+ * which, as in Gregorio, only goes at the start of the next line (but not
+ * when the clef or the line break has text, which neither line would then draw)
+ */
+export declare function isClefLineBreak(notations: ChantNotationElement[], index: number): boolean;
 /** whether only text-only notations come between the notation at index, which is one, and the next divider */
 export declare function isTextOnlyBeforeDivider(notations: ChantNotationElement[], index: number): boolean;
 /**
@@ -152,10 +160,19 @@ export declare class ChantLine extends ChantLayoutElement {
     };
     layoutInsertionCursor(ctxt: ChantContext): InsertionCursor | null | undefined;
     draw(ctxt: ChantContext): void;
+    /**
+     * what goes inside the line's svg, made as output makes it (and when the
+     * context is editable, with an invisible rect over the staff for the
+     * editor's mouse events)
+     */
+    createInnerSvg(ctxt: ChantContext, output: SvgOutput): SvgPart[];
+    /** what goes inside the line's svg, as DOM nodes or an svg tree (see createInnerSvg()) */
     getInnerNodes(ctxt: ChantContext, top?: number, functionNames?: {
         quickSvg: "createNode" | "createSvgTree";
         elements: "createSvgNode" | "createSvgTree";
-    }): (SvgElementWithSource | SvgTreeNode)[];
+    }): Array<SvgElementWithSource | SvgTreeNode>;
+    /** the line's svg, starting at top, made as output makes it, with what goes inside it */
+    private createSvgAs;
     createSvgNode(ctxt: ChantContext, top?: number): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext, top?: number): SvgTreeNode;
     /**

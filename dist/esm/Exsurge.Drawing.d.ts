@@ -322,6 +322,34 @@ export declare const QuickSvg: {
     translate: (node: Element, x: number, y: number) => Element;
     scale: (node: Element, sx: number, sy: number) => Element;
 };
+/**
+ * svg strings one after another.  (Adding them up, rather than join(), lets
+ * the engine put off copying them into one string until the whole svg is
+ * made, rather than doing it for each element that holds others.)
+ */
+export declare const joinFragments: (fragments: string[]) => string;
+/** a piece of svg as one of the SvgOutputs makes it: a DOM node, an svg tree or a string */
+export type SvgPart = SvgElementWithSource | SvgTreeNode | string;
+/**
+ * One of the ways that a score is drawn as svg (see SvgOutputs), for code
+ * that makes its svg the same way in each of them
+ */
+export interface SvgOutput {
+    /** the method that layout elements make their svg with this way */
+    readonly method: "createSvgNode" | "createSvgTree" | "createSvgFragment";
+    /**
+     * an element with attributes and children made this way.  Neither a key
+     * attribute (which of its siblings it is, for React) nor the source (what
+     * in the score the element shows) is an svg attribute, so the string leaves
+     * them out, though the DOM nodes have always had the key as an attribute.
+     */
+    element(name: string, attributes: SvgAttributes, children?: SvgPart[]): SvgPart;
+}
+export declare const SvgOutputs: {
+    readonly node: SvgOutput;
+    readonly tree: SvgOutput;
+    readonly fragment: SvgOutput;
+};
 export declare const TextMeasuringStrategy: {
     readonly Svg: 0;
     readonly Canvas: 1;
@@ -693,6 +721,8 @@ export declare class ChantContext {
     defaultProtrusionFactor: number;
     pixelRatio: number;
     svgTextMeasurer?: QuickSvgRoot;
+    /** the style element kept in svgTextMeasurer (see prepareSvgTextMeasurer()) */
+    private svgTextMeasurerStyle?;
     canvas?: HTMLCanvasElement;
     canvasCtxt?: CanvasRenderingContext2D;
     syllableConnector: string;
@@ -838,16 +868,17 @@ export declare class ChantContext {
      */
     layoutFontkitText(font: FontkitFont, text: string, smallCaps: boolean): FontkitMetrics;
     /**
-     * measures text drawn with an opentype.js font at (x, y)
+     * measures text drawn with an opentype.js font at the origin, with its
+     * baseline at y = 0 (so that the same text is measured once, wherever it
+     * goes; its bounding box can come out a little differently elsewhere, by
+     * rounding, which is too little to change a layout)
      * @param {import('opentype.js').Font} font
      * @param {string} text
-     * @param {number} x
-     * @param {number} y
      * @param {number} fontSize
      * @param {boolean} smallCaps
      * @returns {{ advanceWidth: number, bbox: import('opentype.js').BoundingBox }}
      */
-    measureOpenTypeText(font: OpenTypeFont, text: string, x: number, y: number, fontSize: number, smallCaps: boolean): OpenTypeMetrics;
+    measureOpenTypeText(font: OpenTypeFont, text: string, fontSize: number, smallCaps: boolean): OpenTypeMetrics;
     setMergeAnnotationWithTextLeft(merge: boolean): void;
     setScaleDefs(scaleDefs: boolean): void;
     /**
@@ -857,6 +888,13 @@ export declare class ChantContext {
      */
     getSvgClass(): string;
     createStyleCss(): string;
+    /**
+     * Empties svgTextMeasurer for a text element to be measured in it, but for
+     * its style element, which is kept (and changed only when the styles
+     * change, so that the browser needn't read them again for each element),
+     * and returns that style element.
+     */
+    prepareSvgTextMeasurer(): SVGStyleElement;
     createStyleNode(): SVGStyleElement;
     createStyleTree(): {
         name: "style";
@@ -894,35 +932,52 @@ export declare class ChantLayoutElement {
     createSvgNode(ctxt: ChantContext, ...args: any[]): SvgElementWithSource | SvgElementWithSource[];
     createSvgFragment(ctxt: ChantContext, ...args: any[]): string;
 }
-export declare class DividerLineVisualizer extends ChantLayoutElement {
-    divider?: ChantNotationElement;
-    constructor(ctxt: ChantContext, staffPosition0: number, staffPosition1: number, divider?: ChantNotationElement);
-    draw(ctxt: ChantContext): void;
-    getSvgProps(ctxt: ChantContext): SvgAttributes;
+/**
+ * A layout element drawn as one svg element, the svgTag with the attributes
+ * that getSvgProps() gives, in each of the ways that a score is drawn as svg
+ */
+export declare abstract class SvgShape extends ChantLayoutElement {
+    abstract get svgTag(): string;
+    abstract getSvgProps(ctxt: ChantContext): SvgAttributes;
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext): SvgTreeNode;
     createSvgFragment(ctxt: ChantContext): string;
 }
-export declare class NeumeLineVisualizer extends ChantLayoutElement {
+/** a line as wide as its weight, from its top down: a divider's, or a neume's or a virga's */
+export declare abstract class VerticalLineVisualizer extends SvgShape {
+    get svgTag(): string;
+    /** the line's weight, color and css class */
+    abstract lineStyle(ctxt: ChantContext): {
+        weight: number;
+        color: string;
+        cssClass: string;
+    };
+    draw(ctxt: ChantContext): void;
+    getSvgProps(ctxt: ChantContext): SvgAttributes;
+}
+export declare class DividerLineVisualizer extends VerticalLineVisualizer {
+    divider?: ChantNotationElement;
+    constructor(ctxt: ChantContext, staffPosition0: number, staffPosition1: number, divider?: ChantNotationElement);
+    lineStyle(ctxt: ChantContext): {
+        weight: number;
+        color: string;
+        cssClass: string;
+    };
+    getSvgProps(ctxt: ChantContext): SvgAttributes;
+}
+export declare class NeumeLineVisualizer extends VerticalLineVisualizer {
     /**
      * @param note1 the note to draw the line to, or a staff position to draw it
      * to, or nothing to draw it to four staff positions above note0
      */
     constructor(ctxt: ChantContext, note0: Note, note1?: Note | number | null, hanging?: boolean);
-    draw(ctxt: ChantContext): void;
-    getSvgProps(ctxt: ChantContext): {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        fill: string;
-        class: string;
+    lineStyle(ctxt: ChantContext): {
+        weight: number;
+        color: string;
+        cssClass: string;
     };
-    createSvgNode(ctxt: ChantContext): SvgElementWithSource;
-    createSvgTree(ctxt: ChantContext): SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
 }
-export declare class NeumeBeamVisualizer extends ChantLayoutElement {
+export declare class NeumeBeamVisualizer extends SvgShape {
     constructor(ctxt: ChantContext, x0: number, x1: number, staffPosition0: number, staffPosition1: number, yOffset?: number);
     getPoints(ctxt: ChantContext): {
         x0: number;
@@ -937,28 +992,19 @@ export declare class NeumeBeamVisualizer extends ChantLayoutElement {
         fill: string;
         class: string;
     };
-    createSvgNode(ctxt: ChantContext): SvgElementWithSource;
-    createSvgTree(ctxt: ChantContext): SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
+    get svgTag(): string;
 }
-export declare class VirgaLineVisualizer extends ChantLayoutElement {
+export declare class VirgaLineVisualizer extends VerticalLineVisualizer {
     /**
      * @param fusedShift the interval to the next note, if a virga reversa or
      * oriscus scapus is fused to it (see FusedNeume.fusedShift()), or else 0
      */
     constructor(ctxt: ChantContext, note: Note, fusedShift?: number);
-    draw(ctxt: ChantContext): void;
-    getSvgProps(ctxt: ChantContext): {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        fill: string;
-        class: string;
+    lineStyle(ctxt: ChantContext): {
+        weight: number;
+        color: string;
+        cssClass: string;
     };
-    createSvgNode(ctxt: ChantContext): SvgElementWithSource;
-    createSvgTree(ctxt: ChantContext): SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
 }
 export declare class LineaVisualizer extends ChantLayoutElement {
     /**
@@ -1544,15 +1590,19 @@ export declare class DropCap extends TextElement {
 export declare class TitleTextElement extends TextElement {
     /** the space after the text */
     padding: (ctxt: ChantContext) => number;
-    constructor(ctxt: ChantContext, text: string, fontFamily: (ctxt: ChantContext) => string, fontSize: (ctxt: ChantContext) => number, textAnchor: string, sourceIndex?: number, sourceGabc?: string, textType?: TextTypes[keyof TextTypes]);
+    constructor(ctxt: ChantContext, text: string, fontFamily: (ctxt: ChantContext) => string, fontSize: (ctxt: ChantContext) => number, textAnchor: string, sourceIndex?: number, sourceGabc?: string, textType?: TextTypes[keyof TextTypes], measure?: boolean);
 }
-export declare class Supertitle extends TitleTextElement {
+/** a title in its own text style (see Titles), centered, with space after it of a third of its size */
+export declare abstract class CenteredTitle extends TitleTextElement {
+    constructor(ctxt: ChantContext, text: string, key: "supertitle" | "title" | "subtitle", sourceIndex?: number);
+}
+export declare class Supertitle extends CenteredTitle {
     constructor(ctxt: ChantContext, text: string, sourceIndex?: number);
 }
-export declare class Title extends TitleTextElement {
+export declare class Title extends CenteredTitle {
     constructor(ctxt: ChantContext, text: string, sourceIndex?: number);
 }
-export declare class Subtitle extends TitleTextElement {
+export declare class Subtitle extends CenteredTitle {
     constructor(ctxt: ChantContext, text: string, sourceIndex?: number);
 }
 export declare class TextLeftRight extends TitleTextElement {

@@ -1,5 +1,5 @@
 import { ChantLine } from "./Exsurge.Chant.ChantLine.js";
-import { Pitch, Rect } from "./Exsurge.Core.js";
+import { Pitch, Rect, Step } from "./Exsurge.Core.js";
 import { Annotation, ChantLayoutElement, ChantNotationElement, GlyphCode, GlyphVisualizer, Lyric, TextLeftRight } from "./Exsurge.Drawing.js";
 import { Titles } from "./Exsurge.Titles.js";
 import { type LedgerLineStates } from "./ledgerLines.js";
@@ -217,36 +217,46 @@ export declare class Clef extends ChantNotationElement {
     constructor(staffPosition: number, octave: number, defaultAccidental?: Accidental | null);
     resetAccidentals(): void;
     pitchToStaffPosition(pitch: Pitch): number;
+    /** the glyph the clef is drawn with (each kind of clef has its own) */
+    glyphCode(): GlyphCode;
     performLayout(ctxt: ChantContext): void;
+    /**
+     * the pitch of step, octaveOffset octaves from the clef's, as the
+     * accidental in effect at staffPosition alters it (for staffPositionToPitch())
+     */
+    protected pitchAt(step: number, octaveOffset: number, staffPosition: number): Pitch;
     finishLayout(ctxt: ChantContext): void;
     hide(ctxt: ChantContext): void;
     private addSecondClef;
     static default(): Clef;
     clone(): Clef;
 }
-export declare class DoClef extends Clef {
+/** a clef on a step of the diatonic scale: a do, fa or sol (treble) clef */
+export declare abstract class DiatonicClef extends Clef {
+    /** the step on the clef's line */
+    abstract get clefStep(): Step;
     constructor(staffPosition: number, octave: number, defaultAccidental?: Accidental | null);
     pitchToStaffPosition(pitch: Pitch): number;
     staffPositionToPitch(staffPosition: number): Pitch;
-    performLayout(ctxt: ChantContext): void;
 }
-export declare class FaClef extends Clef {
-    constructor(staffPosition: number, octave: number, defaultAccidental?: Accidental | null);
-    pitchToStaffPosition(pitch: Pitch): number;
-    staffPositionToPitch(staffPosition: number): Pitch;
-    performLayout(ctxt: ChantContext): void;
+export declare class DoClef extends DiatonicClef {
+    get clefStep(): 0;
+    glyphCode(): "DoClef";
 }
-export declare class TrebleClef extends Clef {
+export declare class FaClef extends DiatonicClef {
+    get clefStep(): 5;
+    glyphCode(): "FaClef";
+}
+export declare class TrebleClef extends DiatonicClef {
     constructor(staffPosition: number, octave: number, defaultAccidental?: Accidental | null, small?: boolean);
-    pitchToStaffPosition(pitch: Pitch): number;
-    staffPositionToPitch(staffPosition: number): Pitch;
-    performLayout(ctxt: ChantContext): void;
+    get clefStep(): 7;
+    glyphCode(): "TrebleClef" | "TrebleClefSmall";
 }
 export declare class ChiRhoClef extends Clef {
     constructor(staffPosition: number, octave: number, defaultAccidental?: Accidental | null, sans?: boolean);
     pitchToStaffPosition(pitch: Pitch): number;
     staffPositionToPitch(staffPosition: number): Pitch;
-    performLayout(ctxt: ChantContext): void;
+    glyphCode(): "ChiRhoClef" | "ChiRhoClefSans";
 }
 export declare class TextOnly extends ChantNotationElement {
     constructor(sourceIndex: number, sourceLength: number);
@@ -310,6 +320,12 @@ export declare class ChantMapping {
     openStylesBefore?: string[][];
     /** the word's syllables with notes, which take the lyrics of the lyric-line headers in turn */
     lyricSlots?: LyricSlot[];
+    /**
+     * whether it was parsed under a Chi-Rho clef, the only clef under which 0
+     * and 9 nudge notes, so that it can be parsed again under another kind of
+     * clef (see Gabc.updateMappingsFromSource())
+     */
+    parsedUnderChiRho?: boolean;
     constructor(source: string, notations: ChantNotationElement[], sourceIndex: number);
 }
 export interface ElementSelection {
@@ -531,12 +547,11 @@ export declare class ChantScore {
     /**
      * What the lines laid out at width depend on besides the notations that
      * they read (see LineLayoutInputs): the context's settings (see
-     * layoutSettings()), the width, and the staff.  Or undefined, where the
-     * next layout can't use them again: when the optimal line breaker plans
-     * them (and lays out lines of its own from the notations, which leaves them
-     * as those lines laid them out), and when the drop cap is beside more than
-     * the first line or put somewhere else on it (see placeDropCap()), which
-     * moves the lines it's beside.
+     * layoutSettings()), the width, the staff, and whether the optimal line
+     * breaker plans them.  Or undefined, where the next layout can't use them
+     * again: when the drop cap is beside more than the first line or put
+     * somewhere else on it (see placeDropCap()), which moves the lines it's
+     * beside.
      */
     private lineLayoutSettings;
     /**
@@ -588,6 +603,10 @@ export declare class ChantScore {
     };
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;
     createSvgTree(ctxt: ChantContext, zoom?: number | boolean): SvgTreeNode;
+    /** the defs of an svg string: the glyphs used, and the styles */
+    private createDefsFragment;
+    /** the attributes of the svg of a line on its own (see createSvgForEachLine()), height high */
+    private lineSvgProps;
     createSvg(ctxt: ChantContext): string;
     /**
      * What the svg of line shows besides how the line is laid out (see

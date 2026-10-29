@@ -1,5 +1,5 @@
 import { type Note } from "./Exsurge.Chant.js";
-import { ChantNotationElement, GlyphCode, MarkingPositionHint, type ChantContext } from "./Exsurge.Drawing.js";
+import { ChantNotationElement, GlyphCode, MarkingPositionHint, NeumeLineVisualizer, type ChantContext } from "./Exsurge.Drawing.js";
 /** a ledger line that a neume's notes have, from one of its notes to another */
 export interface NeumeLedgerLine {
     element: Note;
@@ -20,6 +20,9 @@ declare class NeumeBuilder {
     minX: number;
     constructor(ctxt: ChantContext, neume: Neume, startingX?: number);
     lineFrom(note: Note): this;
+    needsLineTo(note: Note, withStem: boolean): boolean;
+    addLineTo(note: Note): NeumeLineVisualizer;
+    withSalicusStart(first: Note, second: Note): this;
     noteAt(note: Note, glyph: GlyphCode, withLineTo?: boolean, withStem?: boolean): this;
     virgaAt(note: Note, withLineTo?: boolean): this;
     oriscusAt(note: Note, glyph: GlyphCode, withLineTo?: boolean, fusedShift?: number): this;

@@ -228,6 +228,9 @@ const glyphNameCharacters = { B: ">", N: "-", E: "!", T: "~" };
  * names have B, N, E and T for >, -, ! and ~ (:89).
  */
 export const nabcNameOfGlyph = (glyphName) => glyphName.replace(/[BNET]/g, (char) => glyphNameCharacters[char]);
+const nabcNameCharacters = { ">": "B", "-": "N", "!": "E", "~": "T" };
+/** The name of a glyph in one of Gregorio's NABC fonts for its NABC name (see nabcNameOfGlyph()). */
+export const glyphNameOfNabc = (nabcName) => nabcName.replace(/[>\-!~]/g, (char) => nabcNameCharacters[char]);
 const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 /**
  * The name of a font's glyph for a NABC name: the glyph of that name, or

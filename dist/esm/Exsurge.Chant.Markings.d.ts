@@ -1,6 +1,6 @@
 import { type Note } from "./Exsurge.Chant.js";
 import type { Rect } from "./Exsurge.Core.js";
-import { ChantLayoutElement, GlyphCode, GlyphVisualizer, MarkingPositionHint, type ChantContext, type ChantNotationElement } from "./Exsurge.Drawing.js";
+import { ChantLayoutElement, GlyphCode, GlyphVisualizer, MarkingPositionHint, SvgShape, type ChantContext, type ChantNotationElement } from "./Exsurge.Drawing.js";
 export declare class Accent extends GlyphVisualizer {
     note: Note;
     positionHint: MarkingPositionHint;
@@ -40,7 +40,7 @@ export interface EpisemaTuning {
     /** whether the tuning is a block's, whose episemata are put on one level */
     block?: boolean;
 }
-export declare class HorizontalEpisema extends ChantLayoutElement {
+export declare class HorizontalEpisema extends SvgShape {
     note: Note;
     positionHint: MarkingPositionHint;
     /** whether the episema stops at its note, rather than joining the next one */
@@ -61,9 +61,7 @@ export declare class HorizontalEpisema extends ChantLayoutElement {
         fill: string;
         class: string;
     };
-    createSvgNode(ctxt: ChantContext): import("./Exsurge.Drawing.js").SvgElementWithSource;
-    createSvgTree(ctxt: ChantContext): import("./Exsurge.Drawing.js").SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
+    get svgTag(): string;
 }
 export declare class Ictus extends GlyphVisualizer {
     note: Note;
@@ -79,7 +77,7 @@ export declare class Mora extends GlyphVisualizer {
     constructor(ctxt: ChantContext, note: Note);
     performLayout(ctxt: ChantContext): void;
 }
-export declare class NoteBracket extends ChantLayoutElement {
+export declare class NoteBracket extends SvgShape {
     isRight: boolean;
     /** the width of the line and hooks */
     lineWeight: number;
@@ -91,9 +89,7 @@ export declare class NoteBracket extends ChantLayoutElement {
         fill: string;
         class: string;
     };
-    createSvgNode(ctxt: ChantContext): import("./Exsurge.Drawing.js").SvgElementWithSource;
-    createSvgTree(ctxt: ChantContext): import("./Exsurge.Drawing.js").SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
+    get svgTag(): string;
 }
 /**
  * How far a custom ledger line goes beyond where it's introduced: a length in
@@ -152,7 +148,7 @@ export interface SlurStart {
     x: number | null;
     y: number;
 }
-export declare class Slur extends ChantLayoutElement {
+export declare class Slur extends SvgShape {
     isAbove: boolean;
     start: {
         x: number;
@@ -186,9 +182,7 @@ export declare class Slur extends ChantLayoutElement {
         "stroke-linejoin": string;
         class: string;
     };
-    createSvgNode(ctxt: ChantContext): import("./Exsurge.Drawing.js").SvgElementWithSource;
-    createSvgTree(ctxt: ChantContext): import("./Exsurge.Drawing.js").SvgTreeNode;
-    createSvgFragment(ctxt: ChantContext): string;
+    get svgTag(): string;
 }
 export declare const BraceShape: {
     readonly RoundBrace: 0;

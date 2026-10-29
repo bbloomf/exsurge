@@ -34,6 +34,8 @@ export declare class Titles extends ChantLayoutElement {
     hasSubtitle(ctxt?: ChantContext, subtitle?: string): boolean;
     hasTextLeft(ctxt?: ChantContext, textLeft?: string): boolean;
     hasTextRight(ctxt?: ChantContext, textRight?: string): boolean;
+    /** the titles and the texts at the left and right, in the order that they're drawn in */
+    elements(): (Supertitle | Title | Subtitle | TextLeftRight | null)[];
     draw(ctxt: ChantContext, scale?: number): void;
     getInnerNodes(ctxt: ChantContext, functionName?: "createSvgNode" | "createSvgTree"): (SvgElementWithSource | SvgTreeNode)[];
     createSvgNode(ctxt: ChantContext): SvgElementWithSource;

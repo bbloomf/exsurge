@@ -1,3 +1,16 @@
+## [2.8.1](https://github.com/bbloomf/exsurge/compare/v2.8.0...v2.8.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **editor:** Draw the insertion cursor after a clef that starts a line on that line ([766ac72](https://github.com/bbloomf/exsurge/commit/766ac7267591d0e799e296ee121020fcf4a289ee))
+* **svg:** Put a notation's visualizers in a g.Notations in the svg string too ([2631111](https://github.com/bbloomf/exsurge/commit/2631111b4a84169d04dc94b337e0cc7a03420464))
+
+
+### Performance Improvements
+
+* Split and parse only the edited word again, and share duplicated code ([9fabda8](https://github.com/bbloomf/exsurge/commit/9fabda8d0cb71a7b1fa9c3506404196645d5ae23))
+
 # [2.8.0](https://github.com/bbloomf/exsurge/compare/v2.7.0...v2.8.0) (2026-10-28)
 
 

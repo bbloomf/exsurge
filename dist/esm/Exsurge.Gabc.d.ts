@@ -76,12 +76,26 @@ export interface ApplyHeaderOptions {
      */
     legacy?: boolean;
 }
+interface SplitWords {
+    source: string;
+    words: string[];
+    maskedWords: string[];
+    starts: number[];
+}
 export declare class Gabc {
     /** a brace given a length rather than an end, which the next note ends */
     static needToEndBrace?: Markings.BracePoint;
     /** what the gabc parsed last leaves for the next notes and syllable (see createMappingFromWord()) */
     static marksForNext: MarksForNext;
     static createMappingsFromSource(ctxt: ChantContext, gabcSource: string): ChantMapping[];
+    static readSource(gabcSource: string): {
+        headerLength: number;
+        nabcLines: number;
+        lyricLines: LyricLine[];
+        notations: string;
+    };
+    static startParsing(ctxt: ChantContext): void;
+    static finishMappings(ctxt: ChantContext, mappings: ChantMapping[], lyricLines: LyricLine[]): void;
     /** the number of lines of NABC that a gabc file's header gives (nabc-lines) */
     static getNabcLines(gabc: string, headerLength?: number): number;
     /**
@@ -181,7 +195,17 @@ export declare class Gabc {
      * of newGabcSource's header.
      */
     static updateMappingsFromSource(ctxt: ChantContext, mappings: ChantMapping[], newGabcSource: string, insertionIndex?: number | null, oldInsertionIndex?: number | null): number;
-    static createMappingsFromWords(ctxt: ChantContext, words: string[]): ChantMapping[];
+    static createMappingsFromWords(ctxt: ChantContext, words: string[], maskedWords?: string[]): ChantMapping[];
+    /**
+     * the words of splitWords() that make mappings, leaving out the empty ones
+     * (only spaces and comments), and where each starts in the source that
+     * was split into words (from the words as splitMaskedWords() masks them,
+     * if they're given, rather than masking each word again)
+     */
+    static nonEmptyWords(allWords: string[], maskedWords?: string[]): {
+        words: string[];
+        starts: number[];
+    };
     /**
      * Sets the automaticLeaning of each punctum inclinatum in a syllable's
      * notes that has no leaning of its own, as Gregorio does
@@ -223,6 +247,14 @@ export declare class Gabc {
     static processEpisemaTuning(instruction: string, note: Note | null): boolean;
     static customLedgerLine(results: RegExpMatchArray): Markings.CustomLedgerLine | null;
     static splitWords(gabcNotations: string): string[];
+    /**
+     * splitWords(), with each word as it is masked and where each starts.
+     * Given last, what it gave for an earlier source (unchanged since), it
+     * masks again only the word that an edit is in, where it can: the source
+     * an editor gives next is usually the same but for a few letters typed in
+     * one word (see splitWordsAgain()).
+     */
+    static splitMaskedWords(gabcNotations: string, last?: SplitWords): SplitWords;
     static parseSource(gabcSource: string): (ParsedSyllable[] & {
         wordLength: number;
     })[];
