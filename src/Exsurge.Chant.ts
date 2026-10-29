@@ -998,6 +998,11 @@ export class ChantScore {
         }
         if (!insertionLine) {
           insertionLine = this.insertionElement!.line || this.lines[this.lines.length - 1];
+          // a clef that a line starts with (or the line break after it),
+          // which the line draws as its starting clef
+          let index = this.insertionElement!.notationIndex;
+          if (index !== undefined && index < insertionLine.notationsStartIndex)
+            this.insertionElement = insertionLine.startingClef;
         }
         insertionLine.insertionCursor = new InsertionCursor();
       }

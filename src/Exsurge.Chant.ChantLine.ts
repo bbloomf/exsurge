@@ -996,6 +996,9 @@ export class ChantLine extends ChantLayoutElement {
     var startsWithClefChange = !!(notations.length && notations[newElementStart].isClef);
     if (startsWithClefChange) {
       ctxt.activeClef = notations[newElementStart] as Clef;
+      // (which is on this line, as its starting clef, though it's skipped
+      // over: see ChantScore.updateSelection())
+      notations[newElementStart].line = this;
       newElementStart++;
       this.notationsStartIndex++;
 
@@ -1003,6 +1006,7 @@ export class ChantLine extends ChantLayoutElement {
       // already (see clefLineBreak)
       let previousLine = lineIndex > 0 && this.score.lines && this.score.lines[lineIndex - 1];
       if (previousLine && previousLine.clefLineBreak && previousLine.clefLineBreak === notations[newElementStart]) {
+        notations[newElementStart].line = this;
         newElementStart++;
         this.notationsStartIndex++;
       }
