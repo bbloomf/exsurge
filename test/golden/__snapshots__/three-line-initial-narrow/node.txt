@@ -34,7 +34,7 @@
       <text x="35.83933333333333" y="-35.96333333333333" class="annotation" text-anchor="middle" style="" source=<Annotation elementIndex=0>>
         <tspan source-index="0" style="">
           "Ad Introitum"
-      <text x="35.83933333333333" y="-24.229999999999997" class="annotation" text-anchor="middle" style="" source=<Annotation elementIndex=1>>
+      <text x="35.83933333333333" y="-25.349999999999998" class="annotation" text-anchor="middle" style="" source=<Annotation elementIndex=1>>
         <tspan source-index="0" style="">
           "Tonus VIII"
       <g class="ChantNotationElement DoClef" transform="translate(71.67866666666666,0)" source=<DoClef sourceIndex=1 elementIndex=-1>>

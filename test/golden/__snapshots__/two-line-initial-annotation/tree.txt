@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=600 height=277.27326136363644 viewBox="0 0 600 277.27326136363644" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=600 height=276.15326136363643 viewBox="0 0 600 276.15326136363643" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
   <g>
     <defs>
       <g id="Mora" transform="scale(0.0625)" className="glyph">
@@ -18,7 +18,7 @@
       <style>
         "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:9.375px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
     <g source=<Titles> className="Titles">
-    <g transform="translate(0,69.68)" element-index=0 className="chantLine">
+    <g transform="translate(0,68.56)" element-index=0 className="chantLine">
       <g className="staffLines">
         <line key=-7 x1=151.44174109589042 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-5 x1=151.44174109589042 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
@@ -28,10 +28,10 @@
         <tspan source-index=0 style={} className=undefined>
           "A"
       < (no props)>
-        <text source-index=undefined x=75.72087054794521 y=-61.89333333333334 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Intr.">
+        <text source-index=undefined x=75.72087054794521 y=-60.77333333333333 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Intr.">
           <tspan source-index=0 style={} className=undefined>
             "Intr."
-        <text source-index=undefined x=75.72087054794521 y=-50.160000000000004 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="VIII">
+        <text source-index=undefined x=75.72087054794521 y=-50.16 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="VIII">
           <tspan source-index=0 style={} className=undefined>
             "VIII"
       <g transform="translate(151.44174109589042,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">
@@ -218,7 +218,7 @@
       <g transform="translate(597.1029375,0)" source=<Custos> className="ChantNotationElement Custos">
         <g className="Notations">
           <use source-index=undefined element-index=undefined x=0 y=-18.75 source=<Custos> className="" xlinkHref="#CustosLong">
-    <g transform="translate(0,163.80325000000002)" element-index=1 className="chantLine">
+    <g transform="translate(0,162.68325000000002)" element-index=1 className="chantLine">
       <g className="staffLines">
         <line key=-7 x1=151.44174109589042 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-5 x1=151.44174109589042 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>
@@ -397,7 +397,7 @@
       <g transform="translate(597.1029375,0)" source=<Custos> className="ChantNotationElement Custos">
         <g className="Notations">
           <use source-index=undefined element-index=undefined x=0 y=-18.75 source=<Custos> className="" xlinkHref="#CustosLong">
-    <g transform="translate(0,251.2750113636364)" element-index=2 className="chantLine">
+    <g transform="translate(0,250.1550113636364)" element-index=2 className="chantLine">
       <g className="staffLines">
         <line key=-7 x1=0 y1=-43.75 x2=600 y2=-43.75 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-5 x1=0 y1=-31.25 x2=600 y2=-31.25 stroke="#000" className="staffLine" strokeWidth=0.8>

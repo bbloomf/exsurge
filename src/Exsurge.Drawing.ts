@@ -971,7 +971,9 @@ export interface TextStyle {
    * The distance from one line to the next, in ems: between the lines of a
    * text with line breaks in it; for lyrics, translations and above lines
    * text, between the lines that ChantLine lays them out on; and, for
-   * annotations, between the annotations of an Annotations.
+   * annotations, between the annotations of an Annotations, if it's set
+   * (otherwise they're stacked by their letters: see
+   * TextStyleForAnnotation.separation).
    * Defaults to 1.1
    */
   lineHeight?: number;
@@ -996,6 +998,18 @@ export interface TextStyleWithStaffPadding {
    */
   padding: number;
 }
+export interface TextStyleForAnnotation extends TextStyleWithStaffPadding {
+  /**
+   * The space between the bottom of the letters of one annotation of an
+   * Annotations and the top of the letters of the next, in ems, as in
+   * Gregorio, where the lines are stacked by their heights (so that a line in
+   * small caps isn't as far below the line above it as a line of capitals
+   * would be), unless lineHeight is set, or the letters can't be measured
+   * (see Annotation.letterBounds()).  ChantContext's constructor sets it to
+   * 0.25.
+   */
+  separation: number;
+}
 
 export type TextTypeStyles = {
   [K in keyof TextTypes]: TextStyle;
@@ -1004,7 +1018,7 @@ export type TextTypeStyles = {
   title: TextStyleWithAlignment & TextStyleWithPadding;
   subtitle: TextStyleWithAlignment & TextStyleWithPadding;
   leftRight: TextStyleWithPadding;
-  annotation: TextStyleWithStaffPadding;
+  annotation: TextStyleForAnnotation;
   dropCap: TextStyleWithStaffPadding;
   choralSign: {
     /**
@@ -1523,6 +1537,7 @@ export class ChantContext {
     this.textStyles.dropCap.padding = 1; // minimum padding on either side of drop cap in staffIntervals
 
     this.textStyles.annotation.padding = 1; // minimum padding on either side of annotation in staffIntervals
+    this.textStyles.annotation.separation = 0.25; // space between the letters of one annotation and the next, in ems
 
     this.minLedgerSeparation = 0; // multiple of staffInterval
     this.ledgerLineHeuristic = true;
@@ -3788,25 +3803,29 @@ export class TextElement extends ChantLayoutElement {
    * @param {boolean} returnBBox 
    * @param {boolean} lastLineOnly whether to measure only the substring's last
    * line, rather than its widest
+   * @param strategy how to measure it, if not with ctxt.textMeasuringStrategy
    * @returns measured substring, as a simple width unless returnBBox == true
    */
   measureSubstring(
     ctxt: ChantContext,
     length?: number,
     returnBBox?: false,
-    lastLineOnly?: boolean
+    lastLineOnly?: boolean,
+    strategy?: TextMeasuringStrategy
   ): number;
   measureSubstring(
     ctxt: ChantContext,
     length: number | undefined,
     returnBBox: true,
-    lastLineOnly?: boolean
+    lastLineOnly?: boolean,
+    strategy?: TextMeasuringStrategy
   ): TextBBox;
   measureSubstring(
     ctxt: ChantContext,
     length?: number,
     returnBBox = false,
-    lastLineOnly = false
+    lastLineOnly = false,
+    strategy = ctxt.textMeasuringStrategy
   ): number | TextBBox {
     if (length === 0) return 0;
     if (!length) length = Infinity;
@@ -3815,7 +3834,6 @@ export class TextElement extends ChantLayoutElement {
       lines = -length;
       length = Infinity;
     }
-    var strategy = ctxt.textMeasuringStrategy;
     var width = 0;
     var widths: number[] = [];
     var newLineSpans = [this.spans[0]];
@@ -5546,6 +5564,29 @@ export class Annotation extends TextElement {
     this.padding = ctxt.staffInterval * ctxt.textStyles.annotation.padding;
     this.dominantBaseline = "hanging"; // so that annotations can be aligned at the top.
   }
+
+  /**
+   * How far above and below its first line's baseline its letters reach (top
+   * being negative), or null if they can't be measured: with opentype.js or
+   * fontkit, only once there are fonts to measure them in, and otherwise
+   * only where the browser gives the letters' bounding box.
+   * TextMeasuringStrategy.Svg measures the font's box instead, which is as
+   * tall whatever the letters are, so then they're measured on a canvas.
+   */
+  letterBounds(ctxt: ChantContext): { top: number; bottom: number } | null {
+    var strategy = ctxt.textMeasuringStrategy;
+    if (strategy === TextMeasuringStrategy.OpenTypeJS) {
+      if (!ctxt.fontDictionary) return null;
+    } else if (typeof TextMetrics === "undefined" || !("actualBoundingBoxAscent" in TextMetrics.prototype)) {
+      return null;
+    }
+    if (strategy === TextMeasuringStrategy.Svg) {
+      ctxt.makeCanvasIfNeeded();
+      let bbox = this.measureSubstring(ctxt, undefined, true, false, TextMeasuringStrategy.Canvas);
+      return { top: bbox.y, bottom: bbox.y + bbox.height };
+    }
+    return { top: -this.origin.y, bottom: this.bounds.height - this.origin.y };
+  }
 }
 
 export class Annotations extends ChantLayoutElement {
@@ -5593,19 +5634,38 @@ export class Annotations extends ChantLayoutElement {
     this.origin.x = 0;
     this.origin.y = 0;
 
-    let y = 0;
+    // (stacked by their letters only if no line height has been set)
+    var byLetters = !(this.lineHeight || ctxt.textStyles.annotation.lineHeight);
+    // the baseline of each annotation, below the first one's, and how far
+    // below that the letters of the one before it reach
+    let y = 0,
+      lettersBottom = 0;
     for (var i = 0; i < this.annotations.length; ++i) {
       var annotation = this.annotations[i];
       annotation.recalculateMetrics(ctxt);
+      var fontSize = annotation.fontSize(ctxt) * (annotation.resize || 1),
+        letters = byLetters ? annotation.letterBounds(ctxt) : null;
+      // as in Gregorio: the top of its letters below the bottom of the
+      // letters above by the separation, however tall they are
+      if (letters && i)
+        y = lettersBottom + fontSize * ctxt.textStyles.annotation.separation - letters.top;
       this.bounds.width = Math.max(this.bounds.width, annotation.bounds.width);
       annotation.bounds.y += y;
-      this.bounds.height = annotation.bounds.bottom();
-      this.origin.y = this.origin.y || annotation.origin.y;
-      // past the annotation's line breaks, to the line after its last line
-      annotation.spans.forEach((span) => {
-        if (span.newLine) y += annotation.lineBreakHeight(ctxt, span);
-      });
-      y += annotation.fontSize(ctxt) * (annotation.resize || 1) * (this.lineHeight || annotation.lineSpacing(ctxt));
+      if (!i) this.origin.y = annotation.origin.y;
+      // from the top of the first annotation to the bottom of this one
+      this.bounds.height = Math.max(
+        this.bounds.height,
+        this.origin.y + y - annotation.origin.y + annotation.bounds.height
+      );
+      if (letters) {
+        lettersBottom = y + letters.bottom;
+      } else {
+        // past the annotation's line breaks, to the line after its last line
+        annotation.spans.forEach((span) => {
+          if (span.newLine) y += annotation.lineBreakHeight(ctxt, span);
+        });
+        y += fontSize * (this.lineHeight || annotation.lineSpacing(ctxt));
+      }
     }
   }
 

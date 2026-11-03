@@ -29,7 +29,7 @@
         <tspan source-index=0 style={} className=undefined>
           "A"
       < (no props)>
-        <text source-index=undefined x=27.562 y=-51.85133333333333 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Ant.">
+        <text source-index=undefined x=27.562 y=-50.73133333333333 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Ant.">
           <tspan source-index=0 style={} className=undefined>
             "Ant."
         <text source-index=undefined x=27.562 y=-40.117999999999995 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="VIII G">

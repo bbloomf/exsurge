@@ -21,7 +21,7 @@ moveTo(55.124, -6.25)
 lineTo(600, -6.25)
 stroke() [strokeStyle="#000" lineWidth=0.8 matrix=1,0,0,1,0,71.25]
 fillText("A", 27.562, 13.012, undefined) [font="64px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,71.25]
-fillText("Ant.", 27.562, -51.85133333333333, undefined) [font="10.666666666666666px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,71.25]
+fillText("Ant.", 27.562, -50.73133333333333, undefined) [font="10.666666666666666px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,71.25]
 fillText("VIII G", 27.562, -40.117999999999995, undefined) [font="10.666666666666666px Fake-{}" fillStyle="#000" textAlign="center" matrix=1,0,0,1,0,71.25]
 fill(Path2D(DoClef[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,55.124,27.5]
 fill(Path2D(PunctumCavum[0])) [fillStyle="#000" matrix=0.0625,0,0,0.0625,72.3115,52.5]

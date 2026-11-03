@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="100.97866666666667" viewBox="0 0 600 100.97866666666667" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="97.77866666666667" viewBox="0 0 600 97.77866666666667" >
 <g >
 <defs >
 <g id="PunctumQuadratum" class="glyph" transform="scale(0.05)" >
@@ -13,7 +13,7 @@
 </defs>
 <g class="Titles" >
 </g>
-<g class="chantLine" transform="translate(0,83.13866666666667)" element-index="0" >
+<g class="chantLine" transform="translate(0,79.93866666666666)" element-index="0" >
 <g class="staffLines" >
 <line x1="52.624" y1="-35" x2="600" y2="-35" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -27,16 +27,16 @@
 <text source-index="5" x="26.312" y="9.488" class="dropCap" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >A</tspan>
 </text>
-<text x="26.312" y="-75.352" class="annotation" text-anchor="middle" style="" >
+<text x="26.312" y="-72.152" class="annotation" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >Ant.</tspan>
 </text>
-<text x="26.312" y="-63.61866666666667" class="annotation" text-anchor="middle" style="" >
+<text x="26.312" y="-61.53866666666667" class="annotation" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >VIII</tspan>
 </text>
-<text x="26.312" y="-51.885333333333335" class="annotation" text-anchor="middle" style="" >
+<text x="26.312" y="-53.165333333333336" class="annotation" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >g</tspan>
 </text>
-<text x="26.312" y="-40.152" class="annotation" text-anchor="middle" style="" >
+<text x="26.312" y="-42.392" class="annotation" text-anchor="middle" style="" >
 <tspan source-index="3" style="font-weight: bold;" >x</tspan>
 </text>
 <g class="ChantNotationElement DoClef" transform="translate(52.624,0)" >
