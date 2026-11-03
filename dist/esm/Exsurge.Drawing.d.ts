@@ -365,7 +365,9 @@ export interface TextStyle {
      * The distance from one line to the next, in ems: between the lines of a
      * text with line breaks in it; for lyrics, translations and above lines
      * text, between the lines that ChantLine lays them out on; and, for
-     * annotations, between the annotations of an Annotations.
+     * annotations, between the annotations of an Annotations, if it's set
+     * (otherwise they're stacked by their letters: see
+     * TextStyleForAnnotation.separation).
      * Defaults to 1.1
      */
     lineHeight?: number;
@@ -389,6 +391,18 @@ export interface TextStyleWithStaffPadding {
      */
     padding: number;
 }
+export interface TextStyleForAnnotation extends TextStyleWithStaffPadding {
+    /**
+     * The space between the bottom of the letters of one annotation of an
+     * Annotations and the top of the letters of the next, in ems, as in
+     * Gregorio, where the lines are stacked by their heights (so that a line in
+     * small caps isn't as far below the line above it as a line of capitals
+     * would be), unless lineHeight is set, or the letters can't be measured
+     * (see Annotation.letterBounds()).  ChantContext's constructor sets it to
+     * 0.25.
+     */
+    separation: number;
+}
 export type TextTypeStyles = {
     [K in keyof TextTypes]: TextStyle;
 } & {
@@ -396,7 +410,7 @@ export type TextTypeStyles = {
     title: TextStyleWithAlignment & TextStyleWithPadding;
     subtitle: TextStyleWithAlignment & TextStyleWithPadding;
     leftRight: TextStyleWithPadding;
-    annotation: TextStyleWithStaffPadding;
+    annotation: TextStyleForAnnotation;
     dropCap: TextStyleWithStaffPadding;
     choralSign: {
         /**
@@ -1280,10 +1294,11 @@ export declare class TextElement extends ChantLayoutElement {
      * @param {boolean} returnBBox
      * @param {boolean} lastLineOnly whether to measure only the substring's last
      * line, rather than its widest
+     * @param strategy how to measure it, if not with ctxt.textMeasuringStrategy
      * @returns measured substring, as a simple width unless returnBBox == true
      */
-    measureSubstring(ctxt: ChantContext, length?: number, returnBBox?: false, lastLineOnly?: boolean): number;
-    measureSubstring(ctxt: ChantContext, length: number | undefined, returnBBox: true, lastLineOnly?: boolean): TextBBox;
+    measureSubstring(ctxt: ChantContext, length?: number, returnBBox?: false, lastLineOnly?: boolean, strategy?: TextMeasuringStrategy): number;
+    measureSubstring(ctxt: ChantContext, length: number | undefined, returnBBox: true, lastLineOnly?: boolean, strategy?: TextMeasuringStrategy): TextBBox;
     /**
      * The lines of the text, as they are drawn.  Where setMaxWidth() wrapped
      * the text, the spans no longer have the whitespace that it broke the line
@@ -1619,6 +1634,18 @@ export declare class Annotation extends TextElement {
     textType: TextTypes["annotation"];
     padding: number;
     constructor(ctxt: ChantContext, text: string, elementIndex?: number);
+    /**
+     * How far above and below its first line's baseline its letters reach (top
+     * being negative), or null if they can't be measured: with opentype.js or
+     * fontkit, only once there are fonts to measure them in, and otherwise
+     * only where the browser gives the letters' bounding box.
+     * TextMeasuringStrategy.Svg measures the font's box instead, which is as
+     * tall whatever the letters are, so then they're measured on a canvas.
+     */
+    letterBounds(ctxt: ChantContext): {
+        top: number;
+        bottom: number;
+    } | null;
 }
 export declare class Annotations extends ChantLayoutElement {
     /**
