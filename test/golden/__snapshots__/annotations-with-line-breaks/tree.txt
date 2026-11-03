@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=600 height=90.47200000000001 viewBox="0 0 600 90.47200000000001" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width=600 height=89.336 viewBox="0 0 600 89.336" source=<ChantScore> className="Exsurge ChantScore" xmlnsXlink="http://www.w3.org/1999/xlink">
   <g>
     <defs>
       <g id="PunctumQuadratum" transform="scale(0.05)" className="glyph">
@@ -8,7 +8,7 @@
       <style>
         "svg.Exsurge .supertitle{fill:#000;font-family:Fake-{};font-size:18.666666666666668px;font-kerning:normal}svg.Exsurge .title{fill:#000;font-family:Fake-{};font-size:24px;font-kerning:normal}svg.Exsurge .subtitle{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .textLeftRight{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .annotation{fill:#000;font-family:Fake-{};font-size:10.666666666666666px;font-kerning:normal}svg.Exsurge .dropCap{fill:#000;font-family:Fake-{};font-size:64px;font-kerning:normal}svg.Exsurge .aboveLinesText{fill:#000;font-family:Fake-{};font-size:16px;font-kerning:normal}svg.Exsurge .choralSign{fill:#000;font-family:Fake-{};font-size:7.5px;font-kerning:normal}svg.Exsurge .lyric{fill:#000;font-family:Fake-{};font-size:14.4px;font-kerning:normal}svg.Exsurge .translation{fill:#000;font-family:Fake-{};font-size:12px;font-kerning:normal}"
     <g source=<Titles> className="Titles">
-    <g transform="translate(0,72.632)" element-index=0 className="chantLine">
+    <g transform="translate(0,71.496)" element-index=0 className="chantLine">
       <g className="staffLines">
         <line key=-7 x1=52.624 y1=-35 x2=600 y2=-35 stroke="#000" className="staffLine" strokeWidth=0.8>
         <line key=-5 x1=52.624 y1=-25 x2=600 y2=-25 stroke="#000" className="staffLine" strokeWidth=0.8>
@@ -18,12 +18,12 @@
         <tspan source-index=0 style={} className=undefined>
           "A"
       < (no props)>
-        <text source-index=undefined x=26.312 y=-64.84533333333334 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Ant.<br><e>VIII</e>">
+        <text source-index=undefined x=26.312 y=-63.709333333333326 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Ant.<br><e>VIII</e>">
           <tspan source-index=0 style={} className=undefined>
             "Ant."
           <tspan source-index=11 style={newLine: 1, fontStyle: "italic", fontSize: "90%"} dy="1.1em" x=26.312 className=undefined>
             "VIII"
-        <text source-index=undefined x=26.312 y=-42.55200000000001 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="g">
+        <text source-index=undefined x=26.312 y=-44.791999999999994 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="g">
           <tspan source-index=0 style={} className=undefined>
             "g"
       <g transform="translate(52.624,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">

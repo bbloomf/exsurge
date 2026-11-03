@@ -26,10 +26,10 @@
         <tspan source-index=0 style={} className=undefined>
           "A"
       < (no props)>
-        <text source-index=undefined x=27.562 y=-44.19308333333333 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Intr.">
+        <text source-index=undefined x=27.562 y=-43.07308333333332 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Intr.">
           <tspan source-index=0 style={} className=undefined>
             "Intr."
-        <text source-index=undefined x=27.562 y=-32.45974999999999 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="<i>VIII</i>">
+        <text source-index=undefined x=27.562 y=-32.459749999999985 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="<i>VIII</i>">
           <tspan source-index=3 style={fontStyle: "italic"} className=undefined>
             "VIII"
       <g transform="translate(55.124,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">

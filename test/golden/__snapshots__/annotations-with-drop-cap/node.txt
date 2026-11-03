@@ -25,10 +25,10 @@
       <text source-index="5" x="27.562" y="20.670250000000003" class="dropCap" text-anchor="middle" style="" source=<DropCap sourceIndex=5>>
         <tspan source-index="0" style="">
           "A"
-      <text x="27.562" y="-44.19308333333333" class="annotation" text-anchor="middle" style="" source=<Annotation elementIndex=0>>
+      <text x="27.562" y="-43.07308333333332" class="annotation" text-anchor="middle" style="" source=<Annotation elementIndex=0>>
         <tspan source-index="0" style="">
           "Intr."
-      <text x="27.562" y="-32.45974999999999" class="annotation" text-anchor="middle" style="" source=<Annotation elementIndex=1>>
+      <text x="27.562" y="-32.459749999999985" class="annotation" text-anchor="middle" style="" source=<Annotation elementIndex=1>>
         <tspan source-index="3" style="font-style: italic;">
           "VIII"
       <g class="ChantNotationElement DoClef" transform="translate(55.124,0)" source=<DoClef sourceIndex=1 elementIndex=-1>>

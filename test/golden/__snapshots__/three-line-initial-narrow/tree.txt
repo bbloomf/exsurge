@@ -35,7 +35,7 @@
         <text source-index=undefined x=35.83933333333333 y=-35.96333333333333 style={} source=<Annotation elementIndex=0> className="annotation" textAnchor="middle" source-gabc="Ad Introitum">
           <tspan source-index=0 style={} className=undefined>
             "Ad Introitum"
-        <text source-index=undefined x=35.83933333333333 y=-24.229999999999997 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="Tonus VIII">
+        <text source-index=undefined x=35.83933333333333 y=-25.349999999999998 style={} source=<Annotation elementIndex=1> className="annotation" textAnchor="middle" source-gabc="Tonus VIII">
           <tspan source-index=0 style={} className=undefined>
             "Tonus VIII"
       <g transform="translate(71.67866666666666,0)" source=<DoClef sourceIndex=1 elementIndex=-1> className="ChantNotationElement DoClef" source-gabc="c4">

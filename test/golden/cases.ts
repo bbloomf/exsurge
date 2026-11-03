@@ -1248,6 +1248,15 @@ export const settingCases: GoldenCase[] = [
     setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "Ant.", "VIII", "g", "<b>x</b>"))
   },
   {
+    // the mode, in lower case small caps, goes up under the part, its letters
+    // being shorter than capitals (as the propers in jgabc have it)
+    name: "small-caps-annotations-with-drop-cap",
+    outputs: allOutputs,
+    gabc: adTeLevavi,
+    useDropCap: true,
+    setupScore: (score, ctxt, E) => (score.annotation = new E.Annotations(ctxt, "%Intr.%", "%viii%"))
+  },
+  {
     // an annotation after one with a line break goes below the other's last
     // line, which is spaced by its own (90%) size
     name: "annotations-with-line-breaks",

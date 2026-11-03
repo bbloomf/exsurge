@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="100.53799999999998" viewBox="0 0 600 100.53799999999998" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="Exsurge ChantScore" width="600" height="102.77799999999999" viewBox="0 0 600 102.77799999999999" >
 <g >
 <defs >
 <g id="Mora" class="glyph" transform="scale(0.0625)" >
@@ -45,7 +45,7 @@
 </defs>
 <g class="Titles" >
 </g>
-<g class="chantLine" transform="translate(0,82.19799999999998)" element-index="0" >
+<g class="chantLine" transform="translate(0,84.43799999999999)" element-index="0" >
 <g class="staffLines" >
 <line x1="51.476" y1="-43.75" x2="600" y2="-43.75" stroke="#000" stroke-width="0.8" class="staffLine" >
 </line>
@@ -59,13 +59,13 @@
 <text source-index="5" x="25.738" y="13.012000000000008" class="dropCap" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >K</tspan>
 </text>
-<text x="25.738" y="-74.41133333333332" class="annotation" text-anchor="middle" style="" >
+<text x="25.738" y="-76.65133333333333" class="annotation" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >Ant.</tspan>
 </text>
-<text x="25.738" y="-57.344666666666654" class="annotation" text-anchor="middle" style="" >
+<text x="25.738" y="-59.584666666666664" class="annotation" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >VIII</tspan>
 </text>
-<text x="25.738" y="-40.277999999999984" class="annotation" text-anchor="middle" style="" >
+<text x="25.738" y="-42.517999999999994" class="annotation" text-anchor="middle" style="" >
 <tspan source-index="0" style="" >g</tspan>
 </text>
 <g class="ChantNotationElement DoClef" transform="translate(51.476,0)" >
