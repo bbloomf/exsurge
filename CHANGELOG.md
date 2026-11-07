@@ -1,3 +1,10 @@
+## [2.8.3](https://github.com/bbloomf/exsurge/compare/v2.8.2...v2.8.3) (2026-11-07)
+
+
+### Bug Fixes
+
+* **lineBreaking:** Break a no-line-break area too wide for a line ([6b4b81b](https://github.com/bbloomf/exsurge/commit/6b4b81beda73c6e292fa67ddad16e5fb835d5c5a))
+
 ## [2.8.2](https://github.com/bbloomf/exsurge/compare/v2.8.1...v2.8.2) (2026-11-03)
 
 

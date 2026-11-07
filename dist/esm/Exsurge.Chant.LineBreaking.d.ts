@@ -155,6 +155,8 @@ export declare class LineBreaker {
     trialLines?: TrialLines;
     /** a line for keepsInArea() to ask */
     areaLine?: ChantLine;
+    /** whether each area is too wide for a line, by the index of its first notation (see isOverlongArea()) */
+    overlongAreas?: Map<number, boolean>;
     /** (see getAfter()) */
     after?: {
         blocked: Uint8Array;
@@ -279,11 +281,29 @@ export declare class LineBreaker {
      * (getPenalty() works out the rest): before text only notations that come
      * just before a divider, where too little would be left for the last line,
      * in a no-line-break or euouae area (gabc <nlba> or <eu>), or within a
-     * syllable too short to break in
+     * syllable too short to break in; or "overlongArea" if it can break there
+     * only because it's in an area too wide for a line (see isOverlongArea()),
+     * with overlongAreaPenalty
      */
-    isBlocked(index: number): boolean;
+    isBlocked(index: number): boolean | "overlongArea";
     /** (see ChantLine.keepsInArea()) */
     keepsInArea(index: number): boolean;
+    /**
+     * the index of the first notation of the no-line-break or euouae area that
+     * keeps the notation at index with the next one (areas that follow each
+     * other with no break between them are taken as one)
+     */
+    areaStart(index: number): number;
+    /**
+     * whether the no-line-break or euouae area that starts at the notation at
+     * start is too wide for any line: a line that starts with it can't go on
+     * past its end, even condensed as far as it can be.  (Measured on a line
+     * that isn't beside the drop cap, unless the area starts the score: an area
+     * that would fit on that line isn't broken, even where the lines beside the
+     * drop cap are too narrow for it, as before.)  Worked out once for each
+     * area in each layout.
+     */
+    isOverlongArea(start: number): boolean;
     /** whether the notation at index starts a word */
     startsWord(index: number): boolean;
     /**
@@ -326,7 +346,7 @@ export declare class LineBreaker {
         custos: Uint8Array;
     };
     /** whether a line can't end just before the notation at end after all (see isBlocked()) */
-    isBlockedAt(end: number): boolean;
+    isBlockedAt(end: number): boolean | "overlongArea";
     /**
      * whether a line that ends just before the notation at end has a custos at
      * its end, where custos is the index in custosKinds of what its own

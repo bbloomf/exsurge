@@ -40,6 +40,17 @@ const penalties = {
     clefChange: -200
 };
 const infinitePenalty = 10000;
+// Gregorio never breaks a no-line-break or euouae area (gabc <nlba> or <eu>),
+// and lets a line that one doesn't fit on run past the staff.  Where an area
+// is too wide for any line, it is broken here instead, with this penalty
+// added to Gregorio's at each place within it, which is enough for the lines
+// to break as few times within it as they can (and to start it on a line of
+// its own, if that saves a break), unless a line would otherwise be about as
+// loose as TeX's tolerance lets it be.  (As TeX squares a penalty, the
+// differences between Gregorio's penalties count for far more on top of this
+// one, and so the lines break within an area after a bar or at the end of a
+// word even where that leaves a line rather looser.)  See LineBreaker.isBlocked().
+const overlongAreaPenalty = 5000;
 // TeX's paragraph parameters, as Gregorio sets them for a score
 // (tex/gregoriotex-gsp-default.tex:52-58, tex/gregoriotex-spaces.tex:57-102),
 // and the LaTeX defaults of those it leaves alone.
@@ -405,8 +416,13 @@ export class LineBreaker {
         // (the line can't go on once it's too full even when condensed)
         for (var k = 0; k < ends.length && !(ends[k + reachAt] > this.width); k += lineEndSize) {
             var end = start + ends[k + endAt], penalty = ends[k + penaltyAt];
-            if (penalty > -infinitePenalty && this.isBlockedAt(end))
-                continue;
+            if (penalty > -infinitePenalty) {
+                var blocked = this.isBlockedAt(end);
+                if (blocked === true)
+                    continue;
+                if (blocked === "overlongArea")
+                    penalty += overlongAreaPenalty;
+            }
             var fit = this.fit(ends, k, this.hasCustos(ends[k + flagsAt] & custosMask, end), threshold);
             if (!fit)
                 continue;
@@ -735,27 +751,69 @@ export class LineBreaker {
      * (getPenalty() works out the rest): before text only notations that come
      * just before a divider, where too little would be left for the last line,
      * in a no-line-break or euouae area (gabc <nlba> or <eu>), or within a
-     * syllable too short to break in
+     * syllable too short to break in; or "overlongArea" if it can break there
+     * only because it's in an area too wide for a line (see isOverlongArea()),
+     * with overlongAreaPenalty
      */
     isBlocked(index) {
         var notations = this.score.notations, prev = notations[index - 1], next = notations[index];
-        if (isTextOnlyBeforeDivider(notations, index) ||
-            this.leavesTooLittleForLastLine(index) ||
-            this.keepsInArea(index - 1))
+        if (isTextOnlyBeforeDivider(notations, index) || this.leavesTooLittleForLastLine(index))
             return true;
+        var inArea = this.keepsInArea(index - 1);
+        if (inArea && !this.isOverlongArea(this.areaStart(index - 1)))
+            return true;
+        var blocked = false;
         // (where getPenalty() lets the line break within a syllable)
-        if (next.isClef || prev.isDivider || next.firstOfParentheses)
-            return false;
-        var counts = this.getNoteCounts(), notesBefore = counts.notesBeforeInSyllable[index], notes = counts.notesInSyllable[index];
-        return (notes < unbreakableSyllableNotes ||
-            notesBefore < unbreakableInitialNotes ||
-            notes - notesBefore < unbreakableFinalNotes);
+        if (!(next.isClef || prev.isDivider || next.firstOfParentheses)) {
+            var counts = this.getNoteCounts(), notesBefore = counts.notesBeforeInSyllable[index], notes = counts.notesInSyllable[index];
+            blocked =
+                notes < unbreakableSyllableNotes ||
+                    notesBefore < unbreakableInitialNotes ||
+                    notes - notesBefore < unbreakableFinalNotes;
+        }
+        return blocked || (inArea && "overlongArea");
     }
     /** (see ChantLine.keepsInArea()) */
     keepsInArea(index) {
         if (!this.areaLine)
             this.areaLine = new ChantLine(this.score);
         return this.areaLine.keepsInArea(index);
+    }
+    /**
+     * the index of the first notation of the no-line-break or euouae area that
+     * keeps the notation at index with the next one (areas that follow each
+     * other with no break between them are taken as one)
+     */
+    areaStart(index) {
+        while (index > 0 && this.keepsInArea(index - 1))
+            index--;
+        return index;
+    }
+    /**
+     * whether the no-line-break or euouae area that starts at the notation at
+     * start is too wide for any line: a line that starts with it can't go on
+     * past its end, even condensed as far as it can be.  (Measured on a line
+     * that isn't beside the drop cap, unless the area starts the score: an area
+     * that would fit on that line isn't broken, even where the lines beside the
+     * drop cap are too narrow for it, as before.)  Worked out once for each
+     * area in each layout.
+     */
+    isOverlongArea(start) {
+        if (!this.overlongAreas)
+            this.overlongAreas = new Map();
+        var overlong = this.overlongAreas.get(start);
+        if (overlong === undefined) {
+            var last = start;
+            while (this.keepsInArea(last))
+                last++;
+            var ends = this.getLineEnds(start === 0 ? 0 : Math.max(1, this.score.linesBesideDropCap()), start);
+            overlong = true;
+            for (var k = 0; k < ends.length && !(ends[k + reachAt] > this.width); k += lineEndSize)
+                if (start + ends[k + endAt] > last)
+                    overlong = false;
+            this.overlongAreas.set(start, overlong);
+        }
+        return overlong;
     }
     /** whether the notation at index starts a word */
     startsWord(index) {
@@ -873,9 +931,11 @@ export class LineBreaker {
     /** whether a line can't end just before the notation at end after all (see isBlocked()) */
     isBlockedAt(end) {
         var after = this.getAfter();
-        if (!after.blocked[end])
-            after.blocked[end] = this.isBlocked(end) ? 2 : 1;
-        return after.blocked[end] === 2;
+        if (!after.blocked[end]) {
+            var blocked = this.isBlocked(end);
+            after.blocked[end] = blocked === true ? 2 : blocked === "overlongArea" ? 3 : 1;
+        }
+        return [false, true, "overlongArea"][after.blocked[end] - 1];
     }
     /**
      * whether a line that ends just before the notation at end has a custos at

@@ -54,6 +54,21 @@ interface CondensableSpace {
 type CondensableSpaces = CondensableSpace[] & {
     sum: number;
 };
+/**
+ * where a line that the notation at from didn't fit on would go on from, to
+ * lay out the rest of a no-line-break or euouae area (see
+ * ChantLine.isOverlongArea()): the notation it would be laid out after, the
+ * lyrics before it, how far right the notations laid out go, and the line's
+ * spaces; and whether the area is too wide for a line, once that's known
+ */
+interface Overflow {
+    from: number;
+    prev: ChantNotationElement;
+    lyrics: Lyric[];
+    right: number;
+    condensableSpaces: CondensableSpaces;
+    overlong?: boolean;
+}
 export declare class ChantLine extends ChantLayoutElement {
     score: ChantScore;
     /** the index in the score's notations of the first notation on the line */
@@ -227,6 +242,20 @@ export declare class ChantLine extends ChantLayoutElement {
      * keeps the score's notation at index on the same line as the one after it
      */
     keepsInArea(index: number): boolean;
+    /**
+     * whether the no-line-break or euouae area that keeps the notation at
+     * index with the next one, which doesn't fit on the line, is too wide for
+     * any line, so that the line can break within it after all (see
+     * buildFromChantNotationIndex()): it starts the line, or a line before this
+     * one, or laid out on from where the line stopped (see Overflow), it goes
+     * further right than the line has room for, from where the area starts,
+     * even condensed as far as it can be.  (As the optimal line breaker works
+     * it out from the lines it lays out: see LineBreaker.isOverlongArea().
+     * The notations after the line are laid out again by the line after it.)
+     */
+    isOverlongArea(ctxt: ChantContext, index: number, overflow: Overflow): boolean;
+    /** how far right a notation laid out on the line goes, with its lyrics */
+    reachOf(notation: ChantNotationElement): number;
     /**
      * whether the line, ending where it does now, gets an automatic custos (see
      * eolCustos())
