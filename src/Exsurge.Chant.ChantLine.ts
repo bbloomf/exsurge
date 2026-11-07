@@ -269,6 +269,22 @@ interface CondensableSpace {
 /** the spaces between notations so far on a line, and the sum of their condensable space */
 type CondensableSpaces = CondensableSpace[] & { sum: number };
 
+/**
+ * where a line that the notation at from didn't fit on would go on from, to
+ * lay out the rest of a no-line-break or euouae area (see
+ * ChantLine.isOverlongArea()): the notation it would be laid out after, the
+ * lyrics before it, how far right the notations laid out go, and the line's
+ * spaces; and whether the area is too wide for a line, once that's known
+ */
+interface Overflow {
+  from: number;
+  prev: ChantNotationElement;
+  lyrics: Lyric[];
+  right: number;
+  condensableSpaces: CondensableSpaces;
+  overlong?: boolean;
+}
+
 // shrinks lyric's connector (its hyphen) to width, but no narrower than the
 // space between syllables: the space between notes, where the notation has
 // more than one line of lyrics (lyricLines), or else the space between words
@@ -1247,6 +1263,22 @@ export class ChantLine extends ChantLayoutElement {
             extraTextOnlyLyricIndex
           ].getRight();
       } else if (fitsOnLine === false) {
+        // where the notations that didn't fit would go on from, if the line
+        // went on (see isOverlongArea()): after the one just laid out, or the
+        // last one laid out before it, if it wasn't laid out
+        var overflow: Overflow = {
+          from: i,
+          prev: prevNeume!,
+          lyrics: this.lastLyrics.slice(),
+          right: -Infinity,
+          condensableSpaces
+        };
+        if (!forceBreak) {
+          overflow.from = i + 1;
+          if (curr.constructor !== TextOnly) overflow.prev = curr;
+          if (curr.hasLyrics()) LyricArray.mergeIn(overflow.lyrics, curr.lyrics);
+          overflow.right = this.reachOf(curr);
+        }
         // first check for elements that cannot begin a system: dividers and custodes
         while (
           this.plannedEnd !== i &&
@@ -1333,13 +1365,22 @@ export class ChantLine extends ChantLayoutElement {
           // if the line break is allowed (cne.allowLineBreakBeforeNext), keep this number of notations around so we can check during justification
           // whether there would be too much space introduced between
           if (cne.keepWithNext === true) {
-            if (cne.allowLineBreakBeforeNext && !this.maxNumNotationsOnLine && !this.keepsInArea(j))
+            if (
+              cne.allowLineBreakBeforeNext &&
+              !this.maxNumNotationsOnLine &&
+              (!this.keepsInArea(j) || this.isOverlongArea(ctxt, j, overflow))
+            )
               this.maxNumNotationsOnLine = this.numNotationsOnLine;
             this.numNotationsOnLine--;
           } else if (this.keepsInArea(j)) {
             // no line break in a Gregorio no-line-break or euouae area, unless
-            // the line can't break anywhere else (see just below)
+            // the line can't break anywhere else (see just below); or, in an
+            // area too wide for a line, where ending the line before the area
+            // would leave it too loose (see maxNumNotationsOnLine just below),
+            // as the optimal line breaker breaks one only where it has to
             if (breakInArea === undefined) breakInArea = this.numNotationsOnLine;
+            if (!this.maxNumNotationsOnLine && this.isOverlongArea(ctxt, j, overflow))
+              this.maxNumNotationsOnLine = this.numNotationsOnLine;
             this.numNotationsOnLine--;
           } else break;
         }
@@ -1940,6 +1981,60 @@ export class ChantLine extends ChantLayoutElement {
       });
     }
     return score.keptInAreas[index];
+  }
+
+  /**
+   * whether the no-line-break or euouae area that keeps the notation at
+   * index with the next one, which doesn't fit on the line, is too wide for
+   * any line, so that the line can break within it after all (see
+   * buildFromChantNotationIndex()): it starts the line, or a line before this
+   * one, or laid out on from where the line stopped (see Overflow), it goes
+   * further right than the line has room for, from where the area starts,
+   * even condensed as far as it can be.  (As the optimal line breaker works
+   * it out from the lines it lays out: see LineBreaker.isOverlongArea().
+   * The notations after the line are laid out again by the line after it.)
+   */
+  isOverlongArea(ctxt: ChantContext, index: number, overflow: Overflow) {
+    var notations = this.score.notations,
+      start = index;
+    while (start > 0 && this.keepsInArea(start - 1)) start--;
+    if (start <= this.notationsStartIndex) return true;
+    if (overflow.overlong === undefined) {
+      var last = index;
+      while (last + 1 < notations.length && this.keepsInArea(last)) last++;
+      var spaces = Object.assign([], { sum: 0 }) as CondensableSpaces,
+        prev = overflow.prev,
+        right = overflow.right;
+      for (var k = overflow.from; k <= last; k++) {
+        var curr = notations[k];
+        resetNotation(ctxt, curr);
+        if (curr.isNeume) this.spaceNeumeBeforeSoftAccidental(ctxt, k);
+        if (isHiddenAccidental(curr)) {
+          curr.bounds.x = prev.bounds.right() + prev.calculatedTrailingSpace;
+          continue;
+        }
+        this.positionNotationElement(ctxt, overflow.lyrics, prev, curr, Infinity, spaces);
+        right = Math.max(right, this.reachOf(curr));
+        if (curr.hasLyrics()) LyricArray.mergeIn(overflow.lyrics, curr.lyrics);
+        if (curr.constructor !== TextOnly) prev = curr;
+      }
+      // (which the line read, to know whether it can break within the area)
+      this.furthestLaidOut = Math.max(this.furthestLaidOut!, last);
+      var condensable = spaces.sum;
+      for (var space of overflow.condensableSpaces)
+        if (space.notation.notationIndex! > start) condensable += space.condensable;
+      var left = (notation: ChantNotationElement) =>
+        Math.min(notation.bounds.x, ...notation.lyrics.filter(Boolean).map((lyric) => lyric.getLeft()));
+      overflow.overlong =
+        right - condensable - left(notations[start]) > this.staffRight - left(notations[this.notationsStartIndex]);
+    }
+    return overflow.overlong;
+  }
+
+  /** how far right a notation laid out on the line goes, with its lyrics */
+  reachOf(notation: ChantNotationElement) {
+    var right = this.notationRight(notation);
+    return notation.hasLyrics() ? Math.max(right, LyricArray.getRight(notation.lyrics, false, true)) : right;
   }
 
   /**

@@ -132,6 +132,110 @@ describe("optimal line breaking", () => {
     }
   });
 
+  describe("a no-line-break area too wide for a line", () => {
+    // the response of Custodi nos and the last of In manus tuas, as the
+    // Compline app has them, in <nlba> after the response's mark
+    const custodi =
+      "(c4)<v>\\Vbar</v> Cu(f)stó(f)di(f) nos(f) Dó(f)mi(f)ne(f) ut(f) pu(f)píl(f)lam(f) ó(f)cu(f)li.(e_/fvEDCded.) (::)\n" +
+      "<v>\\Rbar</v> <nlba>Sub(f) um(f)bra(f) a(f)lá(f)rum(f) tu(f)á(f)rum(f) pró(f)te(f)ge(f) nos.(e_/fvEDCded.)</nlba> (::)";
+    const inManus =
+      "(c4)<v>\\Vbar</v> Gló(f)ri(f)a(e') Pa(g)tri,(h'_) (,) et(h) Fí(ixhi)li(h)o,(h'_) (,) et(h) Spi(h)rí(h')tu(g)i(h') San(g)cto.(gf..)\n" +
+      "(::) <v>\\Rbar</v> <nlba>In(f) ma(f)nus(f) tu(f)as(f) Dó(g)mi(f)ne,(f'_) (,) Com(f)mén(f)do(f) spí(f)ri(f)tum(e') me(g)um:(h.) (;) " +
+      "Al(h)le(h_g)lú(g)ia,(f'_) al(d)le(f_g)lú(gf~)ia.(f.)</nlba> (::)";
+    const untagged = (gabc: string) => gabc.replace(/<\/?nlba>/g, "");
+    const compline = (ctxt: any) => {
+      ctxt.minSyllablesLastLine = 2;
+      ctxt.minNotesLastLine = 4;
+    };
+    /** the syllables on each line */
+    const syllables = (score: any): string[][] =>
+      score.lines.map((line: any) =>
+        score.notations
+          .slice(line.notationsStartIndex, line.notationsStartIndex + line.numNotationsOnLine)
+          .filter((n: any) => n.hasLyrics() && /\w/.test(n.lyrics[0].text))
+          .map((n: any) => n.lyrics[0].text)
+      );
+    /** the indices of the notations in the score's no-line-break area: its first, and the one after its last */
+    const area = (score: any) => {
+      const notations = score.notations;
+      const start = notations.findIndex((n: any) => n.noLineBreak && n.noLineBreak.start);
+      const end = notations.findIndex((n: any) => n.noLineBreak && n.noLineBreak.end);
+      return [start, end + 1];
+    };
+    /** whether the notation at index starts a word (each gabc word has a mapping of its own) */
+    const startsWord = (score: any, index: number) =>
+      score.notations[index].mapping !== score.notations[index - 1].mapping;
+
+    it("is broken as the lines would be broken without it, rather than filled greedily", async () => {
+      // which set "Cu-stó" alone on the first line and "nos." alone on the last
+      const tagged = await layOut(custodi, { width: 300, setupContext: compline });
+      const plain = await layOut(untagged(custodi), { width: 300, setupContext: compline });
+      assert(tagged.score.lines.every((line: any) => line.plannedEnd !== undefined));
+      assert.deepStrictEqual(syllables(tagged.score), syllables(plain.score));
+      assert(syllables(tagged.score).every((line) => line.length > 2));
+      const [start, end] = area(tagged.score);
+      assert(lineStarts(tagged.score).some((lineStart) => lineStart > start && lineStart < end));
+    });
+
+    it("is broken as few times as it can be, after its bars or at the ends of its words", async () => {
+      for (const width of [250, 300, 400, 450]) {
+        const tagged = await layOut(inManus, { width, setupContext: compline });
+        const plain = await layOut(untagged(inManus), { width, setupContext: compline });
+        const { score } = tagged;
+        assert(score.lines.every((line: any) => line.plannedEnd !== undefined), `${width}`);
+        assert(syllables(score).every((line) => line.length > 1), `${width}`);
+        const [start, end] = area(score);
+        const within = (s: any) => lineStarts(s).filter((lineStart) => lineStart > start && lineStart < end);
+        assert(within(score).length > 0, `${width}`);
+        assert(within(score).length <= within(plain.score).length, `${width}`);
+        if (width === 400) {
+          // where it takes a line of its own, as that saves a break within it
+          assert(within(score).length < within(plain.score).length);
+          assert(lineStarts(score).includes(start));
+        } else for (const lineStart of within(score)) assert(startsWord(score, lineStart), `${lineStart} at ${width}`);
+      }
+      // where the lines without it break within "spí-ri-tum" and "Al-le-lú-ia"
+      const plain300 = await layOut(untagged(inManus), { width: 300, setupContext: compline });
+      const plain400 = await layOut(untagged(inManus), { width: 400, setupContext: compline });
+      assert(!lineStarts(plain300.score).every((lineStart, k) => k === 0 || startsWord(plain300.score, lineStart)));
+      assert(!lineStarts(plain400.score).every((lineStart, k) => k === 0 || startsWord(plain400.score, lineStart)));
+    });
+
+    it("isn't broken where it fits on a line, but goes on the next line whole", async () => {
+      // the lines break within the response without <nlba>
+      const tagged = await layOut(custodi, { width: 400, setupContext: compline });
+      const plain = await layOut(untagged(custodi), { width: 400, setupContext: compline });
+      const [start, end] = area(tagged.score);
+      assert(lineStarts(plain.score).some((lineStart) => lineStart > start && lineStart < end));
+      assert(lineStarts(tagged.score).includes(start));
+      assert(!lineStarts(tagged.score).some((lineStart) => lineStart > start && lineStart < end));
+      assert(tagged.score.lines.every((line: any) => line.plannedEnd !== undefined));
+    });
+
+    it("is worked out for each area against the width", async () => {
+      const { score, ctxt } = await layOut(custodi, { width: 300, setupContext: compline });
+      const [start] = area(score);
+      assert.strictEqual(new E.LineBreaker(score, ctxt, 300).isOverlongArea(start), true);
+      assert.strictEqual(new E.LineBreaker(score, ctxt, 400).isOverlongArea(start), false);
+    });
+
+    it("is broken by the greedy line breaker where ending the line before it would leave it too loose", async () => {
+      // the area is far too wide for the line that it starts near the end of
+      const gabc =
+        "(c4) a(f) (,) <nlba>Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) Chri(f)ste(g) e(h)lé(i)i(h)son.(g) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f)</nlba> (::)";
+      const { score } = await layOut(gabc, { width: 200, lineBreaking: "greedy" });
+      const [start] = area(score);
+      assert(!lineStarts(score).includes(start));
+      // and moved to the next line whole where it fits on one
+      const fits = "(c4) Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) (;) <nlba>Chri(f)ste(g) e(h)lé(i)i(h)son.(g)</nlba> (::)";
+      for (const width of [200, 230, 260]) {
+        const greedy = await layOut(fits, { width, lineBreaking: "greedy" });
+        const [start, end] = area(greedy.score);
+        assert(!lineStarts(greedy.score).some((lineStart) => lineStart > start && lineStart < end), `${width}`);
+      }
+    });
+  });
+
   it("only breaks a syllable of 10 notes or more, at a space, with 4 notes on each side", async () => {
     // the syllable "a" has 14 notes, each set apart, and "b" 9
     const gabc =
@@ -206,8 +310,8 @@ describe("optimal line breaking", () => {
   });
 
   it("falls back to filling a line greedily when nothing fits", async () => {
-    // the no-line-break area is too long for the line
-    const gabc = "(c4) <nlba>Ky(f)ri(g)e(h) e(g)lé(f)i(e)son.(f) Chri(f)ste(g) e(h)lé(i)i(h)son.(g)</nlba> (::)";
+    // the neume of "a", which can't be broken, is too long for the line
+    const gabc = "(c4) Ky(f)ri(g)e(h) a(fhgfhgfhgfhgfhgfhgfhgfhgfhg) e(g)lé(f)i(e)son.(f) (::)";
     const { score } = await layOut(gabc, { width: 120 });
     assert(score.lines.length > 1);
     assert(score.lines.some((line: any) => line.plannedEnd === undefined));
