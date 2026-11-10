@@ -820,7 +820,7 @@ export class LineBreaker {
         (curr as Accidental).setHidden(ctxt, !line.isSoftAccidentalVisible(i));
       else if (curr.isNeume) line.spaceNeumeBeforeSoftAccidental(ctxt, i);
 
-      if (curr.constructor === TextOnly && !below) {
+      if (curr.constructor === TextOnly && !below && ctxt.useExtraTextOnly) {
         beforeTextOnly = {
           index: i,
           condensable: condensableSpaces.length,
@@ -835,35 +835,32 @@ export class LineBreaker {
         if (!beforeTextOnlyRun || !notations[beforeTextOnlyRun.index].hasLyrics()) beforeTextOnlyRun = beforeTextOnly;
       } else if (curr.constructor !== TextOnly) beforeTextOnlyRun = null;
 
+      // (a text only notation that could go below the lyrics is fitted to
+      // the staff, as buildFromChantNotationIndex() fits it on a planned line)
+      var goesBelow = !below && goesBelowLyrics(ctxt, notations, i, line.notationsStartIndex);
+      var fits = true;
       if (isHiddenAccidental(curr)) curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
       else
-        line.positionNotationElement(
+        fits = line.positionNotationElement(
           ctxt,
           line.lastLyrics,
           prevNeume,
           curr,
-          Infinity,
+          goesBelow ? line.staffRight : Infinity,
           // (none of the line's spaces is condensed for what goes on it after its text goes below its lyrics)
           below ? Object.assign([], { sum: 0 }) : condensableSpaces
         );
-      var goesBelow = !below && goesBelowLyrics(ctxt, notations, i);
       if (curr.constructor === TextOnly && ((curr as TextOnly).lyrics.length === 1 || goesBelow)) fitted = true;
       laidOut = i;
 
-      if (
-        goesBelow &&
-        Math.max(curr.bounds.right(), LyricArray.getRight(curr.lyrics, false, true)) - condensableSpaces.sum >
-          line.staffRight
-      ) {
+      if (goesBelow && !fits) {
         // a text only notation that doesn't fit on the line, even condensed,
         // goes below the line's lyrics with the text only notations after it,
         // from it, or with ctxt.startExtraTextOnlyFromFirst, from the first
         // of them with text, unless that starts the line; so the line is laid
         // out again from there
-        var restart: BeforeTextOnly =
-          ctxt.startExtraTextOnlyFromFirst && beforeTextOnlyRun!.index !== line.notationsStartIndex
-            ? beforeTextOnlyRun!
-            : beforeTextOnly!;
+        var fromRun = ctxt.startExtraTextOnlyFromFirst && beforeTextOnlyRun!.index !== line.notationsStartIndex;
+        var restart: BeforeTextOnly = fromRun ? beforeTextOnlyRun! : beforeTextOnly!;
         condensableSpaces.length = restart.condensable;
         condensableSpaces.sum = restart.condensableSum;
         stretch = { ...restart.stretch, prevLyrics: restart.stretch.prevLyrics.slice() };
@@ -875,7 +872,7 @@ export class LineBreaker {
         line.extraTextOnlyLyricIndex = LyricArray.indexOfLyric(curr.lyrics);
         // (the lyrics that the line ends with, as far as its whitespace on the right goes)
         var lyricsBefore: Lyric[] = restart.lastLyrics;
-        if (restart === beforeTextOnly) {
+        if (!fromRun) {
           lyricsBefore = [];
           for (var k = restart.index - 1; k >= line.notationsStartIndex; k--) {
             if (notations[k].hasLyrics()) {
