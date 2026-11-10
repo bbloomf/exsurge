@@ -28,9 +28,11 @@ import {
   allowsCustosBefore,
   ChantLine,
   copyBeginningLyrics,
+  goesBelowLyrics,
   isClefLineBreak,
   isHiddenAccidental,
   isTextOnlyBeforeDivider,
+  startsTextOnlyLine,
   startsWordWithLyrics,
   resetNotation
 } from "./Exsurge.Chant.ChantLine.js";
@@ -244,6 +246,23 @@ export function layoutSettings(score: ChantScore, ctxt: ChantContext) {
   return settings;
 }
 
+/**
+ * a line laid out so far, just before a text only notation (see
+ * LineBreaker.layOutLineFrom()), to go back to if the text only notations
+ * go below its lyrics from there
+ */
+interface BeforeTextOnly {
+  index: number;
+  condensable: number;
+  condensableSum: number;
+  stretch: Stretch;
+  lastLyrics: Lyric[];
+  reach: number;
+  numNotationsOnLine: number;
+  translationStart: ChantNotationElement | null;
+  translationEnds: number;
+}
+
 /** a line laid out from some notation (see LineBreaker.layOutLineFrom()) */
 interface TrialLine extends ReadNotations {
   /** where its staff starts (where it ends is up to the layout that uses it) */
@@ -256,7 +275,8 @@ interface TrialLine extends ReadNotations {
    * the widths it serves: from how far right it was laid out to, or with no
    * limit if it ended of its own accord, down to any narrower width, unless
    * it laid out text only syllables, which are fitted to the staff
-   * (positionNotationElement() calls Lyric.setMaxWidth())
+   * (positionNotationElement() calls Lyric.setMaxWidth()), and go below its
+   * lyrics where they don't fit on it
    */
   widest: number;
   narrowest: number;
@@ -754,10 +774,21 @@ export class LineBreaker {
     // (a place where the line could end, just before the notation at end)
     var addLineEnd = (end: number, penalty: number, ragged: boolean) =>
       this.addLineEnd(ends, start, line, end, condensableSpaces.sum, reach, stretch, penalty, ragged);
+    // the line as it was just before the text only notation laid out last,
+    // and just before the first of the text only notations with text that
+    // it's in the middle of (see BeforeTextOnly)
+    var beforeTextOnly: BeforeTextOnly | null = null,
+      beforeTextOnlyRun: BeforeTextOnly | null = null;
 
     for (; i < notations.length; i++) {
       if (!isHiddenAccidental(curr) && curr.constructor !== TextOnly) prevNeume = curr;
       curr = notations[i];
+      // whether the line's text only notations have gone below its lyrics
+      // (see goesBelowLyrics()), as buildFromChantNotationIndex() puts them:
+      // then the line goes on with them, without their adding to how far it
+      // reaches, how much it condenses or how much it stretches, and ends
+      // before the next notation with lyrics
+      var below = line.extraTextOnlyIndex !== null;
 
       if (line.numNotationsOnLine > 0) {
         // a clef just before a line break goes at the start of the next line
@@ -766,8 +797,18 @@ export class LineBreaker {
           addLineEnd(i, -infinitePenalty, !line.clefLineBreak.justify);
           break;
         }
-        var penalty = this.getPenalty(i, translationStart);
-        if (penalty < infinitePenalty) addLineEnd(i, penalty, false);
+        if (!(below && curr.constructor === TextOnly)) {
+          var penalty = this.getPenalty(i, translationStart);
+          if (penalty < infinitePenalty) addLineEnd(i, penalty, false);
+        }
+        if (
+          below &&
+          curr.constructor !== TextOnly &&
+          curr.constructor !== ChantLineBreak &&
+          curr.constructor !== Custos &&
+          curr.hasLyrics()
+        )
+          break;
       }
 
       // (as in buildFromChantNotationIndex(), from what the notation's own
@@ -779,10 +820,72 @@ export class LineBreaker {
         (curr as Accidental).setHidden(ctxt, !line.isSoftAccidentalVisible(i));
       else if (curr.isNeume) line.spaceNeumeBeforeSoftAccidental(ctxt, i);
 
+      if (curr.constructor === TextOnly && !below && ctxt.useExtraTextOnly) {
+        beforeTextOnly = {
+          index: i,
+          condensable: condensableSpaces.length,
+          condensableSum: condensableSpaces.sum,
+          stretch: { ...stretch, prevLyrics: stretch.prevLyrics.slice() },
+          lastLyrics: line.lastLyrics.slice(),
+          reach,
+          numNotationsOnLine: line.numNotationsOnLine,
+          translationStart,
+          translationEnds: translationEnds.length
+        };
+        if (!beforeTextOnlyRun || !notations[beforeTextOnlyRun.index].hasLyrics()) beforeTextOnlyRun = beforeTextOnly;
+      } else if (curr.constructor !== TextOnly) beforeTextOnlyRun = null;
+
+      // (a text only notation that could go below the lyrics is fitted to
+      // the staff, as buildFromChantNotationIndex() fits it on a planned line)
+      var goesBelow = !below && goesBelowLyrics(ctxt, notations, i, line.notationsStartIndex);
+      var fits = true;
       if (isHiddenAccidental(curr)) curr.bounds.x = prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace;
-      else line.positionNotationElement(ctxt, line.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
-      if (curr.constructor === TextOnly && (curr as TextOnly).lyrics.length === 1) fitted = true;
+      else
+        fits = line.positionNotationElement(
+          ctxt,
+          line.lastLyrics,
+          prevNeume,
+          curr,
+          goesBelow ? line.staffRight : Infinity,
+          // (none of the line's spaces is condensed for what goes on it after its text goes below its lyrics)
+          below ? Object.assign([], { sum: 0 }) : condensableSpaces
+        );
+      if (curr.constructor === TextOnly && ((curr as TextOnly).lyrics.length === 1 || goesBelow)) fitted = true;
       laidOut = i;
+
+      if (goesBelow && !fits) {
+        // a text only notation that doesn't fit on the line, even condensed,
+        // goes below the line's lyrics with the text only notations after it,
+        // from it, or with ctxt.startExtraTextOnlyFromFirst, from the first
+        // of them with text, unless that starts the line; so the line is laid
+        // out again from there
+        var fromRun = ctxt.startExtraTextOnlyFromFirst && beforeTextOnlyRun!.index !== line.notationsStartIndex;
+        var restart: BeforeTextOnly = fromRun ? beforeTextOnlyRun! : beforeTextOnly!;
+        condensableSpaces.length = restart.condensable;
+        condensableSpaces.sum = restart.condensableSum;
+        stretch = { ...restart.stretch, prevLyrics: restart.stretch.prevLyrics.slice() };
+        reach = restart.reach;
+        line.numNotationsOnLine = restart.numNotationsOnLine;
+        translationStart = restart.translationStart;
+        translationEnds.length = restart.translationEnds;
+        line.extraTextOnlyIndex = restart.index;
+        line.extraTextOnlyLyricIndex = LyricArray.indexOfLyric(curr.lyrics);
+        // (the lyrics that the line ends with, as far as its whitespace on the right goes)
+        var lyricsBefore: Lyric[] = restart.lastLyrics;
+        if (!fromRun) {
+          lyricsBefore = [];
+          for (var k = restart.index - 1; k >= line.notationsStartIndex; k--) {
+            if (notations[k].hasLyrics()) {
+              lyricsBefore = notations[k].lyrics.slice();
+              break;
+            }
+          }
+        }
+        line.lastLyricsBeforeTextOnly = lyricsBefore;
+        line.lastLyrics = [];
+        i = restart.index - 1;
+        continue;
+      }
 
       if (curr.hasLyrics()) LyricArray.mergeIn(line.lastLyrics, curr.lyrics);
 
@@ -793,7 +896,7 @@ export class LineBreaker {
         translationEnds.push(curr, curr.translationText[0].endNeume);
 
       line.numNotationsOnLine++;
-      this.addToStretch(line, stretch, i);
+      if (!below) this.addToStretch(line, stretch, i);
       if (curr.isClef) ctxt.activeClef = curr as Clef;
 
       if (curr.constructor === ChantLineBreak) {
@@ -805,6 +908,7 @@ export class LineBreaker {
       else if (curr.isNeume) line.custos = null;
 
       // the line can't go on once it's too full even when condensed
+      if (below && curr.constructor === TextOnly) continue;
       var right = curr.bounds.right();
       if (curr.hasLyrics()) right = Math.max(right, LyricArray.getRight(curr.lyrics, false, true));
       reach = Math.max(reach, right - condensableSpaces.sum);
@@ -940,7 +1044,9 @@ export class LineBreaker {
    * whether a line can't break just before the notation at index after all,
    * whichever line it ends, for what comes after it or the rest of the score
    * (getPenalty() works out the rest): before text only notations that come
-   * just before a divider, where too little would be left for the last line,
+   * just before a divider, or that would be alone on the next line where
+   * they could go below the lyrics of this one (see startsTextOnlyLine()),
+   * where too little would be left for the last line,
    * in a no-line-break or euouae area (gabc <nlba> or <eu>), or within a
    * syllable too short to break in; or "overlongArea" if it can break there
    * only because it's in an area too wide for a line (see isOverlongArea()),
@@ -950,7 +1056,12 @@ export class LineBreaker {
     var notations = this.score.notations,
       prev = notations[index - 1],
       next = notations[index];
-    if (isTextOnlyBeforeDivider(notations, index) || this.leavesTooLittleForLastLine(index)) return true;
+    if (
+      isTextOnlyBeforeDivider(notations, index) ||
+      startsTextOnlyLine(this.ctxt, notations, index) ||
+      this.leavesTooLittleForLastLine(index)
+    )
+      return true;
     var inArea = this.keepsInArea(index - 1);
     if (inArea && !this.isOverlongArea(this.areaStart(index - 1))) return true;
     var blocked = false;
@@ -1091,9 +1202,12 @@ export class LineBreaker {
     // as getWhitespaceOnRight() works it out once the line is built, with a
     // hyphen after the last syllable if its word goes on to the next line, and
     // the custos at the end of the line
+    // (and without the text only notations that go below its lyrics)
     var last = notations[end - 1];
+    if (line.extraTextOnlyIndex !== null && last.constructor === TextOnly) last = notations[line.extraTextOnlyIndex - 1];
     var neumeRight = last.bounds.right() + last.calculatedTrailingSpace;
-    var lyricRight = line.lastLyrics.length ? LyricArray.getRight(line.lastLyrics, true, true) : 0;
+    var lastLyrics = line.lastLyricsBeforeTextOnly || line.lastLyrics;
+    var lyricRight = lastLyrics.length ? LyricArray.getRight(lastLyrics, true, true) : 0;
     var custos: (typeof custosKinds)[number] = "never";
     if (line.custos) {
       custos = "own";
