@@ -88,7 +88,8 @@ interface TrialLine extends ReadNotations {
      * the widths it serves: from how far right it was laid out to, or with no
      * limit if it ended of its own accord, down to any narrower width, unless
      * it laid out text only syllables, which are fitted to the staff
-     * (positionNotationElement() calls Lyric.setMaxWidth())
+     * (positionNotationElement() calls Lyric.setMaxWidth()), and go below its
+     * lyrics where they don't fit on it
      */
     widest: number;
     narrowest: number;
@@ -279,7 +280,9 @@ export declare class LineBreaker {
      * whether a line can't break just before the notation at index after all,
      * whichever line it ends, for what comes after it or the rest of the score
      * (getPenalty() works out the rest): before text only notations that come
-     * just before a divider, where too little would be left for the last line,
+     * just before a divider, or that would be alone on the next line where
+     * they could go below the lyrics of this one (see startsTextOnlyLine()),
+     * where too little would be left for the last line,
      * in a no-line-break or euouae area (gabc <nlba> or <eu>), or within a
      * syllable too short to break in; or "overlongArea" if it can break there
      * only because it's in an area too wide for a line (see isOverlongArea()),

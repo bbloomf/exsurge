@@ -19,6 +19,22 @@ export declare function isClefLineBreak(notations: ChantNotationElement[], index
 /** whether only text-only notations come between the notation at index, which is one, and the next divider */
 export declare function isTextOnlyBeforeDivider(notations: ChantNotationElement[], index: number): boolean;
 /**
+ * whether the text-only notation at index can go below the lyrics of the
+ * line, with any text-only notations after it, where it doesn't fit on the
+ * line (ctxt.useExtraTextOnly), as buildFromChantNotationIndex() puts it
+ * there: one with a single line of lyrics, and, if it's the first of them
+ * with text on the line (which starts at start), with more than a letter,
+ * or text-only text after it
+ */
+export declare function goesBelowLyrics(ctxt: ChantContext, notations: ChantNotationElement[], index: number, start: number): boolean;
+/**
+ * whether a line that starts with the notation at index would have nothing
+ * on it but text-only notations (and custodes), up to a line break or the
+ * end of the score, where they could go below the lyrics of the line before
+ * instead (see goesBelowLyrics()), from the first of them with text
+ */
+export declare function startsTextOnlyLine(ctxt: ChantContext, notations: ChantNotationElement[], index: number): boolean;
+/**
  * whether the notations from index on allow the line that ends just before
  * them an automatic custos: Gregorio leaves it out just before a euouae area
  * (gabc <eu>), and after a [nocustos] before the next note

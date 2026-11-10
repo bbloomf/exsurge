@@ -1,3 +1,12 @@
+## [2.8.4](https://github.com/bbloomf/exsurge/compare/v2.8.3...v2.8.4) (2026-11-10)
+
+
+### Bug Fixes
+
+* **lineBreaking:** Don't condense the space before a line break ([41e68fe](https://github.com/bbloomf/exsurge/commit/41e68fee8de849d768e01d43af69f2b36006cecb))
+* **lineBreaking:** Match the trial layout of text only syllables to the planned build ([8e3b0ad](https://github.com/bbloomf/exsurge/commit/8e3b0adfecbd2561751484bda49c455ff42d6d3f))
+* **lineBreaking:** Put text-only syllables below the lyrics with optimal breaking ([0dfd9b2](https://github.com/bbloomf/exsurge/commit/0dfd9b20de9a7dd082bcbd8667f3b57087347025))
+
 ## [2.8.3](https://github.com/bbloomf/exsurge/compare/v2.8.2...v2.8.3) (2026-11-07)
 
 

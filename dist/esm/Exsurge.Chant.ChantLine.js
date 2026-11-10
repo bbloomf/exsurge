@@ -62,6 +62,47 @@ export function isTextOnlyBeforeDivider(notations, index) {
     return false;
 }
 /**
+ * whether the text-only notation at index can go below the lyrics of the
+ * line, with any text-only notations after it, where it doesn't fit on the
+ * line (ctxt.useExtraTextOnly), as buildFromChantNotationIndex() puts it
+ * there: one with a single line of lyrics, and, if it's the first of them
+ * with text on the line (which starts at start), with more than a letter,
+ * or text-only text after it
+ */
+export function goesBelowLyrics(ctxt, notations, index, start) {
+    var lyrics = notations[index].lyrics;
+    if (!ctxt.useExtraTextOnly || notations[index].constructor !== TextOnly || !LyricArray.hasOnlyOneLyric(lyrics))
+        return false;
+    var k = index - 1;
+    while (k >= start && notations[k].constructor === TextOnly && !notations[k].hasLyrics())
+        k--;
+    if (k >= start && notations[k].constructor === TextOnly)
+        return true;
+    var lyricIndex = LyricArray.indexOfLyric(lyrics);
+    if (lyrics[lyricIndex].text.length > 1)
+        return true;
+    var next = notations[index + 1];
+    var nextLyric = next && next.constructor === TextOnly ? next.lyrics[lyricIndex] : undefined;
+    return !!nextLyric && nextLyric.text.length > 0;
+}
+/**
+ * whether a line that starts with the notation at index would have nothing
+ * on it but text-only notations (and custodes), up to a line break or the
+ * end of the score, where they could go below the lyrics of the line before
+ * instead (see goesBelowLyrics()), from the first of them with text
+ */
+export function startsTextOnlyLine(ctxt, notations, index) {
+    var first = index;
+    while (first < notations.length && notations[first].constructor === TextOnly && !notations[first].hasLyrics())
+        first++;
+    if (first === notations.length || !goesBelowLyrics(ctxt, notations, first, 0))
+        return false;
+    for (let k = first + 1; k < notations.length && notations[k].constructor !== ChantLineBreak; k++)
+        if (notations[k].constructor !== TextOnly && notations[k].constructor !== Custos)
+            return false;
+    return true;
+}
+/**
  * whether the notations from index on allow the line that ends just before
  * them an automatic custos: Gregorio leaves it out just before a euouae area
  * (gabc <eu>), and after a [nocustos] before the next note
@@ -803,12 +844,14 @@ export class ChantLine extends ChantLayoutElement {
                 curr.constructor === Custos ||
                 (prev.constructor === Custos && curr.isDivider) ||
                 (curr.constructor === ChantLineBreak &&
-                    prevNeume.constructor === Custos)) {
+                    prevNeume.constructor === Custos) ||
+                (curr.constructor === TextOnly && prevNeume.constructor === Custos)) {
                 // on the last notation of the score, we don't need a custos or trailing space, so we use staffRight as the
                 // right boundary.
                 // Also, if the current notation is a divider and the previous was a custos, we don't need extra space
                 // because if the following notation won't fit, we can switch the order and use the custos as the end-of-the-line custos
                 // Ditto in the case of the current element being a chant line break and the previous neume a custos, because that custos will become our end-of-line custos
+                // (or text only after a custos, which the line already has)
                 actualRightBoundary = this.staffRight;
             }
             else if (i === lastNotationIndex - 1) {
@@ -822,9 +865,14 @@ export class ChantLine extends ChantLayoutElement {
             }
             // (a line planned by the optimal line breaker takes everything up to
             // where it was planned to end, and ends there)
+            // (but a text only notation that would go below the lyrics if it didn't
+            // fit is fitted to the staff, as LineBreaker.layOutLineFrom() fits it)
             var planned = this.plannedEnd !== undefined && i < this.plannedEnd;
             if (planned)
-                actualRightBoundary = Infinity;
+                actualRightBoundary =
+                    this.extraTextOnlyIndex === null && goesBelowLyrics(ctxt, notations, i, this.notationsStartIndex)
+                        ? this.staffRight
+                        : Infinity;
             // First check if we're already beyond the rightNotationBoundary (due to condensing that hasn't yet happened) and have a good element to end with
             // but if we have 2 or fewer elements, or if the current element is a line break or a custos, we'll go ahead and try for them anyway.
             var forceBreak = !planned &&
@@ -872,8 +920,12 @@ export class ChantLine extends ChantLayoutElement {
                         this.positionNotationElement(ctxt, this.lastLyrics, prevNeume, curr, actualRightBoundary, this.extraTextOnlyIndex ? [] : condensableSpaces // no spaces are condensable once we are on extra text only lyrics
                         );
             }
+            // a line break just after text only notations that went below the
+            // lyrics ends the line, though none of its spaces can be condensed for
+            // it any more (rather than going on to the next line, alone)
+            if (!forceBreak && fitsOnLine === false && curr.constructor === ChantLineBreak && this.extraTextOnlyIndex !== null)
+                fitsOnLine = true;
             var candidateForExtraTextOnlyLine = ctxt.useExtraTextOnly &&
-                this.plannedEnd === undefined &&
                 curr.constructor === TextOnly &&
                 LyricArray.hasOnlyOneLyric(curr.lyrics) &&
                 (fitsOnLine === false || this.extraTextOnlyIndex !== null);
@@ -893,6 +945,10 @@ export class ChantLine extends ChantLayoutElement {
                     }
                 }
             }
+            // (a planned line that can't put it below the lyrics takes it as it
+            // takes everything else up to where it was planned to end)
+            if (planned && !forceBreak && fitsOnLine === false && !candidateForExtraTextOnlyLine)
+                fitsOnLine = this.positionNotationElement(ctxt, this.lastLyrics, prevNeume, curr, Infinity, condensableSpaces);
             if (candidateForExtraTextOnlyLine) {
                 // a special case for TextOnly elements that don't fit on the line: since they don't have neumes associated with them, we can place this
                 // and any additional TextOnly elements just below the current lyric lines, but we can only do this if the TextOnly elements have only one
@@ -2264,6 +2320,10 @@ export class ChantLine extends ChantLayoutElement {
                 space.condensable = space.total * ctxt.condensingTolerance;
             }
         }
+        // (nothing on the line comes after a line break, so condensing the space
+        // before it would bring nothing back, though the line would count it)
+        if (curr.constructor === ChantLineBreak)
+            space.condensable = 0;
         // if the curr notation has no lyrics, then simply check whether there is enough room
         if (curr.hasLyrics() === false) {
             if (currRight() + curr.calculatedTrailingSpace >
