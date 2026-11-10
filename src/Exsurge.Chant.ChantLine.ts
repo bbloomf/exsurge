@@ -2875,6 +2875,10 @@ export class ChantLine extends ChantLayoutElement {
       }
     }
 
+    // (nothing on the line comes after a line break, so condensing the space
+    // before it would bring nothing back, though the line would count it)
+    if (curr.constructor === ChantLineBreak) space.condensable = 0;
+
     // if the curr notation has no lyrics, then simply check whether there is enough room
     if (curr.hasLyrics() === false) {
       if (

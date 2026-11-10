@@ -77,9 +77,9 @@ describe("text only syllables below the lyrics", () => {
             assert(notations[ant + 1] instanceof E.ChantLineBreak, `the line break after "Ant." at ${width}`);
             if (line.extraTextOnlyIndex === null) {
               inline++;
-              // ("Ant." fits on the line, but for the space before the line
-              // break, which the line condenses too)
-              assert(notations[ant].lyrics[0].getRight() < line.staffRight + 2, `"Ant." past the staff at ${width}`);
+              // ("Ant." fits on the line, condensed if need be, but for less
+              // than justifyElements() leaves alone)
+              assert(notations[ant].lyrics[0].getRight() < line.staffRight + 0.5, `"Ant." past the staff at ${width}`);
             } else {
               below++;
               assert.equal(line.extraTextOnlyIndex, line.notationsStartIndex + ant);
