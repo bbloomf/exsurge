@@ -2078,8 +2078,10 @@ var __subsForTspans = {
     ">": "&gt;"
 };
 // the markup in a TextElement's text (see generateSpansFromText()), and the
-// characters that Gregorio's $ escaped (see gabcEscapes.ts)
-const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
+// characters that Gregorio's $ escaped (see gabcEscapes.ts); the period after
+// <sp>V/</sp> (as in "<sp>V/</sp>. Text") is taken with it, as it is after V/.,
+// since textAfterSpecialChar already adds it
+const markupRegexSource = /(<br\/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|(')?([ao]e|[æœaeiouy]))<\/sp>|<sp>([arv])\/<\/sp>\.?|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|tt|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)|<sp>([^<]*?)<\/sp>/.source + `|(${escapedSource})`;
 const __markupRegex = new RegExp(markupRegexSource, "gi");
 // in verbatim TeX (<v>): a symbol in Gregorio's greextra font (as
 // {greextra}{Name}), a ligature, an acute accent on a vowel, an escaped

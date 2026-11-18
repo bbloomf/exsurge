@@ -1,3 +1,10 @@
+## [2.8.5](https://github.com/bbloomf/exsurge/compare/v2.8.4...v2.8.5) (2026-11-18)
+
+
+### Bug Fixes
+
+* **text:** Take the period after <sp>V/</sp> as after V/. ([8b114c9](https://github.com/bbloomf/exsurge/commit/8b114c922c0b7290a8f191b2f617861b33f8d63b))
+
 ## [2.8.4](https://github.com/bbloomf/exsurge/compare/v2.8.3...v2.8.4) (2026-11-10)
 
 
