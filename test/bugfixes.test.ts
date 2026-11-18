@@ -653,3 +653,22 @@ describe('The insertion cursor after a clef that a line starts with', function()
     assert.equal(await cursorLine('(c4) a(f) b(g) (c3) c(h) d(g) (z) e(f) f(g)', '(c4) a(f) b(g) (z) (c3) c(h) d(g) (z) e(f) f(g)'), 1);
   });
 });
+
+describe('Versicle and response signs', function() {
+  function lyricText(gabc: string) {
+    return layoutNotations(gabc)
+      .filter((notation: any) => notation.lyrics && notation.lyrics.length)
+      .map((notation: any) => notation.lyrics[0].spans.map((span: any) => span.text).join(''))
+      .join(' ');
+  }
+
+  it('takes the period after <sp>V/</sp> as it does after V/.', function() {
+    var text = lyricText('(c4) <sp>V/</sp>. Ad(g)o(g)rá(g)bo.(g) (::)');
+    assert.ok(!/V\.\./.test(text), text);
+    assert.equal(text, lyricText('(c4) V/. Ad(g)o(g)rá(g)bo.(g) (::)'));
+  });
+
+  it('still adds the period after <sp>R/</sp> without one', function() {
+    assert.equal(lyricText('(c4) <sp>R/</sp> Amen.(g) (::)'), lyricText('(c4) <sp>R/</sp>. Amen.(g) (::)'));
+  });
+});
