@@ -83,6 +83,26 @@ Alternatively, you can run `npm run dev` which will watch and rebuild the UMD bu
 
 Under construction...
 
+### Joined sections and singing register
+
+`score.getPlaybackPitches()` returns a `Map<Note, number>` of sung semitone
+pitches. By default these are the notes' written `pitch.toInt()` values.
+For independently sourced sections, assign `score.playbackSections` a set of
+their first sung notes **before layout**. At a marked start following a double
+bar and a C/F clef change, Exsurge chooses the nearest singing octave, retaining
+the direction of exact tritone ties. It carries that octave displacement through
+the section without changing any written note, accidental, or explicit custos.
+
+Automatic custodes use the same decision, expressed in the preceding section's
+written clef. In opted-in scores they retain that octave instead of folding into
+the staff's range. Playback clients should consume `getPlaybackPitches()` for
+both sound and range calculations. Same-clef joins, internal clef changes and
+unmarked section starts do not trigger register reconciliation.
+
+The setter copies the supplied set and invalidates layout. Replace the set after
+`Gabc.updateMappingsFromSource()` and `score.updateNotations()`, since an edit can
+replace note objects. Assign `undefined` to restore ordinary written-pitch layout.
+
 ## Tests
 
 `npm test` lints the code, type-checks it, and runs the tests (with [Vitest](https://vitest.dev)).  `npm run test:watch` runs the tests as files change.

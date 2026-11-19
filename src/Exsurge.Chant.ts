@@ -31,7 +31,7 @@ import {
   readFrom,
   type ReadNotations
 } from "./Exsurge.Chant.LineBreaking.js";
-import { InsertionCursor } from "./Exsurge.Chant.Signs.js";
+import { DoubleBar, InsertionCursor } from "./Exsurge.Chant.Signs.js";
 import { Pitch, Rect, Step } from "./Exsurge.Core.js";
 import {
   Annotation, CavumGlyphCode, ChantLayoutElement,
@@ -852,6 +852,75 @@ export class ChantScore {
   language: Language | null;
   titles?: Titles;
   startingClef: Clef;
+  private sectionStarts?: ReadonlySet<Note>;
+  private playbackLayoutState?: { pitches: Map<Note, number>; offsets: number[] };
+  /**
+   * First sung notes of independently sourced sections whose singing octave
+   * may be reconciled at a double-bar C/F clef change. Unmarked scores keep
+   * their written pitches. Assign again after reparsing: note identities may
+   * have changed. The assigned set is copied; replace it to change the policy.
+   */
+  get playbackSections(): ReadonlySet<Note> | undefined {
+    return this.sectionStarts;
+  }
+
+  set playbackSections(sections: ReadonlySet<Note> | undefined) {
+    this.sectionStarts = sections && new Set(sections);
+    this.playbackLayoutState = undefined;
+    this.linesLaidOutWith = undefined;
+    this.needsLayout = true;
+    // A custos depends on the singing register as well as the written notes.
+    for (const notation of this.notations || []) notation.resetDependencies();
+  }
+
+  /** Sung semitone pitches, without changing any note's written pitch or position. */
+  getPlaybackPitches(): Map<Note, number> {
+    // Resolve afresh so callers never receive stale pitches after an edit or
+    // a mutable result map that can change the following layout.
+    return this.resolvePlaybackPitches().pitches;
+  }
+
+  private resolvePlaybackPitches() {
+    const pitches = new Map<Note, number>(), offsets: number[] = [];
+    let octaveOffset = 0, previousPitch: number | undefined, boundaryClef: Clef | undefined;
+    let clef = this.startingClef;
+    const type = (clef?: Clef) => clef instanceof DoClef ? 'c' : clef instanceof FaClef ? 'f' : undefined;
+    for (const notation of this.notations) {
+      if (notation.isClef) clef = notation as Clef;
+      else if (notation instanceof DoubleBar) boundaryClef = clef;
+      for (const note of notation.notes || []) {
+        if (!note.pitch) continue;
+        let pitch = note.pitch.toInt() + octaveOffset;
+        if (previousPitch !== undefined && this.sectionStarts?.has(note) &&
+            type(boundaryClef) && type(clef) && type(boundaryClef) !== type(clef)) {
+          const interval = pitch - previousPitch;
+          if (Math.abs(interval) > 6) {
+            // Nearest octave; retain the direction of exact tritone ties.
+            const correction = -Math.sign(interval) * 12 * Math.ceil((Math.abs(interval) - 6) / 12);
+            octaveOffset += correction;
+            pitch += correction;
+          }
+        }
+        boundaryClef = undefined;
+        pitches.set(note, pitch);
+        previousPitch = pitch;
+      }
+      offsets.push(octaveOffset);
+    }
+    return { pitches, offsets };
+  }
+
+  /**
+   * The next note in the written register at an automatic custos's location.
+   * Its singing pitch is shared with playback, but the current section's
+   * octave displacement must be removed before converting to its written clef.
+   */
+  getCustosPitch(nextNote: Note, afterNotationIndex: number): Pitch {
+    const state = this.playbackLayoutState || (this.playbackLayoutState = this.resolvePlaybackPitches());
+    const pitch = state.pitches.get(nextNote);
+    return pitch === undefined ? nextNote.pitch! :
+      new Pitch(pitch - (state.offsets[afterNotationIndex] || 0));
+  }
   useDropCap: boolean | undefined;
   dropCap: DropCap | null;
   // how many times layoutChantLines() has laid the lines out again so far, to
@@ -1010,6 +1079,7 @@ export class ChantScore {
   }
 
   updateNotations(ctxt: ChantContext) {
+    this.playbackLayoutState = undefined;
     var i, j, mapping, notation;
 
     // flatten all mappings into one array for N(0) access to notations
@@ -1235,6 +1305,7 @@ export class ChantScore {
    * @param  {ChantContext} ctxt
    */
   private initializeLayout(ctxt: ChantContext) {
+    this.playbackLayoutState = this.resolvePlaybackPitches();
     // setup the context
     ctxt.activeClef = this.startingClef;
     ctxt.notations = this.notations;
@@ -1612,6 +1683,7 @@ export class ChantScore {
     width: number,
     finishedCallback?: (score: ChantScore) => void
   ) {
+    this.playbackLayoutState = this.resolvePlaybackPitches();
     var lastLines = this.lines;
     this.lines = [];
     this.keptInAreas = null;

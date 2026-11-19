@@ -61,6 +61,29 @@ async function loadEsmBuild() {
 }
 
 describe("the published builds", () => {
+  for (const [name, load] of [['minified bundle', loadMinifiedBundle], ['ES modules', loadEsmBuild]] as const) {
+    it(name + ' shares section registers between playback and automatic custodes', async () => {
+      const E = await load();
+      for (const [source, expected, position] of [
+        ['(c4) A(h) (z0::f3) B(c)', [21, 21], 5],
+        ['(f3) A(c) (z0::c4) B(h)', [9, 9], 0]
+      ] as const) {
+        const ctxt = new E.ChantContext(E.TextMeasuringStrategy.OpenTypeJS);
+        ctxt.setFont('serif', 16, {}, { Regular: {
+          unitsPerEm: 1000,
+          layout: (text: string) => ({ advanceWidth: 500 * text.length, bbox: { minX: 0, maxY: 700, height: 900 } })
+        } });
+        const score = new E.ChantScore(ctxt, E.Gabc.createMappingsFromSource(ctxt, source), false);
+        const notes = score.notations.flatMap((n: any) => n.notes || []);
+        score.playbackSections = new Set([notes[1]]);
+        score.performLayout(ctxt);
+        score.layoutChantLines(ctxt, 600);
+        assert.deepEqual([...score.getPlaybackPitches().values()], expected);
+        assert.equal(score.notations.find((n: any) => n instanceof E.Custos)!.staffPosition, position);
+      }
+    });
+  }
+
   // a whole tsc run, which on Node 22 alongside the other test files can take longer than vitest's 5s
   it("has typings that fit how exsurge is used (test/types.ts)", () => {
     execFileSync(process.execPath, [tsc, "-p", "test/tsconfig.dist.json"], { cwd: root, stdio: "pipe" });

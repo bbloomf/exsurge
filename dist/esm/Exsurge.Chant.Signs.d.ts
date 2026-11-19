@@ -10,6 +10,7 @@ export declare class Custos extends ChantNotationElement {
     braceEnd?: BracePoint;
     constructor(auto?: boolean);
     performLayout(ctxt: ChantContext): void;
+    private foldIntoStaffRange;
     resetDependencies(): void;
     /**
      *
