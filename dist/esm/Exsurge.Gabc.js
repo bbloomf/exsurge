@@ -2958,9 +2958,11 @@ export class Gabc {
         var staffPosition = 2 * line - 1;
         if (type === "c")
             return new DoClef(staffPosition, 2, flat ? new Signs.Accidental(staffPosition - 1, Signs.AccidentalType.Flat) : null);
-        // the flat is on the B above the F, or, when that's above a
+        // The F clef marks the F below the C clef's C, in the preceding
+        // octave. Giving both clefs octave 2 shifts every C/F change by an octave.
+        // The flat is on the B above the F, or, when that's above a
         // four-line staff, the B below (as Gregorio puts it)
-        return new FaClef(staffPosition, 2, flat
+        return new FaClef(staffPosition, 1, flat
             ? new Signs.Accidental(staffPosition <= 3 ? staffPosition + 3 : staffPosition - 4, Signs.AccidentalType.Flat)
             : null);
     }
