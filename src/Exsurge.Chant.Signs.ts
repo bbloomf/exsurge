@@ -101,13 +101,14 @@ export class Custos extends ChantNotationElement {
 
       if (neume) {
         const score = neume.score;
-        const reconciled = !!score?.playbackSections?.size;
+        const reconciled = score?.playbackSections?.size
+          ? score.getCustosPitch(neume.notes[0], ctxt.activeClef)
+          : undefined;
         // (under a Chi-Rho clef, the pitch places a note nudged with 0 or 9)
-        this.staffPosition = ctxt.activeClef.pitchToStaffPosition(
-          reconciled ? score!.getCustosPitch(neume.notes[0], ctxt.currNotationIndex!) : neume.notes[0].pitch!
-        );
-        // A reconciled score's custos must retain the singing octave. The
-        // historical staff-range folding can otherwise undo that choice.
+        this.staffPosition = ctxt.activeClef.pitchToStaffPosition(reconciled || neume.notes[0].pitch!);
+        // A custos before a reconciled section must retain the singing octave.
+        // The historical staff-range folding can otherwise undo that choice;
+        // every other custos is folded as usual.
         if (!reconciled) this.foldIntoStaffRange(ctxt.staffLineCount);
       } else {
         // as a new custos has it, rather than where the last neume after it was

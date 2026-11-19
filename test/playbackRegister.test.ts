@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'vitest';
 import { ChantContext, ChantScore, Clef, Custos, Gabc, Note } from '../src/index.js';
+import { fakeFont } from './helpers/fonts';
 
-const font = { unitsPerEm: 1000, layout: (text: string) =>
-  ({ advanceWidth: 500 * text.length, bbox: { minX: 0, maxY: 700, height: 900 } }) };
+const font = fakeFont(0.5);
 const notesOf = (score: ChantScore) => score.notations.flatMap(n => n.notes || []);
 const written = (score: ChantScore) => notesOf(score).map(n => [n.sourceGabc, n.staffPosition, n.pitch!.toInt()]);
 
@@ -36,6 +36,12 @@ function layout(ctxt: ChantContext, score: ChantScore, width = 600) {
   score.layoutChantLines(ctxt, width);
   assert.match(score.createSvg(ctxt), /<svg/);
 }
+
+// the staff position of every custos: the notations', then the lines' own
+const custodes = (score: ChantScore) => [
+  ...score.notations.filter(n => n instanceof Custos),
+  ...score.lines.map(line => line.custos).filter(custos => custos && !score.notations.includes(custos))
+].map(custos => (custos as Custos).staffPosition);
 
 // Independently interpret each rendered automatic custos under its active
 // written clef and add the preceding section's singing displacement.
@@ -139,9 +145,71 @@ describe('Shared singing registers and automatic custodes', () => {
       ['(treble2) A(h) (z0::f3) B(c)', true],
       ['(xp3) A(h) (z0::c4) B(c)', true]
     ] as const) {
-      const { score } = create(source, marked);
+      const { ctxt, score } = create(source, marked), plain = create(source, false);
       assert.deepEqual([...score.getPlaybackPitches().values()], notesOf(score).map(n => n.pitch!.toInt()));
+      // laid out, their custodes are where an unmarked score puts them
+      for (const width of [600, 120]) {
+        layout(ctxt, score, width);
+        layout(plain.ctxt, plain.score, width);
+        assert.deepEqual(custodes(score), custodes(plain.score), source);
+      }
     }
+  });
+
+  it('folds the custodes that are not before a reconciled section into the staff', () => {
+    const source = '(c2) A(h) (z0::f3) B(g) C(d) (z0) (c2) D(g) (z0) (f3) E(c)';
+    const { ctxt, score } = create(source), plain = create(source, false);
+    layout(ctxt, score);
+    layout(plain.ctxt, plain.score);
+    assert.deepEqual(custodes(score), [5, ...custodes(plain.score).slice(1)]);
+  });
+
+  it('reconciles a clef change written before or after the bar, and places a custos by its own clef', () => {
+    for (const [source, position] of [
+      ['(c4) A(h) (z0::f3) B(c)', 5],
+      ['(c4) A(h) (z0) (f3) (::) B(c)', 5],
+      ['(c4) A(h) (z0f3::) B(c)', 5],
+      // under the section's own clef, the custos is where its note is
+      ['(c4) A(h) (::) (f3) (z0) B(c)', 0],
+      ['(c4) A(h) (::f3z0) B(c)', 0]
+    ] as const) {
+      const { ctxt, score } = create(source);
+      layout(ctxt, score);
+      assert.deepEqual([...score.getPlaybackPitches().values()], [21, 21], source);
+      assert.deepEqual(custodes(score), [position], source);
+    }
+  });
+
+  it('keeps the custos and the layout finite when a section is sung below octave 0', () => {
+    const { ctxt, score } = create('(f4) A(a) (z0::c4) B(a)');
+    layout(ctxt, score);
+    assert.deepEqual([...score.getPlaybackPitches().values()], [2, -3]);
+    assert.deepEqual(custodes(score), [-5]);
+    assert.ok(Number.isFinite(score.bounds.height));
+    assertCustodesAgree(score);
+  });
+
+  it('gives the pages of a paginated score, which have no notations, no pitches', () => {
+    const { ctxt, score } = create('(c4) A(h) (z0::f3) B(c) (z) C(ef) (z0::c4) D(h) (z) E(h)');
+    layout(ctxt, score, 200);
+    score.paginate(60);
+    assert.ok(score.pages.length > 1);
+    for (const page of score.pages) assert.equal(page.getPlaybackPitches().size, 0);
+    assert.equal(new ChantScore().getPlaybackPitches().size, 0);
+  });
+
+  it('keeps the laid out lines when the same starts are assigned again, and drops the ones an edit replaced', () => {
+    const { ctxt, score } = create('(c4) A(h) (z0::f3) B(c) (z) C(d)');
+    layout(ctxt, score);
+    const lines = score.lines.slice();
+    score.playbackSections = new Set(score.playbackSections);
+    layout(ctxt, score);
+    assert.ok(score.lines.length > 1 && score.lines.every((line, i) => line === lines[i]));
+    Gabc.updateMappingsFromSource(ctxt, score.mappings, '(c4) A(h) (z0::f3) B(d) (z) C(d)');
+    score.updateNotations(ctxt);
+    assert.equal(score.playbackSections!.size, 0);
+    layout(ctxt, score);
+    assert.deepEqual([...score.getPlaybackPitches().values()], notesOf(score).map(n => n.pitch!.toInt()));
   });
 
   it('invalidates layouts when section sets are replaced, cleared or reassigned', () => {

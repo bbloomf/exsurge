@@ -534,6 +534,10 @@ export class FaClef extends DiatonicClef {
   }
 }
 
+// the kinds of clef whose sections' singing octaves are reconciled (see
+// ChantScore.playbackSections)
+const clefType = (clef?: Clef) => (clef instanceof DoClef ? "c" : clef instanceof FaClef ? "f" : undefined);
+
 export class TrebleClef extends DiatonicClef {
   constructor(
     staffPosition: number,
@@ -853,7 +857,12 @@ export class ChantScore {
   titles?: Titles;
   startingClef: Clef;
   private sectionStarts?: ReadonlySet<Note>;
-  private playbackLayoutState?: { pitches: Map<Note, number>; offsets: number[] };
+  // the sung pitches, and for each reconciled section start, the clef it is
+  // written under and the octave correction (in half steps) chosen there
+  private playbackLayoutState?: {
+    pitches: Map<Note, number>;
+    joins: Map<Note, { clef: Clef; correction: number }>;
+  };
   /**
    * First sung notes of independently sourced sections whose singing octave
    * may be reconciled at a double-bar C/F clef change. Unmarked scores keep
@@ -865,6 +874,14 @@ export class ChantScore {
   }
 
   set playbackSections(sections: ReadonlySet<Note> | undefined) {
+    const current = this.sectionStarts;
+    // (the same notes, as when a caller assigns them again after an edit
+    // elsewhere, leave the layout and its reusable lines as they are)
+    if (
+      sections === current ||
+      (sections && current && sections.size === current.size && [...sections].every((note) => current.has(note)))
+    )
+      return;
     this.sectionStarts = sections && new Set(sections);
     this.playbackLayoutState = undefined;
     this.linesLaidOutWith = undefined;
@@ -881,45 +898,54 @@ export class ChantScore {
   }
 
   private resolvePlaybackPitches() {
-    const pitches = new Map<Note, number>(), offsets: number[] = [];
-    let octaveOffset = 0, previousPitch: number | undefined, boundaryClef: Clef | undefined;
+    const pitches = new Map<Note, number>(), joins = new Map<Note, { clef: Clef; correction: number }>();
+    // (the clef of the last sung note, and whether a double bar has come since:
+    // the clef change of a join may be written before or after its bar)
+    let octaveOffset = 0, previousPitch: number | undefined, previousClef: Clef | undefined, barred = false;
     let clef = this.startingClef;
-    const type = (clef?: Clef) => clef instanceof DoClef ? 'c' : clef instanceof FaClef ? 'f' : undefined;
-    for (const notation of this.notations) {
+    // (a page of a paginated score has no notations of its own)
+    for (const notation of this.notations || []) {
       if (notation.isClef) clef = notation as Clef;
-      else if (notation instanceof DoubleBar) boundaryClef = clef;
+      else if (notation instanceof DoubleBar) barred = true;
       for (const note of notation.notes || []) {
         if (!note.pitch) continue;
         let pitch = note.pitch.toInt() + octaveOffset;
-        if (previousPitch !== undefined && this.sectionStarts?.has(note) &&
-            type(boundaryClef) && type(clef) && type(boundaryClef) !== type(clef)) {
+        if (barred && previousPitch !== undefined && this.sectionStarts?.has(note) &&
+            clefType(previousClef) && clefType(clef) && clefType(previousClef) !== clefType(clef)) {
           const interval = pitch - previousPitch;
+          let correction = 0;
           if (Math.abs(interval) > 6) {
             // Nearest octave; retain the direction of exact tritone ties.
-            const correction = -Math.sign(interval) * 12 * Math.ceil((Math.abs(interval) - 6) / 12);
+            correction = -Math.sign(interval) * 12 * Math.ceil((Math.abs(interval) - 6) / 12);
             octaveOffset += correction;
             pitch += correction;
           }
+          joins.set(note, { clef, correction });
         }
-        boundaryClef = undefined;
+        barred = false;
+        previousClef = clef;
         pitches.set(note, pitch);
         previousPitch = pitch;
       }
-      offsets.push(octaveOffset);
     }
-    return { pitches, offsets };
+    return { pitches, joins };
   }
 
   /**
-   * The next note in the written register at an automatic custos's location.
-   * Its singing pitch is shared with playback, but the current section's
-   * octave displacement must be removed before converting to its written clef.
+   * The pitch of an automatic custos under clef before nextNote, where
+   * nextNote starts a reconciled section and clef is the preceding section's
+   * kind: the note's singing pitch in that section's written register.
+   * Undefined for any other custos (including one after the section's own
+   * clef), which shows the note's written pitch.
+   * @internal
    */
-  getCustosPitch(nextNote: Note, afterNotationIndex: number): Pitch {
+  getCustosPitch(nextNote: Note, clef: Clef): Pitch | undefined {
     const state = this.playbackLayoutState || (this.playbackLayoutState = this.resolvePlaybackPitches());
-    const pitch = state.pitches.get(nextNote);
-    return pitch === undefined ? nextNote.pitch! :
-      new Pitch(pitch - (state.offsets[afterNotationIndex] || 0));
+    const join = state.joins.get(nextNote);
+    if (!join || clefType(clef) === clefType(join.clef)) return undefined;
+    // (by octaves from the written pitch, which keeps its step: a pitch made
+    // from half steps alone has a negative step below octave 0)
+    return new Pitch(nextNote.pitch!.step, nextNote.pitch!.octave + join.correction / 12);
   }
   useDropCap: boolean | undefined;
   dropCap: DropCap | null;
@@ -1143,6 +1169,10 @@ export class ChantScore {
     if (!this.startingClef) this.startingClef = Clef.default();
     this.startingClef.elementIndex = -1;
 
+    // section starts that an edit replaced are no longer in the score
+    const starts = this.sectionStarts;
+    if (starts) this.sectionStarts = new Set(this.notes.filter((note): note is Note => starts.has(note as Note)));
+
     this.updateVerseNumbers();
 
     // update drop cap (giving its letter back if it's no longer wanted), and
@@ -1305,7 +1335,8 @@ export class ChantScore {
    * @param  {ChantContext} ctxt
    */
   private initializeLayout(ctxt: ChantContext) {
-    this.playbackLayoutState = this.resolvePlaybackPitches();
+    // (resolved again by the first custos that needs it: see getCustosPitch())
+    this.playbackLayoutState = undefined;
     // setup the context
     ctxt.activeClef = this.startingClef;
     ctxt.notations = this.notations;
@@ -1683,7 +1714,7 @@ export class ChantScore {
     width: number,
     finishedCallback?: (score: ChantScore) => void
   ) {
-    this.playbackLayoutState = this.resolvePlaybackPitches();
+    this.playbackLayoutState = undefined;
     var lastLines = this.lines;
     this.lines = [];
     this.keptInAreas = null;

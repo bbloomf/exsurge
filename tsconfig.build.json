@@ -7,6 +7,8 @@
     "outDir": "dist/esm",
     "declaration": true,
     "declarationMap": true,
+    // (members marked @internal, such as ChantScore.getCustosPitch(), are left out of the typings)
+    "stripInternal": true,
     "sourceMap": true,
     "inlineSources": true
   },

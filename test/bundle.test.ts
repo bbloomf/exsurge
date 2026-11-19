@@ -15,6 +15,7 @@ import rollupConfig, { nabcFonts } from "../rollup.config.mjs";
 import { svgMeasuredCases } from "./golden/cases";
 import { describeGoldenCases, describeGoldenTables, describeNabcFontTables } from "./golden/golden";
 import { stubSvgTextMeasurement, type OutputName } from "./golden/harness";
+import { fakeFont } from "./helpers/fonts";
 import { nabcFonts as testedNabcFonts } from "./golden/nabcFonts";
 
 const root = resolve(__dirname, "..");
@@ -69,10 +70,7 @@ describe("the published builds", () => {
         ['(f3) A(c) (z0::c4) B(h)', [9, 9], 0]
       ] as const) {
         const ctxt = new E.ChantContext(E.TextMeasuringStrategy.OpenTypeJS);
-        ctxt.setFont('serif', 16, {}, { Regular: {
-          unitsPerEm: 1000,
-          layout: (text: string) => ({ advanceWidth: 500 * text.length, bbox: { minX: 0, maxY: 700, height: 900 } })
-        } });
+        ctxt.setFont('serif', 16, {}, { Regular: fakeFont(0.5) });
         const score = new E.ChantScore(ctxt, E.Gabc.createMappingsFromSource(ctxt, source), false);
         const notes = score.notations.flatMap((n: any) => n.notes || []);
         score.playbackSections = new Set([notes[1]]);

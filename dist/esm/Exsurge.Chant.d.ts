@@ -407,12 +407,6 @@ export declare class ChantScore {
     /** Sung semitone pitches, without changing any note's written pitch or position. */
     getPlaybackPitches(): Map<Note, number>;
     private resolvePlaybackPitches;
-    /**
-     * The next note in the written register at an automatic custos's location.
-     * Its singing pitch is shared with playback, but the current section's
-     * octave displacement must be removed before converting to its written clef.
-     */
-    getCustosPitch(nextNote: Note, afterNotationIndex: number): Pitch;
     useDropCap: boolean | undefined;
     dropCap: DropCap | null;
     private dropCapRelayouts;

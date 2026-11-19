@@ -89,19 +89,22 @@ Under construction...
 pitches. By default these are the notes' written `pitch.toInt()` values.
 For independently sourced sections, assign `score.playbackSections` a set of
 their first sung notes **before layout**. At a marked start following a double
-bar and a C/F clef change, Exsurge chooses the nearest singing octave, retaining
-the direction of exact tritone ties. It carries that octave displacement through
-the section without changing any written note, accidental, or explicit custos.
+bar and a C/F clef change (in either order), Exsurge chooses the nearest singing
+octave, retaining the direction of exact tritone ties. It carries that octave
+displacement through the section without changing any written note, accidental,
+or explicit custos.
 
 Automatic custodes use the same decision, expressed in the preceding section's
-written clef. In opted-in scores they retain that octave instead of folding into
-the staff's range. Playback clients should consume `getPlaybackPitches()` for
-both sound and range calculations. Same-clef joins, internal clef changes and
-unmarked section starts do not trigger register reconciliation.
+written clef. Before a reconciled section they retain that octave instead of
+folding into the staff's range; every other custos is placed as usual. Playback
+clients should consume `getPlaybackPitches()` for both sound and range
+calculations. Same-clef joins, internal clef changes and unmarked section starts
+do not trigger register reconciliation.
 
-The setter copies the supplied set and invalidates layout. Replace the set after
-`Gabc.updateMappingsFromSource()` and `score.updateNotations()`, since an edit can
-replace note objects. Assign `undefined` to restore ordinary written-pitch layout.
+The setter copies the supplied set and invalidates layout, unless it holds the
+same notes as before. Replace the set after `Gabc.updateMappingsFromSource()` and
+`score.updateNotations()`, since an edit can replace note objects (the score drops
+the ones it replaced). Assign `undefined` to restore ordinary written-pitch layout.
 
 ## Tests
 
