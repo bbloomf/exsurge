@@ -132,6 +132,84 @@ describe("optimal line breaking", () => {
     }
   });
 
+  describe("where no way of breaking the lines has every line within the tolerance", () => {
+    // Tollite portas with its second verse, which starts a line with its
+    // custos and a new clef, and Christus factus est, on staffs where some
+    // line has to be looser than the tolerance allows
+    const tollite =
+      "(c3) Dó(hh)mi(hg)ni(hig/hif) est (fe/f/hh) ter(f)ra(f/hhivHF) (;) et(f) ple(e)ni(f)tú(hh)do(hf/hji) " +
+      "e(hi//hhhf;hhhhihiih/ihh)jus:(fgf) (:) or(fh)bis(hhh) ter(f/hhhh)rá(e/fgf)rum(f) (;) et(f) u(e)ni(f)" +
+      "vér(f/hhhvFEhhhvFEDegf)si,(f) (;) qui(ef) há(fh)bi(h)tant(ih/if) in(ef) e(fhGF)o.(fe) (::h+) " +
+      "<nlba>*~Et introíbit.</nlba>() (Zz0f3) Ip(bf)se(f) su(f)per(fe) má(f/hhf)ri(fe)a(f) fun(f)" +
+      "dá(fe/f/hhivHF)vit(f) e(dxfdevDCBcdb)um(b) (:) et(ba) su(dxd)per(efe) flú(f/hhf)mi(fe!fwgfg)na(gf) (;) " +
+      "præ(dxd)pa(efe)rá(f)vit(fe) e(fh!ivHGhiHFhhf/efef;fh!ivHGhiHFhhf/efef;fhFEf/hhhegvFE;e!fwgf/ggfg/e!fwgfg)" +
+      "um.(dyge/ghf/ee/cdc) (::)";
+    const christus = featureCases.find((c) => c.name === "christus-factus-est")!.gabc;
+
+    it("shares the space left over among the lines, rather than leaving a line nearly empty", async () => {
+      // (2.8.6 left two neumes or fewer on a line, or just the custos before
+      // the new clef, at 225, 230, 270 and 360 and at 220, and a space up to
+      // 183 wide within a line at the others)
+      for (const [name, gabc, widths] of [
+        ["Tollite portas", tollite, [225, 230, 235, 240, 270, 275, 360]],
+        ["Christus factus est", christus, [200, 205, 210, 215, 220]]
+      ] as const) {
+        for (const width of widths) {
+          const { score } = await layOut(gabc, { width });
+          score.lines.forEach((line: any, index: number) => {
+            const notations = score.notations.slice(line.notationsStartIndex, line.notationsStartIndex + line.numNotationsOnLine);
+            // (but for the lines that end where they have to)
+            if (index === score.lines.length - 1 || notations[notations.length - 1] instanceof E.ChantLineBreak) return;
+            const at = `${name}, line ${index} at ${width}`;
+            assert.notStrictEqual(line.plannedEnd, undefined, at);
+            assert(notations.filter((n: any) => n.isNeume).length > 2, at);
+            const drawn = notations.filter((n: any) => !(n instanceof E.TextOnly));
+            for (let i = 1; i < drawn.length; i++) {
+              const space = drawn[i].bounds.x - drawn[i - 1].bounds.right();
+              assert(space < 45, `${at}: a space ${space} wide`);
+            }
+          });
+        }
+      }
+    });
+
+    it("rates a line too loose to be set by how loose it is, in the last pass only", () => {
+      const ctxt = new E.ChantContext();
+      const breaker = new E.LineBreaker(new E.ChantScore(), ctxt, 300);
+      // a line that goes as far right as right, and stretches by stretch for a badness of 100
+      // (see TrialLine.ends: its end, right, right with a custos, reach, shrink, stretch, penalty and flags)
+      const badness = (right: number, stretch: number, threshold: number) => {
+        const fit = breaker.fit([5, right, right, right, 10, stretch, 0, 0], 0, false, threshold);
+        return fit && fit.badness;
+      };
+
+      // within the tolerance, a line is as bad in the last pass as in the others
+      assert.strictEqual(badness(280, 10, Infinity), 800);
+      assert.strictEqual(badness(280, 10, 9000), 800);
+      assert.strictEqual(badness(260, 10, Infinity), 6400);
+      // past it, the others leave the line out, and the last pass takes it, the worse the looser it is
+      for (const right of [250, 200, 100]) assert.strictEqual(badness(right, 10, 9000), null);
+      const loose = [250, 200, 100, 0].map((right) => badness(right, 10, Infinity)!);
+      assert(loose[0] > 6400 && loose[0] >= 10000, `${loose}`);
+      for (let i = 1; i < loose.length; i++) assert(loose[i] > loose[i - 1], `${loose}`);
+      // (in proportion to the space it has to take up)
+      assert(Math.abs(loose[2] / loose[1] - 2) < 1e-9 && Math.abs(loose[3] / loose[1] - 3) < 1e-9, `${loose}`);
+      // so that two lines a little too loose are better than one that is nearly empty
+      // (as TeX squares them: see fitLineEnds())
+      assert(2 * loose[0] ** 2 < loose[2] ** 2);
+
+      // a line with nowhere to stretch is rated too
+      assert.strictEqual(badness(260, 0, 9000), null);
+      const rigid = [299, 260, 200, 100].map((right) => badness(right, 0, Infinity)!);
+      assert.strictEqual(rigid[0], 10000);
+      for (let i = 1; i < rigid.length; i++) assert(rigid[i] > rigid[i - 1], `${rigid}`);
+      // a line that is full, or too full, is as it was
+      assert.strictEqual(badness(300, 10, Infinity), 0);
+      assert.strictEqual(badness(305, 10, Infinity), badness(305, 10, 9000));
+      assert.strictEqual(badness(311, 10, Infinity), null);
+    });
+  });
+
   describe("a no-line-break area too wide for a line", () => {
     // the response of Custodi nos and the last of In manus tuas, as the
     // Compline app has them, in <nlba> after the response's mark
