@@ -153,6 +153,9 @@ describe('Sung pitches and custodes across clef changes', () => {
       // (with nothing between the two custodes)
       ['(c3) A(h) (l+z0::f3) B(b) C(h)', [24, 19, 29], [9, 2]],
       ['(c4) A(d) (d+z0::f3) B(f)', [14, 26], [1, 8]],
+      // as it is sung when the return has no custos (and the line before the
+      // verse gets none either, for the note that the verse's own custos shows)
+      ['(c3) A(h) (::) <nlba>*~Et introíbit.</nlba>() (Zz0f3) B(b) C(h)', [24, 19, 29], [2]],
       // (Tollite portas, where the return's custos is on another note anyway)
       ['(c3) e(fhGF)o.(fe) (::h+) <nlba>*~Et introíbit.</nlba>() (Zz0f3) Ip(bf)se(f)', [21, 24, 23, 21, 21, 19, 19, 26, 26], [5, 2]]
     ] as const) {
@@ -167,8 +170,6 @@ describe('Sung pitches and custodes across clef changes', () => {
         assertCustodesAgree(score, false, custos => custos.auto);
       }
     }
-    // (as the verse is sung when the return has no custos)
-    assert.deepEqual(played(create('(c3) A(h) (::) <nlba>*~Et introíbit.</nlba>() (Zz0f3) B(b) C(h)').score), [24, 19, 29]);
   });
 
   it('still follows an explicit custos with no automatic one after it', () => {

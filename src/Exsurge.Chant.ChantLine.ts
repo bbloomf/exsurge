@@ -135,9 +135,13 @@ export function startsTextOnlyLine(ctxt: ChantContext, notations: ChantNotationE
 /**
  * whether the notations from index on allow the line that ends just before
  * them an automatic custos: Gregorio leaves it out just before a euouae area
- * (gabc <eu>), and after a [nocustos] before the next note
+ * (gabc <eu>), and after a [nocustos] before the next note.  It is left out
+ * here too when the next line starts with a custos of its own (gabc (Zz0f3),
+ * the custos before a change of clef that starts the line), which would show
+ * the same note twice.
  */
 export function allowsCustosBefore(notations: ChantNotationElement[], index: number) {
+  if (index < notations.length && notations[index].constructor === Custos) return false;
   for (let k = index; k < notations.length; k++) {
     let next = notations[k];
     if (next.isClef || next.constructor === ChantLineBreak) continue;

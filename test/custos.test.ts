@@ -167,6 +167,35 @@ describe('A custos and a clef change at the start of a line', function() {
     });
   });
 
+  it('gives the line before no automatic custos of its own, for the note that the next line\'s custos shows', function() {
+    var toReturn = '(c3) Dó(h)mi(h)ni.(e) (::) <nlba>*~Et introíbit.</nlba>() ';
+    // every custos drawn: the notations', and the lines' own automatic ones
+    function drawn(source: string, lineBreaking: 'greedy' | 'optimal') {
+      var { ctxt, score } = create(source, lineBreaking);
+      score.layoutChantLines(ctxt, 600);
+      assert.equal(score.lines.length, 2, source);
+      assert.match(score.createSvg(ctxt), /<svg/);
+      return {
+        own: score.notations.filter(function(n) { return n instanceof Custos; }).length,
+        endOfLine: score.lines.map(function(line) { return !!line.custos && !score.notations.includes(line.custos); })
+      };
+    }
+    (['greedy', 'optimal'] as const).forEach(function(lineBreaking) {
+      // (and before an explicit custos that starts the line, or one with no clef after it)
+      forms.concat(['(Zb+f3)', '(z) (z0) (f3)', '(Z) (z0)', '(Z) (b+)']).forEach(function(form) {
+        assert.deepEqual(drawn(toReturn + form + verse, lineBreaking), { own: 1, endOfLine: [false, false] }, form);
+      });
+      // a line break alone still ends its line with a custos, as does a clef that starts the next line
+      ['(Z)', '(z)', '(Z) (f3)', '(f3) (Z)'].forEach(function(form) {
+        assert.deepEqual(drawn(toReturn + form + verse, lineBreaking), { own: 0, endOfLine: [true, false] }, form);
+      });
+      // and one that is asked for (gabc Z+) is drawn all the same
+      assert.deepEqual(drawn(toReturn + '(Z+z0f3)' + verse, lineBreaking), { own: 1, endOfLine: [true, false] });
+      // the custos of the return is the one its line ends with
+      assert.deepEqual(drawn(before + '(Zz0f3)' + verse, lineBreaking), { own: 2, endOfLine: [false, false] });
+    });
+  });
+
   it('leaves a custos alone at the start of a line, and a clef change after notes, as they were', function() {
     // (only a custos and clef that start the line go with its opening clef)
     var { ctxt, score } = create('(c3) Dó(h)mi(h)ni.(e) (::) (Z) (b+) Ip(b)se.(c) (z0) (f3) fun(b)dá(e)vit.(d) (::)');
