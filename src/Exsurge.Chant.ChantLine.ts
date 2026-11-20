@@ -1940,7 +1940,9 @@ export class ChantLine extends ChantLayoutElement {
    * prev, as findNeumesToJustify() works it out: nextOrCurr is the notation
    * at index, which is curr, or the one after it if curr is an accidental,
    * and prevLyrics are the last lyrics before it.  (Space isn't added before
-   * the line's custos either, unless it has lyrics.)
+   * the line's custos either, unless it has lyrics.)  None is added within
+   * or just after a change of clef that the line starts with (see
+   * startsWithClefChangeAt()).
    */
   canJustifyBefore(
     prev: ChantNotationElement,
@@ -1950,6 +1952,13 @@ export class ChantLine extends ChantLayoutElement {
     prevLyrics: Lyric[]
   ) {
     if (prev.keepWithNext === true) return false;
+
+    if (
+      (prev.constructor === Custos || prev.isClef) &&
+      this.score.notations[prev.notationIndex!] === prev &&
+      this.startsWithClefChangeAt(prev.notationIndex!)
+    )
+      return false;
 
     var hasLyrics = nextOrCurr.hasLyrics();
     if (
@@ -2082,6 +2091,28 @@ export class ChantLine extends ChantLayoutElement {
         right - condensable - left(notations[start]) > this.staffRight - left(notations[this.notationsStartIndex]);
     }
     return overflow.overlong;
+  }
+
+  /**
+   * whether the notation at index is part of a change of clef that the line
+   * starts with (gabc (Zz0f3), or (Z) (z0) (f3)): the custos for the next
+   * note, drawn under the line's opening clef, and the new clef, with nothing
+   * but custodes and clefs before them on the line.  They go with the opening
+   * clef, spaced as a custos and a clef are, whatever the rest of the line
+   * needs: the spaces before them are neither condensed (see
+   * positionNotationElement()) nor stretched (see canJustifyBefore()), and
+   * like the space after an opening clef, the space after the new clef isn't
+   * stretched either, so that the notes start beside it as on any line.
+   */
+  startsWithClefChangeAt(index: number) {
+    var notations = this.score.notations;
+    var isPart = (notation: ChantNotationElement) =>
+      (notation.constructor === Custos || !!notation.isClef) && !notation.hasLyrics();
+    if (index < this.notationsStartIndex || !notations[index] || !isPart(notations[index])) return false;
+    for (var k = this.notationsStartIndex; k < index; k++) if (!isPart(notations[k])) return false;
+    // (custodes alone aren't a change of clef)
+    for (k = index; k < notations.length && isPart(notations[k]); k++) if (notations[k].isClef) return true;
+    return false;
   }
 
   /** how far right a notation laid out on the line goes, with its lyrics */
@@ -2771,6 +2802,13 @@ export class ChantLine extends ChantLayoutElement {
     if (!prev.isDivider && !prev.isAccidental && this.numNotationsOnLine > 0 && startsWordWithLyrics(curr)) {
       curr.bounds.x += ctxt.intraNeumeSpacing * ctxt.interVerbalMultiplier;
     }
+    // the space before the custos or the clef of a change of clef that the
+    // line starts with can't be condensed, which would crowd them against the
+    // opening clef and each other (see startsWithClefChangeAt())
+    var startsWithClefChange =
+      (curr.constructor === Custos || !!curr.isClef) &&
+      this.score.notations[curr.notationIndex!] === curr &&
+      this.startsWithClefChangeAt(curr.notationIndex!);
     if (curr.hasNoWidth || fixedX) {
       space.total = space.condensable = 0;
     } else if (
@@ -2802,6 +2840,7 @@ export class ChantLine extends ChantLayoutElement {
         space.total += shift;
       }
     }
+    if (startsWithClefChange) space.condensable = 0;
     const currRight = () => this.notationRight(curr);
 
     // Gregorio's <clear>: a lyric's text may not start before the previous
@@ -2871,7 +2910,7 @@ export class ChantLine extends ChantLayoutElement {
       if (curr.firstOfSyllable && prevLyrics.length && !curr.hasLyrics()) {
         curr.bounds.x = Math.max(curr.bounds.x, prevLyrics[0].getRight());
         space.total = curr.bounds.x - prev.bounds.right();
-        space.condensable = space.total * ctxt.condensingTolerance;
+        space.condensable = startsWithClefChange ? 0 : space.total * ctxt.condensingTolerance;
       }
     }
 
