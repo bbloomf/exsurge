@@ -31,10 +31,13 @@ const custodes = (score: ChantScore) => [
 // Reads each drawn custos back under the clef it is drawn with, in the octave
 // the notes before it are sung in, and compares that with the note after it
 // as it is played: the same note, and (unless anyOctave) at the same pitch.
-function assertCustodesAgree(score: ChantScore, anyOctave = false) {
+// (Only the custodes that which() picks: an explicit custos needn't be for
+// the note after it.)
+function assertCustodesAgree(score: ChantScore, anyOctave = false, which = (_custos: Custos) => true) {
   const pitches = score.getPlaybackPitches();
   let clef = score.startingClef, offset = 0, checked = 0;
   const check = (custos: Custos, after: number) => {
+    if (!which(custos)) return;
     const next = score.notations.slice(after + 1).flatMap(n => n.notes || [])[0];
     if (!next) return;
     const difference = Math.abs(clef.staffPositionToPitch(custos.staffPosition).toInt() + offset - pitches.get(next)!);
@@ -122,8 +125,8 @@ describe('Sung pitches and custodes across clef changes', () => {
       ['(c3) A(f) (a+::f3) B(e)', [21, 12], [-2]],
       ['(c4) A(h) (a+::f3) B(c)', [21, 9], [-2]],
       ['(f3) A(f) (m+::c4) B(d) C(h)', [26, 38, 45], [10]],
-      // an automatic custos as well is still placed as usual
-      ['(c4) A(d) (d+z0::f3) B(f)', [14, 14], [1, 8]]
+      // (the last custos before the change, though an automatic one comes before it)
+      ['(c4) A(d) (z0d+::f3) B(f)', [14, 14], [8, 1]]
     ] as const) {
       const { ctxt, score } = create(source);
       assert.deepEqual(played(score), expected, source);
@@ -131,6 +134,58 @@ describe('Sung pitches and custodes across clef changes', () => {
       assert.deepEqual(custodes(score), positions, source);
       assert.deepEqual(played(score), expected, source);
       if (positions.length === 1) assertCustodesAgree(score);
+    }
+  });
+
+  it('goes by an automatic custos after an explicit one, which is then for something else', () => {
+    // The return to the offertory after a verse has its own custos, where
+    // the return begins; the next verse, under another clef, then starts a
+    // line with the custos for its own first note.  Here the two are the same
+    // note an octave apart, so the custos of the return could be taken for
+    // the custos of the change.
+    const [toReturn, verse] = ['(c3) A(h) (::l+) <nlba>*~Et introíbit.</nlba>() ', ' B(b) C(h)'];
+    for (const [source, expected, positions] of [
+      [toReturn + '(Zz0f3)' + verse, [24, 19, 29], [9, 2]],
+      [toReturn + '(Z) (z0) (f3)' + verse, [24, 19, 29], [9, 2]],
+      [toReturn + '(Z) (z0f3)' + verse, [24, 19, 29], [9, 2]],
+      // (an octave the other way)
+      ['(c3) A(h) (::a+) <nlba>*~Et introíbit.</nlba>() (Zz0f3) B(l) C(h)', [24, 24, 17], [-2, 5]],
+      // (with nothing between the two custodes)
+      ['(c3) A(h) (l+z0::f3) B(b) C(h)', [24, 19, 29], [9, 2]],
+      ['(c4) A(d) (d+z0::f3) B(f)', [14, 26], [1, 8]],
+      // as it is sung when the return has no custos (and the line before the
+      // verse gets none either, for the note that the verse's own custos shows)
+      ['(c3) A(h) (::) <nlba>*~Et introíbit.</nlba>() (Zz0f3) B(b) C(h)', [24, 19, 29], [2]],
+      // (Tollite portas, where the return's custos is on another note anyway)
+      ['(c3) e(fhGF)o.(fe) (::h+) <nlba>*~Et introíbit.</nlba>() (Zz0f3) Ip(bf)se(f)', [21, 24, 23, 21, 21, 19, 19, 26, 26], [5, 2]]
+    ] as const) {
+      const { ctxt, score } = create(source);
+      assert.deepEqual(played(score), expected, source);
+      for (const breaking of ['greedy', 'optimal'] as const) {
+        ctxt.lineBreaking = breaking;
+        layout(ctxt, score);
+        assert.deepEqual(custodes(score), positions, source);
+        assert.deepEqual(played(score), expected, source);
+        // the note after the change is sung where the automatic custos shows it
+        assertCustodesAgree(score, false, custos => custos.auto);
+      }
+    }
+  });
+
+  it('still follows an explicit custos with no automatic one after it', () => {
+    for (const [source, expected] of [
+      // the custos of the return is the only one before the change
+      ['(c3) A(h) (::l+) <nlba>*~Et introíbit.</nlba>() (Z) (f3) B(b) C(h)', [24, 31, 41]],
+      // an explicit custos for the change, after the custos of the return
+      ['(c3) A(h) (::h+) <nlba>*~Et introíbit.</nlba>() (Zl+f3) B(b) C(h)', [24, 31, 41]],
+      ['(c3) A(h) (::l+) <nlba>*~Et introíbit.</nlba>() (Zb+f3) B(b) C(h)', [24, 19, 29]],
+      // (and after an automatic one)
+      ['(c3) A(h) (::h+) <nlba>*~Et introíbit.</nlba>() (Zz0l+f3) B(b) C(h)', [24, 31, 41]]
+    ] as const) {
+      const { ctxt, score } = create(source);
+      assert.deepEqual(played(score), expected, source);
+      layout(ctxt, score);
+      assert.deepEqual(played(score), expected, source);
     }
   });
 
@@ -186,6 +241,8 @@ describe('Sung pitches and custodes across clef changes', () => {
     assert.deepEqual(played(create('(f3) A(f) (z0::c4) B(d) (k+::f3) C(f)').score), [26, 26, 38]);
     assert.deepEqual(played(create('(f3) A(f) (z0::c4) B(d) (d+::f3) C(f)').score), [26, 26, 26]);
     assert.deepEqual(played(create('(f3) A(f) (z0::c4) B(d) (k+::f3) C(f) (z0::c4) D(d)').score), [26, 26, 38, 26]);
+    // (but not the custos of a return, with an automatic custos after it for the change)
+    assert.deepEqual(played(create('(f3) A(f) (z0::c4) B(d) (::k+) <nlba>*~Et.</nlba>() (Zz0f3) C(f)').score), [26, 26, 26]);
   });
 
   it('goes by the note the custos is for, after notes that have no width', () => {

@@ -101,6 +101,12 @@ with:
   reckoned as the one above a C clef's C, as Gregorio reckons it), or an octave
   nearer when that is beyond where a custos is drawn.
 
+The custos of a change is the last one before it. An automatic custos after an
+explicit one is the one for the change, so the explicit one before it, which is
+for something else, is not looked at: in `(::h+) <nlba>*~Et introíbit.</nlba>()
+(Zz0f3)`, `h+` shows where the return begins, and the verse after it is sung
+where the `z0` shows its first note.
+
 Each kind of clef then keeps its octave through later changes, so an antiphon
 that comes back after its verse is sung as it was before, unless an explicit
 custos shows another octave. Changes between clefs of the same kind, and to
