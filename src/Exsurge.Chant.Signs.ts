@@ -31,6 +31,7 @@ import {
   type ChantContext,
   type ChantLayoutElement
 } from "./Exsurge.Drawing.js";
+import type { Clef } from "./Exsurge.Chant.js";
 import type { BracePoint } from "./Exsurge.Chant.Markings.js";
 import type { LedgerLineStates } from "./ledgerLines.js";
 
@@ -101,19 +102,15 @@ export class Custos extends ChantNotationElement {
 
       if (neume) {
         // (under a Chi-Rho clef, the pitch places a note nudged with 0 or 9)
-        this.staffPosition = ctxt.activeClef.pitchToStaffPosition(
-          neume.notes[0].pitch!
+        this.staffPosition = Custos.automaticStaffPosition(
+          ctxt.activeClef,
+          neume.notes[0].pitch!,
+          ctxt.staffLineCount
         );
       } else {
         // as a new custos has it, rather than where the last neume after it was
         this.staffPosition = 2;
       }
-
-      // in case there was a weird fa/do clef change, let's sanitize the staffPosition by making sure it is
-      // within reasonable bounds
-      while (this.staffPosition < -2) this.staffPosition += 7;
-
-      while (this.staffPosition > 2 * ctxt.staffLineCount + 2) this.staffPosition -= 7;
     }
 
     var glyph = new GlyphVisualizer(
@@ -124,6 +121,20 @@ export class Custos extends ChantNotationElement {
     this.addVisualizer(glyph);
 
     this.finishLayout(ctxt);
+  }
+
+  /**
+   * where an automatic custos under clef shows a note of pitch: at the
+   * note's own staff position, or, when that is beyond where a custos is
+   * drawn (as it can be after a change between a do and a fa clef), an
+   * octave or more nearer.  ChantScore.getPlaybackPitches() sings the notes
+   * after such a clef change where this shows them.
+   */
+  static automaticStaffPosition(clef: Clef, pitch: Pitch, staffLineCount: number) {
+    var staffPosition = clef.pitchToStaffPosition(pitch);
+    while (staffPosition < -2) staffPosition += 7;
+    while (staffPosition > 2 * staffLineCount + 2) staffPosition -= 7;
+    return staffPosition;
   }
 
   // called when layout has changed and our dependencies are no longer good

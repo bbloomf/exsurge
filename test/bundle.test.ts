@@ -15,6 +15,7 @@ import rollupConfig, { nabcFonts } from "../rollup.config.mjs";
 import { svgMeasuredCases } from "./golden/cases";
 import { describeGoldenCases, describeGoldenTables, describeNabcFontTables } from "./golden/golden";
 import { stubSvgTextMeasurement, type OutputName } from "./golden/harness";
+import { fakeFont } from "./helpers/fonts";
 import { nabcFonts as testedNabcFonts } from "./golden/nabcFonts";
 
 const root = resolve(__dirname, "..");
@@ -61,6 +62,25 @@ async function loadEsmBuild() {
 }
 
 describe("the published builds", () => {
+  for (const [name, load] of [['minified bundle', loadMinifiedBundle], ['ES modules', loadEsmBuild]] as const) {
+    it(name + ' sings the notes after a do/fa clef change where its custos shows them', async () => {
+      const E = await load();
+      for (const [source, expected, position] of [
+        ['(c4) A(h) (z0::f3) B(c)', [21, 21], 5],
+        ['(f3) A(f) (z0::c4) B(d)', [26, 26], 3],
+        ['(c3) A(f) (a+::f3) B(e)', [21, 12], -2]
+      ] as const) {
+        const ctxt = new E.ChantContext(E.TextMeasuringStrategy.OpenTypeJS);
+        ctxt.setFont('serif', 16, {}, { Regular: fakeFont(0.5) });
+        const score = new E.ChantScore(ctxt, E.Gabc.createMappingsFromSource(ctxt, source), false);
+        score.performLayout(ctxt);
+        score.layoutChantLines(ctxt, 600);
+        assert.deepEqual([...score.getPlaybackPitches().values()], expected);
+        assert.equal(score.notations.find((n: any) => n instanceof E.Custos)!.staffPosition, position);
+      }
+    });
+  }
+
   // a whole tsc run, which on Node 22 alongside the other test files can take longer than vitest's 5s
   it("has typings that fit how exsurge is used (test/types.ts)", () => {
     execFileSync(process.execPath, [tsc, "-p", "test/tsconfig.dist.json"], { cwd: root, stdio: "pipe" });

@@ -1,5 +1,6 @@
 import { type Pitch } from "./Exsurge.Core.js";
 import { ChantNotationElement, GlyphVisualizer, type ChantContext } from "./Exsurge.Drawing.js";
+import type { Clef } from "./Exsurge.Chant.js";
 import type { BracePoint } from "./Exsurge.Chant.Markings.js";
 import type { LedgerLineStates } from "./ledgerLines.js";
 export declare class Custos extends ChantNotationElement {
@@ -10,6 +11,14 @@ export declare class Custos extends ChantNotationElement {
     braceEnd?: BracePoint;
     constructor(auto?: boolean);
     performLayout(ctxt: ChantContext): void;
+    /**
+     * where an automatic custos under clef shows a note of pitch: at the
+     * note's own staff position, or, when that is beyond where a custos is
+     * drawn (as it can be after a change between a do and a fa clef), an
+     * octave or more nearer.  ChantScore.getPlaybackPitches() sings the notes
+     * after such a clef change where this shows them.
+     */
+    static automaticStaffPosition(clef: Clef, pitch: Pitch, staffLineCount: number): number;
     resetDependencies(): void;
     /**
      *

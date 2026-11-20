@@ -394,6 +394,22 @@ export declare class ChantScore {
     language: Language | null;
     titles?: Titles;
     startingClef: Clef;
+    /**
+     * The pitch each note is sung at, in half steps, without changing any
+     * note's written pitch or position.
+     *
+     * These are the written pitches (pitch.toInt()), in the octaves that the
+     * custodes give the clefs.  The notation doesn't say how the octaves of a
+     * do clef and of a fa clef relate, so the first change between them in the
+     * score settles it: the first note after it is sung where the custos
+     * before it shows it, under the clef the custos is drawn with.  That is
+     * where an explicit custos on that note is written, and otherwise where an
+     * automatic custos is placed (see Custos.automaticStaffPosition()),
+     * whether the source has one or not.  Each kind of clef then keeps its
+     * octave through later changes, so that notes written alike under it are
+     * sung alike, unless an explicit custos shows another.
+     */
+    getPlaybackPitches(): Map<Note, number>;
     useDropCap: boolean | undefined;
     dropCap: DropCap | null;
     private dropCapRelayouts;

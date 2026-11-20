@@ -3531,13 +3531,16 @@ export class Gabc {
         2,
         flat ? new Signs.Accidental(staffPosition - 1, Signs.AccidentalType.Flat) : null
       );
-    // The F clef marks the F below the C clef's C, in the preceding
-    // octave. Giving both clefs octave 2 shifts every C/F change by an octave.
-    // The flat is on the B above the F, or, when that's above a
+    // Both clefs are in octave 2, as Gregorio reckons them (a fa clef's fa
+    // is the one above a do clef's do), which places an automatic custos
+    // before a change between the two where Gregorio places it.  It is that
+    // custos that says which octave the notes after the change are sung in:
+    // see ChantScore.getPlaybackPitches().
+    // the flat is on the B above the F, or, when that's above a
     // four-line staff, the B below (as Gregorio puts it)
     return new FaClef(
       staffPosition,
-      1,
+      2,
       flat
         ? new Signs.Accidental(
             staffPosition <= 3 ? staffPosition + 3 : staffPosition - 4,
