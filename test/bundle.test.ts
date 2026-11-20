@@ -63,17 +63,16 @@ async function loadEsmBuild() {
 
 describe("the published builds", () => {
   for (const [name, load] of [['minified bundle', loadMinifiedBundle], ['ES modules', loadEsmBuild]] as const) {
-    it(name + ' shares section registers between playback and automatic custodes', async () => {
+    it(name + ' sings the notes after a do/fa clef change where its custos shows them', async () => {
       const E = await load();
       for (const [source, expected, position] of [
         ['(c4) A(h) (z0::f3) B(c)', [21, 21], 5],
-        ['(f3) A(c) (z0::c4) B(h)', [9, 9], 0]
+        ['(f3) A(f) (z0::c4) B(d)', [26, 26], 3],
+        ['(c3) A(f) (a+::f3) B(e)', [21, 12], -2]
       ] as const) {
         const ctxt = new E.ChantContext(E.TextMeasuringStrategy.OpenTypeJS);
         ctxt.setFont('serif', 16, {}, { Regular: fakeFont(0.5) });
         const score = new E.ChantScore(ctxt, E.Gabc.createMappingsFromSource(ctxt, source), false);
-        const notes = score.notations.flatMap((n: any) => n.notes || []);
-        score.playbackSections = new Set([notes[1]]);
         score.performLayout(ctxt);
         score.layoutChantLines(ctxt, 600);
         assert.deepEqual([...score.getPlaybackPitches().values()], expected);

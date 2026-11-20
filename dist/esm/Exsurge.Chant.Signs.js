@@ -73,22 +73,12 @@ export class Custos extends ChantNotationElement {
         this.staffPosition = 2; // default sane value
     }
     performLayout(ctxt) {
-        var _a;
         super.performLayout(ctxt);
         if (this.auto) {
             var neume = ctxt.findNextNeume();
             if (neume) {
-                const score = neume.score;
-                const reconciled = ((_a = score === null || score === void 0 ? void 0 : score.playbackSections) === null || _a === void 0 ? void 0 : _a.size)
-                    ? score.getCustosPitch(neume.notes[0], ctxt.activeClef)
-                    : undefined;
                 // (under a Chi-Rho clef, the pitch places a note nudged with 0 or 9)
-                this.staffPosition = ctxt.activeClef.pitchToStaffPosition(reconciled || neume.notes[0].pitch);
-                // A custos before a reconciled section must retain the singing octave.
-                // The historical staff-range folding can otherwise undo that choice;
-                // every other custos is folded as usual.
-                if (!reconciled)
-                    this.foldIntoStaffRange(ctxt.staffLineCount);
+                this.staffPosition = Custos.automaticStaffPosition(ctxt.activeClef, neume.notes[0].pitch, ctxt.staffLineCount);
             }
             else {
                 // as a new custos has it, rather than where the last neume after it was
@@ -100,11 +90,20 @@ export class Custos extends ChantNotationElement {
         this.addVisualizer(glyph);
         this.finishLayout(ctxt);
     }
-    foldIntoStaffRange(staffLineCount) {
-        while (this.staffPosition < -2)
-            this.staffPosition += 7;
-        while (this.staffPosition > 2 * staffLineCount + 2)
-            this.staffPosition -= 7;
+    /**
+     * where an automatic custos under clef shows a note of pitch: at the
+     * note's own staff position, or, when that is beyond where a custos is
+     * drawn (as it can be after a change between a do and a fa clef), an
+     * octave or more nearer.  ChantScore.getPlaybackPitches() sings the notes
+     * after such a clef change where this shows them.
+     */
+    static automaticStaffPosition(clef, pitch, staffLineCount) {
+        var staffPosition = clef.pitchToStaffPosition(pitch);
+        while (staffPosition < -2)
+            staffPosition += 7;
+        while (staffPosition > 2 * staffLineCount + 2)
+            staffPosition -= 7;
+        return staffPosition;
     }
     // called when layout has changed and our dependencies are no longer good
     resetDependencies() {

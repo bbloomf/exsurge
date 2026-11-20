@@ -83,28 +83,32 @@ Alternatively, you can run `npm run dev` which will watch and rebuild the UMD bu
 
 Under construction...
 
-### Joined sections and singing register
+### Sung pitches across clef changes
 
-`score.getPlaybackPitches()` returns a `Map<Note, number>` of sung semitone
-pitches. By default these are the notes' written `pitch.toInt()` values.
-For independently sourced sections, assign `score.playbackSections` a set of
-their first sung notes **before layout**. At a marked start following a double
-bar and a C/F clef change (in either order), Exsurge chooses the nearest singing
-octave, retaining the direction of exact tritone ties. It carries that octave
-displacement through the section without changing any written note, accidental,
-or explicit custos.
+`score.getPlaybackPitches()` returns a `Map<Note, number>` of the pitch each
+note is sung at, in half steps. Playback clients should use it for both sound
+and range, rather than the notes' written `pitch.toInt()`: the two differ by
+octaves after a change between a C clef and an F clef.
 
-Automatic custodes use the same decision, expressed in the preceding section's
-written clef. Before a reconciled section they retain that octave instead of
-folding into the staff's range; every other custos is placed as usual. Playback
-clients should consume `getPlaybackPitches()` for both sound and range
-calculations. Same-clef joins, internal clef changes and unmarked section starts
-do not trigger register reconciliation.
+The notation doesn't say how the octaves of the two kinds of clef relate; the
+custos before the change does. So the first note after the first such change in
+a score is sung where that custos shows it, under the clef the custos is drawn
+with:
 
-The setter copies the supplied set and invalidates layout, unless it holds the
-same notes as before. Replace the set after `Gabc.updateMappingsFromSource()` and
-`score.updateNotations()`, since an edit can replace note objects (the score drops
-the ones it replaced). Assign `undefined` to restore ordinary written-pitch layout.
+- where an explicit custos (`(a+::f3)`) is written, if it is on that note;
+- otherwise where an automatic custos (`z0`) is placed, whether the source has
+  one or not. That is the note's own staff position (an F clef's F being
+  reckoned as the one above a C clef's C, as Gregorio reckons it), or an octave
+  nearer when that is beyond where a custos is drawn.
+
+Each kind of clef then keeps its octave through later changes, so an antiphon
+that comes back after its verse is sung as it was before, unless an explicit
+custos shows another octave. Changes between clefs of the same kind, and to
+other clefs, are sung as they are written.
+
+Nothing is changed in the score: the written notes, accidentals and custodes
+are as they would be otherwise, and the pitches need no layout. Call it again
+after `Gabc.updateMappingsFromSource()` and `score.updateNotations()`.
 
 ## Tests
 
