@@ -212,7 +212,8 @@ export declare class LineBreaker {
      * in ends, as TeX works them out, or null if the line is too loose or too
      * tight for the threshold (as a line that has to break where it does, at
      * gabc z, can be too: there is then another way to break the lines before
-     * it, or else the last pass, with no threshold, sets it however loose it is)
+     * it, or else the last pass, with no threshold, sets it however loose it
+     * is)
      */
     fit(ends: number[], k: number, hasCustos: boolean, threshold: number): {
         badness: number;

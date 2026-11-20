@@ -407,6 +407,11 @@ export class ChantScore {
      * whether the source has one or not.  Each kind of clef then keeps its
      * octave through later changes, so that notes written alike under it are
      * sung alike, unless an explicit custos shows another.
+     *
+     * The custos of a change is the last one before it: an automatic custos
+     * after an explicit one is the one for the change, and the explicit one
+     * before it is for something else (as the custos of a return, gabc (::h+),
+     * before the (Zz0f3) that starts the next verse under another clef).
      */
     getPlaybackPitches() {
         const pitches = new Map();
@@ -414,7 +419,7 @@ export class ChantScore {
         // of clef are sung
         const octaves = {};
         // the clef of the last sung note, and the explicit custos (and its clef)
-        // that has come since
+        // that has come since, with no automatic custos after it
         let clef = this.startingClef, sungClef;
         let custos, custosClef;
         // (a page of a paginated score has no notations of its own)
@@ -422,8 +427,8 @@ export class ChantScore {
             var _a;
             if (notation.isClef)
                 clef = notation;
-            else if (notation instanceof Custos && !notation.auto)
-                [custos, custosClef] = [notation, clef];
+            else if (notation instanceof Custos)
+                [custos, custosClef] = notation.auto ? [] : [notation, clef];
             for (const note of notation.notes || []) {
                 if (!note.pitch)
                     continue;

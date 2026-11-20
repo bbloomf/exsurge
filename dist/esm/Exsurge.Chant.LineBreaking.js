@@ -63,6 +63,8 @@ const adjDemerits = 10000;
 // ctxt.finalHyphenDemerits sets the latter)
 // TeX's badness of a line too loose or too tight to be set
 const infiniteBadness = 10000;
+// how many times its stretch a line has to take up to be that bad
+const infinitelyLoose = Math.cbrt(infiniteBadness / 100);
 // TeX's fitness classes
 const veryLoose = 0, loose = 1, decent = 2, tight = 3;
 // How far the space before a notation may stretch when a line is justified,
@@ -258,7 +260,10 @@ export class LineBreaker {
         // fewer than the best (\looseness=-1) in each.  Where TeX would then
         // set a line as loose as it has to be, look for breaks with no limit on
         // how loose a line is (as TeX's \emergencystretch would let it be), so
-        // that the lines still break only where Gregorio breaks them.
+        // that the lines still break only where Gregorio breaks them.  There a
+        // line too loose to be set is the worse the looser it is (see fit()), so
+        // that the space left over is shared among the lines rather than left to
+        // one of them.
         var final = null, reached = null;
         for (var threshold of [pretolerance, tolerance, Infinity]) {
             var { best, bestLooser, farthest } = this.findBreaks(lineIndex, start, threshold);
@@ -371,7 +376,8 @@ export class LineBreaker {
      * in ends, as TeX works them out, or null if the line is too loose or too
      * tight for the threshold (as a line that has to break where it does, at
      * gabc z, can be too: there is then another way to break the lines before
-     * it, or else the last pass, with no threshold, sets it however loose it is)
+     * it, or else the last pass, with no threshold, sets it however loose it
+     * is)
      */
     fit(ends, k, hasCustos, threshold) {
         var badness, fitness, flags = ends[k + flagsAt];
@@ -390,6 +396,16 @@ export class LineBreaker {
                 badness = infiniteBadness;
             else
                 badness = Math.min(infiniteBadness, 100 * Math.pow(space / stretch, 3));
+            // In the last pass, a line too loose to be set is the worse the looser
+            // it is, in proportion to the space it has to take up (for a line with
+            // nowhere to stretch, as if it had one space between words).  As TeX
+            // rates them, all such lines are as bad as each other, so that one line
+            // with a single neume on it is as good as two lines that are each a
+            // little too loose, and better than three.
+            if (threshold === Infinity && badness >= infiniteBadness) {
+                var loosest = infinitelyLoose * Math.max(stretch, wordStretch * this.ctxt.staffInterval);
+                badness = infiniteBadness * Math.max(1, space / loosest);
+            }
             fitness = badness > 99 ? veryLoose : badness > 12 ? loose : decent;
         }
         else {
@@ -427,7 +443,8 @@ export class LineBreaker {
             if (!fit)
                 continue;
             var demerits = linePenalty + fit.badness;
-            demerits = demerits >= 10000 ? 100000000 : demerits * demerits;
+            // (but for the last pass, where the badness has no limit: see fit())
+            demerits = demerits >= 10000 && threshold < Infinity ? 100000000 : demerits * demerits;
             if (penalty > 0)
                 demerits += penalty * penalty;
             else if (penalty > -infinitePenalty)

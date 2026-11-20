@@ -1,3 +1,13 @@
+## [2.8.7](https://github.com/bbloomf/exsurge/compare/v2.8.6...v2.8.7) (2026-11-20)
+
+
+### Bug Fixes
+
+* **chant:** keep a line's opening custos and clef change evenly spaced ([92fbda8](https://github.com/bbloomf/exsurge/commit/92fbda8a6c225d979885b6524e98713d63300cc8))
+* **chant:** leave out the end-of-line custos before a line that starts with one ([7749d48](https://github.com/bbloomf/exsurge/commit/7749d4804e49b73d86aab6e224ac7b368f633bc2))
+* **chant:** share the space among the lines when no optimal line breaks fit ([730b65f](https://github.com/bbloomf/exsurge/commit/730b65f6f5835ec23221d9a6dc7f478de7940b23))
+* **chant:** sing a clef change by its automatic custos, not an earlier explicit one ([038048a](https://github.com/bbloomf/exsurge/commit/038048aebb8c535be1a8a53ec14be74a2125c10f))
+
 ## [2.8.6](https://github.com/bbloomf/exsurge/compare/v2.8.5...v2.8.6) (2026-11-20)
 
 

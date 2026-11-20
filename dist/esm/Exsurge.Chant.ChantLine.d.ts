@@ -37,7 +37,10 @@ export declare function startsTextOnlyLine(ctxt: ChantContext, notations: ChantN
 /**
  * whether the notations from index on allow the line that ends just before
  * them an automatic custos: Gregorio leaves it out just before a euouae area
- * (gabc <eu>), and after a [nocustos] before the next note
+ * (gabc <eu>), and after a [nocustos] before the next note.  It is left out
+ * here too when the next line starts with a custos of its own (gabc (Zz0f3),
+ * the custos before a change of clef that starts the line), which would show
+ * the same note twice.
  */
 export declare function allowsCustosBefore(notations: ChantNotationElement[], index: number): boolean;
 /**
@@ -241,7 +244,9 @@ export declare class ChantLine extends ChantLayoutElement {
      * prev, as findNeumesToJustify() works it out: nextOrCurr is the notation
      * at index, which is curr, or the one after it if curr is an accidental,
      * and prevLyrics are the last lyrics before it.  (Space isn't added before
-     * the line's custos either, unless it has lyrics.)
+     * the line's custos either, unless it has lyrics.)  None is added within
+     * or just after a change of clef that the line starts with (see
+     * startsWithClefChangeAt()).
      */
     canJustifyBefore(prev: ChantNotationElement, curr: ChantNotationElement, nextOrCurr: ChantNotationElement, index: number, prevLyrics: Lyric[]): boolean;
     getWhitespaceOnRight(ctxt?: ChantContext): number;
@@ -270,6 +275,18 @@ export declare class ChantLine extends ChantLayoutElement {
      * The notations after the line are laid out again by the line after it.)
      */
     isOverlongArea(ctxt: ChantContext, index: number, overflow: Overflow): boolean;
+    /**
+     * whether the notation at index is part of a change of clef that the line
+     * starts with (gabc (Zz0f3), or (Z) (z0) (f3)): the custos for the next
+     * note, drawn under the line's opening clef, and the new clef, with nothing
+     * but custodes and clefs before them on the line.  They go with the opening
+     * clef, spaced as a custos and a clef are, whatever the rest of the line
+     * needs: the spaces before them are neither condensed (see
+     * positionNotationElement()) nor stretched (see canJustifyBefore()), and
+     * like the space after an opening clef, the space after the new clef isn't
+     * stretched either, so that the notes start beside it as on any line.
+     */
+    startsWithClefChangeAt(index: number): boolean;
     /** how far right a notation laid out on the line goes, with its lyrics */
     reachOf(notation: ChantNotationElement): number;
     /**

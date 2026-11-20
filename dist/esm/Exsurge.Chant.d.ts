@@ -408,6 +408,11 @@ export declare class ChantScore {
      * whether the source has one or not.  Each kind of clef then keeps its
      * octave through later changes, so that notes written alike under it are
      * sung alike, unless an explicit custos shows another.
+     *
+     * The custos of a change is the last one before it: an automatic custos
+     * after an explicit one is the one for the change, and the explicit one
+     * before it is for something else (as the custos of a return, gabc (::h+),
+     * before the (Zz0f3) that starts the next verse under another clef).
      */
     getPlaybackPitches(): Map<Note, number>;
     useDropCap: boolean | undefined;
