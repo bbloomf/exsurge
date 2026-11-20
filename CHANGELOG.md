@@ -1,3 +1,13 @@
+## [2.8.6](https://github.com/bbloomf/exsurge/compare/v2.8.5...v2.8.6) (2026-11-20)
+
+
+### Bug Fixes
+
+* **chant:** reconcile custodes per join, not per score ([bb761c6](https://github.com/bbloomf/exsurge/commit/bb761c6f34d6b9fe7fccf78ccab996a0e20e984f))
+* **chant:** share singing registers with automatic custodes ([f82f781](https://github.com/bbloomf/exsurge/commit/f82f781b9d995b3be967dc774e9d0d8cb5131dee))
+* **chant:** sing do/fa clef changes where the custos shows them ([31453f3](https://github.com/bbloomf/exsurge/commit/31453f3ca948df159909d95b6667559f27d4270d))
+* **gabc:** preserve pitch octaves across clef changes ([a3d8cba](https://github.com/bbloomf/exsurge/commit/a3d8cbac8b91529e1d3b5109f243b69ebd72b85c))
+
 ## [2.8.5](https://github.com/bbloomf/exsurge/compare/v2.8.4...v2.8.5) (2026-11-18)
 
 
